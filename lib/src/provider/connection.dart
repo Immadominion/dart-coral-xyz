@@ -1,0 +1,501 @@
+/// Connection class for RPC communication with Solana clusters
+///
+/// This module provides the core Connection class that handles RPC
+/// communication with Solana validators, manages endpoint configuration,
+/// and provides health checking and retry logic.
+
+library;
+
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+import '../types/commitment.dart';
+import '../types/connection_config.dart';
+import '../types/public_key.dart';
+import '../utils/rpc_errors.dart';
+import '../external/solana_rpc_wrapper.dart';
+
+/// Connection to a Solana cluster for RPC communication
+///
+/// This class provides the primary interface for communicating with
+/// Solana validators. It handles connection management, endpoint
+/// configuration, commitment levels, and retry logic.
+class Connection {
+  final String _endpoint;
+  final ConnectionConfig _config;
+  final SolanaRpcWrapper _rpcWrapper;
+  final http.Client _httpClient;
+
+  /// Create a new Connection
+  ///
+  /// [endpoint] - The RPC endpoint URL
+  /// [config] - Optional connection configuration
+  /// [httpClient] - Optional HTTP client (for testing)
+  Connection(
+    this._endpoint, {
+    ConnectionConfig? config,
+    http.Client? httpClient,
+  })  : _config = config ?? ConnectionConfig(rpcUrl: _endpoint),
+        _httpClient = httpClient ?? http.Client(),
+        _rpcWrapper = SolanaRpcWrapper(_endpoint);
+
+  /// Get the endpoint URL
+  String get endpoint => _endpoint;
+
+  /// Get the RPC URL (alias for endpoint, for backward compatibility)
+  String get rpcUrl => _endpoint;
+
+  /// Get the connection configuration
+  ConnectionConfig get config => _config;
+
+  /// Get the commitment level (for backward compatibility)
+  String get commitment => _config.commitment.commitment.value;
+
+  /// Send and confirm transaction
+  ///
+  /// [transaction] - Transaction data to send
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns the transaction signature
+  Future<String> sendAndConfirmTransaction(
+    Map<String, dynamic> transaction, {
+    CommitmentConfig? commitment,
+  }) async {
+    return await _rpcWrapper.sendAndConfirmTransaction(
+      transaction,
+      commitment: (commitment ?? _config.commitment).commitment.value,
+    );
+  }
+
+  /// Get account balance in lamports
+  ///
+  /// [publicKey] - The public key of the account to query
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns the balance in lamports
+  Future<int> getBalance(
+    PublicKey publicKey, {
+    CommitmentConfig? commitment,
+  }) async {
+    final result = await _makeRpcRequest('getBalance', [
+      publicKey.toBase58(),
+      {
+        'commitment': (commitment ?? _config.commitment).commitment.value,
+      }
+    ]);
+
+    if (result['value'] is int) {
+      return result['value'] as int;
+    }
+    throw RpcException('Invalid balance response: $result');
+  }
+
+  /// Get account information for a given public key
+  ///
+  /// [publicKey] - The public key of the account to query
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns account information or null if account doesn't exist
+  Future<AccountInfo?> getAccountInfo(
+    PublicKey publicKey, {
+    CommitmentConfig? commitment,
+  }) async {
+    final result = await _makeRpcRequest('getAccountInfo', [
+      publicKey.toBase58(),
+      {
+        'commitment': (commitment ?? _config.commitment).commitment.value,
+        'encoding': 'base64',
+      }
+    ]);
+
+    if (result['value'] == null) {
+      return null;
+    }
+
+    final accountData = result['value'] as Map<String, dynamic>;
+    return AccountInfo.fromJson(accountData);
+  }
+
+  /// Get the latest blockhash
+  ///
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns latest blockhash information
+  Future<LatestBlockhash> getLatestBlockhash({
+    CommitmentConfig? commitment,
+  }) async {
+    final result = await _makeRpcRequest('getLatestBlockhash', [
+      {
+        'commitment': (commitment ?? _config.commitment).commitment.value,
+      }
+    ]);
+
+    final value = result['value'] as Map<String, dynamic>;
+    return LatestBlockhash(
+      blockhash: value['blockhash'] as String,
+      lastValidBlockHeight: value['lastValidBlockHeight'] as int,
+    );
+  }
+
+  /// Get multiple account information for given public keys
+  ///
+  /// [publicKeys] - List of public keys to query
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns list of account information (null for non-existent accounts)
+  Future<List<AccountInfo?>> getMultipleAccountsInfo(
+    List<PublicKey> publicKeys, {
+    CommitmentConfig? commitment,
+  }) async {
+    final result = await _makeRpcRequest('getMultipleAccounts', [
+      publicKeys.map((pk) => pk.toBase58()).toList(),
+      {
+        'commitment': (commitment ?? _config.commitment).commitment.value,
+        'encoding': 'base64',
+      }
+    ]);
+
+    final value = result['value'] as List<dynamic>;
+    return value.map((accountData) {
+      if (accountData == null) return null;
+      return AccountInfo.fromJson(accountData as Map<String, dynamic>);
+    }).toList();
+  }
+
+  /// Get program accounts for a given program ID
+  ///
+  /// [programId] - The program ID to query accounts for
+  /// [filters] - Optional filters to apply
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns list of program accounts
+  Future<List<ProgramAccountInfo>> getProgramAccounts(
+    PublicKey programId, {
+    List<AccountFilter>? filters,
+    CommitmentConfig? commitment,
+  }) async {
+    final params = <dynamic>[
+      programId.toBase58(),
+      {
+        'commitment': (commitment ?? _config.commitment).commitment.value,
+        'encoding': 'base64',
+        if (filters != null && filters.isNotEmpty)
+          'filters': filters.map((f) => f.toJson()).toList(),
+      }
+    ];
+
+    final result = await _makeRpcRequest('getProgramAccounts', params);
+    final accounts = result as List<dynamic>;
+
+    return accounts.map((account) {
+      final accountData = account as Map<String, dynamic>;
+      return ProgramAccountInfo.fromJson(accountData);
+    }).toList();
+  }
+
+  /// Get minimum balance for rent exemption
+  ///
+  /// [dataLength] - Length of data for the account
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns minimum balance in lamports
+  Future<int> getMinimumBalanceForRentExemption(
+    int dataLength, {
+    CommitmentConfig? commitment,
+  }) async {
+    final result = await _makeRpcRequest('getMinimumBalanceForRentExemption', [
+      dataLength,
+      {
+        'commitment': (commitment ?? _config.commitment).commitment.value,
+      }
+    ]);
+
+    return result as int;
+  }
+
+  /// Check health of the RPC node
+  ///
+  /// Returns 'ok' if healthy, throws exception if not
+  Future<String> checkHealth() async {
+    final result = await _makeRpcRequest('getHealth', []);
+    return result.toString();
+  }
+
+  /// Request airdrop for a public key (devnet and testnet only)
+  ///
+  /// [publicKey] - The public key to receive the airdrop
+  /// [lamports] - Amount of lamports to airdrop
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns the transaction signature of the airdrop
+  Future<String> requestAirdrop(
+    PublicKey publicKey,
+    int lamports, {
+    CommitmentConfig? commitment,
+  }) async {
+    return await _rpcWrapper.client.rpcClient.requestAirdrop(
+      publicKey.toBase58(),
+      lamports,
+    );
+  }
+
+  /// Create connection from configuration
+  ///
+  /// [config] - Connection configuration
+  ///
+  /// Returns new connection instance
+  static Connection fromConfig(ConnectionConfig config) {
+    return Connection(config.rpcUrl, config: config);
+  }
+
+  /// Close the connection and cleanup resources
+  void close() {
+    _httpClient.close();
+  }
+
+  /// Internal helper to make RPC requests
+  Future<Map<String, dynamic>> _makeRpcRequest(
+    String method,
+    List<dynamic> params,
+  ) async {
+    final requestBody = {
+      'jsonrpc': '2.0',
+      'id': DateTime.now().millisecondsSinceEpoch,
+      'method': method,
+      'params': params,
+    };
+
+    try {
+      final response = await _httpClient.post(
+        Uri.parse(_endpoint),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode != 200) {
+        throw RpcException(
+          'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+        );
+      }
+
+      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+
+      if (responseData['error'] != null) {
+        final error = responseData['error'] as Map<String, dynamic>;
+        throw RpcException(
+          'RPC Error ${error['code']}: ${error['message']}',
+        );
+      }
+
+      return responseData['result'] as Map<String, dynamic>;
+    } catch (e) {
+      if (e is RpcException) rethrow;
+      throw RpcException('Failed to make RPC request: $e');
+    }
+  }
+}
+
+/// Account information returned by getAccountInfo
+class AccountInfo {
+  final bool executable;
+  final int lamports;
+  final PublicKey owner;
+  final dynamic data; // Can be String (base64) or Uint8List
+  final int rentEpoch;
+
+  const AccountInfo({
+    required this.executable,
+    required this.lamports,
+    required this.owner,
+    this.data,
+    required this.rentEpoch,
+  });
+
+  factory AccountInfo.fromJson(Map<String, dynamic> json) {
+    dynamic data;
+    if (json['data'] != null) {
+      final rawData = json['data'];
+      if (rawData is String) {
+        // Keep string format as-is for backward compatibility
+        data = rawData;
+      } else if (rawData is List && rawData.isNotEmpty) {
+        // Handle array format like ['base64-encoded-data', 'base64']
+        // Take the first element which is typically the data
+        data = rawData.first;
+      }
+    }
+
+    return AccountInfo(
+      executable: json['executable'] as bool,
+      lamports: json['lamports'] as int,
+      owner: PublicKey.fromBase58(json['owner'] as String),
+      data: data,
+      rentEpoch: json['rentEpoch'] as int,
+    );
+  }
+}
+
+/// Latest blockhash information
+class LatestBlockhash {
+  final String blockhash;
+  final int lastValidBlockHeight;
+
+  const LatestBlockhash({
+    required this.blockhash,
+    required this.lastValidBlockHeight,
+  });
+
+  factory LatestBlockhash.fromJson(Map<String, dynamic> json) {
+    return LatestBlockhash(
+      blockhash: json['blockhash'] as String,
+      lastValidBlockHeight: json['lastValidBlockHeight'] as int,
+    );
+  }
+}
+
+/// Base class for account filters
+abstract class AccountFilter {
+  Map<String, dynamic> toJson();
+}
+
+/// Memory comparison filter
+class MemcmpFilter extends AccountFilter {
+  final int offset;
+  final String bytes;
+
+  MemcmpFilter({
+    required this.offset,
+    required this.bytes,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'memcmp': {
+        'offset': offset,
+        'bytes': bytes,
+      }
+    };
+  }
+}
+
+/// Data size filter
+class DataSizeFilter extends AccountFilter {
+  final int dataSize;
+
+  DataSizeFilter(this.dataSize);
+
+  /// Named constructor for backward compatibility
+  DataSizeFilter.named({required this.dataSize});
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'dataSize': dataSize,
+    };
+  }
+}
+
+/// Token account filter
+class TokenAccountFilter extends AccountFilter {
+  final String mint;
+
+  TokenAccountFilter(this.mint);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'tokenAccountState': 'initialized',
+      'mint': mint,
+    };
+  }
+}
+
+/// Program account information returned by getProgramAccounts
+class ProgramAccountInfo {
+  final PublicKey pubkey;
+  final AccountInfo account;
+
+  const ProgramAccountInfo({
+    required this.pubkey,
+    required this.account,
+  });
+
+  factory ProgramAccountInfo.fromJson(Map<String, dynamic> json) {
+    return ProgramAccountInfo(
+      pubkey: PublicKey.fromBase58(json['pubkey'] as String),
+      account: AccountInfo.fromJson(json['account'] as Map<String, dynamic>),
+    );
+  }
+}
+
+/// Send transaction options
+class SendTransactionOptions {
+  final bool skipPreflight;
+  final String preflightCommitment;
+  final int maxRetries;
+
+  const SendTransactionOptions({
+    this.skipPreflight = false,
+    this.preflightCommitment = 'processed',
+    this.maxRetries = 0,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'skipPreflight': skipPreflight,
+      'preflightCommitment': preflightCommitment,
+      'maxRetries': maxRetries,
+    };
+  }
+}
+
+/// RPC transaction confirmation
+class RpcTransactionConfirmation {
+  final String signature;
+  final String? err;
+  final Map<String, dynamic>? meta;
+  final int? slot;
+  final int? confirmations;
+  final String? confirmationStatus;
+  final bool isSuccess;
+
+  const RpcTransactionConfirmation({
+    required this.signature,
+    this.err,
+    this.meta,
+    this.slot,
+    this.confirmations,
+    this.confirmationStatus,
+  }) : isSuccess = err == null;
+
+  factory RpcTransactionConfirmation.fromJson(Map<String, dynamic> json) {
+    return RpcTransactionConfirmation(
+      signature: json['signature'] as String? ??
+          '', // Default to empty string if not provided
+      err: json['err'] as String?,
+      meta: json['meta'] as Map<String, dynamic>?,
+      slot: json['slot'] as int?,
+      confirmations: json['confirmations'] as int?,
+      confirmationStatus: json['confirmationStatus'] as String?,
+    );
+  }
+}
+
+/// Helper functions for creating account filters
+
+/// Create a memory comparison filter
+MemcmpFilter memcmpFilter({required int offset, required String bytes}) {
+  return MemcmpFilter(offset: offset, bytes: bytes);
+}
+
+/// Create a data size filter
+DataSizeFilter dataSizeFilter(int dataSize) {
+  return DataSizeFilter(dataSize);
+}
+
+/// Create a token account filter
+TokenAccountFilter tokenAccountFilter(String mint) {
+  return TokenAccountFilter(mint);
+}

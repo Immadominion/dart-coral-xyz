@@ -1,0 +1,36 @@
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    # Additional rules for better code quality
+    - avoid_print
+    - avoid_unnecessary_containers
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_fields
+    - prefer_final_in_for_each
+    - prefer_final_locals
+    - prefer_if_null_operators
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - prefer_single_quotes
+    - sort_child_properties_last
+    - use_full_hex_values_for_flutter_colors
+    - use_key_in_widget_constructors
+    - require_trailing_commas
+    
+analyzer:
+  exclude:
+    - "build/**"
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  
+  errors:
+    invalid_annotation_target: ignore
+    todo: ignore
+    missing_required_param: error
+    missing_return: error

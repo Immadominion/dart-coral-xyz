@@ -1,0 +1,78 @@
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Dart and Flutter
+.dart_tool/
+.packages
+build/
+pubspec.lock
+
+# Coverage
+coverage/
+.coverage
+
+# Test results
+test_results/
+
+# Documentation
+doc/api/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE specific files
+*.iml
+*.ipr
+*.iws
+
+# Dependency directories
+node_modules/
+
+# Distribution files
+dist/
+*.tar.gz
+*.zip
+
+# Backup files
+*.bak
+*.backup
+
+# Lock files (except pubspec.lock for applications)
+yarn.lock
+package-lock.json
+
+# Generated files
+*.generated.dart
+*.g.dart
+*.freezed.dart
+*.config.dart
+
+# Platform specific
+android/
+ios/
+web/
+linux/
+macos/
+windows/

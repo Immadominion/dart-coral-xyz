@@ -1,0 +1,76 @@
+name: coral_xyz_anchor
+description: A comprehensive Dart client for Anchor programs on Solana
+version: 0.1.0
+homepage: https://github.com/your-username/dart-coral-xyz
+repository: https://github.com/your-username/dart-coral-xyz
+issue_tracker: https://github.com/your-username/dart-coral-xyz/issues
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  # Core Dart dependencies
+  http: ^1.1.0                         # Required by solana package
+  convert: ^3.1.1
+  crypto: ^3.0.3
+  web_socket_channel: ^3.0.0           # WebSocket support for event system
+  
+  # Solana Web3 dependencies
+  solana: ^0.31.2+1                    # Primary Solana RPC client
+  # solana_web3: ^0.1.3               # Temporarily disabled due to pinenacl version conflict
+  
+  # Mobile wallet integration (optional)
+  # solana_mobile_client: ^0.1.2      # Temporarily disabled to avoid conflicts
+  
+  # Serialization dependencies
+  borsh: ^0.3.2                        # Primary Borsh serialization
+  borsh_annotation: ^0.3.2             # Borsh annotations for better type support
+  
+  # Cryptography dependencies  
+  cryptography: ^2.7.0                 # ED25519, X25519, and other crypto
+  ed25519_hd_key: ^2.3.0               # HD key derivation for wallet support
+  
+  # Encoding dependencies
+  bs58: ^1.0.2                         # Base58 encoding (Bitcoin-style)
+  base_codecs: ^1.0.1                  # Additional base encodings
+  
+  # Utility dependencies
+  meta: ^1.9.1                         # Dart meta annotations
+  equatable: ^2.0.5                    # Value equality
+  
+  # Additional blockchain utilities
+  blockchain_utils: ^5.0.0             # Enhanced blockchain utilities
+  
+  # Optional mobile/Flutter dependencies
+  # flutter: 
+  #   sdk: flutter
+
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^6.0.0
+  # dart_code_metrics: ^5.7.6  # Disabled due to http version conflicts
+  mockito: ^5.4.2
+  build_runner: ^2.4.7
+
+# Uncomment for Flutter package
+# flutter:
+#   plugin:
+#     platforms:
+#       android:
+#         package: com.example.coral_xyz_anchor
+#         pluginClass: CoralXyzAnchorPlugin
+#       ios:
+#         pluginClass: CoralXyzAnchorPlugin
+
+topics:
+  - solana
+  - anchor
+  - blockchain
+  - web3
+
+# screenshots:
+#   - description: 'Basic usage example'
+#     path: screenshots/example.png
+
+funding:
+  - https://github.com/sponsors/your-username
