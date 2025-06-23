@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'dart:typed_data';
 
 void main() {
@@ -17,7 +17,7 @@ void main() {
       // This should not throw an exception anymore
       final result = await PublicKey.findProgramAddress(seeds, programId);
 
-      expect(result, isA<PdaResult>());
+      expect(result, isNotNull);
       expect(result.address, isA<PublicKey>());
       expect(result.bump, isA<int>());
       expect(result.bump, greaterThanOrEqualTo(1));
@@ -75,7 +75,7 @@ void main() {
 
       final result = await PublicKey.findProgramAddress(seeds, programId);
 
-      expect(result, isA<PdaResult>());
+      expect(result, isNotNull);
       expect(result.address, isA<PublicKey>());
       print('Complex PDA: ${result.address.toBase58()}');
     });

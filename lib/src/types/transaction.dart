@@ -157,14 +157,14 @@ class AccountMeta {
 typedef TransactionSignature = String;
 
 /// Transaction simulation result
-class TransactionSimulationResult {
+class BasicTransactionSimulationResult {
   final bool success;
   final List<String> logs;
   final String? error;
   final int? computeUnits;
   final List<String> warnings;
 
-  const TransactionSimulationResult({
+  const BasicTransactionSimulationResult({
     required this.success,
     required this.logs,
     this.error,

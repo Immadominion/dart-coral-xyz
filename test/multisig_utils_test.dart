@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/utils/multisig.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 void main() {
   group('MultisigUtils Tests', () {

@@ -9,6 +9,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/io.dart';
 
 import '../types/commitment.dart';
 import '../types/connection_config.dart';
@@ -26,6 +27,12 @@ class Connection {
   final ConnectionConfig _config;
   final SolanaRpcWrapper _rpcWrapper;
   final http.Client _httpClient;
+
+  /// WebSocket connections for subscriptions
+  final Map<String, IOWebSocketChannel> _subscriptions = {};
+
+  /// Subscription ID counter
+  int _subscriptionIdCounter = 1;
 
   /// Create a new Connection
   ///
@@ -254,6 +261,101 @@ class Connection {
     _httpClient.close();
   }
 
+  /// Subscribe to logs for a program or account
+  ///
+  /// [filter] - Either a program ID or "all" for all logs
+  /// [callback] - Function to call when logs are received
+  /// [commitment] - Optional commitment level
+  ///
+  /// Returns a subscription ID that can be used to unsubscribe
+  Future<String> onLogs(
+    dynamic filter, // Can be PublicKey, String, or "all"
+    void Function(LogsNotification) callback, {
+    CommitmentConfig? commitment,
+  }) async {
+    final subscriptionId = 'logs_${_subscriptionIdCounter++}';
+
+    // Create WebSocket connection
+    final wsUrl = _endpoint.replaceFirst('http', 'ws');
+    final channel = IOWebSocketChannel.connect(wsUrl);
+
+    // Prepare subscription request
+    String filterValue;
+    if (filter is PublicKey) {
+      filterValue = filter.toBase58();
+    } else if (filter is String) {
+      filterValue = filter;
+    } else {
+      throw ArgumentError('Filter must be PublicKey, String, or "all"');
+    }
+
+    final subscribeRequest = {
+      'jsonrpc': '2.0',
+      'id': 1,
+      'method': 'logsSubscribe',
+      'params': [
+        filterValue,
+        {
+          'commitment': (commitment ?? _config.commitment).commitment.value,
+          'encoding': 'jsonParsed',
+        },
+      ],
+    };
+
+    // Send subscription request
+    channel.sink.add(jsonEncode(subscribeRequest));
+
+    // Listen for messages
+    channel.stream.listen(
+      (message) {
+        try {
+          final data = jsonDecode(message as String) as Map<String, dynamic>;
+
+          if (data.containsKey('method') &&
+              data['method'] == 'logsNotification') {
+            final params = data['params'] as Map<String, dynamic>;
+            final result = params['result'] as Map<String, dynamic>;
+            final context = result['context'] as Map<String, dynamic>;
+            final value = result['value'] as Map<String, dynamic>;
+
+            final notification = LogsNotification(
+              signature: value['signature'] as String,
+              logs: (value['logs'] as List<dynamic>).cast<String>(),
+              err: value['err'] as String?,
+              slot: context['slot'] as int,
+            );
+
+            callback(notification);
+          }
+        } catch (e) {
+          // Log error but continue processing
+          // TODO: Use proper logging framework instead of print
+          print('Error processing logs notification: $e');
+        }
+      },
+      onError: (error) {
+        // TODO: Use proper logging framework instead of print
+        print('WebSocket error: $error');
+      },
+      onDone: () {
+        _subscriptions.remove(subscriptionId);
+      },
+    );
+
+    _subscriptions[subscriptionId] = channel;
+    return subscriptionId;
+  }
+
+  /// Remove a logs subscription
+  ///
+  /// [subscriptionId] - The subscription ID returned from onLogs
+  Future<void> removeOnLogsListener(String subscriptionId) async {
+    final channel = _subscriptions.remove(subscriptionId);
+    if (channel != null) {
+      await channel.sink.close();
+    }
+  }
+
   /// Internal helper to make RPC requests
   Future<Map<String, dynamic>> _makeRpcRequest(
     String method,
@@ -375,7 +477,7 @@ class MemcmpFilter extends AccountFilter {
       'memcmp': {
         'offset': offset,
         'bytes': bytes,
-      }
+      },
     };
   }
 }
@@ -498,4 +600,22 @@ DataSizeFilter dataSizeFilter(int dataSize) {
 /// Create a token account filter
 TokenAccountFilter tokenAccountFilter(String mint) {
   return TokenAccountFilter(mint);
+}
+
+/// Logs notification data
+class LogsNotification {
+  final String signature;
+  final List<String> logs;
+  final String? err;
+  final int slot;
+
+  LogsNotification({
+    required this.signature,
+    required this.logs,
+    this.err,
+    required this.slot,
+  });
+
+  /// Whether the transaction succeeded
+  bool get isSuccess => err == null;
 }

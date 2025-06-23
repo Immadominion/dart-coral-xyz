@@ -1,12 +1,15 @@
 import 'dart:typed_data';
 import '../idl/idl.dart';
+import '../idl/idl_utils.dart';
 import '../provider/provider.dart';
 import '../coder/coder.dart';
 import '../types/public_key.dart';
 import '../types/commitment.dart';
 import '../event/event_manager.dart';
-import '../event/types.dart';
-import '../event/event_subscription.dart';
+import '../event/event_persistence.dart';
+import '../event/event_debugging.dart';
+import '../event/event_aggregation.dart';
+import '../event/types.dart' hide EventCallback;
 import 'namespace/namespace_factory.dart';
 import 'namespace/account_namespace.dart';
 import 'namespace/instruction_namespace.dart';
@@ -14,6 +17,9 @@ import 'namespace/methods_namespace.dart';
 import 'namespace/rpc_namespace.dart';
 import 'namespace/simulate_namespace.dart';
 import 'namespace/transaction_namespace.dart';
+import 'namespace/views_namespace.dart';
+import 'program_error_handler.dart';
+import 'context.dart';
 
 /// Core Program class for interacting with Anchor programs
 ///
@@ -87,8 +93,17 @@ class Program<T extends Idl> {
   /// Generated namespaces for program interaction
   late final NamespaceSet _namespaces;
 
-  /// Event manager for handling program event subscriptions
+  /// Event manager for handling program event subscriptions (TypeScript-compatible)
   late final EventManager _eventManager;
+
+  /// Event persistence service for storing and retrieving events
+  late final EventPersistenceService? _eventPersistence;
+
+  /// Event debugging service for monitoring and analysis
+  late final EventDebugMonitor? _eventDebugging;
+
+  /// Event aggregation service for processing pipelines
+  late final EventAggregationService? _eventAggregation;
 
   /// Creates a new Program instance
   ///
@@ -135,12 +150,17 @@ class Program<T extends Idl> {
       provider: _provider,
     );
 
-    // Initialize event manager
+    // Initialize event manager (TypeScript-compatible)
     _eventManager = EventManager(
-      programId: _programId,
-      provider: _provider,
-      coder: _coder as BorshCoder,
+      _programId,
+      _provider,
+      _coder as BorshCoder,
     );
+
+    // Initialize optional advanced event services on demand
+    _eventPersistence = null;
+    _eventDebugging = null;
+    _eventAggregation = null;
   }
 
   /// Create a Program instance with a separate program ID
@@ -172,12 +192,17 @@ class Program<T extends Idl> {
       provider: _provider,
     );
 
-    // Initialize event manager
+    // Initialize event manager (TypeScript-compatible)
     _eventManager = EventManager(
-      programId: _programId,
-      provider: _provider,
-      coder: _coder as BorshCoder,
+      _programId,
+      _provider,
+      _coder as BorshCoder,
     );
+
+    // Initialize optional advanced event services on demand
+    _eventPersistence = null;
+    _eventDebugging = null;
+    _eventAggregation = null;
   }
 
   /// The IDL definition for this program
@@ -194,6 +219,41 @@ class Program<T extends Idl> {
 
   /// The coder for serialization/deserialization
   Coder get coder => _coder;
+
+  /// The connection for network operations (unified resource sharing)
+  ///
+  /// This provides direct access to the underlying Solana connection
+  /// that is shared across all namespaces and the event manager.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Access the connection directly
+  /// final latestBlockhash = await program.connection.getLatestBlockhash();
+  ///
+  /// // Check network status
+  /// final health = await program.connection.getHealth();
+  /// ```
+  Connection get connection => _provider.connection;
+
+  /// The event manager for program event subscriptions (unified resource sharing)
+  ///
+  /// This provides direct access to the TypeScript-compatible EventManager
+  /// that shares the same connection and provider resources as all other
+  /// program operations.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Access event manager directly for advanced operations
+  /// final stats = program.events.stats;
+  /// final state = program.events.state;
+  ///
+  /// // Access the same functionality as the convenience methods
+  /// final listenerId = program.events.addEventListener('MyEvent', callback);
+  /// await program.events.removeEventListener(listenerId);
+  /// ```
+  EventManager get events => _eventManager;
 
   /// The RPC namespace for sending signed transactions
   ///
@@ -334,6 +394,30 @@ class Program<T extends Idl> {
   /// ```
   MethodsNamespace get methods => _namespaces.methods;
 
+  /// The views namespace for read-only function calls
+  ///
+  /// This namespace provides methods for calling read-only functions that
+  /// return data without modifying blockchain state. Views use simulation
+  /// to execute and extract return data from program logs.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Call a view function to get current price
+  /// final price = await program.views.getPrice([marketAddress]);
+  ///
+  /// // Call a view function to get account info
+  /// final info = await program.views.getAccountInfo([accountKey]);
+  /// ```
+  ///
+  /// ## Requirements
+  ///
+  /// For an instruction to be available as a view function:
+  /// - Must have a return type defined in the IDL
+  /// - Must not have any writable accounts
+  /// - Must be suitable for simulation without state changes
+  ViewsNamespace get views => _namespaces.views;
+
   /// Creates a Program instance by fetching the IDL from the network
   ///
   /// This method fetches the IDL from the on-chain IDL account and creates
@@ -376,13 +460,23 @@ class Program<T extends Idl> {
     AnchorProvider? provider,
   }) async {
     final programId = PublicKey.fromBase58(address);
-    final idl = await fetchIdl(programId, provider: provider);
+    provider ??= AnchorProvider.defaultProvider();
 
-    if (idl == null) {
-      return null;
-    }
+    return await ProgramErrorHandler.wrapOperation(
+      'fetchIdl',
+      () async {
+        final idl = await IdlUtils.fetchIdl(programId, provider!);
+        if (idl == null) {
+          return null;
+        }
 
-    return Program<Idl>(idl, provider: provider);
+        // Convert IDL to camelCase for better Dart ergonomics
+        final camelCaseIdl = IdlUtils.convertIdlToCamelCase(idl);
+
+        return Program<Idl>(camelCaseIdl, provider: provider);
+      },
+      context: {'programId': address},
+    );
   }
 
   /// Fetches an IDL from the blockchain
@@ -400,42 +494,20 @@ class Program<T extends Idl> {
   }) async {
     provider ??= AnchorProvider.defaultProvider();
 
-    try {
-      // Calculate the IDL address
-      final idlAddress = await getIdlAddress(programId);
-
-      // Fetch the account info
-      final accountInfo = await provider.connection.getAccountInfo(
-        idlAddress,
-      );
-
-      if (accountInfo == null) {
-        return null;
-      }
-
-      // TODO: Implement proper IDL account decoding with compression handling
-      // For now, return null as this requires more infrastructure
-      return null;
-    } catch (e) {
-      return null;
-    }
+    return await ProgramErrorHandler.wrapOperation(
+      'fetchIdl',
+      () async {
+        return await IdlUtils.fetchIdl(programId, provider!);
+      },
+      context: {'programId': programId.toBase58()},
+    );
   }
 
   /// Calculate the IDL address for a given program ID
   ///
   /// This derives the deterministic address where the IDL is stored on-chain
   static Future<PublicKey> getIdlAddress(PublicKey programId) async {
-    final seeds = [
-      'anchor:idl'.codeUnits,
-      programId.bytes,
-    ];
-
-    final result = await PublicKey.findProgramAddress(
-      seeds.map((seed) => Uint8List.fromList(seed)).toList(),
-      programId,
-    );
-
-    return result.address;
+    return await IdlUtils.getIdlAddress(programId);
   }
 
   /// Get the size of an account for the given account name
@@ -461,22 +533,25 @@ class Program<T extends Idl> {
     }
   }
 
-  /// Invokes the given callback every time the given event is emitted
+  /// Invokes the given callback every time the given event is emitted (TypeScript-compatible)
   ///
   /// This method registers an event listener for a specific event type defined in the IDL.
   /// The callback will be invoked whenever the event is emitted from program logs.
+  ///
+  /// **API Change**: This method now returns a numeric listener ID (like TypeScript)
+  /// instead of an EventSubscription to match TypeScript Anchor's exact behavior.
   ///
   /// [eventName] - The PascalCase name of the event, as defined in the IDL
   /// [callback] - The function to invoke whenever the event is emitted
   /// [commitment] - Optional commitment level for the subscription
   ///
-  /// Returns a subscription that can be used to cancel the listener
+  /// Returns a numeric listener ID that can be used with removeEventListener
   ///
   /// ## Example
   ///
   /// ```dart
-  /// // Listen for a specific event
-  /// final subscription = await program.addEventListener<MyEventData>(
+  /// // Listen for a specific event (TypeScript-compatible API)
+  /// final listenerId = program.addEventListener<MyEventData>(
   ///   'MyEvent',
   ///   (eventData, slot, signature) {
   ///     print('Event received: $eventData at slot $slot');
@@ -484,67 +559,35 @@ class Program<T extends Idl> {
   /// );
   ///
   /// // Cancel the subscription later
-  /// await subscription.cancel();
+  /// await program.removeEventListener(listenerId);
   /// ```
-  Future<EventSubscription> addEventListener<T>(
+  int addEventListener<T>(
     String eventName,
     EventCallback<T> callback, {
     CommitmentConfig? commitment,
-  }) async {
-    return await _eventManager.addEventListener<T>(
+  }) {
+    return _eventManager.addEventListener<T>(
       eventName,
       callback,
       commitment: commitment,
     );
   }
 
-  /// Remove an event listener
+  /// Remove an event listener (TypeScript-compatible)
   ///
   /// This method removes a previously registered event listener.
   ///
-  /// [listenerId] - The ID of the listener to remove
+  /// [listenerId] - The numeric ID of the listener to remove (returned by addEventListener)
   ///
   /// ## Example
   ///
   /// ```dart
-  /// // Remove listener using the subscription
-  /// await subscription.cancel();
-  ///
-  /// // Or remove directly by ID
+  /// final listenerId = program.addEventListener('MyEvent', callback);
+  /// // Later...
   /// await program.removeEventListener(listenerId);
   /// ```
-  Future<void> removeEventListener(String listenerId) async {
+  Future<void> removeEventListener(int listenerId) async {
     return await _eventManager.removeEventListener(listenerId);
-  }
-
-  /// Subscribe to all program logs
-  ///
-  /// This method subscribes to raw transaction logs for this program.
-  /// It provides access to all logs, including those that may not be events.
-  ///
-  /// [callback] - Function to call when logs are received
-  /// [commitment] - Optional commitment level for the subscription
-  ///
-  /// Returns a subscription that can be used to cancel the log listener
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// final subscription = await program.subscribeToLogs((logs) {
-  ///   print('Program logs: ${logs.logs}');
-  ///   if (logs.err != null) {
-  ///     print('Transaction failed: ${logs.err}');
-  ///   }
-  /// });
-  /// ```
-  Future<EventSubscription> subscribeToLogs(
-    LogCallback callback, {
-    CommitmentConfig? commitment,
-  }) async {
-    return await _eventManager.subscribeToLogs(
-      callback,
-      commitment: commitment,
-    );
   }
 
   /// Get current event processing statistics
@@ -566,7 +609,7 @@ class Program<T extends Idl> {
   /// Dispose of all event subscriptions and close connections
   ///
   /// This method should be called when the Program instance is no longer needed
-  /// to clean up WebSocket connections and event listeners.
+  /// to clean up WebSocket connections, event listeners, and namespace subscriptions.
   ///
   /// ## Example
   ///
@@ -575,24 +618,328 @@ class Program<T extends Idl> {
   /// await program.dispose();
   /// ```
   Future<void> dispose() async {
+    // Dispose event manager first to stop new events
     await _eventManager.dispose();
+
+    // Clean up namespace subscriptions and resources
+    _namespaces.account.dispose();
+
+    // Clean up advanced event services
+    await _eventPersistence?.dispose();
+    // Note: EventDebugMonitor and EventAggregationService don't have dispose methods in current implementation
   }
 
-  @override
-  String toString() {
-    return 'Program(programId: ${_programId.toBase58()}, '
-        'name: ${_idl.metadata?.name ?? "Unknown"})';
+  /// Enable event persistence for storing and retrieving historical events
+  ///
+  /// This method initializes the event persistence service which allows
+  /// storing events to disk for later analysis and replay.
+  ///
+  /// [config] - Optional configuration for persistence service
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Enable with default configuration
+  /// await program.enableEventPersistence();
+  ///
+  /// // Enable with custom configuration
+  /// await program.enableEventPersistence(
+  ///   EventPersistenceConfig.production()
+  /// );
+  /// ```
+  Future<void> enableEventPersistence([EventPersistenceConfig? config]) async {
+    _eventPersistence ??= EventPersistenceService(
+      storageDirectory: config?.storageDirectory ?? './events',
+      enableCompression: config?.enableCompression ?? true,
+      maxFileSize: config?.maxFileSize ?? 50 * 1024 * 1024, // 50MB
+    );
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Program &&
-        other._programId == _programId &&
-        other._idl.metadata?.name == _idl.metadata?.name;
+  /// Enable event debugging and monitoring
+  ///
+  /// This method initializes the event debugging service which provides
+  /// comprehensive monitoring, metrics, and alerting capabilities.
+  ///
+  /// [config] - Optional configuration for debugging service
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Enable with default configuration
+  /// await program.enableEventDebugging();
+  ///
+  /// // Enable with custom configuration
+  /// await program.enableEventDebugging(
+  ///   EventMonitorConfig.production()
+  /// );
+  /// ```
+  Future<void> enableEventDebugging([EventMonitorConfig? config]) async {
+    _eventDebugging ??= EventDebugMonitor(
+      config: config ?? const EventMonitorConfig(),
+    );
   }
 
-  @override
-  int get hashCode => _programId.hashCode ^ (_idl.metadata?.name.hashCode ?? 0);
+  /// Enable event aggregation and processing pipelines
+  ///
+  /// This method initializes the event aggregation service which provides
+  /// advanced event processing capabilities including aggregation and pipelines.
+  ///
+  /// [config] - Optional configuration for aggregation service
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Enable with default configuration
+  /// await program.enableEventAggregation();
+  ///
+  /// // Enable with custom configuration
+  /// await program.enableEventAggregation(
+  ///   EventAggregationConfig.production()
+  /// );
+  /// ```
+  Future<void> enableEventAggregation([EventAggregationConfig? config]) async {
+    _eventAggregation ??= EventAggregationService(
+      config: config ?? const EventAggregationConfig(),
+    );
+  }
+
+  /// Get event persistence statistics if persistence is enabled
+  ///
+  /// Returns statistics about stored events including total count,
+  /// storage size, and processing metrics.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// if (program.isPersistenceEnabled) {
+  ///   final stats = await program.getEventPersistenceStats();
+  ///   print('Total events stored: ${stats.totalEvents}');
+  ///   print('Storage size: ${stats.storageSize} bytes');
+  /// }
+  /// ```
+  Future<EventPersistenceStats?> getEventPersistenceStats() async {
+    return await _eventPersistence?.getStatistics();
+  }
+
+  /// Get event debugging and monitoring statistics if debugging is enabled
+  ///
+  /// Returns comprehensive debugging statistics including performance metrics,
+  /// error rates, and monitoring data.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// if (program.isDebuggingEnabled) {
+  ///   final stats = await program.getEventDebuggingStats();
+  ///   print('Processing rate: ${stats.processingRate} events/sec');
+  ///   print('Error rate: ${stats.errorRate}%');
+  /// }
+  /// ```
+  Future<EventMonitoringStats?> getEventDebuggingStats() async {
+    return _eventDebugging?.currentStats;
+  }
+
+  /// Get event aggregation results if aggregation is enabled
+  ///
+  /// Returns aggregated event data and processing pipeline results.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// if (program.isAggregationEnabled) {
+  ///   final results = await program.getEventAggregationResults();
+  ///   for (final result in results) {
+  ///     print('Event: ${result.eventName}, Count: ${result.count}');
+  ///   }
+  /// }
+  /// ```
+  Future<List<AggregatedEvent>> getEventAggregationResults() async {
+    if (_eventAggregation == null) return [];
+
+    final results = <AggregatedEvent>[];
+    await for (final event in _eventAggregation!.getAggregatedEvents('*')) {
+      results.add(event);
+      if (results.length >= 100) break; // Limit results
+    }
+    return results;
+  }
+
+  /// Restore events from persistence storage
+  ///
+  /// This method allows retrieving historical events from the persistence
+  /// storage with optional filtering criteria.
+  ///
+  /// [filter] - Optional filter criteria for event selection
+  /// [startTime] - Optional start time for event range
+  /// [endTime] - Optional end time for event range
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Restore all events
+  /// final allEvents = await program.restoreEvents();
+  ///
+  /// // Restore events with filtering
+  /// final filteredEvents = await program.restoreEvents(
+  ///   filter: EventFilter.byName('MyEvent'),
+  ///   startTime: DateTime.now().subtract(Duration(days: 1)),
+  /// );
+  /// ```
+  Future<List<ParsedEvent>> restoreEvents({
+    EventFilter? filter,
+    DateTime? startTime,
+    DateTime? endTime,
+  }) async {
+    if (_eventPersistence == null) {
+      throw StateError(
+          'Event persistence is not enabled. Call enableEventPersistence() first.');
+    }
+
+    final results = <ParsedEvent>[];
+    await for (final event in _eventPersistence!.restoreEvents(
+      fromDate: startTime,
+      toDate: endTime,
+    )) {
+      results.add(event);
+    }
+    return results;
+  }
+
+  /// Create an event processing pipeline
+  ///
+  /// This method creates a new event processing pipeline that can transform,
+  /// filter, and aggregate events in real-time.
+  ///
+  /// [processors] - List of processors to include in the pipeline
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Create a pipeline with filtering and transformation
+  /// final pipeline = await program.createEventPipeline([
+  ///   FilterProcessor((event) => event.name == 'MyEvent'),
+  ///   TransformProcessor((event) => event.copyWith(
+  ///     metadata: {...event.metadata, 'processed': true}
+  ///   )),
+  /// ]);
+  ///
+  /// // Process events through the pipeline
+  /// pipeline.processedEvents.listen((result) {
+  ///   print('Processed event: ${result.event.name}');
+  /// });
+  /// ```
+  Future<EventProcessingPipeline> createEventPipeline(
+    List<EventPipelineProcessor> processors,
+  ) async {
+    if (_eventAggregation == null) {
+      throw StateError(
+          'Event aggregation is not enabled. Call enableEventAggregation() first.');
+    }
+
+    final pipeline = EventProcessingPipeline();
+    for (final processor in processors) {
+      pipeline.addProcessor(processor);
+    }
+    return pipeline;
+  }
+
+  /// Subscribe to aggregated events with specific aggregation type
+  ///
+  /// This method allows subscribing to events that have been aggregated
+  /// using specified aggregation strategies (count, sum, average, etc.).
+  ///
+  /// [eventName] - Name of the event to aggregate
+  /// [aggregator] - Aggregation strategy to use
+  /// [windowSize] - Time window for aggregation
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Subscribe to event counts every 5 seconds
+  /// final subscription = await program.subscribeToAggregatedEvents(
+  ///   'MyEvent',
+  ///   CountAggregator(),
+  ///   Duration(seconds: 5),
+  /// );
+  ///
+  /// subscription.listen((aggregatedEvent) {
+  ///   print('Event count in last 5s: ${aggregatedEvent.value}');
+  /// });
+  /// ```
+  Future<Stream<AggregatedEvent>> subscribeToAggregatedEvents(
+    String eventName,
+    EventAggregator aggregator,
+    Duration windowSize,
+  ) async {
+    if (_eventAggregation == null) {
+      throw StateError(
+          'Event aggregation is not enabled. Call enableEventAggregation() first.');
+    }
+
+    // For now, return the aggregated events stream for the event name
+    // This can be enhanced to support the specific aggregator and window size
+    return _eventAggregation!.getAggregatedEvents(eventName);
+  }
+
+  /// Create a unified Program error for consistent error handling
+  ///
+  /// This method provides a consistent way to create errors for Program operations,
+  /// matching TypeScript's error handling patterns.
+  ///
+  /// [message] The error message
+  /// [cause] The underlying cause of the error (optional)
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// throw program.createError(
+  ///   'Failed to initialize account',
+  ///   cause: someException,
+  /// );
+  /// ```
+  ProgramOperationError createError(String message, [dynamic cause]) {
+    return ProgramOperationError(
+      operation: 'programOperation',
+      message: message,
+      code: 6100, // Program-specific error code
+      cause: cause,
+      context: {
+        'programId': _programId.toBase58(),
+      },
+    );
+  }
+
+  /// Execute an operation with unified error handling
+  ///
+  /// This method wraps any Program operation with consistent error handling.
+  ///
+  /// [operationName] The name of the operation being performed
+  /// [operation] The operation to execute
+  /// [context] Additional context for error reporting
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final result = await program.withErrorHandling(
+  ///   'customOperation',
+  ///   () async => await someRiskyOperation(),
+  ///   context: {'additional': 'info'},
+  /// );
+  /// ```
+  Future<T> withErrorHandling<T>(
+    String operationName,
+    Future<T> Function() operation, {
+    Map<String, dynamic>? context,
+  }) async {
+    return await ProgramErrorHandler.wrapOperation(
+      operationName,
+      operation,
+      context: {
+        'programId': _programId.toBase58(),
+        ...?context,
+      },
+    );
+  }
+
+  // ...existing code...
 }

@@ -15,6 +15,7 @@ import '../types/transaction.dart' as transaction_types;
 import '../types/public_key.dart';
 import '../provider/anchor_provider.dart';
 import 'namespace/types.dart';
+import '../error/rpc_error_parser.dart';
 
 /// Builds and manages Solana transactions
 class TransactionBuilder {
@@ -117,7 +118,13 @@ class TransactionBuilder {
 
   /// Sign and send the transaction
   Future<String> send() async {
-    final tx = await build();
-    return await _provider.sendAndConfirm(tx);
+    try {
+      final tx = await build();
+      return await _provider.sendAndConfirm(tx);
+    } catch (e) {
+      // Use RpcErrorParser to enhance error information
+      final enhancedError = translateRpcError(e);
+      throw enhancedError;
+    }
   }
 }

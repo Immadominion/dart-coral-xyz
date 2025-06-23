@@ -9,6 +9,9 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
+import '../types/public_key.dart';
+import '../idl/idl.dart';
+
 /// Interface for Borsh-serializable types
 abstract class BorshSerializable {
   /// Serialize this object to bytes using Borsh format
@@ -298,6 +301,91 @@ class BorshDeserializer {
       return readValue(); // Some variant
     } else {
       throw BorshException('Invalid option tag: $hasValue');
+    }
+  }
+
+  /// Read a PublicKey (32 bytes)
+  PublicKey readPublicKey() {
+    final bytes = readFixedArray(32);
+    return PublicKey.fromBytes(bytes);
+  }
+
+  /// Read a fixed number of bytes
+  Uint8List readBytes(int length) {
+    return readFixedArray(length);
+  }
+
+  /// Read a vector (same as array but explicitly named for IDL compatibility)
+  List<T> readVec<T>(T Function() readItem) {
+    return readArray<T>(readItem);
+  }
+
+  /// Read a struct based on IDL field definitions
+  Map<String, dynamic> readStruct(Map<String, IdlType> fields) {
+    final result = <String, dynamic>{};
+    for (final entry in fields.entries) {
+      result[entry.key] = readIdlType(entry.value);
+    }
+    return result;
+  }
+
+  /// Read any IDL type based on its kind
+  dynamic readIdlType(IdlType type) {
+    switch (type.kind) {
+      case 'bool':
+        return readBool();
+      case 'u8':
+        return readU8();
+      case 'u16':
+        return readU16();
+      case 'u32':
+        return readU32();
+      case 'u64':
+        return readU64();
+      case 'i8':
+        return readI8();
+      case 'i16':
+        return readI16();
+      case 'i32':
+        return readI32();
+      case 'i64':
+        return readI64();
+      case 'string':
+        return readString();
+      case 'publicKey':
+        return readPublicKey();
+      case 'vec':
+        if (type.inner == null) {
+          throw BorshException('Vec type missing inner type');
+        }
+        return readVec(() => readIdlType(type.inner!));
+      case 'array':
+        if (type.inner == null || type.size == null) {
+          throw BorshException('Array type missing inner type or size');
+        }
+        final result = <dynamic>[];
+        for (int i = 0; i < type.size!; i++) {
+          result.add(readIdlType(type.inner!));
+        }
+        return result;
+      case 'option':
+        if (type.inner == null) {
+          throw BorshException('Option type missing inner type');
+        }
+        return readOption(() => readIdlType(type.inner!));
+      case 'bytes':
+        // Special case for bytes - read length then data
+        final length = readU32();
+        return readBytes(length);
+      default:
+        // Handle defined types or unknown types
+        if (type.defined != null) {
+          // For defined types, we would need access to the IDL's type definitions
+          // For now, fall back to reading bytes
+          throw BorshException(
+              'Defined type "${type.defined}" not supported without IDL context');
+        }
+        throw BorshException('Unsupported IDL type: ${type.kind}');
     }
   }
 }

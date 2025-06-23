@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/program/type_safe_method_builder.dart';
 
 void main() {
   group('Namespace Generation System Tests', () {
@@ -237,7 +238,7 @@ void main() {
         'system_program': program.programId,
       }).signers([]);
 
-      expect(builder, isA<MethodsBuilder>());
+      expect(builder, isA<TypeSafeMethodBuilder>());
       expect(builder.name, equals('initialize'));
     });
 

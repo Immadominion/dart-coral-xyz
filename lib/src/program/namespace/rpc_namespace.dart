@@ -5,6 +5,7 @@ import '../../idl/idl.dart';
 import '../../provider/anchor_provider.dart';
 import 'transaction_namespace.dart';
 import 'types.dart';
+import '../../error/rpc_error_parser.dart';
 
 /// The RPC namespace provides async methods to send signed transactions for
 /// each method of a program.
@@ -123,7 +124,9 @@ class RpcFunction {
 
       return signature;
     } catch (error) {
-      rethrow;
+      // Use RpcErrorParser to translate errors with IDL context
+      final enhancedError = translateRpcError(error, idlErrors: {});
+      throw enhancedError;
     }
   }
 

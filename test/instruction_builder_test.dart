@@ -1,13 +1,5 @@
 import 'package:test/test.dart';
-import '../lib/src/idl/idl.dart';
-import '../lib/src/coder/instruction_coder.dart';
-import '../lib/src/program/instruction_builder.dart';
-import '../lib/src/program/accounts_resolver.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/provider/anchor_provider.dart';
-import '../lib/src/program/context.dart';
-import '../lib/src/types/transaction.dart' as tx;
-import 'dart:typed_data';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 void main() {
   group('InstructionBuilder', () {
@@ -125,7 +117,7 @@ void main() {
         'user': userKey,
       }).addSigner(userKey);
 
-      expect(() => builder.build(), throwsA(isA<Exception>()));
+      expect(() => builder.build(), throwsA(isA<IdlError>()));
     });
 
     test('validates missing required accounts', () async {
@@ -142,7 +134,7 @@ void main() {
         'data': 'test',
       });
 
-      expect(() => builder.build(), throwsA(isA<Exception>()));
+      expect(() => builder.build(), throwsA(isA<IdlError>()));
     });
 
     test('validates missing required signers', () async {
@@ -161,7 +153,7 @@ void main() {
         'user': userKey,
       });
 
-      expect(() => builder.build(), throwsA(isA<Exception>()));
+      expect(() => builder.build(), throwsA(isA<IdlError>()));
     });
 
     test('supports remaining accounts', () async {
@@ -184,7 +176,7 @@ void main() {
           })
           .addSigner(userKey)
           .remainingAccounts([
-            tx.AccountMeta(
+            AccountMeta(
               pubkey: extraAccount,
               isWritable: true,
               isSigner: false,
@@ -200,7 +192,7 @@ void main() {
     });
 
     test('supports instruction context', () async {
-      final context = Context();
+      const context = Context<DynamicAccounts>();
       final builder = InstructionBuilder(
         idl: idl,
         methodName: 'testMethod',

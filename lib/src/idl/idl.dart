@@ -12,6 +12,12 @@ class Idl {
   /// Program address (optional - can be provided separately)
   final String? address;
 
+  /// Program name (for compatibility with traditional IDL format)
+  final String? name;
+
+  /// Program version (for compatibility with traditional IDL format)
+  final String? version;
+
   /// Program metadata (optional for compatibility)
   final IdlMetadata? metadata;
 
@@ -38,6 +44,8 @@ class Idl {
 
   const Idl({
     this.address,
+    this.name,
+    this.version,
     this.metadata,
     this.docs,
     required this.instructions,
@@ -52,6 +60,8 @@ class Idl {
   factory Idl.fromJson(Map<String, dynamic> json) {
     return Idl(
       address: json['address'] as String?,
+      name: json['name'] as String?,
+      version: json['version'] as String?,
       metadata: json['metadata'] != null
           ? IdlMetadata.fromJson(json['metadata'] as Map<String, dynamic>)
           : null,
@@ -81,6 +91,8 @@ class Idl {
   Map<String, dynamic> toJson() {
     return {
       if (address != null) 'address': address,
+      if (name != null) 'name': name,
+      if (version != null) 'version': version,
       if (metadata != null) 'metadata': metadata!.toJson(),
       if (docs != null) 'docs': docs,
       'instructions': instructions.map((e) => e.toJson()).toList(),
@@ -809,6 +821,25 @@ class IdlType {
     this.size,
     this.defined,
   });
+
+  // Static factory methods for better API compatibility
+  static IdlType bool() => const IdlType(kind: 'bool');
+  static IdlType u8() => const IdlType(kind: 'u8');
+  static IdlType i8() => const IdlType(kind: 'i8');
+  static IdlType u16() => const IdlType(kind: 'u16');
+  static IdlType i16() => const IdlType(kind: 'i16');
+  static IdlType u32() => const IdlType(kind: 'u32');
+  static IdlType i32() => const IdlType(kind: 'i32');
+  static IdlType u64() => const IdlType(kind: 'u64');
+  static IdlType i64() => const IdlType(kind: 'i64');
+  static IdlType string() => const IdlType(kind: 'string');
+  static IdlType publicKey() => const IdlType(kind: 'pubkey');
+  static IdlType vec(IdlType inner) => IdlType(kind: 'vec', inner: inner);
+  static IdlType option(IdlType inner) => IdlType(kind: 'option', inner: inner);
+  static IdlType array(IdlType inner, int size) =>
+      IdlType(kind: 'array', inner: inner, size: size);
+  static IdlType definedType(String name) =>
+      IdlType(kind: 'defined', defined: name);
 
   factory IdlType.fromJson(dynamic json) {
     if (json is String) {

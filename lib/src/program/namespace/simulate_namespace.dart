@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
 import '../../types/public_key.dart';
+import '../../types/transaction.dart' as transaction_types;
 import '../../coder/main_coder.dart';
 import '../../idl/idl.dart';
 import '../../provider/anchor_provider.dart' hide SimulationResult;
+import '../../transaction/transaction_simulator.dart';
 import 'transaction_namespace.dart';
 import 'types.dart';
 
@@ -62,8 +66,9 @@ class SimulateFunction {
   final IdlInstruction _instruction;
   final TransactionNamespace _transactionNamespace;
   final AnchorProvider _provider;
-  final Coder _coder;
-  final PublicKey _programId;
+  // Note: _coder and _programId may be needed for future enhancements
+  // final Coder _coder;
+  // final PublicKey _programId;
 
   SimulateFunction({
     required IdlInstruction instruction,
@@ -73,9 +78,9 @@ class SimulateFunction {
     required PublicKey programId,
   })  : _instruction = instruction,
         _transactionNamespace = transactionNamespace,
-        _provider = provider,
-        _coder = coder,
-        _programId = programId;
+        _provider = provider;
+  // _coder = coder,
+  // _programId = programId;
 
   /// Simulate a transaction with the given arguments and context
   Future<SimulationResult> call(
@@ -84,19 +89,24 @@ class SimulateFunction {
   ) async {
     try {
       // Build the transaction using the transaction namespace
-      final transaction =
+      final anchorTransaction =
           _transactionNamespace[_instruction.name]!(args, context);
 
-      // Set fee payer if not already set (we don't use the result in simulation)
-      if (transaction.feePayer == null && _provider.wallet?.publicKey != null) {
-        // In a real implementation, we would prepare the transaction for simulation
-      }
+      // Convert AnchorTransaction to Transaction for simulation
+      final transaction = _convertToTransaction(anchorTransaction);
 
-      // Simulate the transaction (placeholder implementation)
-      return const SimulationResult(
-        success: true,
-        logs: ['Program log: Simulation successful'],
-        unitsConsumed: 1000,
+      // Create a transaction simulator
+      final simulator = TransactionSimulator(_provider);
+
+      // Simulate the transaction using the new simulator
+      final result = await simulator.simulate(transaction);
+
+      // Convert to the namespace's SimulationResult format
+      return SimulationResult(
+        success: result.success,
+        logs: result.logs,
+        error: result.error?.toString(),
+        unitsConsumed: result.unitsConsumed,
       );
     } catch (error) {
       return SimulationResult(
@@ -105,6 +115,31 @@ class SimulateFunction {
         error: error.toString(),
       );
     }
+  }
+
+  /// Convert AnchorTransaction to Transaction for simulation
+  transaction_types.Transaction _convertToTransaction(
+      AnchorTransaction anchorTx) {
+    // Convert instructions from namespace types to transaction types
+    final convertedInstructions = anchorTx.instructions.map((instruction) {
+      return transaction_types.TransactionInstruction(
+        programId: instruction.programId,
+        accounts: instruction.accounts.map((account) {
+          return transaction_types.AccountMeta(
+            pubkey: account.publicKey,
+            isWritable: account.isWritable,
+            isSigner: account.isSigner,
+          );
+        }).toList(),
+        data: Uint8List.fromList(instruction.data),
+      );
+    }).toList();
+
+    return transaction_types.Transaction(
+      instructions: convertedInstructions,
+      feePayer: anchorTx.feePayer,
+      recentBlockhash: anchorTx.recentBlockhash,
+    );
   }
 
   /// Get the instruction name

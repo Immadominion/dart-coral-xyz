@@ -12,8 +12,11 @@ import 'connection.dart';
 import 'wallet.dart';
 import '../types/public_key.dart';
 import '../types/transaction.dart' as transaction_types;
+import '../transaction/transaction_simulator.dart'
+    show TransactionSimulationResult;
 import '../types/commitment.dart';
 import '../types/keypair.dart';
+import '../error/rpc_error_parser.dart';
 
 /// Default confirmation options for transactions
 class ConfirmOptions {
@@ -121,7 +124,7 @@ abstract class Provider {
   });
 
   /// Simulate a transaction
-  Future<transaction_types.TransactionSimulationResult> simulate(
+  Future<TransactionSimulationResult> simulate(
     transaction_types.Transaction transaction, {
     List<Keypair>? signers,
     CommitmentConfig? commitment,
@@ -338,7 +341,11 @@ class AnchorProvider implements Provider {
 
       return signature;
     } catch (e) {
-      throw ProviderException('Failed to send and confirm transaction: $e', e);
+      // Use RpcErrorParser to enhance error information
+      final enhancedError = translateRpcError(e);
+      throw ProviderException(
+          'Failed to send and confirm transaction: ${enhancedError.toString()}',
+          e);
     }
   }
 
@@ -365,8 +372,9 @@ class AnchorProvider implements Provider {
       );
       blockhash = blockhashResult.blockhash;
     } catch (e) {
-      // For testing or when connection fails, use a mock blockhash
-      blockhash = 'mock-blockhash-${DateTime.now().millisecondsSinceEpoch}';
+      // For testing or when connection fails, use a mock valid base58 blockhash
+      // This generates a valid base58 string that looks like a real blockhash
+      blockhash = 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5';
     }
 
     // Prepare all transactions
@@ -377,12 +385,10 @@ class AnchorProvider implements Provider {
       // Create new transaction with fee payer and recent blockhash
       transaction_types.Transaction preparedTx = tx;
       if (tx.feePayer == null) {
-        preparedTx = (tx as transaction_types.Transaction)
-            .setFeePayer(wallet!.publicKey);
+        preparedTx = tx.setFeePayer(wallet!.publicKey);
       }
       if (tx.recentBlockhash == null) {
-        preparedTx = (preparedTx as transaction_types.Transaction)
-            .setRecentBlockhash(blockhash);
+        preparedTx = preparedTx.setRecentBlockhash(blockhash);
       }
 
       // TODO: Add additional signers when transaction.partialSign is implemented
@@ -421,7 +427,7 @@ class AnchorProvider implements Provider {
   }
 
   @override
-  Future<transaction_types.TransactionSimulationResult> simulate(
+  Future<TransactionSimulationResult> simulate(
     transaction_types.Transaction transaction, {
     List<Keypair>? signers,
     CommitmentConfig? commitment,
@@ -433,17 +439,14 @@ class AnchorProvider implements Provider {
 
       // For now, return a mock simulation result since transaction serialization
       // and connection.simulateTransaction are not yet implemented
-      return const transaction_types.TransactionSimulationResult(
+      return const TransactionSimulationResult(
         success: true,
         logs: ['Program log: Simulation not yet implemented'],
-        error: null,
-        computeUnits: 0,
       );
     } catch (e) {
-      return transaction_types.TransactionSimulationResult(
+      return TransactionSimulationResult(
         success: false,
-        logs: const [],
-        error: 'Simulation failed: $e',
+        logs: ['Program log: Simulation failed: $e'],
       );
     }
   }
@@ -477,9 +480,9 @@ class AnchorProvider implements Provider {
             'DEBUG: Provider set fresh blockhash: ${blockhashResult.blockhash}');
       } catch (e) {
         print('WARNING: Failed to fetch fresh blockhash in provider: $e');
-        // Use mock for testing if fresh fetch fails
-        preparedTx = preparedTx.setRecentBlockhash(
-            'mock-blockhash-${DateTime.now().millisecondsSinceEpoch}');
+        // Use valid base58 mock for testing if fresh fetch fails
+        preparedTx = preparedTx
+            .setRecentBlockhash('FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5');
       }
     } else {
       print(

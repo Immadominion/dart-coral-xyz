@@ -5,7 +5,6 @@
 /// patterns and requirements.
 
 import 'dart:async';
-import '../types/public_key.dart';
 import 'types.dart';
 import 'event_subscription.dart';
 
@@ -47,15 +46,6 @@ class PausableEventListener {
     }
 
     _bufferedEvents.clear();
-  }
-
-  /// Buffer an event (called when paused)
-  void _bufferEvent(ParsedEvent event) {
-    if (_maxBufferSize != null && _bufferedEvents.length >= _maxBufferSize!) {
-      // Remove oldest event if buffer is full
-      _bufferedEvents.removeAt(0);
-    }
-    _bufferedEvents.add(event);
   }
 
   /// Cancel the underlying subscription
@@ -299,8 +289,6 @@ class EventListenerBuilder {
     if (_subscription == null) {
       throw ArgumentError('Subscription is required');
     }
-
-    var listener = _subscription!;
 
     // Wrap with batching if configured
     if (_batchInterval != null && _batchHandler != null) {

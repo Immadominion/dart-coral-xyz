@@ -1,8 +1,5 @@
 import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/src/coder/instruction_coder.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'dart:typed_data';
 
 void main() {

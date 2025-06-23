@@ -3,6 +3,7 @@
 /// This module provides enhanced Borsh serialization specifically designed
 /// for Anchor programs, including account/instruction discriminators,
 /// PublicKey integration, and Anchor-specific data types.
+library;
 
 import 'dart:typed_data';
 import 'dart:convert';
@@ -117,8 +118,7 @@ class AnchorBorsh {
   /// Deserialize a PublicKey from Borsh format
   static PublicKey deserializePublicKey(Uint8List data) {
     final deserializer = BorshDeserializer(data);
-    final keyBytes = deserializer.readPublicKey();
-    return PublicKey.fromBytes(keyBytes);
+    return deserializer.readPublicKey();
   }
 
   /// Serialize an event with discriminator (Anchor events)

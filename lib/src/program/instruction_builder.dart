@@ -6,7 +6,7 @@ import '../coder/instruction_coder.dart';
 import 'accounts_resolver.dart';
 import 'context.dart';
 import '../types/public_key.dart';
-import '../error.dart';
+import '../error/anchor_error.dart';
 import '../types/transaction.dart' as tx;
 import 'dart:typed_data';
 

@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:solana/solana.dart' as solana_lib;
 import 'package:bs58/bs58.dart';
+import '../error/rpc_error_parser.dart';
 
 /// Wrapper around the Solana RPC client providing Anchor-specific enhancements
 class SolanaRpcWrapper {
@@ -133,7 +134,11 @@ class SolanaRpcWrapper {
       return signature;
     } catch (e) {
       print('ERROR: Failed to send transaction: $e');
-      throw SolanaRpcException('Failed to send transaction: $e');
+
+      // Use RpcErrorParser to enhance error information
+      final enhancedError = translateRpcError(e);
+      throw SolanaRpcException(
+          'Failed to send transaction: ${enhancedError.toString()}');
     }
   }
 

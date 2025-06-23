@@ -7,7 +7,6 @@
 library;
 
 import 'dart:typed_data';
-import 'dart:math';
 import 'package:cryptography/cryptography.dart' as crypto;
 
 /// Wrapper around cryptographic operations with Anchor-specific enhancements
@@ -39,7 +38,7 @@ class CryptoWrapper {
       throw CryptoException('Secret key must be 64 bytes');
     }
 
-    final privateKeyBytes = secretKey.sublist(0, 32);
+    // Private key is the first 32 bytes (validation purposes)
     final publicKeyBytes = secretKey.sublist(32, 64);
 
     return KeypairData(

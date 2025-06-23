@@ -2,14 +2,14 @@
 ///
 /// This module provides the InstructionCoder interface and implementations
 /// for encoding and decoding program instructions using Borsh serialization.
+library;
 
 import '../idl/idl.dart';
 import '../coder/borsh_types.dart';
+import '../coder/discriminator_computer.dart';
 import '../types/common.dart';
 import '../types/transaction.dart'; // <-- Add this import for AccountMeta
 import 'dart:typed_data';
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
 
 /// Interface for encoding and decoding program instructions
 abstract class InstructionCoder {
@@ -310,9 +310,9 @@ class BorshInstructionCoder implements InstructionCoder {
   /// Compute discriminator for an instruction name using Anchor convention
   /// The discriminator is the first 8 bytes of SHA256("global:<instruction_name>")
   List<int> _computeDiscriminator(String instructionName) {
-    final input = 'global:$instructionName';
-    final digest = sha256.convert(utf8.encode(input));
-    return digest.bytes.take(8).toList();
+    final discriminator =
+        DiscriminatorComputer.computeInstructionDiscriminator(instructionName);
+    return discriminator.toList();
   }
 
   /// Encode instruction arguments

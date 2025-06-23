@@ -6,7 +6,7 @@
 
 library;
 
-export 'public_key.dart';
+export 'public_key.dart' hide PdaResult;
 export 'keypair.dart';
 export '../crypto/solana_crypto.dart' show SolanaCrypto;
 export 'transaction.dart';

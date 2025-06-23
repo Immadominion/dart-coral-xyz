@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart' as event_types;
 
 /// Comprehensive test suite for the event system
 ///
@@ -272,11 +273,10 @@ void main() {
 
     group('LogsNotification', () {
       test('LogsNotification creation and success status', () {
-        final notification = LogsNotification(
+        final notification = event_types.LogsNotification(
           signature: 'test_signature',
           logs: ['Program log: test'],
           slot: 12345,
-          blockTime: DateTime.now(),
         );
 
         expect(notification.signature, equals('test_signature'));
@@ -287,7 +287,7 @@ void main() {
       });
 
       test('LogsNotification with error', () {
-        final notification = LogsNotification(
+        final notification = event_types.LogsNotification(
           signature: 'failed_signature',
           logs: ['Program log: error'],
           err: 'Transaction failed',

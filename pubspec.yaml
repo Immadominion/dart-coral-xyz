@@ -25,6 +25,7 @@ dependencies:
   # Serialization dependencies
   borsh: ^0.3.2                        # Primary Borsh serialization
   borsh_annotation: ^0.3.2             # Borsh annotations for better type support
+  toml: ^0.16.0                        # TOML parsing for Anchor.toml files
   
   # Cryptography dependencies  
   cryptography: ^2.7.0                 # ED25519, X25519, and other crypto
@@ -37,6 +38,7 @@ dependencies:
   # Utility dependencies
   meta: ^1.9.1                         # Dart meta annotations
   equatable: ^2.0.5                    # Value equality
+  path: ^1.8.0                         # Path manipulation utilities
   
   # Additional blockchain utilities
   blockchain_utils: ^5.0.0             # Enhanced blockchain utilities

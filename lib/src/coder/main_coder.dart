@@ -1,6 +1,6 @@
 import '../idl/idl.dart';
 import 'instruction_coder.dart';
-import 'account_coder.dart';
+import 'borsh_accounts_coder.dart';
 import 'event_coder.dart';
 import 'types_coder.dart';
 

@@ -55,7 +55,7 @@ void main() {
       expect(error.errorMessage, equals('A mut constraint was violated.'));
       expect(error.origin, isNull);
       expect(error.comparedValues, isNull);
-      expect(error.program?.toBase58(),
+      expect(error.program.toBase58(),
           equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'));
     });
 

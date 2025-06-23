@@ -2,6 +2,7 @@
 ///
 /// This module provides robust error parsing and representation matching
 /// the TypeScript Anchor SDK error handling capabilities.
+library;
 
 import 'types/public_key.dart';
 import 'idl/idl.dart';

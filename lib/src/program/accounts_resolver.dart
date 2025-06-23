@@ -9,6 +9,7 @@ library;
 import 'dart:typed_data';
 import '../idl/idl.dart';
 import '../types/public_key.dart';
+import '../types/transaction.dart';
 import '../provider/anchor_provider.dart';
 import 'pda_utils.dart';
 import 'context.dart';

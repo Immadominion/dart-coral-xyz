@@ -13,4 +13,8 @@ export 'event_listener.dart';
 export 'event_subscription.dart';
 export 'event_filter.dart';
 export 'event_replay.dart';
-export 'types.dart';
+export 'event_persistence.dart';
+export 'event_debugging.dart';
+export 'event_aggregation.dart';
+export 'types.dart'
+    hide EventCallback, LogsNotification; // Hide duplicates from types.dart

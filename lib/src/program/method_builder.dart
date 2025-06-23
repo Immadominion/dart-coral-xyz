@@ -9,6 +9,7 @@ library;
 import '../idl/idl.dart';
 import '../types/public_key.dart';
 import '../types/transaction.dart';
+import '../transaction/transaction_simulator.dart';
 import '../provider/anchor_provider.dart';
 import '../program/context.dart';
 import '../program/instruction_builder.dart';

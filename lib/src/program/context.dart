@@ -7,7 +7,6 @@
 library;
 
 import '../idl/idl.dart';
-import '../types/public_key.dart';
 import '../types/transaction.dart';
 import '../types/keypair.dart';
 import '../types/commitment.dart';
@@ -129,40 +128,6 @@ class DynamicAccounts extends Accounts {
   bool hasAccount(String name) => _accounts.containsKey(name);
 }
 
-/// Represents an account metadata for instructions
-class AccountMeta {
-  /// The account's public key
-  final PublicKey pubkey;
-
-  /// Whether the account is writable
-  final bool isWritable;
-
-  /// Whether the account is a signer
-  final bool isSigner;
-
-  const AccountMeta({
-    required this.pubkey,
-    required this.isWritable,
-    required this.isSigner,
-  });
-
-  @override
-  String toString() =>
-      'AccountMeta(pubkey: $pubkey, isWritable: $isWritable, isSigner: $isSigner)';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AccountMeta &&
-          runtimeType == other.runtimeType &&
-          pubkey == other.pubkey &&
-          isWritable == other.isWritable &&
-          isSigner == other.isSigner;
-
-  @override
-  int get hashCode => pubkey.hashCode ^ isWritable.hashCode ^ isSigner.hashCode;
-}
-
 /// Options for transaction confirmation
 class ConfirmOptions {
   /// Skip preflight checks
@@ -228,7 +193,7 @@ ContextSplitResult splitArgsAndContext(
               context['preInstructions'] as List<TransactionInstruction>?,
           postInstructions:
               context['postInstructions'] as List<TransactionInstruction>?,
-          commitment: context['commitment'] as CommitmentConfig?,
+          commitment: _parseCommitment(context['commitment']),
           options: context['options'] as ConfirmOptions?,
         ),
       );
@@ -245,6 +210,17 @@ ContextSplitResult splitArgsAndContext(
     args,
     const Context<DynamicAccounts>(),
   );
+}
+
+/// Parse commitment from various input types
+CommitmentConfig? _parseCommitment(dynamic commitment) {
+  if (commitment == null) return null;
+  if (commitment is CommitmentConfig) return commitment;
+  if (commitment is String) {
+    final commitmentEnum = Commitment.fromString(commitment);
+    return CommitmentConfig(commitmentEnum);
+  }
+  throw ArgumentError('Invalid commitment type: ${commitment.runtimeType}');
 }
 
 /// Result of splitting arguments and context

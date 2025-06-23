@@ -8,6 +8,7 @@ import 'methods_namespace.dart';
 import 'rpc_namespace.dart';
 import 'simulate_namespace.dart';
 import 'transaction_namespace.dart';
+import 'views_namespace.dart';
 
 /// Factory for creating namespace instances for a program
 ///
@@ -67,6 +68,14 @@ class NamespaceFactory {
       programId: programId,
     );
 
+    // Build views namespace
+    final viewsNamespace = ViewsNamespace.build(
+      idl: idl,
+      programId: programId,
+      simulateNamespace: simulateNamespace,
+      coder: coder,
+    );
+
     // Build methods namespace (the main fluent interface)
     final methodsNamespace = MethodsNamespace.build(
       idl: idl,
@@ -87,6 +96,7 @@ class NamespaceFactory {
       account: accountNamespace,
       simulate: simulateNamespace,
       methods: methodsNamespace,
+      views: viewsNamespace,
     );
   }
 }
@@ -111,6 +121,9 @@ class NamespaceSet {
   /// Methods namespace for fluent method building
   final MethodsNamespace methods;
 
+  /// Views namespace for read-only function calls
+  final ViewsNamespace views;
+
   const NamespaceSet({
     required this.rpc,
     required this.instruction,
@@ -118,12 +131,13 @@ class NamespaceSet {
     required this.account,
     required this.simulate,
     required this.methods,
+    required this.views,
   });
 
   @override
   String toString() {
     return 'NamespaceSet(rpc: $rpc, instruction: $instruction, '
         'transaction: $transaction, account: $account, '
-        'simulate: $simulate, methods: $methods)';
+        'simulate: $simulate, methods: $methods, views: $views)';
   }
 }

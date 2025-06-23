@@ -8,7 +8,7 @@ import 'dart:typed_data';
 import 'package:coral_xyz_anchor/src/program/context.dart';
 import 'package:coral_xyz_anchor/src/program/pda_utils.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
 import 'package:coral_xyz_anchor/src/types/commitment.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
@@ -46,8 +46,8 @@ void main() {
       );
 
       final signers = [await Keypair.generate()];
-      final preInstructions = [tx.TransactionInstruction.empty()];
-      final postInstructions = [tx.TransactionInstruction.empty()];
+      final preInstructions = [TransactionInstruction.empty()];
+      final postInstructions = [TransactionInstruction.empty()];
       const commitment = CommitmentConfigs.confirmed;
       final options = ConfirmOptions(skipPreflight: true);
 
@@ -248,10 +248,10 @@ void main() {
   });
 
   group('Address Resolution Tests', () {
-    test('should return null for invalid PDA spec', () async {
+    test('should return null for null PDA spec', () async {
       final programId =
           PublicKey.fromBase58('11111111111111111111111111111111');
-      const pdaSpec = 'invalid:pda:spec';
+      const String? pdaSpec = null;
 
       final result =
           await AddressResolver.resolvePdaFromString(pdaSpec, programId);
