@@ -297,14 +297,16 @@ class AdvancedMockConnection extends Connection {
   @override
   Future<String> checkHealth() async {
     _recordCall('checkHealth');
-    return _currentResponses['checkHealth'] ?? 'ok';
+    final result = _currentResponses['checkHealth'];
+    return result != null ? result.toString() : 'ok';
   }
 
   @override
   Future<int> getBalance(PublicKey address,
       {CommitmentConfig? commitment}) async {
     _recordCall('getBalance', {'address': address.toBase58()});
-    return _currentResponses['getBalance'] ?? 1000000000;
+    final result = _currentResponses['getBalance'];
+    return result is int ? result : 1000000000;
   }
 
   @override
@@ -325,19 +327,22 @@ class AdvancedMockConnection extends Connection {
       {CommitmentConfig? commitment}) async {
     _recordCall(
         'getMinimumBalanceForRentExemption', {'dataLength': dataLength});
-    return _currentResponses['getMinimumBalanceForRentExemption'] ?? 1000000;
+    final result = _currentResponses['getMinimumBalanceForRentExemption'];
+    return result is int ? result : 1000000;
   }
 
   @override
   Future<String> sendAndConfirmTransaction(
-    Map<String, dynamic> transaction, {
+    dynamic transaction, {
     CommitmentConfig? commitment,
   }) async {
     _recordCall('sendAndConfirmTransaction', {
-      'transaction': transaction.length,
+      'transaction': transaction is Map ? transaction.length : transaction.toString(),
     });
-    return _currentResponses['sendAndConfirmTransaction'] ??
-        '2id3YC2jK9G5Wo2phDx4gJVAew8DcY5NAojnVuao8rkxwPYPe8cSwE5GzhEgJA2y8fVjDEo6iR6ykBvDxrTQrtpb';
+    final result = _currentResponses['sendAndConfirmTransaction'];
+    return result != null
+        ? result.toString()
+        : '2id3YC2jK9G5Wo2phDx4gJVAew8DcY5NAojnVuao8rkxwPYPe8cSwE5GzhEgJA2y8fVjDEo6iR6ykBvDxrTQrtpb';
   }
 }
 

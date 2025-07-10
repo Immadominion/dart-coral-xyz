@@ -241,7 +241,7 @@ class SimulationResultProcessor {
         publicKey: PublicKey.fromBase58(accountKey),
         lamports: accountData['lamports'] as int?,
         owner: accountData['owner'] != null
-            ? PublicKey.fromBase58(accountData['owner'])
+            ? PublicKey.fromBase58(accountData['owner'] as String)
             : null,
         executable: accountData['executable'] as bool? ?? false,
         rentEpoch: accountData['rentEpoch'] as int?,

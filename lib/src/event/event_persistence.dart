@@ -48,7 +48,7 @@ class EventPersistenceService {
   }
 
   /// Persist an event to storage
-  Future<void> persistEvent(ParsedEvent event) async {
+  Future<void> persistEvent(ParsedEvent<dynamic> event) async {
     final eventData = PersistedEvent(
       event: event,
       timestamp: DateTime.now(),
@@ -60,7 +60,7 @@ class EventPersistenceService {
   }
 
   /// Persist multiple events in batch
-  Future<void> persistEventBatch(List<ParsedEvent> events) async {
+  Future<void> persistEventBatch(List<ParsedEvent<dynamic>> events) async {
     final batch = events
         .map((event) => PersistedEvent(
               event: event,
@@ -80,7 +80,7 @@ class EventPersistenceService {
   }
 
   /// Restore events from storage
-  Stream<ParsedEvent> restoreEvents({
+  Stream<ParsedEvent<dynamic>> restoreEvents({
     DateTime? fromDate,
     DateTime? toDate,
     String? programId,
@@ -246,11 +246,20 @@ class EventPersistenceService {
           // Handle batch format
           final events = data['events'] as List;
           for (final eventData in events) {
-            yield PersistedEvent.fromJson(eventData);
+            if (eventData is Map<String, dynamic>) {
+              yield PersistedEvent.fromJson(eventData);
+            } else if (eventData is Map) {
+              yield PersistedEvent.fromJson(
+                  Map<String, dynamic>.from(eventData));
+            }
           }
         } else {
           // Handle single event format
-          yield PersistedEvent.fromJson(data);
+          if (data is Map<String, dynamic>) {
+            yield PersistedEvent.fromJson(data);
+          } else if (data is Map) {
+            yield PersistedEvent.fromJson(Map<String, dynamic>.from(data));
+          }
         }
       } catch (e) {
         // Log error and continue
@@ -273,7 +282,7 @@ class EventPersistenceService {
 
 /// Represents a persisted event with metadata
 class PersistedEvent {
-  final ParsedEvent event;
+  final ParsedEvent<dynamic> event;
   final DateTime timestamp;
   final String programId;
 
@@ -293,24 +302,35 @@ class PersistedEvent {
       };
 
   factory PersistedEvent.fromJson(Map<String, dynamic> json) {
-    // Create a basic event definition for restoration
+    // Defensive: ensure types for all fields
+    final eventMap = json['event'] as Map? ?? {};
+    final name = eventMap['name']?.toString() ?? '';
+    final data = eventMap['data'];
+    final signature = json['signature']?.toString() ?? '';
+    final slotRaw = json['slot'];
+    final slot =
+        slotRaw is int ? slotRaw : int.tryParse(slotRaw?.toString() ?? '') ?? 0;
+    final timestampRaw = json['timestamp'];
+    final timestampStr = timestampRaw?.toString() ?? '';
+    final programId = json['programId']?.toString() ?? '';
+
     final eventDef = IdlEvent(
-      name: json['event']['name'],
+      name: name,
       fields: [], // Empty fields for restoration
     );
 
     return PersistedEvent(
       event: ParsedEvent<dynamic>(
-        name: json['event']['name'],
-        data: json['event']['data'],
+        name: name,
+        data: data,
         context: EventContext(
-          signature: json['signature'] ?? '',
-          slot: json['slot'] ?? 0,
+          signature: signature,
+          slot: slot,
         ),
         eventDef: eventDef,
       ),
-      timestamp: DateTime.parse(json['timestamp']),
-      programId: json['programId'],
+      timestamp: DateTime.parse(timestampStr),
+      programId: programId,
     );
   }
 }

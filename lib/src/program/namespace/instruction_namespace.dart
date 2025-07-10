@@ -134,9 +134,10 @@ class InstructionBuilder {
 
       accountMetas.add(
         AccountMeta(
-          publicKey: publicKey,
-          isWritable: account is IdlInstructionAccount ? account.isMut : false,
-          isSigner: account is IdlInstructionAccount ? account.isSigner : false,
+          publicKey: publicKey as PublicKey,
+          isWritable:
+              account is IdlInstructionAccount ? account.writable : false,
+          isSigner: account is IdlInstructionAccount ? account.signer : false,
         ),
       );
     }

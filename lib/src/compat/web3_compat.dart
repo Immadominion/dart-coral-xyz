@@ -3,9 +3,10 @@
 library web3_compat;
 
 import 'dart:typed_data';
+import 'package:solana/solana.dart' as solana;
 import '../types/public_key.dart';
 import '../types/keypair.dart';
-import '../types/transaction.dart';
+import '../types/transaction.dart' as tx;
 
 /// Web3.js compatible Connection class wrapper
 /// Provides TypeScript-like APIs for Solana connections
@@ -23,7 +24,7 @@ class Web3Connection {
   }
 
   /// Send transaction (Web3.js style)
-  Future<String> sendTransaction(Transaction transaction,
+  Future<String> sendTransaction(tx.Transaction transaction,
       [Map<String, dynamic>? options]) async {
     throw UnimplementedError(
         'Web3Connection.sendTransaction not yet implemented');
@@ -87,10 +88,10 @@ extension Web3Keypair on Keypair {
 }
 
 /// Web3.js compatible Transaction extensions
-extension Web3Transaction on Transaction {
+extension Web3Transaction on tx.Transaction {
   /// Add instruction (Web3.js style)
-  void add(TransactionInstruction instruction) {
-    instructions.add(instruction);
+  void add(tx.TransactionInstruction instruction) {
+    this.instructions.add(instruction);
   }
 
   /// Set recent blockhash (Web3.js style) - Note: Transaction would need to be mutable
@@ -122,28 +123,50 @@ extension Web3Transaction on Transaction {
     sign(signers);
   }
 
-  /// Serialize (Web3.js style)
-  Uint8List serialize([Map<String, dynamic>? options]) {
-    throw UnimplementedError('Web3Transaction.serialize not yet implemented');
+  /// Serialize (Web3.js style) with working implementation
+  Future<Uint8List> serialize([Map<String, dynamic>? options]) async {
+    // Use the working transaction's serialize implementation
+    final signer = options?['signer'] as solana.Ed25519HDKeyPair?;
+    final recentBlockhash = options?['recentBlockhash'] as String?;
+    if (signer == null || recentBlockhash == null) {
+      throw ArgumentError(
+          'serialize requires signer and recentBlockhash options');
+    }
+
+    // Create a transaction with the right blockhash
+    final txWithBlockhash = tx.Transaction(
+      instructions: this.instructions,
+      feePayer: this.feePayer,
+      recentBlockhash: recentBlockhash,
+    );
+
+    // Add all signers
+    if (options?['signers'] is List<Keypair>) {
+      final signers = options?['signers'] as List<Keypair>;
+      txWithBlockhash.addSigners(signers.map((k) => k.publicKey).toList());
+    }
+
+    return txWithBlockhash.serialize();
   }
 }
 
 /// Web3.js compatible instruction creation
 class Web3Instructions {
   /// System program create account instruction (Web3.js style)
-  static TransactionInstruction createAccount({
+  static tx.TransactionInstruction createAccount({
     required PublicKey fromPubkey,
     required PublicKey newAccountPubkey,
     required int lamports,
     required int space,
     required PublicKey programId,
   }) {
-    return TransactionInstruction(
+    return tx.TransactionInstruction(
       programId: PublicKey.fromBase58(
           '11111111111111111111111111111111'), // System Program
       accounts: [
-        AccountMeta.writable(fromPubkey, isSigner: true),
-        AccountMeta.writable(newAccountPubkey, isSigner: true),
+        tx.AccountMeta(pubkey: fromPubkey, isSigner: true, isWritable: true),
+        tx.AccountMeta(
+            pubkey: newAccountPubkey, isSigner: true, isWritable: true),
       ],
       data: Uint8List.fromList([
         0, // Create account instruction
@@ -155,17 +178,17 @@ class Web3Instructions {
   }
 
   /// System program transfer instruction (Web3.js style)
-  static TransactionInstruction transfer({
+  static tx.TransactionInstruction transfer({
     required PublicKey fromPubkey,
     required PublicKey toPubkey,
     required int lamports,
   }) {
-    return TransactionInstruction(
+    return tx.TransactionInstruction(
       programId: PublicKey.fromBase58(
           '11111111111111111111111111111111'), // System Program
       accounts: [
-        AccountMeta.writable(fromPubkey, isSigner: true),
-        AccountMeta.writable(toPubkey, isSigner: false),
+        tx.AccountMeta(pubkey: fromPubkey, isSigner: true, isWritable: true),
+        tx.AccountMeta(pubkey: toPubkey, isSigner: false, isWritable: true),
       ],
       data: Uint8List.fromList([
         2, // Transfer instruction
@@ -253,10 +276,10 @@ extension IntToBytes on int {
 }
 
 /// Web3.js compatible account meta creation
-extension Web3AccountMeta on AccountMeta {
+extension Web3AccountMeta on tx.AccountMeta {
   /// Create writable account meta (Web3.js style)
-  static AccountMeta writable(PublicKey pubkey, bool isSigner) {
-    return AccountMeta(
+  static tx.AccountMeta writable(PublicKey pubkey, bool isSigner) {
+    return tx.AccountMeta(
       pubkey: pubkey,
       isSigner: isSigner,
       isWritable: true,
@@ -264,8 +287,8 @@ extension Web3AccountMeta on AccountMeta {
   }
 
   /// Create readonly account meta (Web3.js style)
-  static AccountMeta readonly(PublicKey pubkey, bool isSigner) {
-    return AccountMeta(
+  static tx.AccountMeta readonly(PublicKey pubkey, bool isSigner) {
+    return tx.AccountMeta(
       pubkey: pubkey,
       isSigner: isSigner,
       isWritable: false,

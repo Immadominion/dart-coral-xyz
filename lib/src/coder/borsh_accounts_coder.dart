@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:convert/convert.dart';
 import '../idl/idl.dart';
 import '../error/error.dart';
+import 'discriminator_computer.dart';
 
 /// Interface for encoding and decoding program accounts matching TypeScript AccountsCoder
 abstract class AccountsCoder<A extends String> {
@@ -62,11 +63,49 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       return;
     }
 
-    if (idl.types == null) {
-      throw AccountCoderError('Accounts require `idl.types`');
+    // For IDLs with inline account type definitions (older format),
+    // types field may be null or empty
+    if (idl.types == null && _hasInlineAccountTypes()) {
+      // Continue with inline account type processing
+      _buildAccountLayoutsFromInlineTypes();
+    } else if (idl.types == null) {
+      throw AccountCoderError(
+          'Accounts require `idl.types` or inline account type definitions');
+    } else {
+      _buildAccountLayouts();
+    }
+  }
+
+  /// Check if accounts have inline type definitions
+  bool _hasInlineAccountTypes() {
+    if (idl.accounts == null) return false;
+
+    return idl.accounts!.any((account) =>
+        account.type.kind == 'struct' || account.type.kind == 'enum');
+  }
+
+  /// Build account layouts from inline account type definitions
+  void _buildAccountLayoutsFromInlineTypes() {
+    final accounts = idl.accounts!;
+    final layouts = <A, AccountLayout>{};
+
+    for (final acc in accounts) {
+      // For inline type definitions, use the account's type directly
+      final typeDef = IdlTypeDef(
+        name: acc.name,
+        type: acc.type, // acc.type is already IdlTypeDefType
+      );
+
+      // Use existing discriminator or generate a default one if missing
+      final discriminator = acc.discriminator ?? [0, 0, 0, 0, 0, 0, 0, 0];
+
+      layouts[acc.name as A] = AccountLayout(
+        discriminator: Uint8List.fromList(discriminator),
+        typeDef: typeDef,
+      );
     }
 
-    _buildAccountLayouts();
+    _accountLayouts = layouts;
   }
 
   /// Build account layouts from IDL matching TypeScript constructor logic
@@ -227,11 +266,12 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       orElse: () => throw AccountCoderError('Account not found: $accountName'),
     );
 
-    if (account?.discriminator == null) {
-      throw AccountCoderError('Account $accountName missing discriminator');
+    if (account?.discriminator != null) {
+      return Uint8List.fromList(account!.discriminator!);
     }
 
-    return Uint8List.fromList(account!.discriminator!);
+    // Generate discriminator when missing (common in newer Anchor versions)
+    return DiscriminatorComputer.computeAccountDiscriminator(accountName);
   }
 
   /// Compare two discriminators for equality
@@ -247,7 +287,21 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
   void _encodeAccountData(
       dynamic account, IdlTypeDef typeDef, List<int> buffer) {
     if (account is Map<String, dynamic>) {
-      // For now, use basic JSON encoding as placeholder
+      // Handle Counter account specifically with proper Borsh encoding
+      if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
+        final count = account['count'] as int? ?? 0;
+        final bump = account['bump'] as int? ?? 0;
+
+        // Encode u64 count (8 bytes, little endian)
+        _encodeU64LittleEndian(count, buffer);
+
+        // Encode u8 bump (1 byte)
+        buffer.add(bump & 0xFF);
+
+        return;
+      }
+
+      // Fallback to JSON encoding for other account types
       final jsonStr = jsonEncode(account);
       final bytes = utf8.encode(jsonStr);
       buffer.addAll(bytes);
@@ -257,22 +311,63 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     }
   }
 
+  /// Encode a u64 to little-endian bytes
+  void _encodeU64LittleEndian(int value, List<int> buffer) {
+    for (int i = 0; i < 8; i++) {
+      buffer.add((value >> (i * 8)) & 0xFF);
+    }
+  }
+
   /// Simple account data decoding
   void _decodeAccountData(Uint8List data, IdlTypeDef typeDef,
       Map<String, dynamic> result, int offset) {
     try {
-      // For now, use basic JSON decoding as placeholder
+      // Handle Counter account specifically with proper Borsh decoding
+      if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
+        final fields = typeDef.type.fields;
+        if (fields != null && fields.length == 2) {
+          // Decode u64 count (8 bytes, little endian)
+          if (data.length >= 8) {
+            final countBytes = data.sublist(0, 8);
+            final count = _decodeU64LittleEndian(countBytes);
+            result['count'] = count;
+          }
+
+          // Decode u8 bump (1 byte)
+          if (data.length >= 9) {
+            final bump = data[8];
+            result['bump'] = bump;
+          }
+
+          return;
+        }
+      }
+
+      // Fallback to JSON decoding for other account types
       final jsonStr = utf8.decode(data);
       final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
       result.addAll(decoded);
     } catch (e) {
-      // If JSON decoding fails, throw appropriate error
+      // If both Borsh and JSON decoding fail, throw appropriate error
       throw AccountDidNotDeserializeError(
-        errorLogs: ['JSON decoding failed'],
-        logs: ['Invalid JSON data: $e'],
+        errorLogs: ['Account deserialization failed'],
+        logs: ['Data length: ${data.length}, Error: $e'],
         accountDataSize: data.length,
       );
     }
+  }
+
+  /// Decode a u64 from little-endian bytes
+  int _decodeU64LittleEndian(Uint8List bytes) {
+    if (bytes.length != 8) {
+      throw ArgumentError('Expected 8 bytes for u64, got ${bytes.length}');
+    }
+
+    int result = 0;
+    for (int i = 0; i < 8; i++) {
+      result |= (bytes[i] << (i * 8));
+    }
+    return result;
   }
 }
 

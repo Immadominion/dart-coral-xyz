@@ -27,12 +27,22 @@ class MockConnection extends Connection {
     if (data == null) return null;
 
     return AccountInfo(
-      lamports: data['lamports'] ?? 1000000,
+      lamports: (data['lamports'] is int)
+          ? data['lamports'] as int
+          : int.tryParse(data['lamports']?.toString() ?? '') ?? 1000000,
       owner: PublicKey.fromBase58(
-          data['owner'] ?? '11111111111111111111111111111111'),
-      data: Uint8List.fromList(data['data'] ?? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      executable: data['executable'] ?? false,
-      rentEpoch: data['rentEpoch'] ?? 0,
+          data['owner']?.toString() ?? '11111111111111111111111111111111'),
+      data: Uint8List.fromList((data['data'] is List<int>)
+          ? data['data'] as List<int>
+          : (data['data'] is List)
+              ? List<int>.from(data['data'] as List)
+              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+      executable: (data['executable'] is bool)
+          ? data['executable'] as bool
+          : (data['executable']?.toString() == 'true'),
+      rentEpoch: (data['rentEpoch'] is int)
+          ? data['rentEpoch'] as int
+          : int.tryParse(data['rentEpoch']?.toString() ?? '') ?? 0,
     );
   }
 
@@ -53,7 +63,7 @@ void main() {
   group('Account Management System', () {
     late MockConnection mockConnection;
     late AccountSubscriptionManager subscriptionManager;
-    late AccountCacheManager cacheManager;
+    late AccountCacheManager<dynamic> cacheManager;
 
     setUp(() {
       mockConnection = MockConnection();

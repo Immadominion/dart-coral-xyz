@@ -230,14 +230,12 @@ export 'src/transaction/simulation_cache_manager.dart'
 // Simulation Debugging and Development Tools (Step 7.4 - COMPLETED)
 export 'src/transaction/simulation_debugger.dart';
 
-// Transaction Building and Validation Infrastructure (Phase 6.4 - COMPLETED)
-export 'src/transaction/transaction_builder.dart'
-    hide TransactionInstruction, AccountMeta;
-export 'src/transaction/transaction_validator.dart';
-export 'src/transaction/transaction_optimizer.dart';
+// Transaction Building and Serialization Infrastructure
+export 'src/transaction/transaction.dart';
 
 // Type definitions (Phase 1.3 - COMPLETED)
-export 'src/types/types.dart' hide AccountMeta;
+export 'src/types/types.dart'
+    hide AccountMeta, TransactionInstruction, Transaction;
 
 // PDA Derivation Engine (Phase 5.1 - COMPLETED)
 // Note: PdaResult from pda_derivation_engine takes precedence over types/public_key.dart
@@ -267,7 +265,8 @@ export 'src/ide/ide.dart'
 // Re-export commonly used types for convenience
 // export 'src/types/public_key.dart';
 // export 'src/types/keypair.dart';
-export 'src/types/transaction.dart';
+export 'src/types/transaction.dart'
+    hide TransactionInstruction, AccountMeta, Transaction;
 
 // Error types
 export 'src/error/error.dart'; // Comprehensive error handling system
@@ -288,7 +287,8 @@ export 'src/native/system_program.dart';
 
 // Export additional TypeScript-compatible features
 export 'src/compat/bn_js_compat.dart';
-export 'src/compat/web3_compat.dart' hide TransactionError, AccountError;
+// Removed legacy Web3.js compatibility layer; use Transaction.serialize directly
+// export 'src/compat/web3_compat.dart' hide TransactionError, AccountError;
 export 'src/provider/mobile_wallet_adapter/mobile_wallet_adapter_wallet.dart';
 
 // Advanced Wallet Integration System (Phase 6.3 - COMPLETED)

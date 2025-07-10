@@ -755,7 +755,8 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
     } else if (typeDefKind is enhanced.IdlTypeDefTyEnum) {
       return _decodeEnhancedEnum<T>(typeDefKind, deserializer);
     } else if (typeDefKind is enhanced.IdlTypeDefTyType) {
-      return _decodeEnhancedValue<T>(typeDefKind.alias, deserializer);
+      // _decodeEnhancedValue returns dynamic, so cast to T
+      return _decodeEnhancedValue(typeDefKind.alias, deserializer) as T;
     } else {
       throw TypesCoderException(
           'Unsupported enhanced type: ${typeDefKind.runtimeType}');
@@ -770,13 +771,14 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
     if (fields is enhanced.IdlDefinedFieldsNamed) {
       final data = <String, dynamic>{};
       for (final field in fields.fields) {
-        data[field.name] = _decodeEnhancedValue(field.type, deserializer);
+        data[field.name] =
+            _decodeEnhancedValue<dynamic>(field.type, deserializer);
       }
       return data as T;
     } else if (fields is enhanced.IdlDefinedFieldsTuple) {
       final data = <dynamic>[];
       for (final fieldType in fields.fields) {
-        data.add(_decodeEnhancedValue(fieldType, deserializer));
+        data.add(_decodeEnhancedValue<dynamic>(fieldType, deserializer));
       }
       return data as T;
     } else {
@@ -814,13 +816,13 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       final variantData = <String, dynamic>{};
       for (final field in fields.fields) {
         variantData[field.name] =
-            _decodeEnhancedValue(field.type, deserializer);
+            _decodeEnhancedValue<dynamic>(field.type, deserializer);
       }
       return variantData;
     } else if (fields is enhanced.IdlDefinedFieldsTuple) {
       final variantData = <dynamic>[];
       for (final fieldType in fields.fields) {
-        variantData.add(_decodeEnhancedValue(fieldType, deserializer));
+        variantData.add(_decodeEnhancedValue<dynamic>(fieldType, deserializer));
       }
       return variantData;
     }
@@ -837,20 +839,20 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       if (hasValue == 0) {
         return null;
       } else {
-        return _decodeEnhancedValue(type.inner, deserializer);
+        return _decodeEnhancedValue<dynamic>(type.inner, deserializer);
       }
     } else if (type is enhanced.IdlTypeCOption) {
       final hasValue = deserializer.readU32();
       if (hasValue == 0) {
         return null;
       } else {
-        return _decodeEnhancedValue(type.inner, deserializer);
+        return _decodeEnhancedValue<dynamic>(type.inner, deserializer);
       }
     } else if (type is enhanced.IdlTypeVec) {
       final length = deserializer.readU32();
       final list = <dynamic>[];
       for (int i = 0; i < length; i++) {
-        list.add(_decodeEnhancedValue(type.inner, deserializer));
+        list.add(_decodeEnhancedValue<dynamic>(type.inner, deserializer));
       }
       return list;
     } else if (type is enhanced.IdlTypeArray) {
@@ -859,7 +861,7 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
           : 0; // Should handle generics better
       final list = <dynamic>[];
       for (int i = 0; i < length; i++) {
-        list.add(_decodeEnhancedValue(type.inner, deserializer));
+        list.add(_decodeEnhancedValue<dynamic>(type.inner, deserializer));
       }
       return list;
     } else if (type is enhanced.IdlTypeDefined) {
@@ -868,11 +870,12 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
         final name = (type.defined as enhanced.IdlTypeDefinedSimple).name;
         final enhancedTypeDef = _enhancedTypeLayouts[name as N];
         if (enhancedTypeDef != null) {
-          return _decodeEnhancedTypeData(enhancedTypeDef, deserializer);
+          return _decodeEnhancedTypeData<dynamic>(
+              enhancedTypeDef, deserializer);
         }
         final basicTypeDef = _typeLayouts[name];
         if (basicTypeDef != null) {
-          return _decodeTypeData(basicTypeDef, deserializer);
+          return _decodeTypeData<dynamic>(basicTypeDef, deserializer);
         }
       }
       throw TypesCoderException('Defined type not found: ${type.defined}');
@@ -1254,7 +1257,7 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
           orElse: () => throw TypesCoderException('Type not found: $typeName'),
         );
         if (nestedTypeDef != null) {
-          return _decodeTypeData(nestedTypeDef, deserializer);
+          return _decodeTypeData<dynamic>(nestedTypeDef, deserializer);
         }
         return null;
       default:

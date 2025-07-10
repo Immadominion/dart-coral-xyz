@@ -124,7 +124,13 @@ class TransactionBuilder {
     } catch (e) {
       // Use RpcErrorParser to enhance error information
       final enhancedError = translateRpcError(e);
-      throw enhancedError;
+      if (enhancedError is Exception) {
+        throw enhancedError;
+      } else if (enhancedError is Error) {
+        throw enhancedError;
+      } else {
+        throw Exception(enhancedError.toString());
+      }
     }
   }
 }

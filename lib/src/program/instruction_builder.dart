@@ -164,7 +164,7 @@ class InstructionBuilder {
           metas.add(tx.AccountMeta(
             pubkey: pubkey,
             isSigner: acct.isSigner || _signers.contains(pubkey),
-            isWritable: acct.isMut,
+            isWritable: acct.writable,
           ));
         } else if (acct is IdlInstructionAccounts) {
           addMetas(acct.accounts);

@@ -55,7 +55,8 @@ class MockConnection extends Connection {
       _shouldThrow = false;
       throw _throwException!;
     }
-    return _mockResponses['checkHealth'] ?? 'ok';
+    final result = _mockResponses['checkHealth'];
+    return result is String ? result : 'ok';
   }
 
   @override
@@ -66,7 +67,8 @@ class MockConnection extends Connection {
       _shouldThrow = false;
       throw _throwException!;
     }
-    return _mockResponses['getBalance'] ?? 1000000000; // 1 SOL default
+    final result = _mockResponses['getBalance'];
+    return result is int ? result : 1000000000; // 1 SOL default
   }
 }
 

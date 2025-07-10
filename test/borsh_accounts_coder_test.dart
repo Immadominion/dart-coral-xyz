@@ -360,7 +360,7 @@ void main() {
         expect(filter['bytes'], isA<String>());
 
         // Decode base64 and verify it contains the discriminator
-        final bytes = base64.decode(filter['bytes']);
+        final bytes = base64.decode(filter['bytes'] as String);
         expect(bytes, equals([1, 2, 3, 4, 5, 6, 7, 8]));
       });
 
@@ -370,7 +370,7 @@ void main() {
 
         expect(filter['offset'], equals(0));
 
-        final bytes = base64.decode(filter['bytes']);
+        final bytes = base64.decode(filter['bytes'] as String);
         final expected = [9, 10, 11, 12, 13, 14, 15, 16, 100, 101, 102];
         expect(bytes, equals(expected));
       });

@@ -12,7 +12,6 @@ dependencies:
   # Core Dart dependencies
   http: ^1.1.0                         # Required by solana package
   convert: ^3.1.1
-  crypto: ^3.0.3
   web_socket_channel: ^3.0.0           # WebSocket support for event system
   
   # Solana Web3 dependencies

@@ -13,8 +13,9 @@ import '../types/keypair.dart';
 import '../types/transaction.dart' as transaction_types;
 import 'connection.dart';
 import 'wallet.dart';
-import 'anchor_provider.dart';
+import '../types/connection_config.dart';
 import 'provider_interface.dart';
+import 'anchor_provider.dart';
 
 /// Factory for creating and configuring providers
 ///
@@ -84,7 +85,7 @@ class ProviderFactory {
     final config = ProviderCreationConfig(
       type: ProviderType.keypair,
       connectionConfig: ConnectionConfig(
-        endpoint: endpoint,
+        rpcUrl: endpoint,
         commitment: options?.commitment ?? CommitmentConfigs.processed,
       ),
       walletConfig: const WalletConfig(
@@ -112,7 +113,7 @@ class ProviderFactory {
     final config = ProviderCreationConfig(
       type: ProviderType.keypair,
       connectionConfig: ConnectionConfig(
-        endpoint: endpoint ?? defaultEndpoints['localnet']!,
+        rpcUrl: endpoint ?? defaultEndpoints['localnet']!,
         commitment: options?.commitment ?? CommitmentConfigs.processed,
       ),
       walletConfig: const WalletConfig(
@@ -184,10 +185,7 @@ class ProviderFactory {
     ProviderCreationConfig config,
   ) async {
     // Create connection
-    final connection = Connection(
-      config.connectionConfig.endpoint,
-      config: config.connectionConfig.connectionConfig,
-    );
+    final connection = Connection.fromConfig(config.connectionConfig);
 
     // Create wallet
     final wallet = await _createWallet(config.walletConfig);
@@ -256,22 +254,6 @@ class ProviderCreationConfig {
 }
 
 /// Connection configuration
-class ConnectionConfig {
-  /// RPC endpoint URL
-  final String endpoint;
-
-  /// Default commitment level
-  final CommitmentConfig commitment;
-
-  /// Connection-specific configuration
-  final dynamic connectionConfig;
-
-  const ConnectionConfig({
-    required this.endpoint,
-    this.commitment = CommitmentConfigs.processed,
-    this.connectionConfig,
-  });
-}
 
 /// Wallet configuration
 class WalletConfig {

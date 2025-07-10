@@ -228,18 +228,19 @@ void main() {
     test('methods builder should support fluent interface', () {
       final methodsBuilder = program.methods['initialize'];
       expect(methodsBuilder, isNotNull);
-      expect(methodsBuilder!.name, equals('initialize'));
+      // Call the function to get the builder, then check the name
+      final builder = methodsBuilder!([42]); // Initialize with value 42
+      expect(builder.name, equals('initialize'));
 
       // Test fluent interface (just that methods return the builder)
-      final builder = methodsBuilder.call([42]) // Initialize with value 42
-          .accounts({
+      final fluentBuilder = builder.accounts({
         'data': program.programId,
         'user': program.programId,
         'system_program': program.programId,
       }).signers([]);
 
-      expect(builder, isA<TypeSafeMethodBuilder>());
-      expect(builder.name, equals('initialize'));
+      expect(fluentBuilder, isA<TypeSafeMethodBuilder>());
+      expect(fluentBuilder.name, equals('initialize'));
     });
 
     test('namespace toString methods should work', () {

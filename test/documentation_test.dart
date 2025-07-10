@@ -8,6 +8,28 @@ import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
+// Exception classes for testing documentation examples
+class AnchorException implements Exception {
+  final String message;
+  AnchorException(this.message);
+}
+
+class AccountCoderException extends AnchorException {
+  AccountCoderException(super.message);
+}
+
+class InstructionCoderException extends AnchorException {
+  InstructionCoderException(super.message);
+}
+
+class EventCoderException extends AnchorException {
+  EventCoderException(super.message);
+}
+
+class TypesCoderException extends AnchorException {
+  TypesCoderException(super.message);
+}
+
 void main() {
   group('Documentation Examples', () {
     // Pattern 2: Public key operations
@@ -32,7 +54,7 @@ void main() {
               'version': '0.1.0',
               'spec': '0.1.0',
             },
-            'instructions': [],
+            'instructions': <Map<String, dynamic>>[],
           });
 
           // This should not throw during construction
@@ -123,8 +145,8 @@ void main() {
             {
               'name': 'initialize',
               'discriminator': [175, 175, 109, 31, 13, 152, 155, 237],
-              'accounts': [],
-              'args': [],
+              'accounts': <Map<String, dynamic>>[],
+              'args': <Map<String, dynamic>>[],
             }
           ],
         });
@@ -310,10 +332,10 @@ void main() {
                   'writable': true,
                 }
               ],
-              'args': []
+              'args': <Map<String, dynamic>>[]
             }
           ],
-          'types': []
+          'types': <Map<String, dynamic>>[]
         };
 
         expect(() {
@@ -364,7 +386,7 @@ void main() {
         final mockIdl = Idl.fromJson({
           'address': '11111111111111111111111111111112',
           'metadata': {'name': 'test', 'version': '0.1.0', 'spec': '0.1.0'},
-          'instructions': [],
+          'instructions': <Map<String, dynamic>>[],
         });
 
         return Program(mockIdl, provider: provider);

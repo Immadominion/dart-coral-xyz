@@ -97,13 +97,13 @@ class IdlUtils {
       // Fetch the account info
       final accountInfo = await provider.connection.getAccountInfo(idlAddress);
 
-      if (accountInfo == null || accountInfo.data.isEmpty) {
+      if (accountInfo == null || accountInfo.data.length == 0) {
         return null;
       }
 
       // Decode the IDL account (skip 8-byte discriminator)
       final idlAccount = IdlProgramAccount.decode(
-        accountInfo.data.sublist(8),
+        (accountInfo.data as Uint8List).sublist(8),
       );
 
       // Decompress the IDL data using gzip

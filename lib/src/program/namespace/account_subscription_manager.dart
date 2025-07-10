@@ -434,7 +434,7 @@ class AccountSubscription {
         _reconnectAttempts < config.maxReconnectAttempts) {
       // Will be handled by _handleDone which calls _scheduleReconnect
     } else {
-      _controller.addError(error);
+      _controller.addError(error as Object);
     }
   }
 

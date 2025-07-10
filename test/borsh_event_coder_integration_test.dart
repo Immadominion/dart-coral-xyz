@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
-import '../lib/src/event/borsh_event_coder.dart';
 import '../lib/src/idl/idl.dart';
 
 void main() {

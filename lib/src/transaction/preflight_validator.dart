@@ -7,6 +7,8 @@
 
 library;
 
+import 'dart:typed_data';
+
 import 'dart:async';
 
 import '../types/public_key.dart';
@@ -699,6 +701,9 @@ class PreflightValidator {
     final warnings = <AccountValidationWarning>[];
 
     try {
+      // Compute data length safely (will be used after fetching accountInfo)
+      int dataLength = 0;
+
       // Skip validation for system accounts if configured
       if (config.skipSystemAccountValidation && _isSystemAccount(account)) {
         final status = AccountValidationStatus.valid(
@@ -724,6 +729,16 @@ class PreflightValidator {
         account,
         commitment: config.commitment,
       );
+
+      if (accountInfo != null && accountInfo.data != null) {
+        if (accountInfo.data is String) {
+          dataLength = (accountInfo.data as String).length;
+        } else if (accountInfo.data is List<int>) {
+          dataLength = (accountInfo.data as List<int>).length;
+        } else if (accountInfo.data is Uint8List) {
+          dataLength = (accountInfo.data as Uint8List).length;
+        }
+      }
 
       if (accountInfo == null) {
         if (config.validateExistence) {
@@ -769,13 +784,12 @@ class PreflightValidator {
         ));
       }
 
-      if (accountInfo.data.length > 10 * 1024 * 1024) {
+      if (dataLength > 10 * 1024 * 1024) {
         // Larger than 10MB
         warnings.add(AccountValidationWarning(
           type: AccountValidationWarningType.largeAccount,
           publicKey: account,
-          message:
-              'Account data is unusually large: ${accountInfo.data.length} bytes',
+          message: 'Account data is unusually large: $dataLength bytes',
         ));
       }
 
@@ -783,7 +797,7 @@ class PreflightValidator {
           ? AccountValidationStatus.valid(
               publicKey: account,
               owner: accountInfo.owner,
-              dataLength: accountInfo.data.length,
+              dataLength: dataLength,
               lamports: accountInfo.lamports,
               executable: accountInfo.executable,
               warnings: warnings,
@@ -792,7 +806,7 @@ class PreflightValidator {
               publicKey: account,
               exists: true,
               owner: accountInfo.owner,
-              dataLength: accountInfo.data.length,
+              dataLength: dataLength,
               lamports: accountInfo.lamports,
               executable: accountInfo.executable,
               errors: errors,

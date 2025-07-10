@@ -7,8 +7,7 @@
 library;
 
 import '../types/public_key.dart';
-import '../types/transaction.dart' as tx_types;
-import 'transaction_builder.dart';
+import 'transaction.dart';
 
 /// Transaction validation configuration
 class TransactionValidationConfig {
@@ -233,48 +232,27 @@ class TransactionValidator {
     TransactionValidationConfig? config,
   }) : _config = config ?? const TransactionValidationConfig();
 
-  /// Validate a transaction builder
-  Future<TransactionValidationResult> validateBuilder(
-    TransactionBuilder builder,
+  /// Validate a transaction
+  Future<TransactionValidationResult> validateTransaction(
+    Transaction transaction,
   ) async {
     final stopwatch = Stopwatch()..start();
     final errors = <TransactionValidationError>[];
     final warnings = <TransactionValidationWarning>[];
 
     try {
-      // Get builder stats
-      final stats = builder.getStats();
+      // Validate basic transaction structure
+      _validateTransactionStructure(transaction, errors, warnings);
 
-      // Validate instruction count
+      // Validate instructions
       if (_config.validateInstructionData) {
-        _validateInstructionCount(stats, errors, warnings);
-      }
-
-      // Validate transaction size
-      if (_config.validateTransactionSize) {
-        _validateTransactionSize(stats, errors, warnings);
-      }
-
-      // Validate compute budget
-      if (_config.validateComputeBudget) {
-        _validateComputeBudget(stats, errors, warnings);
-      }
-
-      // Validate accounts
-      if (_config.validateAccounts) {
-        _validateAccounts(stats, errors, warnings);
+        _validateTransactionInstructions(transaction, errors, warnings);
       }
 
       stopwatch.stop();
 
-      final metrics = TransactionValidationMetrics(
-        estimatedSize: stats['estimatedSize'] as int,
-        instructionCount: stats['instructionCount'] as int,
-        accountCount: stats['uniqueAccounts'] as int,
-        signerCount: stats['signerAccounts'] as int,
-        estimatedComputeUnits: _estimateComputeUnits(stats),
-        validationTimeMs: stopwatch.elapsedMilliseconds,
-      );
+      final metrics = _calculateTransactionMetrics(
+          transaction, stopwatch.elapsedMilliseconds);
 
       return errors.isEmpty
           ? TransactionValidationResult.success(
@@ -310,8 +288,8 @@ class TransactionValidator {
   }
 
   /// Validate a built transaction
-  TransactionValidationResult validateTransaction(
-    tx_types.Transaction transaction,
+  TransactionValidationResult validateBuiltTransaction(
+    Transaction transaction,
   ) {
     final stopwatch = Stopwatch()..start();
     final errors = <TransactionValidationError>[];
@@ -455,7 +433,7 @@ class TransactionValidator {
 
   /// Validate transaction structure
   void _validateTransactionStructure(
-    tx_types.Transaction transaction,
+    Transaction transaction,
     List<TransactionValidationError> errors,
     List<TransactionValidationWarning> warnings,
   ) {
@@ -490,7 +468,7 @@ class TransactionValidator {
 
   /// Validate transaction instructions
   void _validateTransactionInstructions(
-    tx_types.Transaction transaction,
+    Transaction transaction,
     List<TransactionValidationError> errors,
     List<TransactionValidationWarning> warnings,
   ) {
@@ -520,30 +498,13 @@ class TransactionValidator {
 
   /// Validate transaction signers
   void _validateTransactionSigners(
-    tx_types.Transaction transaction,
+    Transaction transaction,
     List<TransactionValidationError> errors,
     List<TransactionValidationWarning> warnings,
   ) {
-    // Check for duplicate signers
-    final signerSet = <PublicKey>{};
-    final duplicates = <PublicKey>[];
-
-    for (final signer in transaction.signers) {
-      if (signerSet.contains(signer)) {
-        duplicates.add(signer);
-      } else {
-        signerSet.add(signer);
-      }
-    }
-
-    if (duplicates.isNotEmpty) {
-      warnings.add(TransactionValidationWarning(
-        type: 'duplicate_signers',
-        message:
-            'Transaction has duplicate signers: ${duplicates.map((s) => s.toString()).join(', ')}',
-        context: {'duplicates': duplicates.map((s) => s.toString()).toList()},
-      ));
-    }
+    // Check for duplicate signers (if transaction has signers list)
+    // Note: The working Transaction class doesn't have a signers property
+    // so we'll skip this validation for now
   }
 
   /// Estimate compute units for transaction stats
@@ -557,7 +518,7 @@ class TransactionValidator {
 
   /// Calculate transaction metrics
   TransactionValidationMetrics _calculateTransactionMetrics(
-    tx_types.Transaction transaction,
+    Transaction transaction,
     int validationTimeMs,
   ) {
     // Count unique accounts
@@ -572,9 +533,9 @@ class TransactionValidator {
     for (final instruction in transaction.instructions) {
       uniqueAccounts.add(instruction.programId);
       for (final account in instruction.accounts) {
-        uniqueAccounts.add(account.pubkey);
+        uniqueAccounts.add(account.publicKey);
         if (account.isSigner) {
-          signerAccounts.add(account.pubkey);
+          signerAccounts.add(account.publicKey);
         }
       }
     }
@@ -582,8 +543,8 @@ class TransactionValidator {
     // Estimate size (simplified)
     final estimatedSize = 100 +
         (uniqueAccounts.length * 32) +
-        transaction.instructions
-            .fold<int>(0, (sum, ix) => sum + ix.data.length + 10);
+        transaction.instructions.fold<int>(0,
+            (int sum, TransactionInstruction ix) => sum + ix.data.length + 10);
 
     return TransactionValidationMetrics(
       estimatedSize: estimatedSize,

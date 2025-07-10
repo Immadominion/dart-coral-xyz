@@ -78,15 +78,27 @@ class PdaSeedRequirement {
     // Length validation
     if (type == PdaSeedType.string && value is String) {
       final length = value.length;
-      if (fixedLength != null && length != fixedLength) return false;
-      if (minLength != null && length < minLength!) return false;
-      if (maxLength != null && length > maxLength!) return false;
+      if (fixedLength != null) {
+        if (length != fixedLength) return false;
+      }
+      if (minLength != null) {
+        final min = minLength as int;
+        if (length < min) return false;
+      }
+      if (maxLength != null) {
+        final max = maxLength as int;
+        if (length > max) return false;
+      }
     } else if (type == PdaSeedType.bytes &&
         (value is Uint8List || value is List<int>)) {
-      final length = value.length;
+      final int length = value.length as int;
       if (fixedLength != null && length != fixedLength) return false;
-      if (minLength != null && length < minLength!) return false;
-      if (maxLength != null && length > maxLength!) return false;
+      if (minLength != null) {
+        if (length < minLength!) return false;
+      }
+      if (maxLength != null) {
+        if (length > maxLength!) return false;
+      }
     }
 
     // Allowed values validation

@@ -547,7 +547,7 @@ class AnchorDocumentationGenerator {
         final innerType = _formatTypeForDocs(type['option']);
         return '$innerType?';
       } else if (type.containsKey('defined')) {
-        return type['defined'];
+        return type['defined'].toString();
       }
     }
     return 'dynamic';

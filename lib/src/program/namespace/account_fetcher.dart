@@ -5,7 +5,8 @@
 /// TypeScript Anchor's account namespace functionality.
 
 import 'dart:async';
-
+import 'dart:convert';
+import 'dart:typed_data';
 import '../../types/public_key.dart';
 import '../../types/commitment.dart';
 import '../../coder/main_coder.dart';
@@ -213,7 +214,12 @@ class AccountFetcher<T> {
         final address = uncachedAddresses[i];
         final resultIndex = uncachedIndices[i];
 
-        if (accountInfo == null || accountInfo.data.isEmpty) {
+        final data = accountInfo?.data;
+        final isEmpty = data == null ||
+            (data is List && data.isEmpty) ||
+            (data is String && data.isEmpty) ||
+            (data is Uint8List && data.isEmpty);
+        if (accountInfo == null || isEmpty) {
           results[resultIndex] = null;
           continue;
         }
@@ -226,9 +232,20 @@ class AccountFetcher<T> {
 
         try {
           // Decode account data
+
+          // Convert data to Uint8List if needed
+          Uint8List dataBytes;
+          if (accountInfo.data is Uint8List) {
+            dataBytes = accountInfo.data as Uint8List;
+          } else if (accountInfo.data is List<int>) {
+            dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+          } else {
+            throw Exception('Account data is not a valid byte array');
+          }
+
           final decodedData = _coder.accounts.decode<T>(
             _idlAccount.name,
-            accountInfo.data,
+            dataBytes,
           );
 
           results[resultIndex] = decodedData;
@@ -315,9 +332,26 @@ class AccountFetcher<T> {
     final results = <ProgramAccount<T>>[];
     for (final account in accounts) {
       try {
+        final data = account.account.data;
+        if (data == null ||
+            (data is List && data.isEmpty) ||
+            (data is String && data.isEmpty) ||
+            (data is Uint8List && data.isEmpty)) {
+          continue;
+        }
+
+        // Convert data to Uint8List if needed
+        Uint8List dataBytes;
+        if (data is Uint8List) {
+          dataBytes = data;
+        } else if (data is List<int>) {
+          dataBytes = Uint8List.fromList(data);
+        } else {
+          continue;
+        }
         final decodedData = _coder.accounts.decode<T>(
           _idlAccount.name,
-          account.account.data,
+          dataBytes,
         );
 
         results.add(ProgramAccount<T>(
@@ -418,7 +452,12 @@ class AccountFetcher<T> {
       commitment: commitmentConfig,
     );
 
-    if (accountInfo == null || accountInfo.data.isEmpty) {
+    final data = accountInfo?.data;
+    final isEmpty = data == null ||
+        (data is List && data.isEmpty) ||
+        (data is String && data.isEmpty) ||
+        (data is Uint8List && data.isEmpty);
+    if (accountInfo == null || isEmpty) {
       return null;
     }
 
@@ -437,7 +476,24 @@ class AccountFetcher<T> {
     }
 
     // Decode account data
-    return _coder.accounts.decode<T>(_idlAccount.name, accountInfo.data);
+    // Convert data to Uint8List if needed
+    Uint8List dataBytes;
+    if (accountInfo.data is Uint8List) {
+      dataBytes = accountInfo.data as Uint8List;
+    } else if (accountInfo.data is List<int>) {
+      dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+    } else if (accountInfo.data is String) {
+      // Handle base64 encoded data from RPC response
+      try {
+        dataBytes = base64Decode(accountInfo.data as String);
+      } catch (e) {
+        throw Exception('Failed to decode base64 account data: $e');
+      }
+    } else {
+      throw Exception(
+          'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}');
+    }
+    return _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
   }
 
   /// Dispose of the account fetcher

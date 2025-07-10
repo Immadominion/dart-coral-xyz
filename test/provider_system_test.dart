@@ -11,6 +11,7 @@ import '../lib/src/provider/connection.dart';
 import '../lib/src/provider/wallet.dart';
 import '../lib/src/types/commitment.dart';
 import '../lib/src/types/transaction.dart';
+import '../lib/src/types/connection_config.dart';
 
 void main() {
   group('ProviderInterface', () {
@@ -119,7 +120,7 @@ void main() {
       final config = ProviderCreationConfig(
         type: ProviderType.keypair,
         connectionConfig: ConnectionConfig(
-          endpoint: 'http://127.0.0.1:8899',
+          rpcUrl: 'http://127.0.0.1:8899',
           commitment: CommitmentConfigs.confirmed,
         ),
         walletConfig: WalletConfig(
@@ -140,7 +141,7 @@ void main() {
       final config = ProviderCreationConfig(
         type: ProviderType.keypair,
         connectionConfig: ConnectionConfig(
-          endpoint: 'http://127.0.0.1:8899',
+          rpcUrl: 'http://127.0.0.1:8899',
         ),
         walletConfig: WalletConfig(
           type: WalletType.keypair,
@@ -171,7 +172,7 @@ void main() {
       final config = ProviderCreationConfig(
         type: ProviderType.keypair,
         connectionConfig: ConnectionConfig(
-          endpoint: 'http://127.0.0.1:8899',
+          rpcUrl: 'http://127.0.0.1:8899',
         ),
         walletConfig: WalletConfig(
           type: WalletType.keypair,
@@ -202,7 +203,7 @@ void main() {
       Future<ProviderInterface> customBuilder(
         ProviderCreationConfig config,
       ) async {
-        final connection = Connection(config.connectionConfig.endpoint);
+        final connection = Connection(config.connectionConfig.rpcUrl);
         final wallet = await KeypairWallet.generate();
         return KeypairProvider(connection: connection, wallet: wallet);
       }
@@ -247,7 +248,7 @@ void main() {
       await provider.connect();
 
       // Give time for stream to emit
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
       expect(receivedStatus, isTrue);
     });
 
@@ -283,11 +284,11 @@ void main() {
   group('ProviderConfiguration', () {
     test('should support connection configuration', () {
       final config = ConnectionConfig(
-        endpoint: 'https://api.mainnet-beta.solana.com',
+        rpcUrl: 'https://api.mainnet-beta.solana.com',
         commitment: CommitmentConfigs.finalized,
       );
 
-      expect(config.endpoint, equals('https://api.mainnet-beta.solana.com'));
+      expect(config.rpcUrl, equals('https://api.mainnet-beta.solana.com'));
       expect(config.commitment, equals(CommitmentConfigs.finalized));
     });
 

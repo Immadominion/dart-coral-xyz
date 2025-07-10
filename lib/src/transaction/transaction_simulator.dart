@@ -135,26 +135,54 @@ class TransactionSimulationResult {
     final value = response['value'] as Map<String, dynamic>;
     final err = value['err'];
 
+    Iterable<String> _parseLogs(dynamic logs) {
+      if (logs is Iterable) {
+        return logs.map((e) => e.toString());
+      } else if (logs is String) {
+        return [logs];
+      } else {
+        return const [];
+      }
+    }
+
+    Map<String, dynamic>? _parseAccounts(dynamic accounts) {
+      if (accounts is Map<String, dynamic>) return accounts;
+      return null;
+    }
+
+    Map<String, dynamic> _parseReturnData(dynamic data) {
+      if (data is Map<String, dynamic>) return data;
+      return {};
+    }
+
+    List<Map<String, dynamic>>? _parseInnerInstructions(dynamic inner) {
+      if (inner is Iterable) {
+        return inner.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      }
+      return null;
+    }
+
     if (err != null) {
       return TransactionSimulationResult(
         success: false,
-        logs: List<String>.from(value['logs'] ?? []),
+        logs: List<String>.from(_parseLogs(value['logs'])),
         error: TransactionSimulationError.fromRpcError(err),
         unitsConsumed: value['unitsConsumed'] as int?,
-        accounts: value['accounts'] as Map<String, dynamic>?,
+        accounts: _parseAccounts(value['accounts']),
       );
     }
 
     return TransactionSimulationResult(
       success: true,
-      logs: List<String>.from(value['logs'] ?? []),
+      logs: List<String>.from(_parseLogs(value['logs'])),
       unitsConsumed: value['unitsConsumed'] as int?,
-      accounts: value['accounts'] as Map<String, dynamic>?,
+      accounts: _parseAccounts(value['accounts']),
       returnData: value['returnData'] != null
-          ? TransactionReturnData.fromJson(value['returnData'])
+          ? TransactionReturnData.fromJson(
+              _parseReturnData(value['returnData']))
           : null,
       innerInstructions: value['innerInstructions'] != null
-          ? List<Map<String, dynamic>>.from(value['innerInstructions'])
+          ? _parseInnerInstructions(value['innerInstructions'])
           : null,
     );
   }

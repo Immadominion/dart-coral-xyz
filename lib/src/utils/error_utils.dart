@@ -290,7 +290,7 @@ class ErrorUtils {
           }
 
           return InstructionError(
-            message,
+            message?.toString() ?? 'Unknown error',
             instructionIndex: index,
             context: {
               'logs': logs,
@@ -301,14 +301,14 @@ class ErrorUtils {
       }
 
       return SimulationError(
-        message,
+        message?.toString() ?? 'RPC Error',
         logs: logs?.cast<String>(),
         context: data,
       );
     }
 
     return NetworkError(
-      message,
+      message?.toString() ?? 'RPC Error',
       statusCode: rpcError['code'] as int?,
       context: rpcError,
     );

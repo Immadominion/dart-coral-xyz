@@ -187,7 +187,7 @@ class AccountOperationsManager<T> {
   final AccountSubscriptionManager _subscriptionManager;
 
   /// Active subscriptions
-  final Map<String, StreamSubscription> _activeSubscriptions = {};
+  final Map<String, StreamSubscription<T?>> _activeSubscriptions = {};
 
   /// Relationship tracking
   final Map<String, List<AccountRelationship>> _relationships = {};
@@ -246,10 +246,20 @@ class AccountOperationsManager<T> {
         );
       }
 
+      // Convert data to Uint8List if needed
+      Uint8List dataBytes;
+      if (accountInfo.data is Uint8List) {
+        dataBytes = accountInfo.data as Uint8List;
+      } else if (accountInfo.data is List<int>) {
+        dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+      } else {
+        throw Exception('Account data is not a valid byte array');
+      }
+
       // Decode account data
       final decoded = _coder.accounts.decode<T>(
         _idlAccount.name,
-        accountInfo.data,
+        dataBytes,
       );
 
       // Cache the result
@@ -257,7 +267,7 @@ class AccountOperationsManager<T> {
         _cacheManager.put(
           address,
           decoded,
-          sizeEstimate: accountInfo.data.length,
+          sizeEstimate: dataBytes.length,
         );
       }
 
@@ -357,7 +367,9 @@ class AccountOperationsManager<T> {
       onDone: controller.close,
     );
 
-    _activeSubscriptions[address.toBase58()] = subscription;
+    // Store as StreamSubscription<AccountChangeNotification>
+    _activeSubscriptions[address.toBase58()] =
+        subscription as StreamSubscription<T?>;
 
     controller.onCancel = () {
       subscription.cancel();
@@ -400,19 +412,31 @@ class AccountOperationsManager<T> {
         );
       }
 
+      // Convert data to Uint8List if needed
+      Uint8List? dataBytes;
+      if (accountInfo.data is Uint8List) {
+        dataBytes = accountInfo.data as Uint8List;
+      } else if (accountInfo.data is List<int>) {
+        dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+      } else {
+        dataBytes = null;
+      }
+
       // Extract discriminator if available
       List<int>? discriminator;
-      if (accountInfo.data.length >= 8) {
-        discriminator = accountInfo.data.take(8).toList();
+      if (dataBytes != null && dataBytes.length >= 8) {
+        discriminator = dataBytes.take(8).toList();
       }
 
       // Try to parse account data
       Map<String, dynamic>? parsedData;
       try {
-        final decoded =
-            _coder.accounts.decode<T>(_idlAccount.name, accountInfo.data);
-        if (decoded is Map<String, dynamic>) {
-          parsedData = decoded;
+        if (dataBytes != null) {
+          final decoded =
+              _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
+          if (decoded is Map<String, dynamic>) {
+            parsedData = decoded;
+          }
         }
       } catch (e) {
         // Parsing failed, leave parsedData as null
@@ -423,13 +447,13 @@ class AccountOperationsManager<T> {
 
       return AccountDebugInfo(
         publicKey: address,
-        size: accountInfo.data.length,
+        size: dataBytes?.length ?? 0,
         owner: accountInfo.owner,
         lamports: accountInfo.lamports,
         executable: accountInfo.executable,
         rentEpoch: accountInfo.rentEpoch,
         discriminator: discriminator,
-        data: accountInfo.data,
+        data: dataBytes,
         parsedData: parsedData,
         relationships: relationships,
       );

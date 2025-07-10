@@ -366,38 +366,10 @@ class Transaction {
     // Collect all unique accounts from instructions
     final allAccounts = <PublicKey, _AccountInfo>{};
 
-    // Add fee payer as writable signer
-    if (feePayer != null) {
-      allAccounts[feePayer!] = _AccountInfo(
-        pubkey: feePayer!,
-        isSigner: true,
-        isWritable: true,
-      );
-    }
-
-    // Add other signers (typically read-only unless specified otherwise)
-    for (final signer in _signers) {
-      if (!allAccounts.containsKey(signer)) {
-        allAccounts[signer] = _AccountInfo(
-          pubkey: signer,
-          isSigner: true,
-          isWritable: false, // Default to read-only for non-fee-payer signers
-        );
-      }
-    }
-
-    // Process instruction accounts
+    // Process instruction accounts first
+    // Collect all accounts from all instructions, including program IDs
     for (final ix in instructions) {
-      // Add program ID as read-only non-signer
-      if (!allAccounts.containsKey(ix.programId)) {
-        allAccounts[ix.programId] = _AccountInfo(
-          pubkey: ix.programId,
-          isSigner: false,
-          isWritable: false,
-        );
-      }
-
-      // Add instruction accounts
+      // Add instruction accounts first to preserve their writable status
       for (final meta in ix.accounts) {
         if (allAccounts.containsKey(meta.pubkey)) {
           // Merge with existing - more permissive wins
@@ -415,7 +387,46 @@ class Transaction {
           );
         }
       }
+
+      // Add the program ID as a readonly, non-signer account
+      if (!allAccounts.containsKey(ix.programId)) {
+        allAccounts[ix.programId] = _AccountInfo(
+          pubkey: ix.programId,
+          isSigner: false,
+          isWritable: false,
+        );
+      }
     }
+
+    // Add fee payer as writable signer (overriding any existing settings)
+    if (feePayer != null) {
+      allAccounts[feePayer!] = _AccountInfo(
+        pubkey: feePayer!,
+        isSigner: true,
+        isWritable: true,
+      );
+    }
+
+    // Add other signers (ensuring they're marked as signers while preserving writable status)
+    for (final signer in _signers) {
+      if (!allAccounts.containsKey(signer)) {
+        allAccounts[signer] = _AccountInfo(
+          pubkey: signer,
+          isSigner: true,
+          isWritable: false, // Default to read-only for non-fee-payer signers
+        );
+      } else {
+        // If signer is already in the list, ensure isSigner is true while preserving writable status
+        final existing = allAccounts[signer]!;
+        allAccounts[signer] = _AccountInfo(
+          pubkey: existing.pubkey,
+          isSigner: true,
+          isWritable:
+              existing.isWritable, // Preserve writable status from instruction
+        );
+      }
+    }
+    // Note: Instruction accounts are processed first (above)
 
     // Sort accounts according to Solana specification:
     // 1. Writable signers

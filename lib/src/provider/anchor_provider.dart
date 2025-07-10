@@ -7,7 +7,6 @@
 library;
 
 import 'dart:async';
-import 'dart:typed_data';
 import 'connection.dart';
 import 'wallet.dart';
 import '../types/public_key.dart';
@@ -329,13 +328,9 @@ class AnchorProvider implements Provider {
         recentBlockhash = blockhashResult.blockhash;
       }
 
-      // Convert AnchorTransaction to the format expected by the RPC wrapper
-      final transactionMap = await _convertTransactionForRpc(
-          signedTransaction, recentBlockhash, wallet!);
-
       // Use the connection to send the transaction
       final signature = await connection.sendAndConfirmTransaction(
-        transactionMap,
+        signedTransaction.serialize(),
         commitment: opts.commitment,
       );
 
@@ -497,102 +492,6 @@ class AnchorProvider implements Provider {
     }
 
     return preparedTx;
-  }
-
-  /// Convert a signed Transaction to the format expected by the RPC wrapper
-  Future<Map<String, dynamic>> _convertTransactionForRpc(
-    transaction_types.Transaction signedTransaction,
-    String recentBlockhash,
-    Wallet wallet,
-  ) async {
-    // Convert instructions to the RPC format
-    final rpcInstructions = <Map<String, dynamic>>[];
-
-    for (final instruction in signedTransaction.instructions) {
-      final rpcAccounts = <Map<String, dynamic>>[];
-
-      for (final account in instruction.accounts) {
-        rpcAccounts.add({
-          'pubkey': account.pubkey.toBase58(),
-          'isSigner': account.isSigner,
-          'isWritable': account.isWritable,
-        });
-      }
-
-      rpcInstructions.add({
-        'programId': instruction.programId.toBase58(),
-        'accounts': rpcAccounts,
-        'data': instruction.data,
-      });
-    }
-
-    // Prepare signatures in the format expected by RPC wrapper
-    final signatures = <String, Uint8List>{};
-    for (final entry in signedTransaction.signatures.entries) {
-      signatures[entry.key] = entry.value;
-    }
-
-    // Create a signature callback that can sign the transaction message
-    Future<Map<String, Uint8List>> signatureCallback(
-        Uint8List messageBytes) async {
-      final newSignatures = <String, Uint8List>{};
-
-      // Check which signers we need signatures for
-      final signerKeys = <String>{};
-
-      // Fee payer is always a signer
-      if (signedTransaction.feePayer != null) {
-        signerKeys.add(signedTransaction.feePayer!.toBase58());
-      }
-
-      // Check instruction accounts for additional signers
-      for (final instruction in signedTransaction.instructions) {
-        for (final account in instruction.accounts) {
-          if (account.isSigner) {
-            signerKeys.add(account.pubkey.toBase58());
-          }
-        }
-      }
-
-      // Sign the message with the wallet if it's one of the required signers
-      final walletKey = wallet.publicKey.toBase58();
-      if (signerKeys.contains(walletKey)) {
-        print('DEBUG: Signing message with wallet for key: $walletKey');
-
-        // Check if wallet has the signTransactionMessage method (KeypairWallet)
-        if (wallet is KeypairWallet) {
-          final signature = await wallet.signTransactionMessage(messageBytes);
-          newSignatures[walletKey] = signature;
-        } else {
-          // For other wallet types, we need to sign the full transaction and extract the signature
-          // This is a bit tricky because the wallet expects a Transaction object, not raw message bytes
-          print(
-              'DEBUG: Wallet does not support signTransactionMessage, using transaction-level signing');
-
-          // The signature should already be present from the wallet.signTransaction call above
-          // We'll trust that the wallet has properly signed the transaction
-          if (signatures.containsKey(walletKey)) {
-            newSignatures[walletKey] = signatures[walletKey]!;
-          } else {
-            throw Exception(
-                'Wallet did not provide signature for required signer: $walletKey');
-          }
-        }
-      }
-
-      return newSignatures;
-    }
-
-    // Prepare the transaction data
-    final transactionData = {
-      'instructions': rpcInstructions,
-      'feePayer': signedTransaction.feePayer?.toBase58(),
-      'recentBlockhash': recentBlockhash,
-      'signatures': signatures,
-      'signatureCallback': signatureCallback,
-    };
-
-    return transactionData;
   }
 
   @override

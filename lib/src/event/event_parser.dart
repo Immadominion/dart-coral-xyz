@@ -8,6 +8,7 @@
 import '../types/public_key.dart';
 import '../coder/main_coder.dart';
 import 'types.dart';
+import '../idl/idl.dart';
 
 /// Parser for extracting events from transaction logs
 ///
@@ -51,7 +52,7 @@ class EventParser {
   /// [context] - Additional context for the events
   ///
   /// Returns an iterable of parsed events
-  Iterable<ParsedEvent> parseLogs(
+  Iterable<ParsedEvent<dynamic>> parseLogs(
     List<String> logs, {
     bool errorOnDecodeFailure = false,
     EventContext? context,
@@ -90,11 +91,11 @@ class EventParser {
               signature: '', // Will be filled by caller
             );
 
-        yield ParsedEvent(
-          name: event.name,
+        yield ParsedEvent<dynamic>(
+          name: event.name as String,
           data: event.data,
           context: eventContext,
-          eventDef: event.eventDef,
+          eventDef: event.eventDef as IdlEvent,
         );
       }
 

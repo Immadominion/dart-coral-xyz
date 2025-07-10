@@ -8,6 +8,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 
@@ -15,7 +16,6 @@ import '../types/commitment.dart';
 import '../types/connection_config.dart';
 import '../types/public_key.dart';
 import '../utils/rpc_errors.dart';
-import '../external/solana_rpc_wrapper.dart';
 
 /// Connection to a Solana cluster for RPC communication
 ///
@@ -25,7 +25,6 @@ import '../external/solana_rpc_wrapper.dart';
 class Connection {
   final String _endpoint;
   final ConnectionConfig _config;
-  final SolanaRpcWrapper _rpcWrapper;
   final http.Client _httpClient;
 
   /// WebSocket connections for subscriptions
@@ -44,8 +43,7 @@ class Connection {
     ConnectionConfig? config,
     http.Client? httpClient,
   })  : _config = config ?? ConnectionConfig(rpcUrl: _endpoint),
-        _httpClient = httpClient ?? http.Client(),
-        _rpcWrapper = SolanaRpcWrapper(_endpoint);
+        _httpClient = httpClient ?? http.Client();
 
   /// Get the endpoint URL
   String get endpoint => _endpoint;
@@ -66,13 +64,82 @@ class Connection {
   ///
   /// Returns the transaction signature
   Future<String> sendAndConfirmTransaction(
-    Map<String, dynamic> transaction, {
+    dynamic transaction, {
     CommitmentConfig? commitment,
   }) async {
-    return await _rpcWrapper.sendAndConfirmTransaction(
-      transaction,
-      commitment: (commitment ?? _config.commitment).commitment.value,
-    );
+    // Handle both Map and Uint8List transaction formats
+    final txData = transaction is Uint8List
+        ? transaction
+        : transaction is Map<String, dynamic>
+            ? transaction
+            : throw ArgumentError('Transaction must be a Map or Uint8List');
+
+    // Convert Uint8List to base64 if needed
+    final params = txData is Uint8List ? [base64.encode(txData)] : [txData];
+
+    // Add options
+    params.add({
+      'encoding': 'base64',
+      'commitment': (commitment ?? _config.commitment).commitment.value,
+    });
+
+    final result = await _makeRpcRequest('sendTransaction', params);
+    final signature = result as String;
+
+    // Confirm the transaction
+    await _confirmTransaction(signature, commitment);
+    return signature;
+  }
+
+  /// Internal method to confirm a transaction
+  Future<void> _confirmTransaction(
+    String signature,
+    CommitmentConfig? commitment,
+  ) async {
+    final maxRetries = 30;
+    final delayMs = 1000;
+
+    for (int i = 0; i < maxRetries; i++) {
+      try {
+        final result = await _makeRpcRequest('getSignatureStatuses', [
+          [signature],
+          {'searchTransactionHistory': true}
+        ]);
+
+        final statuses = result['value'] as List<dynamic>;
+        if (statuses.isNotEmpty && statuses[0] != null) {
+          final status = statuses[0] as Map<String, dynamic>;
+          if (status['confirmationStatus'] != null) {
+            final confirmationStatus = status['confirmationStatus'] as String;
+            final targetCommitment =
+                (commitment ?? _config.commitment).commitment.value;
+
+            if (_isCommitmentSatisfied(confirmationStatus, targetCommitment)) {
+              if (status['err'] != null) {
+                throw RpcException(
+                    'Transaction failed: ${status['err'].toString()}');
+              }
+              return; // Transaction confirmed successfully
+            }
+          }
+        }
+      } catch (e) {
+        if (e is RpcException) rethrow;
+        // Continue retrying on other errors
+      }
+
+      await Future<void>.delayed(Duration(milliseconds: delayMs));
+    }
+
+    throw RpcException('Transaction confirmation timeout');
+  }
+
+  /// Check if the given confirmation status satisfies the target commitment
+  bool _isCommitmentSatisfied(String current, String target) {
+    const commitmentLevels = ['processed', 'confirmed', 'finalized'];
+    final currentIndex = commitmentLevels.indexOf(current);
+    final targetIndex = commitmentLevels.indexOf(target);
+    return currentIndex >= targetIndex;
   }
 
   /// Get account balance in lamports
@@ -241,10 +308,15 @@ class Connection {
     int lamports, {
     CommitmentConfig? commitment,
   }) async {
-    return await _rpcWrapper.client.rpcClient.requestAirdrop(
+    final result = await _makeRpcRequest('requestAirdrop', [
       publicKey.toBase58(),
       lamports,
-    );
+      {
+        'commitment': (commitment ?? _config.commitment).commitment.value,
+      }
+    ]);
+
+    return result as String;
   }
 
   /// Create connection from configuration
@@ -333,7 +405,7 @@ class Connection {
           print('Error processing logs notification: $e');
         }
       },
-      onError: (error) {
+      onError: (Object error) {
         // TODO: Use proper logging framework instead of print
         print('WebSocket error: $error');
       },
@@ -430,10 +502,10 @@ class AccountInfo {
 
     return AccountInfo(
       executable: json['executable'] as bool,
-      lamports: json['lamports'] as int,
+      lamports: (json['lamports'] as num).toInt(),
       owner: PublicKey.fromBase58(json['owner'] as String),
       data: data,
-      rentEpoch: json['rentEpoch'] as int,
+      rentEpoch: (json['rentEpoch'] as num).toInt(),
     );
   }
 }

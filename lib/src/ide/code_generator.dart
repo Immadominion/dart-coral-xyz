@@ -681,7 +681,8 @@ class AnchorCodeGenerator {
         final innerType = _dartTypeFromIdlType(idlType['option']);
         return '$innerType?';
       } else if (idlType.containsKey('defined')) {
-        return _formatClassName(idlType['defined']);
+        final defined = idlType['defined'];
+        return _formatClassName(defined is String ? defined : defined.toString());
       }
     }
     return 'dynamic';

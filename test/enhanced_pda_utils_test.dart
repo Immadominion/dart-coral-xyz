@@ -54,9 +54,9 @@ void main() {
     });
 
     test('seedToBytesEnhanced should reject unsupported types', () {
-      expect(() => PdaUtils.seedToBytesEnhanced({}),
+      expect(() => PdaUtils.seedToBytesEnhanced(<String, dynamic>{}),
           throwsA(isA<ArgumentError>()));
-      expect(() => PdaUtils.seedToBytesEnhanced([]),
+      expect(() => PdaUtils.seedToBytesEnhanced(<dynamic>[]),
           throwsA(isA<ArgumentError>()));
       expect(() => PdaUtils.seedToBytesEnhanced(null),
           throwsA(isA<ArgumentError>()));
@@ -203,7 +203,7 @@ void main() {
     });
 
     test('valueToBytes should reject unsupported types', () {
-      expect(() => AddressResolver.valueToBytes({}),
+      expect(() => AddressResolver.valueToBytes(<String, dynamic>{}),
           throwsA(isA<ArgumentError>()));
       expect(() => AddressResolver.valueToBytes(null),
           throwsA(isA<ArgumentError>()));
@@ -238,16 +238,14 @@ void main() {
     });
 
     test('validatePublicKey should validate base58 strings', () {
-      expect(
-          AddressValidator.validatePublicKey(
-              '11111111111111111111111111111112'),
+      expect(AddressValidator.isValidBase58('11111111111111111111111111111112'),
           isTrue);
       expect(
-          AddressValidator.validatePublicKey(
+          AddressValidator.isValidBase58(
               'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
           isTrue);
-      expect(AddressValidator.validatePublicKey('invalid-address'), isFalse);
-      expect(AddressValidator.validatePublicKey(''), isFalse);
+      expect(AddressValidator.isValidBase58('invalid-address'), isFalse);
+      expect(AddressValidator.isValidBase58(''), isFalse);
     });
   });
 }

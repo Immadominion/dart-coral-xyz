@@ -228,7 +228,8 @@ class AddressResolver {
         resolvedAccounts[entry.key] = entry.value as PublicKey;
       } else if (entry.value is String) {
         try {
-          resolvedAccounts[entry.key] = PublicKey.fromBase58(entry.value);
+          resolvedAccounts[entry.key] =
+              PublicKey.fromBase58(entry.value as String);
         } catch (e) {
           // Ignore invalid base58 strings
         }
@@ -393,5 +394,10 @@ class AddressValidator {
     }
 
     return missing;
+  }
+
+  /// Validate that an address is a valid base58 PublicKey string
+  static bool isValidBase58(String address) {
+    return validatePublicKey(address);
   }
 }

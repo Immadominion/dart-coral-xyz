@@ -112,9 +112,9 @@ class AnchorUtils {
     final Map<String, dynamic> clone = {};
     for (final entry in original.entries) {
       if (entry.value is Map<String, dynamic>) {
-        clone[entry.key] = deepClone(entry.value);
+        clone[entry.key] = deepClone(entry.value as Map<String, dynamic>);
       } else if (entry.value is List) {
-        clone[entry.key] = List.from(entry.value);
+        clone[entry.key] = List<dynamic>.from(entry.value as List);
       } else {
         clone[entry.key] = entry.value;
       }

@@ -126,7 +126,13 @@ class RpcFunction {
     } catch (error) {
       // Use RpcErrorParser to translate errors with IDL context
       final enhancedError = translateRpcError(error, idlErrors: {});
-      throw enhancedError;
+      // Dart requires thrown objects to be non-null and extend Object
+      // Ensure we only throw an Object (not null or dynamic)
+      if (enhancedError is Object) {
+        throw enhancedError;
+      } else {
+        throw Exception('Unknown RPC error: ${error.toString()}');
+      }
     }
   }
 

@@ -142,11 +142,11 @@ class DebugLogEntry {
   /// Create from JSON
   factory DebugLogEntry.fromJson(Map<String, dynamic> json) {
     return DebugLogEntry(
-      timestamp: DateTime.parse(json['timestamp']),
-      level: json['level'],
-      message: json['message'],
-      context: json['context'],
-      source: json['source'],
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      level: json['level'] as String,
+      message: json['message'] as String,
+      context: json['context'] as Map<String, dynamic>?,
+      source: json['source'] as String?,
     );
   }
 
@@ -255,13 +255,13 @@ class AccountChange {
   /// Create from JSON
   factory AccountChange.fromJson(Map<String, dynamic> json) {
     return AccountChange(
-      address: json['address'],
-      owner: json['owner'],
-      dataBefore: json['dataBefore'],
-      dataAfter: json['dataAfter'],
-      lamportsBefore: json['lamportsBefore'],
-      lamportsAfter: json['lamportsAfter'],
-      changeType: json['changeType'],
+      address: json['address'] as String,
+      owner: json['owner'] as String,
+      dataBefore: json['dataBefore'] as String?,
+      dataAfter: json['dataAfter'] as String?,
+      lamportsBefore: json['lamportsBefore'] as int?,
+      lamportsAfter: json['lamportsAfter'] as int?,
+      changeType: json['changeType'] as String,
     );
   }
 }
