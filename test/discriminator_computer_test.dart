@@ -2,6 +2,7 @@
 ///
 /// Comprehensive test suite validating discriminator computation against
 /// known TypeScript Anchor client outputs and edge cases.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -104,7 +105,7 @@ void main() {
       test('computes correct discriminator for camelCase instruction', () {
         final discriminator =
             DiscriminatorComputer.computeInstructionDiscriminator(
-                'createAccount');
+                'createAccount',);
 
         // Expected discriminator for "global:createAccount"
         final expected =
@@ -203,7 +204,7 @@ void main() {
       });
 
       test('handles names with special characters', () {
-        const specialName = 'Account-With_Special.Characters!@#\$%^&*()';
+        const specialName = r'Account-With_Special.Characters!@#$%^&*()';
 
         final discriminator =
             DiscriminatorComputer.computeAccountDiscriminator(specialName);
@@ -225,7 +226,7 @@ void main() {
         // Should be different from name without spaces
         final discriminatorNoSpaces =
             DiscriminatorComputer.computeAccountDiscriminator(
-                'AccountWithSpaces');
+                'AccountWithSpaces',);
         expect(discriminator, isNot(equals(discriminatorNoSpaces)));
       });
 
@@ -249,7 +250,7 @@ void main() {
 
         expect(
           () => DiscriminatorComputer.validateDiscriminatorSize(
-              validDiscriminator),
+              validDiscriminator,),
           returnsNormally,
         );
       });
@@ -304,13 +305,13 @@ void main() {
 
         expect(
           () => DiscriminatorComputer.discriminatorFromHex(
-              'afaf6d1f0d989be'), // too short
+              'afaf6d1f0d989be',), // too short
           throwsA(isA<ArgumentError>()),
         );
 
         expect(
           () => DiscriminatorComputer.discriminatorFromHex(
-              'afaf6d1f0d989bedx'), // too long
+              'afaf6d1f0d989bedx',), // too long
           throwsA(isA<ArgumentError>()),
         );
       });
@@ -321,11 +322,11 @@ void main() {
         final disc3 = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 9]);
 
         expect(
-            DiscriminatorComputer.compareDiscriminators(disc1, disc2), isTrue);
+            DiscriminatorComputer.compareDiscriminators(disc1, disc2), isTrue,);
         expect(
-            DiscriminatorComputer.compareDiscriminators(disc1, disc3), isFalse);
+            DiscriminatorComputer.compareDiscriminators(disc1, disc3), isFalse,);
         expect(DiscriminatorComputer.compareDiscriminators(disc1, Uint8List(7)),
-            isFalse);
+            isFalse,);
       });
     });
 
@@ -396,7 +397,7 @@ void main() {
 
           expect(actual, equals(expected),
               reason:
-                  'Discriminator for $type:$name does not match TypeScript output');
+                  'Discriminator for $type:$name does not match TypeScript output',);
         }
       });
     });

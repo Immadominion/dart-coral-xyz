@@ -58,7 +58,7 @@
 ///
 /// final signature = await provider.sendAndConfirm(tx);
 /// ```
-library coral_xyz_anchor;
+library;
 
 // Core exports - these will be implemented in phases
 export 'src/provider/provider.dart'
@@ -94,8 +94,6 @@ export 'src/provider/enhanced_connection.dart'
         EnhancedConnection,
         RetryConfig,
         CircuitBreakerConfig,
-        CircuitBreakerState,
-        CircuitBreaker,
         RequestDeduplicator;
 
 // Connection pooling for high-performance applications

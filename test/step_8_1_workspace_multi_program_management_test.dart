@@ -3,23 +3,24 @@
 /// This test suite validates the enhanced workspace management functionality
 /// including auto-discovery, health checking, deployment, and multi-program
 /// coordination matching TypeScript's Anchor workspace capabilities.
+library;
 
 import 'package:test/test.dart';
 import 'package:matcher/matcher.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
-import '../lib/src/workspace/workspace.dart';
-import '../lib/src/workspace/workspace_config.dart';
-import '../lib/src/workspace/program_manager.dart';
-import '../lib/src/provider/anchor_provider.dart';
-import '../lib/src/provider/connection.dart';
-import '../lib/src/provider/wallet.dart';
-import '../lib/src/types/keypair.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/idl/idl.dart';
-import '../lib/src/program/program_class.dart';
-import '../lib/src/coder/discriminator_computer.dart';
+import 'package:coral_xyz_anchor/src/workspace/workspace.dart';
+import 'package:coral_xyz_anchor/src/workspace/workspace_config.dart';
+import 'package:coral_xyz_anchor/src/workspace/program_manager.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
+import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
 
 void main() {
   group('Step 8.1: Workspace and Multi-Program Management', () {
@@ -57,7 +58,7 @@ void main() {
 
         // Load program with snake_case name
         await workspace.loadProgram(
-            'test_program', testIdl, programId.publicKey);
+            'test_program', testIdl, programId.publicKey,);
 
         // Should find with camelCase
         final program = workspace.getProgramCamelCase('testProgram');
@@ -169,7 +170,7 @@ startup_wait = 5000
         expect(config.provider.cluster, equals('localnet'));
         expect(config.provider.wallet, equals('~/.config/solana/id.json'));
         expect(
-            config.programs['localnet']!.containsKey('test_program'), isTrue);
+            config.programs['localnet']!.containsKey('test_program'), isTrue,);
         expect(config.test?.startupWait, equals(5000));
 
         // Cleanup
@@ -270,7 +271,7 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
         final testIdl = createTestIdl();
         final programId = await Keypair.generate();
         final program = Program.withProgramId(testIdl, programId.publicKey,
-            provider: mockProvider);
+            provider: mockProvider,);
 
         await manager.registerProgram('test', program);
 
@@ -290,10 +291,10 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
 
         final baseProgram = Program.withProgramId(
             baseIdl, baseProgramId.publicKey,
-            provider: mockProvider);
+            provider: mockProvider,);
         final dependentProgram = Program.withProgramId(
             dependentIdl, dependentProgramId.publicKey,
-            provider: mockProvider);
+            provider: mockProvider,);
 
         // Register base program
         await manager.registerProgram('base', baseProgram);
@@ -302,12 +303,12 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
         final dependency =
             ProgramDependency(name: 'base', programId: baseProgramId.publicKey);
         await manager.registerProgram('dependent', dependentProgram,
-            dependencies: [dependency]);
+            dependencies: [dependency],);
 
         final dependencyOrder = manager.registry.resolveDependencyOrder();
 
         expect(dependencyOrder.indexOf('base'),
-            lessThan(dependencyOrder.indexOf('dependent')));
+            lessThan(dependencyOrder.indexOf('dependent')),);
       });
 
       test('should validate dependencies', () async {
@@ -316,16 +317,16 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
         final testIdl = createTestIdl();
         final programId = await Keypair.generate();
         final program = Program.withProgramId(testIdl, programId.publicKey,
-            provider: mockProvider);
+            provider: mockProvider,);
 
         // Register program with missing dependency
         final missingDep =
-            ProgramDependency(name: 'missing_program', required: true);
+            const ProgramDependency(name: 'missing_program');
         await manager
             .registerProgram('test', program, dependencies: [missingDep]);
 
-        expect(() => manager.validateDependencies(),
-            throwsA(isA<ProgramManagerException>()));
+        expect(manager.validateDependencies,
+            throwsA(isA<ProgramManagerException>()),);
       });
 
       test('should manage shared resources', () {
@@ -335,9 +336,9 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
         manager.resourceManager.setCachedValue('test_key', 'test_value');
 
         expect(
-            manager.resourceManager.getProvider('test'), equals(mockProvider));
+            manager.resourceManager.getProvider('test'), equals(mockProvider),);
         expect(manager.resourceManager.getCachedValue<String>('test_key'),
-            equals('test_value'));
+            equals('test_value'),);
       });
 
       test('should track program lifecycle', () async {
@@ -346,7 +347,7 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
         final testIdl = createTestIdl();
         final programId = await Keypair.generate();
         final program = Program.withProgramId(testIdl, programId.publicKey,
-            provider: mockProvider);
+            provider: mockProvider,);
 
         await manager.registerProgram('test', program);
 
@@ -366,7 +367,7 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
         final testIdl = createTestIdl();
         final programId = await Keypair.generate();
         final program = Program.withProgramId(testIdl, programId.publicKey,
-            provider: mockProvider);
+            provider: mockProvider,);
 
         await manager.registerProgram('test', program);
         manager.resourceManager.setCachedValue('test', 'value');
@@ -433,7 +434,7 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
 
         expect(result.isValid, isFalse);
         expect(result.issues.any((error) => error.contains('Anchor.toml')),
-            isTrue);
+            isTrue,);
 
         // Cleanup
         tempDir.deleteSync(recursive: true);
@@ -480,7 +481,7 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
 
         expect(workspace.hasProgram('test'), isTrue);
         expect(workspace.getProgram('test')!.programId,
-            equals(programId.publicKey));
+            equals(programId.publicKey),);
       });
     });
 
@@ -506,7 +507,7 @@ test_program = { address = "11111111111111111111111111111111", idl = "nonexisten
 
         expect(workspace.hasProgram('test'), isTrue);
         expect(workspace.getProgram('test')!.programId,
-            equals(programId.publicKey));
+            equals(programId.publicKey),);
       });
 
       test('should serialize and deserialize templates', () {

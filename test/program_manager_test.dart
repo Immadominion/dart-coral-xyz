@@ -2,6 +2,7 @@
 ///
 /// Tests comprehensive program registry, shared resource management,
 /// dependency resolution, and lifecycle coordination.
+library;
 
 import 'dart:convert';
 import 'dart:io';
@@ -92,8 +93,8 @@ void main() {
         final registry = manager.registry;
         final program = createMockProgram('test_program');
         final dependencies = [
-          ProgramDependency(name: 'dep1', required: true),
-          ProgramDependency(name: 'dep2', required: false),
+          const ProgramDependency(name: 'dep1'),
+          const ProgramDependency(name: 'dep2', required: false),
         ];
         final metadata = {'version': '1.0.0', 'author': 'test'};
 
@@ -147,21 +148,21 @@ void main() {
         registry.registerProgram(
           'program_b',
           programB,
-          dependencies: [ProgramDependency(name: 'program_a')],
+          dependencies: [const ProgramDependency(name: 'program_a')],
         );
         registry.registerProgram(
           'program_c',
           programC,
-          dependencies: [ProgramDependency(name: 'program_b')],
+          dependencies: [const ProgramDependency(name: 'program_b')],
         );
 
         final order = registry.resolveDependencyOrder();
 
         // A should come before B, B should come before C
         expect(
-            order.indexOf('program_a'), lessThan(order.indexOf('program_b')));
+            order.indexOf('program_a'), lessThan(order.indexOf('program_b')),);
         expect(
-            order.indexOf('program_b'), lessThan(order.indexOf('program_c')));
+            order.indexOf('program_b'), lessThan(order.indexOf('program_c')),);
       });
 
       test('should detect circular dependencies', () {
@@ -173,16 +174,16 @@ void main() {
         registry.registerProgram(
           'program_a',
           programA,
-          dependencies: [ProgramDependency(name: 'program_b')],
+          dependencies: [const ProgramDependency(name: 'program_b')],
         );
         registry.registerProgram(
           'program_b',
           programB,
-          dependencies: [ProgramDependency(name: 'program_a')],
+          dependencies: [const ProgramDependency(name: 'program_a')],
         );
 
         expect(
-          () => registry.resolveDependencyOrder(),
+          registry.resolveDependencyOrder,
           throwsA(isA<ProgramManagerException>()),
         );
       });
@@ -195,8 +196,8 @@ void main() {
           'program_with_deps',
           program,
           dependencies: [
-            ProgramDependency(name: 'missing_required', required: true),
-            ProgramDependency(name: 'missing_optional', required: false),
+            const ProgramDependency(name: 'missing_required'),
+            const ProgramDependency(name: 'missing_optional', required: false),
           ],
         );
 
@@ -216,12 +217,12 @@ void main() {
         registry.registerProgram(
           'program_b',
           programB,
-          dependencies: [ProgramDependency(name: 'program_a')],
+          dependencies: [const ProgramDependency(name: 'program_a')],
         );
         registry.registerProgram(
           'program_c',
           programC,
-          dependencies: [ProgramDependency(name: 'program_a')],
+          dependencies: [const ProgramDependency(name: 'program_a')],
         );
 
         final dependents = registry.getDependents('program_a');
@@ -252,7 +253,7 @@ void main() {
         resourceManager.setCachedValue('key2', 42);
 
         expect(
-            resourceManager.getCachedValue<String>('key1'), equals('value1'));
+            resourceManager.getCachedValue<String>('key1'), equals('value1'),);
         expect(resourceManager.getCachedValue<int>('key2'), equals(42));
         expect(resourceManager.getCachedValue<String>('nonexistent'), isNull);
       });
@@ -270,7 +271,7 @@ void main() {
         resourceManager.emitEvent('test_stream', 'event2');
 
         // Allow events to propagate
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
 
         expect(events, equals(['event1', 'event2']));
 
@@ -308,19 +309,19 @@ void main() {
         final programB = createMockProgram('program_b');
 
         await manager.registerProgram('program_a', programA,
-            autoInitialize: false);
+            autoInitialize: false,);
         await manager.registerProgram(
           'program_b',
           programB,
-          dependencies: [ProgramDependency(name: 'program_a')],
+          dependencies: [const ProgramDependency(name: 'program_a')],
           autoInitialize: false,
         );
 
         // Both should be loaded but not ready
         expect(manager.registry.getLifecycleInfo('program_a')?.state,
-            equals(ProgramLifecycleState.loaded));
+            equals(ProgramLifecycleState.loaded),);
         expect(manager.registry.getLifecycleInfo('program_b')?.state,
-            equals(ProgramLifecycleState.loaded));
+            equals(ProgramLifecycleState.loaded),);
 
         // Initialize B should also initialize A
         await manager.initializeProgram('program_b');
@@ -335,17 +336,17 @@ void main() {
         final programC = createMockProgram('program_c');
 
         await manager.registerProgram('program_a', programA,
-            autoInitialize: false);
+            autoInitialize: false,);
         await manager.registerProgram(
           'program_b',
           programB,
-          dependencies: [ProgramDependency(name: 'program_a')],
+          dependencies: [const ProgramDependency(name: 'program_a')],
           autoInitialize: false,
         );
         await manager.registerProgram(
           'program_c',
           programC,
-          dependencies: [ProgramDependency(name: 'program_b')],
+          dependencies: [const ProgramDependency(name: 'program_b')],
           autoInitialize: false,
         );
 
@@ -362,17 +363,17 @@ void main() {
         final programC = createMockProgram('program_c');
 
         await manager.registerProgram('program_a', programA,
-            autoInitialize: false);
+            autoInitialize: false,);
         await manager.registerProgram('program_b', programB,
-            autoInitialize: false);
+            autoInitialize: false,);
         await manager.registerProgram('program_c', programC,
-            autoInitialize: false);
+            autoInitialize: false,);
 
         await manager.batchInitialize(['program_a', 'program_c']);
 
         expect(manager.registry.getLifecycleInfo('program_a')?.isReady, isTrue);
         expect(
-            manager.registry.getLifecycleInfo('program_b')?.isReady, isFalse);
+            manager.registry.getLifecycleInfo('program_b')?.isReady, isFalse,);
         expect(manager.registry.getLifecycleInfo('program_c')?.isReady, isTrue);
       });
     });
@@ -416,7 +417,7 @@ test_program = "BPFLoader2111111111111111111111111111111111"
         expect(program.idl.name, equals('test_program'));
         expect(manager.registry.hasProgram('test_program'), isTrue);
         expect(
-            manager.registry.getLifecycleInfo('test_program')?.isReady, isTrue);
+            manager.registry.getLifecycleInfo('test_program')?.isReady, isTrue,);
       });
 
       test('should handle missing IDL gracefully', () async {
@@ -451,7 +452,7 @@ missing_program = "BPFLoader2111111111111111111111111111111111"
         manager.registry.registerProgram(
           'test_program',
           program,
-          dependencies: [ProgramDependency(name: 'missing_dep')],
+          dependencies: [const ProgramDependency(name: 'missing_dep')],
         );
 
         expect(
@@ -463,7 +464,7 @@ missing_program = "BPFLoader2111111111111111111111111111111111"
       test('should handle program loading errors', () async {
         final completer = manager.loadProgram(
           'nonexistent',
-          WorkspaceConfig(
+          const WorkspaceConfig(
             provider: ProviderConfig(cluster: 'test', wallet: 'test'),
             programs: {},
           ),
@@ -498,7 +499,7 @@ missing_program = "BPFLoader2111111111111111111111111111111111"
 
         await manager.registerProgram('program1', program1);
         await manager.registerProgram('program2', program2,
-            autoInitialize: false);
+            autoInitialize: false,);
 
         final stats = manager.registry.getStats();
         final stateCount = stats['stateCount'] as Map<String, dynamic>;
@@ -537,7 +538,7 @@ missing_program = "BPFLoader2111111111111111111111111111111111"
 
       expect(dep.name, equals('test_dep'));
       expect(dep.programId?.toBase58(),
-          equals('11111111111111111111111111111111'));
+          equals('11111111111111111111111111111111'),);
       expect(dep.version, equals('1.0.0'));
       expect(dep.required, isFalse);
       expect(dep.features, equals(['feature1', 'feature2']));
@@ -591,18 +592,12 @@ class MockWallet extends Wallet {
       PublicKey.fromBase58('11111111111111111111111111111111');
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async {
-    return transaction;
-  }
+  Future<Transaction> signTransaction(Transaction transaction) async => transaction;
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions) async {
-    return transactions;
-  }
+      List<Transaction> transactions,) async => transactions;
 
   @override
-  Future<Uint8List> signMessage(Uint8List message) async {
-    return Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
-  }
+  Future<Uint8List> signMessage(Uint8List message) async => Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
 }

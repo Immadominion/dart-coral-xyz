@@ -2,6 +2,7 @@
 ///
 /// This test suite validates the PDA derivation engine against known test vectors
 /// and ensures compatibility with TypeScript Anchor client behavior.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -18,7 +19,7 @@ void main() {
 
     group('PdaSeed implementations', () {
       test('StringSeed should convert to bytes correctly', () {
-        final seed = StringSeed('test');
+        final seed = const StringSeed('test');
         final bytes = seed.toBytes();
         expect(bytes, equals([116, 101, 115, 116])); // UTF-8 bytes for "test"
         expect(seed.toDebugString(), equals('String("test")'));
@@ -34,7 +35,7 @@ void main() {
       test('BytesSeed should validate length', () {
         final longBytes = Uint8List(33); // Too long
         expect(
-            () => BytesSeed(longBytes), throwsA(isA<PdaDerivationException>()));
+            () => BytesSeed(longBytes), throwsA(isA<PdaDerivationException>()),);
       });
 
       test('PublicKeySeed should handle PublicKey correctly', () {
@@ -47,35 +48,35 @@ void main() {
 
       test('NumberSeed should handle different sizes and endianness', () {
         // Test u8
-        final u8Seed = NumberSeed(255, byteLength: 1);
+        final u8Seed = const NumberSeed(255, byteLength: 1);
         expect(u8Seed.toBytes(), equals([255]));
 
         // Test u16 little endian
         final u16Seed =
-            NumberSeed(0x1234, byteLength: 2, endianness: Endian.little);
+            const NumberSeed(0x1234, byteLength: 2);
         expect(u16Seed.toBytes(), equals([0x34, 0x12]));
 
         // Test u32 little endian
         final u32Seed =
-            NumberSeed(0x12345678, byteLength: 4, endianness: Endian.little);
+            const NumberSeed(0x12345678);
         expect(u32Seed.toBytes(), equals([0x78, 0x56, 0x34, 0x12]));
 
         // Test u64 little endian
-        final u64Seed = NumberSeed(0x123456789ABCDEF0,
-            byteLength: 8, endianness: Endian.little);
+        final u64Seed = const NumberSeed(0x123456789ABCDEF0,
+            byteLength: 8,);
         expect(u64Seed.toBytes(),
-            equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]));
+            equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]),);
       });
 
       test('NumberSeed should throw for invalid byte lengths', () {
-        expect(() => NumberSeed(42, byteLength: 3).toBytes(),
-            throwsA(isA<PdaDerivationException>()));
+        expect(() => const NumberSeed(42, byteLength: 3).toBytes(),
+            throwsA(isA<PdaDerivationException>()),);
       });
     });
 
     group('findProgramAddress', () {
       test('should find valid PDA with simple string seed', () {
-        final seeds = [StringSeed('test')];
+        final seeds = [const StringSeed('test')];
         final result =
             PdaDerivationEngine.findProgramAddress(seeds, testProgramId);
 
@@ -89,10 +90,10 @@ void main() {
 
       test('should find valid PDA with multiple seeds', () {
         final seeds = [
-          StringSeed('test'),
-          NumberSeed(42, byteLength: 4),
+          const StringSeed('test'),
+          const NumberSeed(42),
           PublicKeySeed(
-              PublicKey.fromBase58('11111111111111111111111111111111')),
+              PublicKey.fromBase58('11111111111111111111111111111111'),),
         ];
         final result =
             PdaDerivationEngine.findProgramAddress(seeds, testProgramId);
@@ -104,7 +105,7 @@ void main() {
       });
 
       test('should be deterministic for same inputs', () {
-        final seeds = [StringSeed('deterministic_test')];
+        final seeds = [const StringSeed('deterministic_test')];
         final result1 =
             PdaDerivationEngine.findProgramAddress(seeds, testProgramId);
         final result2 =
@@ -115,8 +116,8 @@ void main() {
       });
 
       test('should produce different results for different seeds', () {
-        final seeds1 = [StringSeed('test1')];
-        final seeds2 = [StringSeed('test2')];
+        final seeds1 = [const StringSeed('test1')];
+        final seeds2 = [const StringSeed('test2')];
 
         final result1 =
             PdaDerivationEngine.findProgramAddress(seeds1, testProgramId);
@@ -127,7 +128,7 @@ void main() {
       });
 
       test('should produce different results for different program IDs', () {
-        final seeds = [StringSeed('test')];
+        final seeds = [const StringSeed('test')];
         final programId1 =
             PublicKey.fromBase58('11111111111111111111111111111111');
         final programId2 =
@@ -144,7 +145,7 @@ void main() {
       test('should throw for seeds that are too long', () {
         expect(() {
           BytesSeed(Uint8List(33)); // This will throw in constructor
-        }, throwsA(isA<PdaDerivationException>()));
+        }, throwsA(isA<PdaDerivationException>()),);
       });
 
       test('should throw when total seed length exceeds limit', () {
@@ -171,7 +172,7 @@ void main() {
 
     group('createProgramAddress', () {
       test('should create PDA with known bump seed', () {
-        final seeds = [StringSeed('test'), NumberSeed(255, byteLength: 1)];
+        final seeds = [const StringSeed('test'), const NumberSeed(255, byteLength: 1)];
 
         try {
           final address =
@@ -181,26 +182,26 @@ void main() {
           // This is expected if the bump doesn't create a valid PDA
           // Try with a different bump
           final seedsWithDifferentBump = [
-            StringSeed('test'),
-            NumberSeed(254, byteLength: 1)
+            const StringSeed('test'),
+            const NumberSeed(254, byteLength: 1),
           ];
           final address = PdaDerivationEngine.createProgramAddress(
-              seedsWithDifferentBump, testProgramId);
+              seedsWithDifferentBump, testProgramId,);
           expect(address, isA<PublicKey>());
         }
       });
 
       test('should be consistent with findProgramAddress', () {
-        final baseSeeds = [StringSeed('consistency_test')];
+        final baseSeeds = [const StringSeed('consistency_test')];
         final pdaResult =
             PdaDerivationEngine.findProgramAddress(baseSeeds, testProgramId);
 
         final seedsWithBump = [
           ...baseSeeds,
-          NumberSeed(pdaResult.bump, byteLength: 1)
+          NumberSeed(pdaResult.bump, byteLength: 1),
         ];
         final directAddress = PdaDerivationEngine.createProgramAddress(
-            seedsWithBump, testProgramId);
+            seedsWithBump, testProgramId,);
 
         expect(directAddress, equals(pdaResult.address));
       });
@@ -208,13 +209,13 @@ void main() {
 
     group('validateProgramAddress', () {
       test('should validate correct PDA', () {
-        final seeds = [StringSeed('validation_test')];
+        final seeds = [const StringSeed('validation_test')];
         final result =
             PdaDerivationEngine.findProgramAddress(seeds, testProgramId);
 
         final seedsWithBump = [
           ...seeds,
-          NumberSeed(result.bump, byteLength: 1)
+          NumberSeed(result.bump, byteLength: 1),
         ];
         final isValid = PdaDerivationEngine.validateProgramAddress(
           result.address,
@@ -226,7 +227,7 @@ void main() {
       });
 
       test('should reject invalid PDA', () {
-        final seeds = [StringSeed('validation_test')];
+        final seeds = [const StringSeed('validation_test')];
         final wrongAddress =
             PublicKey.fromBase58('11111111111111111111111111111111');
 
@@ -243,13 +244,13 @@ void main() {
     group('findProgramAddressBatch', () {
       test('should handle multiple seed combinations', () {
         final seedCombinations = [
-          [StringSeed('batch1')],
-          [StringSeed('batch2')],
-          [StringSeed('batch3')],
+          [const StringSeed('batch1')],
+          [const StringSeed('batch2')],
+          [const StringSeed('batch3')],
         ];
 
         final results = PdaDerivationEngine.findProgramAddressBatch(
-            seedCombinations, testProgramId);
+            seedCombinations, testProgramId,);
 
         expect(results.length, equals(3));
         for (final result in results) {
@@ -267,7 +268,7 @@ void main() {
 
     group('Seed Creation Utilities', () {
       test('should provide convenient seed creation methods', () {
-        final stringSeed = StringSeed('test');
+        final stringSeed = const StringSeed('test');
         expect(stringSeed, isA<StringSeed>());
         expect(stringSeed.toBytes(), equals([116, 101, 115, 116]));
 
@@ -279,22 +280,22 @@ void main() {
         expect(publicKeySeed, isA<PublicKeySeed>());
         expect(publicKeySeed.toBytes(), equals(testProgramId.toBytes()));
 
-        final u8Seed = NumberSeed(255, byteLength: 1);
+        final u8Seed = const NumberSeed(255, byteLength: 1);
         expect(u8Seed, isA<NumberSeed>());
         expect(u8Seed.toBytes(), equals([255]));
 
-        final u16Seed = NumberSeed(0x1234, byteLength: 2);
+        final u16Seed = const NumberSeed(0x1234, byteLength: 2);
         expect(u16Seed, isA<NumberSeed>());
         expect(u16Seed.toBytes(), equals([0x34, 0x12]));
 
-        final u32Seed = NumberSeed(0x12345678, byteLength: 4);
+        final u32Seed = const NumberSeed(0x12345678);
         expect(u32Seed, isA<NumberSeed>());
         expect(u32Seed.toBytes(), equals([0x78, 0x56, 0x34, 0x12]));
 
-        final u64Seed = NumberSeed(0x123456789ABCDEF0, byteLength: 8);
+        final u64Seed = const NumberSeed(0x123456789ABCDEF0, byteLength: 8);
         expect(u64Seed, isA<NumberSeed>());
         expect(u64Seed.toBytes(),
-            equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]));
+            equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]),);
       });
     });
 
@@ -311,8 +312,8 @@ void main() {
 
       test('should provide detailed debug information', () {
         final seeds = [
-          StringSeed('debug'),
-          NumberSeed(42, byteLength: 4),
+          const StringSeed('debug'),
+          const NumberSeed(42),
           BytesSeed(Uint8List.fromList([0xFF, 0x00])),
         ];
 
@@ -324,7 +325,7 @@ void main() {
 
       test('should handle special program IDs', () {
         final systemProgram = PublicKey.systemProgram;
-        final seeds = [StringSeed('system_test')];
+        final seeds = [const StringSeed('system_test')];
 
         final result =
             PdaDerivationEngine.findProgramAddress(seeds, systemProgram);
@@ -335,7 +336,7 @@ void main() {
 
     group('compatibility with existing PDA system', () {
       test('should work with PublicKey.findProgramAddress result format', () {
-        final seeds = [StringSeed('compatibility_test')];
+        final seeds = [const StringSeed('compatibility_test')];
         final result =
             PdaDerivationEngine.findProgramAddress(seeds, testProgramId);
 

@@ -1,22 +1,22 @@
-import '../idl/idl.dart';
-import '../idl/idl_utils.dart';
-import '../provider/provider.dart';
-import '../coder/coder.dart';
-import '../types/public_key.dart';
-import '../types/commitment.dart';
-import '../event/event_manager.dart' as event_manager;
-import '../event/types.dart' as event_types;
-import '../event/event_persistence.dart';
-import '../event/event_debugging.dart';
-import '../event/event_aggregation.dart';
-import 'namespace/namespace_factory.dart';
-import 'namespace/account_namespace.dart';
-import 'namespace/instruction_namespace.dart';
-import 'namespace/methods_namespace.dart';
-import 'namespace/rpc_namespace.dart';
-import 'namespace/transaction_namespace.dart';
-import 'namespace/views_namespace.dart';
-import 'program_error_handler.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/idl/idl_utils.dart';
+import 'package:coral_xyz_anchor/src/provider/provider.dart';
+import 'package:coral_xyz_anchor/src/coder/coder.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/event/event_manager.dart' as event_manager;
+import 'package:coral_xyz_anchor/src/event/types.dart' as event_types;
+import 'package:coral_xyz_anchor/src/event/event_persistence.dart';
+import 'package:coral_xyz_anchor/src/event/event_debugging.dart';
+import 'package:coral_xyz_anchor/src/event/event_aggregation.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/namespace_factory.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/methods_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/views_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/program_error_handler.dart';
 
 /// Core Program class for interacting with Anchor programs
 ///
@@ -72,35 +72,6 @@ import 'program_error_handler.dart';
 ///   .transaction();
 /// ```
 class Program<T extends Idl> {
-  /// The IDL definition for this program
-  final T _idl;
-
-  /// The raw IDL (before any transformations)
-  final Idl _rawIdl;
-
-  /// The program's public key address
-  final PublicKey _programId;
-
-  /// The provider for network and wallet operations
-  final AnchorProvider _provider;
-
-  /// The coder for serialization/deserialization
-  final Coder _coder;
-
-  /// Generated namespaces for program interaction
-  late final NamespaceSet _namespaces;
-
-  /// Event manager for handling program event subscriptions (TypeScript-compatible)
-  late final event_manager.EventManager _eventManager;
-
-  /// Event persistence service for storing and retrieving events
-  late final EventPersistenceService? _eventPersistence;
-
-  /// Event debugging service for monitoring and analysis
-  late final EventDebugMonitor? _eventDebugging;
-
-  /// Event aggregation service for processing pipelines
-  late final EventAggregationService? _eventAggregation;
 
   /// Creates a new Program instance
   ///
@@ -201,6 +172,35 @@ class Program<T extends Idl> {
     _eventDebugging = null;
     _eventAggregation = null;
   }
+  /// The IDL definition for this program
+  final T _idl;
+
+  /// The raw IDL (before any transformations)
+  final Idl _rawIdl;
+
+  /// The program's public key address
+  final PublicKey _programId;
+
+  /// The provider for network and wallet operations
+  final AnchorProvider _provider;
+
+  /// The coder for serialization/deserialization
+  final Coder _coder;
+
+  /// Generated namespaces for program interaction
+  late final NamespaceSet _namespaces;
+
+  /// Event manager for handling program event subscriptions (TypeScript-compatible)
+  late final event_manager.EventManager _eventManager;
+
+  /// Event persistence service for storing and retrieving events
+  late final EventPersistenceService? _eventPersistence;
+
+  /// Event debugging service for monitoring and analysis
+  late final EventDebugMonitor? _eventDebugging;
+
+  /// Event aggregation service for processing pipelines
+  late final EventAggregationService? _eventAggregation;
 
   /// The IDL definition for this program
   T get idl => _idl;
@@ -276,7 +276,7 @@ class Program<T extends Idl> {
 
   /// Get event connection state stream
   Stream<Map<String, dynamic>> get eventConnectionStateStream =>
-      Stream.periodic(Duration(seconds: 5), (_) => eventConnectionState);
+      Stream.periodic(const Duration(seconds: 5), (_) => eventConnectionState);
 
   /// The RPC namespace for sending signed transactions
   ///
@@ -478,7 +478,7 @@ class Program<T extends Idl> {
     final programId = PublicKey.fromBase58(address);
     provider ??= AnchorProvider.defaultProvider();
 
-    return await ProgramErrorHandler.wrapOperation(
+    return ProgramErrorHandler.wrapOperation(
       'fetchIdl',
       () async {
         final idl = await IdlUtils.fetchIdl(programId, provider!);
@@ -510,11 +510,9 @@ class Program<T extends Idl> {
   }) async {
     provider ??= AnchorProvider.defaultProvider();
 
-    return await ProgramErrorHandler.wrapOperation(
+    return ProgramErrorHandler.wrapOperation(
       'fetchIdl',
-      () async {
-        return await IdlUtils.fetchIdl(programId, provider!);
-      },
+      () async => await IdlUtils.fetchIdl(programId, provider!),
       context: {'programId': programId.toBase58()},
     );
   }
@@ -522,18 +520,14 @@ class Program<T extends Idl> {
   /// Calculate the IDL address for a given program ID
   ///
   /// This derives the deterministic address where the IDL is stored on-chain
-  static Future<PublicKey> getIdlAddress(PublicKey programId) async {
-    return await IdlUtils.getIdlAddress(programId);
-  }
+  static Future<PublicKey> getIdlAddress(PublicKey programId) async => await IdlUtils.getIdlAddress(programId);
 
   /// Get the size of an account for the given account name
   ///
   /// [accountName] The name of the account type as defined in the IDL
   ///
   /// Returns the size in bytes required for the account
-  int getAccountSize(String accountName) {
-    return _coder.accounts.size(accountName);
-  }
+  int getAccountSize(String accountName) => _coder.accounts.size(accountName);
 
   /// Validate that this program matches the given program ID
   ///
@@ -581,13 +575,11 @@ class Program<T extends Idl> {
     String eventName,
     event_types.EventCallback<T> callback, {
     CommitmentConfig? commitment,
-  }) {
-    return _eventManager.addEventListener<T>(
+  }) => _eventManager.addEventListener<T>(
       eventName,
       callback,
       commitment: commitment,
     );
-  }
 
   /// Remove an event listener (TypeScript-compatible)
   ///
@@ -602,9 +594,7 @@ class Program<T extends Idl> {
   /// // Later...
   /// await program.removeEventListener(listenerId);
   /// ```
-  Future<void> removeEventListener(int listenerId) async {
-    return await _eventManager.removeEventListener(listenerId);
-  }
+  Future<void> removeEventListener(int listenerId) async => await _eventManager.removeEventListener(listenerId);
 
   /// Get event connection state
   ///

@@ -35,7 +35,7 @@ class CryptoWrapper {
   /// Create keypair from secret key bytes
   static Future<KeypairData> fromSecretKey(Uint8List secretKey) async {
     if (secretKey.length != 64) {
-      throw CryptoException('Secret key must be 64 bytes');
+      throw const CryptoException('Secret key must be 64 bytes');
     }
 
     // Private key is the first 32 bytes (validation purposes)
@@ -50,7 +50,7 @@ class CryptoWrapper {
   /// Sign data with a private key
   static Future<Uint8List> sign(Uint8List data, Uint8List privateKey) async {
     if (privateKey.length != 64) {
-      throw CryptoException('Private key must be 64 bytes (Solana format)');
+      throw const CryptoException('Private key must be 64 bytes (Solana format)');
     }
 
     // Extract the actual private key (first 32 bytes)
@@ -85,7 +85,7 @@ class CryptoWrapper {
   /// Create keypair from seed bytes
   static Future<KeypairData> fromSeed(Uint8List seed) async {
     if (seed.length != 32) {
-      throw CryptoException('Seed must be 32 bytes');
+      throw const CryptoException('Seed must be 32 bytes');
     }
 
     final keyPair = await _algorithm.newKeyPairFromSeed(seed);
@@ -117,10 +117,10 @@ class CryptoWrapper {
 
 /// Data class representing a cryptographic keypair
 class KeypairData {
-  final Uint8List publicKey;
-  final Uint8List privateKey;
 
   const KeypairData({required this.publicKey, required this.privateKey});
+  final Uint8List publicKey;
+  final Uint8List privateKey;
 
   /// Alias for privateKey to match Solana terminology
   Uint8List get secretKey => privateKey;
@@ -132,9 +132,9 @@ class KeypairData {
 
 /// Exception thrown by cryptographic operations
 class CryptoException implements Exception {
-  final String message;
 
   const CryptoException(this.message);
+  final String message;
 
   @override
   String toString() => 'CryptoException: $message';

@@ -7,7 +7,7 @@ void main() {
     group('EncodingWrapper', () {
       test('should encode and decode hex correctly', () {
         final bytes = Uint8List.fromList(
-            [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF]);
+            [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF],);
         final hex = EncodingWrapper.encodeHex(bytes);
         expect(hex, equals('0123456789abcdef'));
 
@@ -64,7 +64,7 @@ void main() {
         'should throw UnimplementedError for methods not yet implemented',
         () {
           expect(
-            () => CryptoWrapper.generateKeypair(),
+            CryptoWrapper.generateKeypair,
             throwsA(isA<UnimplementedError>()),
           );
           expect(
@@ -151,13 +151,13 @@ void main() {
       test('should format exception messages correctly', () {
         const message = 'Test error message';
 
-        final cryptoException = CryptoException(message);
+        final cryptoException = const CryptoException(message);
         expect(cryptoException.toString(), equals('CryptoException: $message'));
 
-        final borshException = BorshException(message);
+        final borshException = const BorshException(message);
         expect(borshException.toString(), equals('BorshException: $message'));
 
-        final encodingException = EncodingException(message);
+        final encodingException = const EncodingException(message);
         expect(
           encodingException.toString(),
           equals('EncodingException: $message'),

@@ -2,6 +2,7 @@
 ///
 /// Comprehensive test suite for the account definition system that validates
 /// TypeScript Anchor client compatibility and covers all functionality.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -14,7 +15,7 @@ void main() {
 
     setUp(() {
       // Create test IDL structure
-      testTypeDef = IdlTypeDef(
+      testTypeDef = const IdlTypeDef(
         name: 'TestAccount',
         docs: ['Test account structure'],
         type: IdlTypeDefType(
@@ -58,7 +59,7 @@ void main() {
 
       testIdl = Idl(
         address: 'TestProgram1111111111111111111111111111',
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'test_program',
           version: '1.0.0',
           spec: '0.1.0',
@@ -111,9 +112,9 @@ void main() {
 
         expect(accountDef.validationRules.requireDiscriminator, isTrue);
         expect(
-            accountDef.validationRules.requiredFields.length, greaterThan(0));
+            accountDef.validationRules.requiredFields.length, greaterThan(0),);
         expect(accountDef.validationRules.minimumSize,
-            greaterThan(8)); // discriminator + fields
+            greaterThan(8),); // discriminator + fields
         expect(accountDef.validationRules.fieldConstraints.length, equals(6));
       });
 
@@ -129,14 +130,14 @@ void main() {
       });
 
       test('throws error when type definition not found', () {
-        final accountWithoutType = IdlAccount(
+        final accountWithoutType = const IdlAccount(
           name: 'NonExistentAccount',
           type: IdlTypeDefType(kind: 'struct'),
         );
 
         expect(
           () => AccountDefinition.fromIdlAccount(
-              accountWithoutType, testIdl.types),
+              accountWithoutType, testIdl.types,),
           throwsA(isA<IdlError>()),
         );
       });
@@ -220,7 +221,7 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(result.errors.any((e) => e.contains('Discriminator mismatch')),
-            isTrue);
+            isTrue,);
       });
 
       test('detects insufficient data for discriminator', () {
@@ -230,8 +231,8 @@ void main() {
         expect(result.isValid, isFalse);
         expect(
             result.errors.any(
-                (e) => e.contains('Account data too short for discriminator')),
-            isTrue);
+                (e) => e.contains('Account data too short for discriminator'),),
+            isTrue,);
       });
 
       test('detects data below minimum size', () {
@@ -242,7 +243,7 @@ void main() {
         expect(
             result.errors
                 .any((e) => e.contains('Account data below minimum size')),
-            isTrue);
+            isTrue,);
       });
     });
 
@@ -282,7 +283,7 @@ void main() {
         expect(accountDef1.hashCode, equals(accountDef2.hashCode));
       });
       test('accounts with different properties are not equal', () {
-        final differentTypeDef = IdlTypeDef(
+        final differentTypeDef = const IdlTypeDef(
           name: 'DifferentAccount',
           type: IdlTypeDefType(
             kind: 'struct',
@@ -301,7 +302,7 @@ void main() {
         final accountDef1 =
             AccountDefinition.fromIdlAccount(testAccount, testIdl.types);
         final accountDef2 = AccountDefinition.fromIdlAccount(
-            differentAccount, [differentTypeDef]);
+            differentAccount, [differentTypeDef],);
 
         expect(accountDef1, isNot(equals(accountDef2)));
       });
@@ -311,7 +312,7 @@ void main() {
   group('FieldDefinition', () {
     group('fromIdlField', () {
       test('creates definition for primitive types', () {
-        final field = IdlField(name: 'test_u64', type: IdlType(kind: 'u64'));
+        final field = const IdlField(name: 'test_u64', type: IdlType(kind: 'u64'));
         final fieldDef = FieldDefinition.fromIdlField(field, []);
 
         expect(fieldDef.name, equals('test_u64'));
@@ -322,7 +323,7 @@ void main() {
       });
 
       test('creates definition for optional types', () {
-        final field = IdlField(
+        final field = const IdlField(
           name: 'optional_u32',
           type: IdlType(kind: 'option', inner: IdlType(kind: 'u32')),
         );
@@ -337,7 +338,7 @@ void main() {
       });
 
       test('creates definition for vector types', () {
-        final field = IdlField(
+        final field = const IdlField(
           name: 'test_vec',
           type: IdlType(kind: 'vec', inner: IdlType(kind: 'u16')),
         );
@@ -351,7 +352,7 @@ void main() {
       });
 
       test('creates definition for array types', () {
-        final field = IdlField(
+        final field = const IdlField(
           name: 'test_array',
           type: IdlType(kind: 'array', inner: IdlType(kind: 'u8'), size: 16),
         );
@@ -365,7 +366,7 @@ void main() {
 
       test('creates definition for string types', () {
         final field =
-            IdlField(name: 'test_string', type: IdlType(kind: 'string'));
+            const IdlField(name: 'test_string', type: IdlType(kind: 'string'));
         final fieldDef = FieldDefinition.fromIdlField(field, []);
 
         expect(fieldDef.name, equals('test_string'));
@@ -376,7 +377,7 @@ void main() {
 
       test('creates definition for pubkey types', () {
         final field =
-            IdlField(name: 'test_pubkey', type: IdlType(kind: 'pubkey'));
+            const IdlField(name: 'test_pubkey', type: IdlType(kind: 'pubkey'));
         final fieldDef = FieldDefinition.fromIdlField(field, []);
 
         expect(fieldDef.name, equals('test_pubkey'));
@@ -388,7 +389,7 @@ void main() {
 
     group('equality', () {
       test('fields with same properties are equal', () {
-        final field = IdlField(name: 'test', type: IdlType(kind: 'u64'));
+        final field = const IdlField(name: 'test', type: IdlType(kind: 'u64'));
         final fieldDef1 = FieldDefinition.fromIdlField(field, []);
         final fieldDef2 = FieldDefinition.fromIdlField(field, []);
 
@@ -397,8 +398,8 @@ void main() {
       });
 
       test('fields with different properties are not equal', () {
-        final field1 = IdlField(name: 'test1', type: IdlType(kind: 'u64'));
-        final field2 = IdlField(name: 'test2', type: IdlType(kind: 'u32'));
+        final field1 = const IdlField(name: 'test1', type: IdlType(kind: 'u64'));
+        final field2 = const IdlField(name: 'test2', type: IdlType(kind: 'u32'));
         final fieldDef1 = FieldDefinition.fromIdlField(field1, []);
         final fieldDef2 = FieldDefinition.fromIdlField(field2, []);
 
@@ -428,18 +429,18 @@ void main() {
           final typeInfo = FieldTypeInfo.fromIdlType(type, []);
 
           expect(typeInfo.typeName, equals(entry.key),
-              reason: 'Type name should match for ${entry.key}');
+              reason: 'Type name should match for ${entry.key}',);
           expect(typeInfo.isFixedSize, isTrue,
-              reason: 'Should be fixed size for ${entry.key}');
+              reason: 'Should be fixed size for ${entry.key}',);
           expect(typeInfo.minimumSize, equals(entry.value.$1),
-              reason: 'Min size should match for ${entry.key}');
+              reason: 'Min size should match for ${entry.key}',);
           expect(typeInfo.maximumSize, equals(entry.value.$2),
-              reason: 'Max size should match for ${entry.key}');
+              reason: 'Max size should match for ${entry.key}',);
         }
       });
 
       test('handles variable-size types correctly', () {
-        final stringType = IdlType(kind: 'string');
+        final stringType = const IdlType(kind: 'string');
         final stringTypeInfo = FieldTypeInfo.fromIdlType(stringType, []);
 
         expect(stringTypeInfo.typeName, equals('string'));
@@ -449,7 +450,7 @@ void main() {
       });
 
       test('handles complex types correctly', () {
-        final optionType = IdlType(kind: 'option', inner: IdlType(kind: 'u64'));
+        final optionType = const IdlType(kind: 'option', inner: IdlType(kind: 'u64'));
         final optionTypeInfo = FieldTypeInfo.fromIdlType(optionType, []);
 
         expect(optionTypeInfo.typeName, equals('option'));
@@ -463,19 +464,19 @@ void main() {
 
     group('calculateSize', () {
       test('calculates fixed-size types correctly', () {
-        final u64Type = FieldTypeInfo.fromIdlType(IdlType(kind: 'u64'), []);
+        final u64Type = FieldTypeInfo.fromIdlType(const IdlType(kind: 'u64'), []);
         expect(u64Type.calculateSize(123), equals(8));
       });
 
       test('calculates string size correctly', () {
         final stringType =
-            FieldTypeInfo.fromIdlType(IdlType(kind: 'string'), []);
+            FieldTypeInfo.fromIdlType(const IdlType(kind: 'string'), []);
         expect(stringType.calculateSize('hello'), equals(9)); // 4 + 5
       });
 
       test('calculates vector size correctly', () {
         final vecType = FieldTypeInfo.fromIdlType(
-          IdlType(kind: 'vec', inner: IdlType(kind: 'u16')),
+          const IdlType(kind: 'vec', inner: IdlType(kind: 'u16')),
           [],
         );
         expect(vecType.calculateSize([1, 2, 3]), equals(10)); // 4 + 3*2
@@ -483,18 +484,18 @@ void main() {
 
       test('calculates option size correctly', () {
         final optionType = FieldTypeInfo.fromIdlType(
-          IdlType(kind: 'option', inner: IdlType(kind: 'u32')),
+          const IdlType(kind: 'option', inner: IdlType(kind: 'u32')),
           [],
         );
         expect(optionType.calculateSize(null), equals(1)); // None discriminator
         expect(optionType.calculateSize(42),
-            equals(5)); // Some discriminator + u32
+            equals(5),); // Some discriminator + u32
       });
     });
 
     group('equality', () {
       test('type infos with same properties are equal', () {
-        final type = IdlType(kind: 'u64');
+        final type = const IdlType(kind: 'u64');
         final typeInfo1 = FieldTypeInfo.fromIdlType(type, []);
         final typeInfo2 = FieldTypeInfo.fromIdlType(type, []);
 
@@ -503,8 +504,8 @@ void main() {
       });
 
       test('type infos with different properties are not equal', () {
-        final type1 = IdlType(kind: 'u64');
-        final type2 = IdlType(kind: 'u32');
+        final type1 = const IdlType(kind: 'u64');
+        final type2 = const IdlType(kind: 'u32');
         final typeInfo1 = FieldTypeInfo.fromIdlType(type1, []);
         final typeInfo2 = FieldTypeInfo.fromIdlType(type2, []);
 
@@ -517,7 +518,7 @@ void main() {
     late Idl testIdl;
 
     setUp(() {
-      final testTypeDef = IdlTypeDef(
+      final testTypeDef = const IdlTypeDef(
         name: 'TestAccount',
         type: IdlTypeDefType(
           kind: 'struct',
@@ -535,7 +536,7 @@ void main() {
 
       testIdl = Idl(
         address: 'TestProgram1111111111111111111111111111',
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'test_program',
           version: '1.0.0',
           spec: '0.1.0',
@@ -553,7 +554,7 @@ void main() {
     });
 
     test('parseAccounts returns empty list for IDL without accounts', () {
-      final emptyIdl = Idl(
+      final emptyIdl = const Idl(
         metadata: IdlMetadata(name: 'empty', version: '1.0.0', spec: '0.1.0'),
         instructions: [],
       );
@@ -578,13 +579,13 @@ void main() {
     });
 
     test('validateIdlAccounts detects missing type definitions', () {
-      final invalidAccount = IdlAccount(
+      final invalidAccount = const IdlAccount(
         name: 'MissingType',
         type: IdlTypeDefType(kind: 'struct'),
       );
 
       final invalidIdl = Idl(
-        metadata: IdlMetadata(name: 'invalid', version: '1.0.0', spec: '0.1.0'),
+        metadata: const IdlMetadata(name: 'invalid', version: '1.0.0', spec: '0.1.0'),
         instructions: [],
         accounts: [invalidAccount],
         types: [], // No type definitions

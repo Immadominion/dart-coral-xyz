@@ -6,9 +6,9 @@
 library;
 
 import 'dart:typed_data';
-import 'public_key.dart';
-import '../external/crypto_wrapper.dart';
-import '../external/encoding_wrapper.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/external/crypto_wrapper.dart';
+import 'package:coral_xyz_anchor/src/external/encoding_wrapper.dart';
 
 /// A Solana keypair containing both public and private keys
 ///
@@ -18,20 +18,9 @@ import '../external/encoding_wrapper.dart';
 /// - Key serialization and deserialization
 /// - Secure key management
 class Keypair {
-  final Uint8List _secretKey;
-  final PublicKey _publicKey;
 
   /// Private constructor to ensure proper validation
   Keypair._(this._secretKey, this._publicKey);
-
-  /// Generate a new random keypair
-  static Future<Keypair> generate() async {
-    final keyData = await CryptoWrapper.generateKeypair();
-    return Keypair._(
-      keyData.secretKey,
-      PublicKey.fromBytes(keyData.publicKey),
-    );
-  }
 
   /// Create a keypair from a secret key
   factory Keypair.fromSecretKey(Uint8List secretKey) {
@@ -46,21 +35,6 @@ class Keypair {
     final publicKey = PublicKey.fromBytes(publicKeyBytes);
 
     return Keypair._(secretKey, publicKey);
-  }
-
-  /// Create a keypair from a seed (for deterministic key generation)
-  static Future<Keypair> fromSeed(Uint8List seed) async {
-    if (seed.length != 32) {
-      throw ArgumentError(
-        'Invalid seed length. Expected 32 bytes, got ${seed.length}',
-      );
-    }
-
-    final keyData = await CryptoWrapper.fromSeed(seed);
-    return Keypair._(
-      keyData.secretKey,
-      PublicKey.fromBytes(keyData.publicKey),
-    );
   }
 
   /// Create a keypair from a base58-encoded secret key
@@ -85,6 +59,32 @@ class Keypair {
     final secretKey = Uint8List.fromList(secretKeyArray);
     return Keypair.fromSecretKey(secretKey);
   }
+  final Uint8List _secretKey;
+  final PublicKey _publicKey;
+
+  /// Generate a new random keypair
+  static Future<Keypair> generate() async {
+    final keyData = await CryptoWrapper.generateKeypair();
+    return Keypair._(
+      keyData.secretKey,
+      PublicKey.fromBytes(keyData.publicKey),
+    );
+  }
+
+  /// Create a keypair from a seed (for deterministic key generation)
+  static Future<Keypair> fromSeed(Uint8List seed) async {
+    if (seed.length != 32) {
+      throw ArgumentError(
+        'Invalid seed length. Expected 32 bytes, got ${seed.length}',
+      );
+    }
+
+    final keyData = await CryptoWrapper.fromSeed(seed);
+    return Keypair._(
+      keyData.secretKey,
+      PublicKey.fromBytes(keyData.publicKey),
+    );
+  }
 
   /// Get the public key
   PublicKey get publicKey => _publicKey;
@@ -93,29 +93,19 @@ class Keypair {
   Uint8List get secretKey => Uint8List.fromList(_secretKey);
 
   /// Export the secret key as base58 string
-  String secretKeyToBase58() {
-    return EncodingWrapper.encodeBase58(_secretKey);
-  }
+  String secretKeyToBase58() => EncodingWrapper.encodeBase58(_secretKey);
 
   /// Export the secret key as JSON array (compatible with Solana CLI)
-  List<int> secretKeyToJson() {
-    return _secretKey.toList();
-  }
+  List<int> secretKeyToJson() => _secretKey.toList();
 
   /// Sign a message with this keypair
-  Future<Uint8List> sign(Uint8List message) async {
-    return await CryptoWrapper.sign(message, _secretKey);
-  }
+  Future<Uint8List> sign(Uint8List message) async => await CryptoWrapper.sign(message, _secretKey);
 
   /// Verify a signature against this keypair's public key
-  Future<bool> verify(Uint8List message, Uint8List signature) async {
-    return await CryptoWrapper.verify(message, signature, _publicKey.bytes);
-  }
+  Future<bool> verify(Uint8List message, Uint8List signature) async => await CryptoWrapper.verify(message, signature, _publicKey.bytes);
 
   @override
-  String toString() {
-    return 'Keypair(publicKey: ${_publicKey.toBase58()})';
-  }
+  String toString() => 'Keypair(publicKey: ${_publicKey.toBase58()})';
 
   @override
   bool operator ==(Object other) {

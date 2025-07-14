@@ -3,12 +3,13 @@
 /// This module provides comprehensive PDA pattern management with metadata handling,
 /// automatic IDL integration, and validation capabilities matching TypeScript's
 /// sophisticated PDA pattern management system.
+library;
 
 import 'dart:typed_data';
 
-import '../idl/idl.dart';
-import '../types/public_key.dart';
-import 'pda_derivation_engine.dart' as pda;
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/pda/pda_derivation_engine.dart' as pda;
 
 /// Enumeration of seed types for PDA patterns
 enum PdaSeedType {
@@ -22,16 +23,6 @@ enum PdaSeedType {
 
 /// Describes a seed requirement in a PDA pattern
 class PdaSeedRequirement {
-  final String name;
-  final PdaSeedType type;
-  final String? description;
-  final bool optional;
-  final int? fixedLength;
-  final int? minLength;
-  final int? maxLength;
-  final dynamic defaultValue;
-  final List<dynamic>? allowedValues;
-  final Map<String, dynamic>? metadata;
 
   const PdaSeedRequirement({
     required this.name,
@@ -45,6 +36,16 @@ class PdaSeedRequirement {
     this.allowedValues,
     this.metadata,
   });
+  final String name;
+  final PdaSeedType type;
+  final String? description;
+  final bool optional;
+  final int? fixedLength;
+  final int? minLength;
+  final int? maxLength;
+  final dynamic defaultValue;
+  final List<dynamic>? allowedValues;
+  final Map<String, dynamic>? metadata;
 
   /// Validate a seed value against this requirement
   bool validate(dynamic value) {
@@ -135,7 +136,7 @@ class PdaSeedRequirement {
         return pda.BytesSeed(effectiveValue as Uint8List);
       case PdaSeedType.custom:
         throw UnimplementedError(
-            'Custom seed types require specific implementation');
+            'Custom seed types require specific implementation',);
     }
   }
 
@@ -153,15 +154,6 @@ class PdaSeedRequirement {
 
 /// Represents a PDA pattern definition with metadata and validation rules
 class PdaDefinition {
-  final String name;
-  final String? description;
-  final List<PdaSeedRequirement> seedRequirements;
-  final PublicKey? programId;
-  final String? accountType;
-  final Map<String, dynamic>? metadata;
-  final List<String>? tags;
-  final String? version;
-  final PdaDefinition? parent;
 
   const PdaDefinition({
     required this.name,
@@ -174,6 +166,15 @@ class PdaDefinition {
     this.version,
     this.parent,
   });
+  final String name;
+  final String? description;
+  final List<PdaSeedRequirement> seedRequirements;
+  final PublicKey? programId;
+  final String? accountType;
+  final Map<String, dynamic>? metadata;
+  final List<String>? tags;
+  final String? version;
+  final PdaDefinition? parent;
 
   /// Validate seed values against this definition
   PdaValidationResult validateSeeds(Map<String, dynamic> seedValues) {
@@ -210,7 +211,7 @@ class PdaDefinition {
 
   /// Derive a PDA using validated seed values
   pda.PdaResult derivePda(
-      Map<String, dynamic> seedValues, PublicKey? overrideProgramId) {
+      Map<String, dynamic> seedValues, PublicKey? overrideProgramId,) {
     final validation = validateSeeds(seedValues);
     if (!validation.isValid) {
       throw PdaValidationException(validation.errors.join('; '));
@@ -219,11 +220,11 @@ class PdaDefinition {
     final targetProgramId = overrideProgramId ?? programId;
     if (targetProgramId == null) {
       throw ArgumentError(
-          'Program ID must be provided either in definition or as override');
+          'Program ID must be provided either in definition or as override',);
     }
 
     return pda.PdaDerivationEngine.findProgramAddress(
-        validation.resolvedSeeds, targetProgramId);
+        validation.resolvedSeeds, targetProgramId,);
   }
 
   /// Check if this definition inherits from another
@@ -253,7 +254,7 @@ class PdaDefinition {
 
   /// Create a PDA definition from IDL account metadata
   static PdaDefinition? fromIdlAccount(
-      IdlAccount account, PublicKey programId) {
+      IdlAccount account, PublicKey programId,) {
     // Extract PDA pattern from account name and metadata
     // This is a simplified implementation - real-world patterns would be more complex
     final seedRequirements = <PdaSeedRequirement>[];
@@ -261,19 +262,19 @@ class PdaDefinition {
     // Common patterns for account names
     final name = account.name;
     if (name.contains('user') || name.contains('User')) {
-      seedRequirements.add(PdaSeedRequirement(
+      seedRequirements.add(const PdaSeedRequirement(
         name: 'user',
         type: PdaSeedType.publicKey,
         description: 'User public key',
-      ));
+      ),);
     }
 
     if (name.contains('mint') || name.contains('Mint')) {
-      seedRequirements.add(PdaSeedRequirement(
+      seedRequirements.add(const PdaSeedRequirement(
         name: 'mint',
         type: PdaSeedType.publicKey,
         description: 'Mint public key',
-      ));
+      ),);
     }
 
     // Add discriminator if present
@@ -283,7 +284,7 @@ class PdaDefinition {
         type: PdaSeedType.discriminator,
         description: 'Account discriminator',
         defaultValue: Uint8List.fromList(account.discriminator!),
-      ));
+      ),);
     }
 
     // Only create definition if we found meaningful patterns
@@ -305,18 +306,12 @@ class PdaDefinition {
   }
 
   @override
-  String toString() {
-    return 'PdaDefinition(name: $name, seeds: ${seedRequirements.length}, '
+  String toString() => 'PdaDefinition(name: $name, seeds: ${seedRequirements.length}, '
         'accountType: $accountType)';
-  }
 }
 
 /// Result of PDA seed validation
 class PdaValidationResult {
-  final bool isValid;
-  final List<String> errors;
-  final List<String> warnings;
-  final List<pda.PdaSeed> resolvedSeeds;
 
   const PdaValidationResult({
     required this.isValid,
@@ -324,19 +319,21 @@ class PdaValidationResult {
     required this.warnings,
     required this.resolvedSeeds,
   });
+  final bool isValid;
+  final List<String> errors;
+  final List<String> warnings;
+  final List<pda.PdaSeed> resolvedSeeds;
 
   @override
-  String toString() {
-    return 'PdaValidationResult(isValid: $isValid, errors: ${errors.length}, '
+  String toString() => 'PdaValidationResult(isValid: $isValid, errors: ${errors.length}, '
         'warnings: ${warnings.length}, seeds: ${resolvedSeeds.length})';
-  }
 }
 
 /// Exception thrown when PDA validation fails
 class PdaValidationException implements Exception {
-  final String message;
 
   const PdaValidationException(this.message);
+  final String message;
 
   @override
   String toString() => 'PdaValidationException: $message';
@@ -359,14 +356,10 @@ class PdaDefinitionRegistry {
   }
 
   /// Get a definition by name
-  PdaDefinition? getDefinition(String name) {
-    return _definitions[name];
-  }
+  PdaDefinition? getDefinition(String name) => _definitions[name];
 
   /// Get all definitions for a program
-  List<PdaDefinition> getDefinitionsForProgram(PublicKey programId) {
-    return _programDefinitions[programId] ?? [];
-  }
+  List<PdaDefinition> getDefinitionsForProgram(PublicKey programId) => _programDefinitions[programId] ?? [];
 
   /// Register definitions from IDL
   void registerFromIdl(Idl idl, PublicKey programId) {
@@ -387,38 +380,28 @@ class PdaDefinitionRegistry {
   }
 
   /// Get all registered definitions
-  List<PdaDefinition> getAllDefinitions() {
-    return _definitions.values.toList();
-  }
+  List<PdaDefinition> getAllDefinitions() => _definitions.values.toList();
 
   /// Find definitions by tag
-  List<PdaDefinition> findDefinitionsByTag(String tag) {
-    return _definitions.values
+  List<PdaDefinition> findDefinitionsByTag(String tag) => _definitions.values
         .where((def) => def.tags?.contains(tag) == true)
         .toList();
-  }
 
   /// Find definitions by account type
-  List<PdaDefinition> findDefinitionsByAccountType(String accountType) {
-    return _definitions.values
+  List<PdaDefinition> findDefinitionsByAccountType(String accountType) => _definitions.values
         .where((def) => def.accountType == accountType)
         .toList();
-  }
 
   @override
-  String toString() {
-    return 'PdaDefinitionRegistry(definitions: ${_definitions.length}, '
+  String toString() => 'PdaDefinitionRegistry(definitions: ${_definitions.length}, '
         'programs: ${_programDefinitions.length})';
-  }
 }
 
 /// Global PDA definition registry instance
 PdaDefinitionRegistry? _globalRegistry;
 
 /// Get or create the global PDA definition registry
-PdaDefinitionRegistry getGlobalPdaDefinitionRegistry() {
-  return _globalRegistry ??= PdaDefinitionRegistry();
-}
+PdaDefinitionRegistry getGlobalPdaDefinitionRegistry() => _globalRegistry ??= PdaDefinitionRegistry();
 
 /// Set a custom global PDA definition registry
 void setGlobalPdaDefinitionRegistry(PdaDefinitionRegistry registry) {

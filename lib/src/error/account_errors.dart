@@ -3,18 +3,14 @@
 /// This module implements specific account-related error types with exact error code
 /// and message matching to TypeScript implementation, providing detailed context
 /// and debugging information for account validation failures.
+library;
 
-import 'anchor_error.dart';
-import 'error_constants.dart';
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
+import 'package:coral_xyz_anchor/src/error/error_constants.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Base class for all account-specific errors
 abstract class AccountError extends AnchorError {
-  /// The account address associated with the error
-  final PublicKey? accountAddress;
-
-  /// The account name from IDL (if known)
-  final String? accountName;
 
   AccountError({
     required ErrorCode errorCode,
@@ -35,6 +31,11 @@ abstract class AccountError extends AnchorError {
           errorLogs: errorLogs,
           logs: logs,
         );
+  /// The account address associated with the error
+  final PublicKey? accountAddress;
+
+  /// The account name from IDL (if known)
+  final String? accountName;
 
   /// Get formatted account context for error messages
   String get accountContext {
@@ -52,11 +53,6 @@ abstract class AccountError extends AnchorError {
 
 /// Account discriminator mismatch error (3002)
 class AccountDiscriminatorMismatchError extends AccountError {
-  /// Expected discriminator bytes
-  final List<int> expectedDiscriminator;
-
-  /// Actual discriminator bytes found
-  final List<int> actualDiscriminator;
 
   AccountDiscriminatorMismatchError({
     required this.expectedDiscriminator,
@@ -100,15 +96,20 @@ class AccountDiscriminatorMismatchError extends AccountError {
       origin: origin,
     );
   }
+  /// Expected discriminator bytes
+  final List<int> expectedDiscriminator;
+
+  /// Actual discriminator bytes found
+  final List<int> actualDiscriminator;
 
   /// Get hex representation of discriminators for debugging
   String get expectedHex => expectedDiscriminator
       .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
-      .join('');
+      .join();
 
   String get actualHex => actualDiscriminator
       .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
-      .join('');
+      .join();
 
   @override
   String toString() {
@@ -135,11 +136,6 @@ class AccountDiscriminatorMismatchError extends AccountError {
 
 /// Account owned by wrong program error (3007)
 class AccountOwnedByWrongProgramError extends AccountError {
-  /// Expected owner program ID
-  final PublicKey expectedOwner;
-
-  /// Actual owner program ID
-  final PublicKey actualOwner;
 
   AccountOwnedByWrongProgramError({
     required this.expectedOwner,
@@ -185,6 +181,11 @@ class AccountOwnedByWrongProgramError extends AccountError {
       origin: origin,
     );
   }
+  /// Expected owner program ID
+  final PublicKey expectedOwner;
+
+  /// Actual owner program ID
+  final PublicKey actualOwner;
 
   @override
   String toString() {
@@ -210,22 +211,17 @@ class AccountOwnedByWrongProgramError extends AccountError {
 /// Account not initialized error (3012)
 class AccountNotInitializedError extends AccountError {
   AccountNotInitializedError({
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
+    required super.errorLogs,
+    required super.logs,
+    super.accountAddress,
+    super.accountName,
+    super.origin,
   }) : super(
-          errorCode: ErrorCode(
+          errorCode: const ErrorCode(
             code: 'AccountNotInitialized',
             number: LangErrorCode.accountNotInitialized,
           ),
           errorMessage: getErrorMessage(LangErrorCode.accountNotInitialized),
-          errorLogs: errorLogs,
-          logs: logs,
-          accountAddress: accountAddress,
-          accountName: accountName,
-          origin: origin,
         );
 
   /// Create from account validation
@@ -235,15 +231,13 @@ class AccountNotInitializedError extends AccountError {
     required List<String> logs,
     String? accountName,
     Origin? origin,
-  }) {
-    return AccountNotInitializedError(
+  }) => AccountNotInitializedError(
       errorLogs: errorLogs,
       logs: logs,
       accountAddress: accountAddress,
       accountName: accountName,
       origin: origin,
     );
-  }
 
   @override
   String toString() {
@@ -270,11 +264,6 @@ class AccountNotInitializedError extends AccountError {
 
 /// Account did not deserialize error (3003)
 class AccountDidNotDeserializeError extends AccountError {
-  /// Size of the account data
-  final int? accountDataSize;
-
-  /// Expected structure information
-  final String? expectedStructure;
 
   AccountDidNotDeserializeError({
     required List<String> errorLogs,
@@ -317,6 +306,11 @@ class AccountDidNotDeserializeError extends AccountError {
       origin: origin,
     );
   }
+  /// Size of the account data
+  final int? accountDataSize;
+
+  /// Expected structure information
+  final String? expectedStructure;
 
   @override
   String toString() {
@@ -347,8 +341,6 @@ class AccountDidNotDeserializeError extends AccountError {
 
 /// Account not system owned error (3011)
 class AccountNotSystemOwnedError extends AccountError {
-  /// The actual owner of the account
-  final PublicKey actualOwner;
 
   AccountNotSystemOwnedError({
     required this.actualOwner,
@@ -388,6 +380,8 @@ class AccountNotSystemOwnedError extends AccountError {
       origin: origin,
     );
   }
+  /// The actual owner of the account
+  final PublicKey actualOwner;
 
   @override
   String toString() {
@@ -412,22 +406,17 @@ class AccountNotSystemOwnedError extends AccountError {
 /// Account not signer error (3010)
 class AccountNotSignerError extends AccountError {
   AccountNotSignerError({
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
+    required super.errorLogs,
+    required super.logs,
+    super.accountAddress,
+    super.accountName,
+    super.origin,
   }) : super(
-          errorCode: ErrorCode(
+          errorCode: const ErrorCode(
             code: 'AccountNotSigner',
             number: LangErrorCode.accountNotSigner,
           ),
           errorMessage: getErrorMessage(LangErrorCode.accountNotSigner),
-          errorLogs: errorLogs,
-          logs: logs,
-          accountAddress: accountAddress,
-          accountName: accountName,
-          origin: origin,
         );
 
   /// Create from signer validation
@@ -437,15 +426,13 @@ class AccountNotSignerError extends AccountError {
     required List<String> logs,
     String? accountName,
     Origin? origin,
-  }) {
-    return AccountNotSignerError(
+  }) => AccountNotSignerError(
       errorLogs: errorLogs,
       logs: logs,
       accountAddress: accountAddress,
       accountName: accountName,
       origin: origin,
     );
-  }
 
   @override
   String toString() {
@@ -473,22 +460,17 @@ class AccountNotSignerError extends AccountError {
 /// Account not mutable error (3006)
 class AccountNotMutableError extends AccountError {
   AccountNotMutableError({
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
+    required super.errorLogs,
+    required super.logs,
+    super.accountAddress,
+    super.accountName,
+    super.origin,
   }) : super(
-          errorCode: ErrorCode(
+          errorCode: const ErrorCode(
             code: 'AccountNotMutable',
             number: LangErrorCode.accountNotMutable,
           ),
           errorMessage: getErrorMessage(LangErrorCode.accountNotMutable),
-          errorLogs: errorLogs,
-          logs: logs,
-          accountAddress: accountAddress,
-          accountName: accountName,
-          origin: origin,
         );
 
   /// Create from mutability validation
@@ -498,15 +480,13 @@ class AccountNotMutableError extends AccountError {
     required List<String> logs,
     String? accountName,
     Origin? origin,
-  }) {
-    return AccountNotMutableError(
+  }) => AccountNotMutableError(
       errorLogs: errorLogs,
       logs: logs,
       accountAddress: accountAddress,
       accountName: accountName,
       origin: origin,
     );
-  }
 
   @override
   String toString() {
@@ -543,8 +523,8 @@ class AccountErrorFactory {
   }) {
     final logs = [
       'Program log: Account discriminator mismatch',
-      'Program log: Expected: ${expected.map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase()).join('')}',
-      'Program log: Actual: ${actual.map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase()).join('')}',
+      'Program log: Expected: ${expected.map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase()).join()}',
+      'Program log: Actual: ${actual.map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase()).join()}',
     ];
 
     return AccountDiscriminatorMismatchError(

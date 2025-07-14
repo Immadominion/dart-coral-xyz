@@ -3,32 +3,21 @@
 /// This module provides sophisticated account fetching with intelligent caching,
 /// batch operations, state management, and real-time subscriptions matching
 /// TypeScript Anchor's account namespace functionality.
+library;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import '../../types/public_key.dart';
-import '../../types/commitment.dart';
-import '../../coder/main_coder.dart';
-import '../../idl/idl.dart';
-import '../../provider/anchor_provider.dart';
-import '../../provider/connection.dart';
-import '../../error/account_errors.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/error/account_errors.dart';
 
 /// Enhanced account fetcher with caching and batch operations
 class AccountFetcher<T> {
-  final IdlAccount _idlAccount;
-  final Coder _coder;
-  final PublicKey _programId;
-  final AnchorProvider _provider;
-  final AccountFetcherConfig _config;
-
-  // Cache management
-  final Map<String, CachedAccountData<T>> _cache = {};
-  final Map<String, Future<T?>> _pendingFetches = {};
-
-  // Subscription management
-  final Map<String, AccountSubscription<T>> _subscriptions = {};
 
   /// Create a new account fetcher
   AccountFetcher({
@@ -42,6 +31,18 @@ class AccountFetcher<T> {
         _programId = programId,
         _provider = provider,
         _config = config ?? AccountFetcherConfig();
+  final IdlAccount _idlAccount;
+  final Coder _coder;
+  final PublicKey _programId;
+  final AnchorProvider _provider;
+  final AccountFetcherConfig _config;
+
+  // Cache management
+  final Map<String, CachedAccountData<T>> _cache = {};
+  final Map<String, Future<T?>> _pendingFetches = {};
+
+  // Subscription management
+  final Map<String, AccountSubscription<T>> _subscriptions = {};
 
   /// Get the account size in bytes
   int get size => _coder.accounts.size(_idlAccount.name);
@@ -88,7 +89,6 @@ class AccountFetcher<T> {
         _cache[addressStr] = CachedAccountData<T>(
           data: result,
           timestamp: DateTime.now(),
-          slot: null, // TODO: Get slot from account info
         );
       }
 
@@ -138,7 +138,7 @@ class AccountFetcher<T> {
 
     return AccountWithContext<T?>(
       data: data,
-      context: RpcResponseContext(slot: 0), // Mock context
+      context: const RpcResponseContext(slot: 0), // Mock context
     );
   }
 
@@ -164,7 +164,7 @@ class AccountFetcher<T> {
     }
 
     return AccountWithContext<T>(
-      data: result.data!,
+      data: result.data as T,
       context: result.context,
     );
   }
@@ -255,7 +255,6 @@ class AccountFetcher<T> {
             _cache[address.toBase58()] = CachedAccountData<T>(
               data: decodedData,
               timestamp: DateTime.now(),
-              slot: null, // TODO: Get slot from multiple accounts response
             );
           }
         } catch (e) {
@@ -283,7 +282,7 @@ class AccountFetcher<T> {
       if (data == null) return null;
       return AccountWithContext<T>(
         data: data,
-        context: RpcResponseContext(slot: 0), // Mock context
+        context: const RpcResponseContext(slot: 0), // Mock context
       );
     }).toList();
   }
@@ -303,14 +302,14 @@ class AccountFetcher<T> {
       allFilters.add(MemcmpFilter(
         offset: memcmpFilter['offset'] as int,
         bytes: memcmpFilter['bytes'] as String,
-      ));
+      ),);
     }
 
     // Add size filter if available
     if (memcmpFilter.containsKey('dataSize')) {
       allFilters.add(DataSizeFilter(
         memcmpFilter['dataSize'] as int,
-      ));
+      ),);
     }
 
     // Add user-provided filters
@@ -357,7 +356,7 @@ class AccountFetcher<T> {
         results.add(ProgramAccount<T>(
           publicKey: account.pubkey,
           account: decodedData,
-        ));
+        ),);
       } catch (e) {
         // Skip accounts that fail to decode
         continue;
@@ -418,7 +417,7 @@ class AccountFetcher<T> {
   void cleanCache() {
     final now = DateTime.now();
     _cache.removeWhere(
-        (key, value) => now.difference(value.timestamp) > _config.cacheTimeout);
+        (key, value) => now.difference(value.timestamp) > _config.cacheTimeout,);
   }
 
   /// Get cache statistics
@@ -470,7 +469,7 @@ class AccountFetcher<T> {
         actual: accountInfo.owner,
         errorLogs: ['Account owned by wrong program'],
         logs: [
-          'Expected: ${_programId.toBase58()}, Actual: ${accountInfo.owner.toBase58()}'
+          'Expected: ${_programId.toBase58()}, Actual: ${accountInfo.owner.toBase58()}',
         ],
       );
     }
@@ -491,7 +490,7 @@ class AccountFetcher<T> {
       }
     } else {
       throw Exception(
-          'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}');
+          'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}',);
     }
     return _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
   }
@@ -511,6 +510,14 @@ class AccountFetcher<T> {
 
 /// Configuration for account fetcher behavior
 class AccountFetcherConfig {
+
+  const AccountFetcherConfig({
+    this.enableCaching = true,
+    this.cacheTimeout = const Duration(minutes: 5),
+    this.maxCacheSize = 1000,
+    this.batchDelay = const Duration(milliseconds: 50),
+    this.maxBatchSize = 100,
+  });
   /// Whether to enable caching
   final bool enableCaching;
 
@@ -525,66 +532,50 @@ class AccountFetcherConfig {
 
   /// Maximum batch size
   final int maxBatchSize;
-
-  const AccountFetcherConfig({
-    this.enableCaching = true,
-    this.cacheTimeout = const Duration(minutes: 5),
-    this.maxCacheSize = 1000,
-    this.batchDelay = const Duration(milliseconds: 50),
-    this.maxBatchSize = 100,
-  });
 }
 
 /// Cached account data with metadata
 class CachedAccountData<T> {
-  final T data;
-  final DateTime timestamp;
-  final int? slot;
 
   const CachedAccountData({
     required this.data,
     required this.timestamp,
     this.slot,
   });
+  final T data;
+  final DateTime timestamp;
+  final int? slot;
 
-  bool isExpired(Duration timeout) {
-    return DateTime.now().difference(timestamp) > timeout;
-  }
+  bool isExpired(Duration timeout) => DateTime.now().difference(timestamp) > timeout;
 }
 
 /// Account data with RPC context
 class AccountWithContext<T> {
-  final T data;
-  final RpcResponseContext context;
 
   const AccountWithContext({
     required this.data,
     required this.context,
   });
+  final T data;
+  final RpcResponseContext context;
 }
 
 /// Program account with address and data
 class ProgramAccount<T> {
-  final PublicKey publicKey;
-  final T account;
 
   const ProgramAccount({
     required this.publicKey,
     required this.account,
   });
+  final PublicKey publicKey;
+  final T account;
 
   @override
-  String toString() {
-    return 'ProgramAccount(publicKey: $publicKey, account: $account)';
-  }
+  String toString() => 'ProgramAccount(publicKey: $publicKey, account: $account)';
 }
 
 /// Account subscription management
 class AccountSubscription<T> {
-  final PublicKey address;
-  final StreamController<T> controller;
-  final Commitment? commitment;
-  late final Stream<T> stream;
 
   AccountSubscription({
     required this.address,
@@ -593,6 +584,10 @@ class AccountSubscription<T> {
   }) {
     stream = controller.stream;
   }
+  final PublicKey address;
+  final StreamController<T> controller;
+  final Commitment? commitment;
+  late final Stream<T> stream;
 
   Future<void> cancel() async {
     await controller.close();
@@ -601,33 +596,31 @@ class AccountSubscription<T> {
 
 /// Cache performance statistics
 class CacheStatistics {
-  final int totalEntries;
-  final int validEntries;
-  final int expiredEntries;
 
   const CacheStatistics({
     required this.totalEntries,
     required this.validEntries,
     required this.expiredEntries,
   });
+  final int totalEntries;
+  final int validEntries;
+  final int expiredEntries;
 
   double get hitRate {
-    if (totalEntries == 0) return 0.0;
+    if (totalEntries == 0) return 0;
     return validEntries / totalEntries;
   }
 
   @override
-  String toString() {
-    return 'CacheStatistics(total: $totalEntries, valid: $validEntries, '
+  String toString() => 'CacheStatistics(total: $totalEntries, valid: $validEntries, '
         'expired: $expiredEntries, hitRate: ${(hitRate * 100).toStringAsFixed(1)}%)';
-  }
 }
 
 /// RPC response context information
 class RpcResponseContext {
-  final int slot;
 
   const RpcResponseContext({
     required this.slot,
   });
+  final int slot;
 }

@@ -1,13 +1,12 @@
 /// BN.js compatibility utilities for Dart/Coral
 /// Provides TypeScript-like BigNumber functionality for working with large integers
-library bn_js_compat;
+library;
 
 import 'dart:typed_data';
 
 /// BN.js compatible BigNumber class for Dart
 /// Provides TypeScript/JavaScript-like APIs for working with large integers
 class BN {
-  final BigInt _value;
 
   /// Create a BN from various input types
   BN(dynamic value, {int? base}) : _value = _parseValue(value, base);
@@ -22,6 +21,7 @@ class BN {
   /// Create a BN from hex string
   BN.fromHex(String hex)
       : _value = BigInt.parse(hex.replaceFirst('0x', ''), radix: 16);
+  final BigInt _value;
 
   /// Zero constant
   static final BN zero = BN(0);
@@ -49,9 +49,7 @@ class BN {
   String toHex() => '0x${_value.toRadixString(16)}';
 
   /// Convert to bytes (big-endian by default)
-  Uint8List toBytes({int? length, bool littleEndian = false}) {
-    return _toBytes(_value, length: length, littleEndian: littleEndian);
-  }
+  Uint8List toBytes({int? length, bool littleEndian = false}) => _toBytes(_value, length: length, littleEndian: littleEndian);
 
   /// TypeScript-like arithmetic operations
   BN add(dynamic other) => BN.fromBigInt(_value + _toBigInt(other));
@@ -120,7 +118,7 @@ class BN {
         result = (result << 8) + BigInt.from(bytes[i]);
       }
     } else {
-      for (int byte in bytes) {
+      for (final int byte in bytes) {
         result = (result << 8) + BigInt.from(byte);
       }
     }
@@ -128,7 +126,7 @@ class BN {
   }
 
   static Uint8List _toBytes(BigInt value,
-      {int? length, bool littleEndian = false}) {
+      {int? length, bool littleEndian = false,}) {
     if (value == BigInt.zero) {
       return Uint8List(length ?? 1);
     }

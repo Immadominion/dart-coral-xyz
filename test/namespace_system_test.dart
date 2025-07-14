@@ -30,14 +30,11 @@ void main() {
               IdlInstructionAccount(
                 // Changed from IdlInstructionAccountItem
                 name: 'user',
-                writable: false, // Changed from isMut
                 signer: true, // Changed from isSigner
               ),
               IdlInstructionAccount(
                 // Changed from IdlInstructionAccountItem
                 name: 'system_program',
-                writable: false, // Changed from isMut
-                signer: false, // Changed from isSigner
               ),
             ],
             args: [
@@ -55,12 +52,10 @@ void main() {
                 // Changed from IdlInstructionAccountItem
                 name: 'data',
                 writable: true, // Changed from isMut
-                signer: false, // Changed from isSigner
               ),
               IdlInstructionAccount(
                 // Changed from IdlInstructionAccountItem
                 name: 'user',
-                writable: false, // Changed from isMut
                 signer: true, // Changed from isSigner
               ),
             ],

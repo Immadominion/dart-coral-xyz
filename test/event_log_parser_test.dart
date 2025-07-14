@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:test/test.dart';
 
-import '../lib/src/event/event_log_parser.dart';
-import '../lib/src/event/event_definition.dart';
-import '../lib/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/event/event_log_parser.dart';
+import 'package:coral_xyz_anchor/src/event/event_definition.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 void main() {
   group('EventLogParser', () {
@@ -17,7 +17,7 @@ void main() {
 
       // Create test event definitions
       testEvents = [
-        EventDefinition(
+        const EventDefinition(
           name: 'TestEvent',
           discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
           fields: [
@@ -53,13 +53,11 @@ void main() {
             tags: [],
           ),
           validationRules: EventValidationRules(
-            enforceRequiredFields: true,
             typeStrictness: TypeValidationStrictness.strict,
-            enforceFieldConstraints: true,
             customValidators: [],
           ),
         ),
-        EventDefinition(
+        const EventDefinition(
           name: 'SimpleEvent',
           discriminator: [9, 10, 11, 12, 13, 14, 15, 16],
           fields: [
@@ -84,9 +82,7 @@ void main() {
             tags: [],
           ),
           validationRules: EventValidationRules(
-            enforceRequiredFields: true,
             typeStrictness: TypeValidationStrictness.strict,
-            enforceFieldConstraints: true,
             customValidators: [],
           ),
         ),
@@ -180,7 +176,7 @@ void main() {
 
         final base64Data = base64.encode(eventData);
 
-        final result = parser.parseEvent(base64Data, validate: true);
+        final result = parser.parseEvent(base64Data);
 
         expect(result, isNotNull);
         expect(result!.name, equals('SimpleEvent'));
@@ -318,7 +314,7 @@ void main() {
           final result = parser.parseFieldValue(field, data, 0);
 
           expect(result.value, equals(testCase['expected']),
-              reason: 'Failed for type ${testCase['type']}');
+              reason: 'Failed for type ${testCase['type']}',);
         }
       });
 
@@ -352,7 +348,7 @@ void main() {
       test('parses publicKey type correctly', () {
         final keyBytes = Uint8List.fromList(List.generate(32, (i) => i % 256));
 
-        final field = EventFieldDefinition(
+        final field = const EventFieldDefinition(
           name: 'test',
           typeInfo: EventFieldTypeInfo(
             typeName: 'publicKey',
@@ -371,7 +367,7 @@ void main() {
       });
 
       test('handles insufficient data gracefully', () {
-        final field = EventFieldDefinition(
+        final field = const EventFieldDefinition(
           name: 'test',
           typeInfo: EventFieldTypeInfo(
             typeName: 'u64',
@@ -420,7 +416,7 @@ void main() {
         final strictParser = EventLogParser.fromEvents(
           testProgramId,
           testEvents,
-          config: EventLogParserConfig(allowUnknownEvents: false),
+          config: const EventLogParserConfig(allowUnknownEvents: false),
         );
 
         final unknownData =
@@ -497,12 +493,12 @@ void main() {
         final context = ExecutionContext();
 
         expect(
-          () => context.program(),
+          context.program,
           throwsA(isA<EventParsingException>()),
         );
 
         expect(
-          () => context.pop(),
+          context.pop,
           throwsA(isA<EventParsingException>()),
         );
       });
@@ -581,12 +577,12 @@ void main() {
 
           if (testCase['shouldMatch'] as bool) {
             expect(match, isNotNull,
-                reason: 'Should match: ${testCase['log']}');
+                reason: 'Should match: ${testCase['log']}',);
             expect(match!.group(1), equals(testCase['programId']));
             expect(match.group(2), equals(testCase['depth']));
           } else {
             expect(match, isNull,
-                reason: 'Should not match: ${testCase['log']}');
+                reason: 'Should not match: ${testCase['log']}',);
           }
         }
       });

@@ -166,7 +166,7 @@ void main() {
       final dartIdl = Idl.fromJson(tsCompatibleIdl);
 
       expect(
-          dartIdl.address, equals('TSCompatible11111111111111111111111111111'));
+          dartIdl.address, equals('TSCompatible11111111111111111111111111111'),);
       expect(dartIdl.metadata?.name, equals('ts_compatible_program'));
       expect(dartIdl.instructions.length, equals(2));
       expect(dartIdl.accounts?.length, equals(1));
@@ -210,7 +210,7 @@ void main() {
 
         expect(isCompatible, isTrue,
             reason:
-                'Instruction ${testCase['instruction']} encoding should be compatible');
+                'Instruction ${testCase['instruction']} encoding should be compatible',);
       }
     });
 
@@ -245,7 +245,7 @@ void main() {
 
         expect(isCompatible, isTrue,
             reason:
-                'Account ${testCase['account_type']} parsing should be compatible');
+                'Account ${testCase['account_type']} parsing should be compatible',);
       }
     });
 
@@ -275,7 +275,7 @@ void main() {
               {
                 'name': 'array_data',
                 'type': {
-                  'array': ['u8', 10]
+                  'array': ['u8', 10],
                 },
               },
               {
@@ -323,7 +323,7 @@ void main() {
           coder.instructions.encode('complex_instruction', complexArgs);
       expect(encoded, isNotNull);
       expect(encoded.length,
-          greaterThan(8)); // Should include discriminator + data
+          greaterThan(8),); // Should include discriminator + data
 
       // Verify that complex types are handled correctly
       expect(complexArgs['optional_value'], equals(42));

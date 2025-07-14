@@ -13,7 +13,7 @@ void main() async {
   try {
     // 1. Load and parse your IDL
     final idlFile = File(
-        '/Users/immadominion/codes/opensauce/anchor/example/assets/idl.json');
+        '/Users/immadominion/codes/opensauce/anchor/example/assets/idl.json',);
     final idlJson = await idlFile.readAsString();
     final idlMap = jsonDecode(idlJson) as Map<String, dynamic>;
 
@@ -57,7 +57,7 @@ void main() async {
     // 5. Example: Initialize the counter
     print('\n🚀 Example: Initialize Counter');
     print('This is how you would initialize a new counter:');
-    print('''
+    print(r'''
     
     try {
       final signature = await program.methods.initialize()
@@ -68,16 +68,16 @@ void main() async {
           })
           .rpc();
       
-      print('✅ Counter initialized! Signature: \$signature');
+      print('✅ Counter initialized! Signature: $signature');
     } catch (e) {
-      print('❌ Initialization failed: \$e');
+      print('❌ Initialization failed: $e');
     }
     ''');
 
     // 6. Example: Increment the counter
     print('\n📈 Example: Increment Counter');
     print('This is how you would increment the counter by 5:');
-    print('''
+    print(r'''
     
     try {
       final signature = await program.methods.increment([BigInt.from(5)])
@@ -86,23 +86,23 @@ void main() async {
           })
           .rpc();
       
-      print('✅ Counter incremented! Signature: \$signature');
+      print('✅ Counter incremented! Signature: $signature');
     } catch (e) {
-      print('❌ Increment failed: \$e');
+      print('❌ Increment failed: $e');
     }
     ''');
 
     // 7. Example: Fetch counter data
     print('\n📊 Example: Fetch Counter Data');
     print('This is how you would read the current counter value:');
-    print('''
+    print(r'''
     
     try {
       final counterAccount = await program.account.counter.fetch(counterPda);
-      print('📊 Current count: \${counterAccount['count']}');
-      print('📊 Bump: \${counterAccount['bump']}');
+      print('📊 Current count: ${counterAccount['count']}');
+      print('📊 Bump: ${counterAccount['bump']}');
     } catch (e) {
-      print('❌ Fetch failed: \$e');
+      print('❌ Fetch failed: $e');
     }
     ''');
 
@@ -115,7 +115,7 @@ void main() async {
       print('     Message: "${error.msg}"');
     }
 
-    print('''
+    print(r'''
     
     You can catch and handle these specific errors:
     
@@ -127,7 +127,7 @@ void main() async {
       } else if (e.code == 6000) {
         print('Cannot get bump - PDA derivation failed');
       } else {
-        print('Unknown program error: \$e');
+        print('Unknown program error: $e');
       }
     }
     ''');

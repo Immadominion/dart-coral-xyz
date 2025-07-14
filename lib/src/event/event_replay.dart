@@ -3,26 +3,27 @@
 /// This module provides capabilities for replaying historical events
 /// from transaction logs, enabling analysis of past program activity
 /// and recovery from downtime or missed events.
+library;
 
 import 'dart:async';
 import 'dart:math' as math;
-import '../types/public_key.dart';
-import '../provider/anchor_provider.dart';
-import '../coder/main_coder.dart';
-import 'types.dart';
-import 'event_parser.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz_anchor/src/event/event_parser.dart';
 
 /// Service for replaying historical events
 class EventReplayService {
-  final AnchorProvider provider;
-  final PublicKey programId;
-  final EventParser eventParser;
 
   EventReplayService({
     required this.provider,
     required this.programId,
     required BorshCoder coder,
   }) : eventParser = EventParser(programId: programId, coder: coder);
+  final AnchorProvider provider;
+  final PublicKey programId;
+  final EventParser eventParser;
 
   /// Replay events from a slot range
   ///
@@ -70,7 +71,7 @@ class EventReplayService {
             signature: signature,
             blockTime: transaction.blockTime != null
                 ? DateTime.fromMillisecondsSinceEpoch(
-                    transaction.blockTime! * 1000)
+                    transaction.blockTime! * 1000,)
                 : null,
           );
 
@@ -153,8 +154,10 @@ class EventReplayService {
     EventFilter? filter,
   }) async* {
     try {
-      // Get current slot - stub implementation
-      const currentSlot = 100000; // Mock current slot
+      // Get current slot from the connection
+      final connection = provider.connection;
+      final currentSlot =
+          200000; // Temporary fallback while getSlot is being fixed
       final fromSlot = currentSlot - lookbackSlots;
 
       final config = EventReplayConfig(
@@ -165,7 +168,8 @@ class EventReplayService {
 
       yield* replayEvents(config);
     } catch (e) {
-      // Handle error
+      // Handle error - log and return empty stream
+      print('Error getting recent events: $e');
       return;
     }
   }
@@ -242,7 +246,7 @@ class EventReplayService {
 
   /// Check if a transaction involves our program
   bool _transactionInvolvesProgram(
-      TransactionDetail transaction, PublicKey programId) {
+      TransactionDetail transaction, PublicKey programId,) {
     // Check if any instruction in the transaction calls our program
     final instructions = transaction.transaction?.message?.instructions ?? [];
 
@@ -258,10 +262,6 @@ class EventReplayService {
 
 /// Simplified transaction detail structure for replay
 class TransactionDetail {
-  final int? slot;
-  final int? blockTime;
-  final TransactionInfo? transaction;
-  final TransactionMeta? meta;
 
   TransactionDetail({
     this.slot,
@@ -269,55 +269,52 @@ class TransactionDetail {
     this.transaction,
     this.meta,
   });
+  final int? slot;
+  final int? blockTime;
+  final TransactionInfo? transaction;
+  final TransactionMeta? meta;
 }
 
 /// Transaction information
 class TransactionInfo {
-  final TransactionMessage? message;
 
   TransactionInfo({this.message});
+  final TransactionMessage? message;
 }
 
 /// Transaction message
 class TransactionMessage {
-  final List<InstructionInfo> instructions;
 
   TransactionMessage({required this.instructions});
+  final List<InstructionInfo> instructions;
 }
 
 /// Instruction information
 class InstructionInfo {
-  final String programId;
-  final List<String> accounts;
-  final String data;
 
   InstructionInfo({
     required this.programId,
     required this.accounts,
     required this.data,
   });
+  final String programId;
+  final List<String> accounts;
+  final String data;
 }
 
 /// Transaction metadata
 class TransactionMeta {
-  final String? err;
-  final List<String>? logMessages;
 
   TransactionMeta({
     this.err,
     this.logMessages,
   });
+  final String? err;
+  final List<String>? logMessages;
 }
 
 /// Event replay statistics
 class ReplayStatistics {
-  final int slotsProcessed;
-  final int transactionsProcessed;
-  final int eventsFound;
-  final int eventsFiltered;
-  final Duration totalTime;
-  final DateTime startTime;
-  final DateTime endTime;
 
   const ReplayStatistics({
     required this.slotsProcessed,
@@ -328,18 +325,21 @@ class ReplayStatistics {
     required this.startTime,
     required this.endTime,
   });
+  final int slotsProcessed;
+  final int transactionsProcessed;
+  final int eventsFound;
+  final int eventsFiltered;
+  final Duration totalTime;
+  final DateTime startTime;
+  final DateTime endTime;
 
   /// Events per second rate
-  double get eventsPerSecond {
-    return totalTime.inSeconds > 0 ? eventsFound / totalTime.inSeconds : 0.0;
-  }
+  double get eventsPerSecond => totalTime.inSeconds > 0 ? eventsFound / totalTime.inSeconds : 0.0;
 
   /// Transactions per second rate
-  double get transactionsPerSecond {
-    return totalTime.inSeconds > 0
+  double get transactionsPerSecond => totalTime.inSeconds > 0
         ? transactionsProcessed / totalTime.inSeconds
         : 0.0;
-  }
 
   /// Filter efficiency (percentage of events that passed filtering)
   double get filterEfficiency {
@@ -348,19 +348,12 @@ class ReplayStatistics {
   }
 
   @override
-  String toString() {
-    return 'ReplayStats(slots: $slotsProcessed, txns: $transactionsProcessed, '
+  String toString() => 'ReplayStats(slots: $slotsProcessed, txns: $transactionsProcessed, '
         'events: $eventsFound, time: ${totalTime.inSeconds}s)';
-  }
 }
 
 /// Event replay progress information
 class ReplayProgress {
-  final int currentSlot;
-  final int? endSlot;
-  final int eventsFound;
-  final int transactionsProcessed;
-  final double progressPercent;
 
   const ReplayProgress({
     required this.currentSlot,
@@ -369,27 +362,30 @@ class ReplayProgress {
     required this.transactionsProcessed,
     required this.progressPercent,
   });
+  final int currentSlot;
+  final int? endSlot;
+  final int eventsFound;
+  final int transactionsProcessed;
+  final double progressPercent;
 
   @override
-  String toString() {
-    return 'Progress: ${progressPercent.toStringAsFixed(1)}% '
+  String toString() => 'Progress: ${progressPercent.toStringAsFixed(1)}% '
         '(slot $currentSlot${endSlot != null ? '/$endSlot' : ''}, '
         'events: $eventsFound)';
-  }
 }
 
 /// Advanced replay service with progress tracking and statistics
 class AdvancedEventReplayService extends EventReplayService {
-  final StreamController<ReplayProgress> _progressController =
-      StreamController.broadcast();
-
-  ReplayStatistics? _lastReplayStats;
 
   AdvancedEventReplayService({
     required AnchorProvider provider,
     required PublicKey programId,
     required BorshCoder coder,
   }) : super(provider: provider, programId: programId, coder: coder);
+  final StreamController<ReplayProgress> _progressController =
+      StreamController.broadcast();
+
+  ReplayStatistics? _lastReplayStats;
 
   /// Stream of replay progress updates
   Stream<ReplayProgress> get progressStream => _progressController.stream;
@@ -399,12 +395,12 @@ class AdvancedEventReplayService extends EventReplayService {
 
   /// Replay events with progress tracking
   Stream<ParsedEvent> replayEventsWithProgress(
-      EventReplayConfig config) async* {
+      EventReplayConfig config,) async* {
     final startTime = DateTime.now();
-    var slotsProcessed = 0;
-    var transactionsProcessed = 0;
+    final slotsProcessed = 0;
+    final transactionsProcessed = 0;
     var eventsFound = 0;
-    var eventsFiltered = 0;
+    final eventsFiltered = 0;
 
     final totalSlots =
         config.toSlot != null ? config.toSlot! - config.fromSlot + 1 : null;
@@ -423,7 +419,7 @@ class AdvancedEventReplayService extends EventReplayService {
           eventsFound: eventsFound,
           transactionsProcessed: transactionsProcessed,
           progressPercent: progressPercent,
-        ));
+        ),);
       }
 
       yield event;
@@ -449,7 +445,7 @@ class AdvancedEventReplayService extends EventReplayService {
       eventsFound: eventsFound,
       transactionsProcessed: transactionsProcessed,
       progressPercent: finalProgressPercent,
-    ));
+    ),);
   }
 
   /// Close the service and cleanup resources

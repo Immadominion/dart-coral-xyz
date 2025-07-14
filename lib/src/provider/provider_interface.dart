@@ -7,15 +7,15 @@
 library;
 
 import 'dart:async';
-import '../types/public_key.dart';
-import '../types/transaction.dart';
-import '../transaction/transaction_simulator.dart'
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart'
     show TransactionSimulationResult;
-import '../types/commitment.dart';
-import '../types/keypair.dart';
-import 'connection.dart';
-import 'wallet.dart';
-import 'anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 
 /// Unified provider interface abstracting implementation details
 ///
@@ -113,6 +113,14 @@ enum ProviderType {
 
 /// Provider configuration
 class ProviderConfig {
+
+  const ProviderConfig({
+    required this.type,
+    required this.name,
+    required this.version,
+    this.capabilities = const {},
+    this.properties = const {},
+  });
   /// Provider type
   final ProviderType type;
 
@@ -128,14 +136,6 @@ class ProviderConfig {
   /// Custom configuration properties
   final Map<String, dynamic> properties;
 
-  const ProviderConfig({
-    required this.type,
-    required this.name,
-    required this.version,
-    this.capabilities = const {},
-    this.properties = const {},
-  });
-
   /// Copy configuration with overrides
   ProviderConfig copyWith({
     ProviderType? type,
@@ -143,21 +143,17 @@ class ProviderConfig {
     String? version,
     Set<ProviderCapability>? capabilities,
     Map<String, dynamic>? properties,
-  }) {
-    return ProviderConfig(
+  }) => ProviderConfig(
       type: type ?? this.type,
       name: name ?? this.name,
       version: version ?? this.version,
       capabilities: capabilities ?? this.capabilities,
       properties: properties ?? this.properties,
     );
-  }
 
   @override
-  String toString() {
-    return 'ProviderConfig(type: $type, name: $name, version: $version, '
+  String toString() => 'ProviderConfig(type: $type, name: $name, version: $version, '
         'capabilities: $capabilities, properties: ${properties.keys})';
-  }
 
   @override
   bool operator ==(Object other) {
@@ -171,9 +167,7 @@ class ProviderConfig {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(type, name, version, capabilities, properties);
-  }
+  int get hashCode => Object.hash(type, name, version, capabilities, properties);
 
   static bool _mapEquals(Map<String, dynamic> a, Map<String, dynamic> b) {
     if (a.length != b.length) return false;
@@ -213,17 +207,6 @@ enum ProviderCapability {
 
 /// Provider connection status
 class ProviderConnectionStatus {
-  /// Whether the provider is connected
-  final bool isConnected;
-
-  /// Connection timestamp
-  final DateTime timestamp;
-
-  /// Connection error, if any
-  final Exception? error;
-
-  /// Additional status information
-  final Map<String, dynamic> metadata;
 
   const ProviderConnectionStatus({
     required this.isConnected,
@@ -255,12 +238,21 @@ class ProviderConnectionStatus {
       metadata: metadata,
     );
   }
+  /// Whether the provider is connected
+  final bool isConnected;
+
+  /// Connection timestamp
+  final DateTime timestamp;
+
+  /// Connection error, if any
+  final Exception? error;
+
+  /// Additional status information
+  final Map<String, dynamic> metadata;
 
   @override
-  String toString() {
-    return 'ProviderConnectionStatus(isConnected: $isConnected, '
+  String toString() => 'ProviderConnectionStatus(isConnected: $isConnected, '
         'timestamp: $timestamp, error: $error, metadata: $metadata)';
-  }
 
   @override
   bool operator ==(Object other) {
@@ -273,9 +265,7 @@ class ProviderConnectionStatus {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(isConnected, timestamp, error, metadata);
-  }
+  int get hashCode => Object.hash(isConnected, timestamp, error, metadata);
 
   static bool _mapEquals(Map<String, dynamic> a, Map<String, dynamic> b) {
     if (a.length != b.length) return false;
@@ -288,6 +278,13 @@ class ProviderConnectionStatus {
 
 /// Base provider implementation with common functionality
 abstract class BaseProvider implements ProviderInterface {
+
+  BaseProvider({
+    required this.connection,
+    required this.config,
+  })  : _connectionStatusController =
+            StreamController<ProviderConnectionStatus>.broadcast(),
+        _currentStatus = ProviderConnectionStatus.disconnected();
   /// Connection instance
   @override
   final Connection connection;
@@ -301,13 +298,6 @@ abstract class BaseProvider implements ProviderInterface {
 
   /// Current connection status
   ProviderConnectionStatus _currentStatus;
-
-  BaseProvider({
-    required this.connection,
-    required this.config,
-  })  : _connectionStatusController =
-            StreamController<ProviderConnectionStatus>.broadcast(),
-        _currentStatus = ProviderConnectionStatus.disconnected();
 
   @override
   ProviderType get providerType => config.type;

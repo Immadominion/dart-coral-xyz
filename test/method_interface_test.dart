@@ -1,34 +1,30 @@
 import 'package:test/test.dart';
-import '../lib/src/idl/idl.dart';
-import '../lib/src/program/method_validator.dart';
-import '../lib/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/method_validator.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 void main() {
   group('Method Interface Generation', () {
     test('should generate method interface from IDL instruction', () {
       // Create a sample IDL instruction
-      final instruction = IdlInstruction(
+      final instruction = const IdlInstruction(
         name: 'initialize',
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
         docs: ['Initialize the program'],
         accounts: [
-          const IdlInstructionAccount(
+          IdlInstructionAccount(
             name: 'authority',
-            writable: false,
             signer: true,
-            optional: false,
           ),
-          const IdlInstructionAccount(
+          IdlInstructionAccount(
             name: 'dataAccount',
             writable: true,
-            signer: false,
-            optional: false,
           ),
         ],
         args: [
           IdlField(
             name: 'amount',
-            type: const IdlType(kind: 'u64'),
+            type: IdlType(kind: 'u64'),
           ),
         ],
       );
@@ -50,25 +46,25 @@ void main() {
       final testKey1 = PublicKey.fromBase58('11111111111111111111111111111111');
       final testKey2 = PublicKey.fromBase58('11111111111111111111111111111112');
       expect(
-        () async => await validator
+        () async => validator
             .validate([100], {'authority': testKey1, 'dataAccount': testKey2}),
         returnsNormally,
       );
     });
 
     test('should validate method arguments correctly', () async {
-      final instruction = IdlInstruction(
+      final instruction = const IdlInstruction(
         name: 'transfer',
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
         accounts: [],
         args: [
           IdlField(
             name: 'amount',
-            type: const IdlType(kind: 'u64'),
+            type: IdlType(kind: 'u64'),
           ),
           IdlField(
             name: 'memo',
-            type: const IdlType(kind: 'string'),
+            type: IdlType(kind: 'string'),
           ),
         ],
       );
@@ -80,37 +76,35 @@ void main() {
 
       // Valid arguments should pass
       await expectLater(
-        () async => await validator.validate([100, 'test memo'], {}),
+        () async => validator.validate([100, 'test memo'], {}),
         returnsNormally,
       );
 
       // Invalid argument count should throw
       await expectLater(
-        () async => await validator.validate([100], {}),
+        () async => validator.validate([100], {}),
         throwsA(isA<MethodValidationError>()),
       );
 
       // Too many arguments should throw
       await expectLater(
-        () async => await validator.validate([100, 'test', 'extra'], {}),
+        () async => validator.validate([100, 'test', 'extra'], {}),
         throwsA(isA<MethodValidationError>()),
       );
     });
 
     test('should validate account requirements', () async {
-      final instruction = IdlInstruction(
+      final instruction = const IdlInstruction(
         name: 'updateData',
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
         accounts: [
-          const IdlInstructionAccount(
+          IdlInstructionAccount(
             name: 'authority',
-            writable: false,
             signer: true,
           ),
-          const IdlInstructionAccount(
+          IdlInstructionAccount(
             name: 'dataAccount',
             writable: true,
-            signer: false,
           ),
         ],
         args: [],
@@ -130,7 +124,7 @@ void main() {
       };
 
       await expectLater(
-        () async => await validator.validate([], accounts),
+        () async => validator.validate([], accounts),
         returnsNormally,
       );
 
@@ -140,7 +134,7 @@ void main() {
       };
 
       await expectLater(
-        () async => await validator.validate([], incompleteAccounts),
+        () async => validator.validate([], incompleteAccounts),
         throwsA(isA<MethodValidationError>()),
       );
     });
@@ -148,21 +142,19 @@ void main() {
 
   group('Method Interface Documentation', () {
     test('should generate comprehensive documentation', () {
-      final instruction = IdlInstruction(
+      final instruction = const IdlInstruction(
         name: 'complexMethod',
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
         docs: ['This is a complex method', 'with multiple purposes'],
         accounts: [
-          const IdlInstructionAccount(
+          IdlInstructionAccount(
             name: 'signer',
-            writable: false,
             signer: true,
             docs: ['The signing authority'],
           ),
-          const IdlInstructionAccount(
+          IdlInstructionAccount(
             name: 'writableAccount',
             writable: true,
-            signer: false,
             optional: true,
             docs: ['Optional writable account'],
           ),
@@ -170,7 +162,7 @@ void main() {
         args: [
           IdlField(
             name: 'value',
-            type: const IdlType(kind: 'u64'),
+            type: IdlType(kind: 'u64'),
             docs: ['The value to process'],
           ),
         ],

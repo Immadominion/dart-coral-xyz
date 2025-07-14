@@ -4,11 +4,11 @@
 /// for encoding and decoding program instructions using Borsh serialization.
 library;
 
-import '../idl/idl.dart';
-import '../coder/borsh_types.dart';
-import '../coder/discriminator_computer.dart';
-import '../types/common.dart';
-import '../types/transaction.dart'; // <-- Add this import for AccountMeta
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
+import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
+import 'package:coral_xyz_anchor/src/types/common.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart'; // <-- Add this import for AccountMeta
 import 'dart:typed_data';
 
 /// Interface for encoding and decoding program instructions
@@ -37,21 +37,19 @@ abstract class InstructionCoder {
 
 /// A decoded program instruction
 class Instruction {
+
+  const Instruction({
+    required this.name,
+    required this.data,
+  });
   /// The name of the instruction
   final String name;
 
   /// The decoded instruction data
   final Map<String, dynamic> data;
 
-  const Instruction({
-    required this.name,
-    required this.data,
-  });
-
   @override
-  String toString() {
-    return 'Instruction(name: $name, data: $data)';
-  }
+  String toString() => 'Instruction(name: $name, data: $data)';
 
   @override
   bool operator ==(Object other) {
@@ -75,25 +73,29 @@ class Instruction {
 
 /// Formatted instruction display for debugging and analysis
 class InstructionDisplay {
+
+  const InstructionDisplay({
+    required this.args,
+    required this.accounts,
+  });
   /// Formatted instruction arguments
   final List<InstructionArg> args;
 
   /// Formatted account information
   final List<InstructionAccount> accounts;
 
-  const InstructionDisplay({
-    required this.args,
-    required this.accounts,
-  });
-
   @override
-  String toString() {
-    return 'InstructionDisplay(args: $args, accounts: $accounts)';
-  }
+  String toString() => 'InstructionDisplay(args: $args, accounts: $accounts)';
 }
 
 /// Formatted instruction argument
 class InstructionArg {
+
+  const InstructionArg({
+    required this.name,
+    required this.type,
+    required this.data,
+  });
   /// The name of the argument
   final String name;
 
@@ -103,20 +105,19 @@ class InstructionArg {
   /// The formatted data
   final String data;
 
-  const InstructionArg({
-    required this.name,
-    required this.type,
-    required this.data,
-  });
-
   @override
-  String toString() {
-    return 'InstructionArg(name: $name, type: $type, data: $data)';
-  }
+  String toString() => 'InstructionArg(name: $name, type: $type, data: $data)';
 }
 
 /// Formatted instruction account
 class InstructionAccount {
+
+  const InstructionAccount({
+    this.name,
+    required this.pubkey,
+    required this.isSigner,
+    required this.isWritable,
+  });
   /// The name of the account (if known)
   final String? name;
 
@@ -129,32 +130,23 @@ class InstructionAccount {
   /// Whether the account is writable
   final bool isWritable;
 
-  const InstructionAccount({
-    this.name,
-    required this.pubkey,
-    required this.isSigner,
-    required this.isWritable,
-  });
-
   @override
-  String toString() {
-    return 'InstructionAccount(name: $name, pubkey: $pubkey, '
+  String toString() => 'InstructionAccount(name: $name, pubkey: $pubkey, '
         'isSigner: $isSigner, isWritable: $isWritable)';
-  }
 }
 
 /// Borsh-based implementation of InstructionCoder
 class BorshInstructionCoder implements InstructionCoder {
-  /// The IDL containing instruction definitions
-  final Idl idl;
-
-  /// Cached instruction layouts with discriminators
-  late final Map<String, InstructionLayout> _ixLayouts;
 
   /// Create a new BorshInstructionCoder
   BorshInstructionCoder(this.idl) {
     _ixLayouts = _buildInstructionLayouts();
   }
+  /// The IDL containing instruction definitions
+  final Idl idl;
+
+  /// Cached instruction layouts with discriminators
+  late final Map<String, InstructionLayout> _ixLayouts;
 
   @override
   Uint8List encode(String ixName, Map<String, dynamic> ix) {
@@ -181,20 +173,20 @@ class BorshInstructionCoder implements InstructionCoder {
       result.setRange(discriminator.length, result.length, argsData);
 
       print(
-          'InstructionCoder: Final instruction data length: ${result.length}');
+          'InstructionCoder: Final instruction data length: ${result.length}',);
       print('InstructionCoder: Final instruction data: ${result.toList()}');
 
       return result;
     } catch (e) {
       print('InstructionCoder: Error encoding instruction $ixName: $e');
       throw InstructionCoderException(
-          'Failed to encode instruction $ixName: $e');
+          'Failed to encode instruction $ixName: $e',);
     }
   }
 
   @override
   Instruction? decode(Uint8List data, {String encoding = 'hex'}) {
-    Uint8List bytes = data;
+    final Uint8List bytes = data;
 
     // Handle hex encoding
     if (encoding == 'hex' && data.isEmpty) {
@@ -257,7 +249,7 @@ class BorshInstructionCoder implements InstructionCoder {
         name: arg.name,
         type: _formatIdlType(arg.type),
         data: _formatValue(value, arg.type),
-      ));
+      ),);
     }
 
     // Format accounts
@@ -277,7 +269,7 @@ class BorshInstructionCoder implements InstructionCoder {
         pubkey: meta.pubkey.toBase58(),
         isSigner: meta.isSigner,
         isWritable: meta.isWritable,
-      ));
+      ),);
     }
 
     return InstructionDisplay(args: args, accounts: accounts);
@@ -324,7 +316,7 @@ class BorshInstructionCoder implements InstructionCoder {
     for (final arg in instruction.args) {
       if (!data.containsKey(arg.name)) {
         throw InstructionCoderException(
-            'Missing required argument: ${arg.name}');
+            'Missing required argument: ${arg.name}',);
       }
       final value = data[arg.name];
       _encodeValue(value, arg.type, serializer);
@@ -396,7 +388,7 @@ class BorshInstructionCoder implements InstructionCoder {
         break;
       default:
         throw InstructionCoderException(
-            'Unsupported type for encoding: ${type.kind}');
+            'Unsupported type for encoding: ${type.kind}',);
     }
   }
 
@@ -462,7 +454,7 @@ class BorshInstructionCoder implements InstructionCoder {
         return list;
       default:
         throw InstructionCoderException(
-            'Unsupported type for decoding: ${type.kind}');
+            'Unsupported type for decoding: ${type.kind}',);
     }
   }
 
@@ -493,13 +485,13 @@ class BorshInstructionCoder implements InstructionCoder {
     }
 
     if (value is List) {
-      return '[${value.map((v) => _formatValue(v, type.inner ?? IdlType(kind: 'unknown'))).join(', ')}]';
+      return '[${value.map((v) => _formatValue(v, type.inner ?? const IdlType(kind: 'unknown'))).join(', ')}]';
     }
 
     if (value is Map) {
       final entries = value.entries
           .map((e) =>
-              '${e.key}: ${_formatValue(e.value, IdlType(kind: 'unknown'))}')
+              '${e.key}: ${_formatValue(e.value, const IdlType(kind: 'unknown'))}',)
           .join(', ');
       return '{$entries}';
     }
@@ -510,20 +502,19 @@ class BorshInstructionCoder implements InstructionCoder {
 
 /// Internal instruction layout information
 class InstructionLayout {
-  /// The instruction discriminator bytes
-  final List<int> discriminator;
-
-  /// The IDL instruction definition
-  final IdlInstruction instruction;
 
   const InstructionLayout({
     required this.discriminator,
     required this.instruction,
   });
+  /// The instruction discriminator bytes
+  final List<int> discriminator;
+
+  /// The IDL instruction definition
+  final IdlInstruction instruction;
 }
 
 /// Exception thrown by instruction coder operations
 class InstructionCoderException extends AnchorException {
-  const InstructionCoderException(String message, [dynamic cause])
-      : super(message, cause);
+  const InstructionCoderException(super.message, [super.cause]);
 }

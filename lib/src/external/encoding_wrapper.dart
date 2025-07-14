@@ -31,24 +31,18 @@ class EncodingWrapper {
   }
 
   /// Encode bytes to Base64 string
-  static String encodeBase64(Uint8List bytes) {
-    return base64.encode(bytes);
-  }
+  static String encodeBase64(Uint8List bytes) => base64.encode(bytes);
 
   /// Decode Base64 string to bytes
-  static Uint8List decodeBase64(String encoded) {
-    return base64.decode(encoded);
-  }
+  static Uint8List decodeBase64(String encoded) => base64.decode(encoded);
 
   /// Encode bytes to hexadecimal string
-  static String encodeHex(Uint8List bytes) {
-    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
-  }
+  static String encodeHex(Uint8List bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Decode hexadecimal string to bytes
   static Uint8List decodeHex(String hex) {
     if (hex.length % 2 != 0) {
-      throw EncodingException('Hex string must have even length');
+      throw const EncodingException('Hex string must have even length');
     }
 
     final result = Uint8List(hex.length ~/ 2);
@@ -60,27 +54,23 @@ class EncodingWrapper {
   }
 
   /// Convert string to UTF-8 bytes
-  static Uint8List stringToBytes(String str) {
-    return Uint8List.fromList(utf8.encode(str));
-  }
+  static Uint8List stringToBytes(String str) => Uint8List.fromList(utf8.encode(str));
 
   /// Convert UTF-8 bytes to string
-  static String bytesToString(Uint8List bytes) {
-    return utf8.decode(bytes);
-  }
+  static String bytesToString(Uint8List bytes) => utf8.decode(bytes);
 
   /// Validate Base58 string format
   static bool isValidBase58(String str) {
     // TODO: Implement proper Base58 validation
-    return str.isNotEmpty && !str.contains(RegExp(r'[0OIl]')); // Basic check
+    return str.isNotEmpty && !str.contains(RegExp('[0OIl]')); // Basic check
   }
 }
 
 /// Exception thrown by encoding operations
 class EncodingException implements Exception {
-  final String message;
 
   const EncodingException(this.message);
+  final String message;
 
   @override
   String toString() => 'EncodingException: $message';

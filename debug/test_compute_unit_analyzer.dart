@@ -1,10 +1,10 @@
 import 'package:test/test.dart';
-import '../lib/src/transaction/compute_unit_analyzer.dart';
-import '../lib/src/transaction/transaction_simulator.dart';
-import '../lib/src/provider/anchor_provider.dart';
-import '../lib/src/provider/connection.dart';
-import '../lib/src/provider/wallet.dart';
-import '../lib/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/transaction/compute_unit_analyzer.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
 
 void main() {
   group('ComputeUnitAnalyzer', () {
@@ -21,7 +21,7 @@ void main() {
 
     group('Compute Unit Analysis', () {
       test('should analyze compute units from simulation results', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: [
             'Program ComputeBudget111111111111111111111111111111 invoke [1]',
@@ -30,10 +30,7 @@ void main() {
             'Program 11111111111111111111111111111111 success',
             'Program consumed 150000 of 200000 compute units',
           ],
-          error: null,
           unitsConsumed: 150000,
-          returnData: null,
-          accounts: null,
         );
 
         final result = await analyzer.analyzeComputeUnits(
@@ -49,19 +46,16 @@ void main() {
         expect(result.feeEstimates.baseTransactionFee, equals(5000));
         expect(result.transactionComplexity, isA<TransactionComplexity>());
         expect(result.optimizationRecommendations,
-            isA<List<OptimizationRecommendation>>());
+            isA<List<OptimizationRecommendation>>(),);
       });
 
       test(
           'should generate optimization recommendations for high compute usage',
           () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program consumed 850000 of 1000000 compute units'],
-          error: null,
           unitsConsumed: 850000,
-          returnData: null,
-          accounts: null,
         );
 
         final result = await analyzer.analyzeComputeUnits(
@@ -86,22 +80,16 @@ void main() {
       });
 
       test('should calculate transaction complexity correctly', () async {
-        final simpleResult = TransactionSimulationResult(
+        final simpleResult = const TransactionSimulationResult(
           success: true,
           logs: [],
-          error: null,
           unitsConsumed: 30000,
-          returnData: null,
-          accounts: null,
         );
 
-        final complexResult = TransactionSimulationResult(
+        final complexResult = const TransactionSimulationResult(
           success: true,
           logs: [],
-          error: null,
           unitsConsumed: 800000,
-          returnData: null,
-          accounts: null,
         );
 
         final simple = await analyzer.analyzeComputeUnits(
@@ -117,9 +105,9 @@ void main() {
         );
 
         expect(
-            simple.transactionComplexity, equals(TransactionComplexity.simple));
+            simple.transactionComplexity, equals(TransactionComplexity.simple),);
         expect(complex.transactionComplexity,
-            equals(TransactionComplexity.veryComplex));
+            equals(TransactionComplexity.veryComplex),);
       });
     });
 
@@ -161,7 +149,6 @@ void main() {
         final recommendation = analyzer.generateBudgetRecommendation(
           estimatedComputeUnits: 100000,
           analysisResult: null,
-          safetyMargin: 0.2,
         );
 
         expect(recommendation.estimatedUsage, equals(100000));
@@ -175,16 +162,13 @@ void main() {
 
     group('Error Handling', () {
       test('should handle failed simulations gracefully', () async {
-        final failedResult = TransactionSimulationResult(
+        final failedResult = const TransactionSimulationResult(
           success: false,
           logs: ['Program failed'],
           error: TransactionSimulationError(
             type: 'InstructionError',
             details: 'Simulation failed',
           ),
-          unitsConsumed: null,
-          returnData: null,
-          accounts: null,
         );
 
         final result = await analyzer.analyzeComputeUnits(
@@ -199,7 +183,7 @@ void main() {
 
     group('Configuration', () {
       test('should respect cache configuration', () {
-        final config = ComputeUnitAnalysisConfig(
+        final config = const ComputeUnitAnalysisConfig(
           enableCaching: false,
           cacheTimeout: Duration(minutes: 10),
           maxCacheSize: 50,

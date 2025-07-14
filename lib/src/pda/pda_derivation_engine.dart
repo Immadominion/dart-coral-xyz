@@ -3,19 +3,20 @@
 /// This module implements comprehensive Program Derived Address (PDA) derivation
 /// matching TypeScript's PublicKey.findProgramAddress capabilities with
 /// optimization and caching.
+library;
 
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Exception thrown during PDA derivation operations
 class PdaDerivationException implements Exception {
-  final String message;
-  final String? code;
 
   const PdaDerivationException(this.message, {this.code});
+  final String message;
+  final String? code;
 
   @override
   String toString() => 'PdaDerivationException: $message';
@@ -32,9 +33,9 @@ abstract class PdaSeed {
 
 /// String seed implementation
 class StringSeed implements PdaSeed {
-  final String value;
 
   const StringSeed(this.value);
+  final String value;
 
   @override
   Uint8List toBytes() => Uint8List.fromList(utf8.encode(value));
@@ -45,7 +46,6 @@ class StringSeed implements PdaSeed {
 
 /// Bytes seed implementation
 class BytesSeed implements PdaSeed {
-  final Uint8List value;
 
   BytesSeed(this.value) {
     if (value.length > 32) {
@@ -53,6 +53,7 @@ class BytesSeed implements PdaSeed {
           'Seed too long: ${value.length} bytes (max 32)');
     }
   }
+  final Uint8List value;
 
   @override
   Uint8List toBytes() => value;
@@ -64,9 +65,9 @@ class BytesSeed implements PdaSeed {
 
 /// PublicKey seed implementation
 class PublicKeySeed implements PdaSeed {
-  final PublicKey value;
 
   const PublicKeySeed(this.value);
+  final PublicKey value;
 
   @override
   Uint8List toBytes() => value.toBytes();
@@ -77,12 +78,12 @@ class PublicKeySeed implements PdaSeed {
 
 /// Number seed implementation (supports various integer types)
 class NumberSeed implements PdaSeed {
-  final int value;
-  final int byteLength;
-  final Endian endianness;
 
   const NumberSeed(this.value,
       {this.byteLength = 4, this.endianness = Endian.little});
+  final int value;
+  final int byteLength;
+  final Endian endianness;
 
   @override
   Uint8List toBytes() {
@@ -114,10 +115,10 @@ class NumberSeed implements PdaSeed {
 
 /// Result of PDA derivation containing the address and bump seed
 class PdaResult {
-  final PublicKey address;
-  final int bump;
 
   const PdaResult(this.address, this.bump);
+  final PublicKey address;
+  final int bump;
 
   @override
   String toString() => 'PdaResult(address: ${address.toBase58()}, bump: $bump)';
@@ -146,7 +147,7 @@ class PdaDerivationEngine {
   /// This method implements the same algorithm as TypeScript's PublicKey.findProgramAddress,
   /// searching for a valid PDA by trying bump seeds from 255 down to 0.
   static PdaResult findProgramAddress(
-      List<PdaSeed> seeds, PublicKey programId) {
+      List<PdaSeed> seeds, PublicKey programId,) {
     final seedBytes = _concatenateSeeds(seeds);
 
     // Validate total seed length
@@ -160,7 +161,7 @@ class PdaDerivationEngine {
     for (int bump = 255; bump >= 0; bump--) {
       try {
         final address = _deriveProgramAddress(
-            [...seeds, NumberSeed(bump, byteLength: 1)], programId);
+            [...seeds, NumberSeed(bump, byteLength: 1)], programId,);
 
         // Check if the derived address is on the curve (invalid for PDA)
         if (!_isValidPda(address)) {
@@ -185,9 +186,7 @@ class PdaDerivationEngine {
   /// This method directly computes the PDA without bump seed search.
   /// Use this when you already know the correct bump seed.
   static PublicKey createProgramAddress(
-      List<PdaSeed> seeds, PublicKey programId) {
-    return _deriveProgramAddress(seeds, programId);
-  }
+      List<PdaSeed> seeds, PublicKey programId,) => _deriveProgramAddress(seeds, programId);
 
   /// Validate that the given address is a valid PDA for the seeds and program ID
   static bool validateProgramAddress(
@@ -207,20 +206,16 @@ class PdaDerivationEngine {
   static List<PdaResult> findProgramAddressBatch(
     List<List<PdaSeed>> seedCombinations,
     PublicKey programId,
-  ) {
-    return seedCombinations
+  ) => seedCombinations
         .map((seeds) => findProgramAddress(seeds, programId))
         .toList();
-  }
 
   /// Get detailed information about seed structure for debugging
-  static String debugSeeds(List<PdaSeed> seeds) {
-    return _debugSeeds(seeds);
-  }
+  static String debugSeeds(List<PdaSeed> seeds) => _debugSeeds(seeds);
 
   /// Internal method to derive program address from seeds
   static PublicKey _deriveProgramAddress(
-      List<PdaSeed> seeds, PublicKey programId) {
+      List<PdaSeed> seeds, PublicKey programId,) {
     // Validate individual seed lengths
     for (final seed in seeds) {
       final seedBytes = seed.toBytes();
@@ -282,9 +277,7 @@ class PdaDerivationEngine {
   }
 
   /// Generate debug string for seeds
-  static String _debugSeeds(List<PdaSeed> seeds) {
-    return '[${seeds.map((s) => s.toDebugString()).join(', ')}]';
-  }
+  static String _debugSeeds(List<PdaSeed> seeds) => '[${seeds.map((s) => s.toDebugString()).join(', ')}]';
 }
 
 /// Utility functions for common PDA operations
@@ -300,18 +293,18 @@ class PdaUtils {
 
   /// Create a number seed (defaults to u32 little endian)
   static NumberSeed u32(int value) =>
-      NumberSeed(value, byteLength: 4, endianness: Endian.little);
+      NumberSeed(value);
 
   /// Create a u8 number seed
   static NumberSeed u8(int value) => NumberSeed(value, byteLength: 1);
 
   /// Create a u16 number seed
   static NumberSeed u16(int value) =>
-      NumberSeed(value, byteLength: 2, endianness: Endian.little);
+      NumberSeed(value, byteLength: 2);
 
   /// Create a u64 number seed
   static NumberSeed u64(int value) =>
-      NumberSeed(value, byteLength: 8, endianness: Endian.little);
+      NumberSeed(value, byteLength: 8);
 
   /// Create a big endian number seed
   static NumberSeed numberBigEndian(int value, int byteLength) =>

@@ -1,17 +1,17 @@
-import '../provider/anchor_provider.dart';
-import 'transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 
 /// Compute unit analysis and fee estimation for transactions
 class ComputeUnitAnalyzer {
-  final AnchorProvider _provider;
-  final ComputeUnitAnalysisConfig _config;
-  final Map<String, ComputeUnitAnalysisResult> _analysisCache = {};
 
   ComputeUnitAnalyzer({
     required AnchorProvider provider,
     ComputeUnitAnalysisConfig? config,
   })  : _provider = provider,
         _config = config ?? ComputeUnitAnalysisConfig();
+  final AnchorProvider _provider;
+  final ComputeUnitAnalysisConfig _config;
+  final Map<String, ComputeUnitAnalysisResult> _analysisCache = {};
 
   /// Analyze compute unit consumption from simulation results
   Future<ComputeUnitAnalysisResult> analyzeComputeUnits({
@@ -141,9 +141,9 @@ class ComputeUnitAnalyzer {
       medianComputeUnits: 145000,
       minComputeUnits: 95000,
       maxComputeUnits: 250000,
-      standardDeviation: 25000.0,
+      standardDeviation: 25000,
       sampleSize: 1000,
-      trends: ComputeUnitTrends(
+      trends: const ComputeUnitTrends(
         isIncreasing: false,
         percentageChange: -2.5,
         volatility: 0.15,
@@ -170,7 +170,7 @@ class ComputeUnitAnalyzer {
       recommendedBudget: finalBudget,
       estimatedUsage: baseUnits,
       safetyMargin: safetyMargin,
-      utilizationPercentage: (baseUnits / finalBudget * 100),
+      utilizationPercentage: baseUnits / finalBudget * 100,
       isWithinLimits: finalBudget <= maxComputeUnits,
       maxAllowedUnits: maxComputeUnits,
       recommendations: _generateBudgetRecommendations(
@@ -187,8 +187,7 @@ class ComputeUnitAnalyzer {
   }
 
   /// Get analysis statistics
-  ComputeUnitAnalysisStatistics getAnalysisStatistics() {
-    return ComputeUnitAnalysisStatistics(
+  ComputeUnitAnalysisStatistics getAnalysisStatistics() => ComputeUnitAnalysisStatistics(
       totalAnalyses: _analysisCache.length,
       cacheHitRate: 0.0, // Would track this in real implementation
       averageAnalysisTime:
@@ -197,7 +196,6 @@ class ComputeUnitAnalyzer {
           ? _analysisCache.values.last.analysisTimestamp
           : null,
     );
-  }
 
   // Private helper methods
 
@@ -210,10 +208,8 @@ class ComputeUnitAnalyzer {
     return '${simulationResult.unitsConsumed}_${instructionCount}_${accountKeysStr.hashCode}';
   }
 
-  bool _isCacheExpired(ComputeUnitAnalysisResult result) {
-    return DateTime.now().difference(result.analysisTimestamp) >
+  bool _isCacheExpired(ComputeUnitAnalysisResult result) => DateTime.now().difference(result.analysisTimestamp) >
         _config.cacheTimeout;
-  }
 
   ComputeUnitBreakdown _analyzeComputeUnitBreakdown(
     int totalUnits,
@@ -306,25 +302,23 @@ class ComputeUnitAnalyzer {
       standardPriorityFee:
           _calculatePriorityFee(computeUnits, priorityFeeAnalysis.medianFee),
       fastPriorityFee: _calculatePriorityFee(
-          computeUnits, priorityFeeAnalysis.percentile75Fee),
+          computeUnits, priorityFeeAnalysis.percentile75Fee,),
       urgentPriorityFee: _calculatePriorityFee(
-          computeUnits, priorityFeeAnalysis.percentile95Fee),
+          computeUnits, priorityFeeAnalysis.percentile95Fee,),
       economyTotalFee: baseTransactionFee +
           _calculatePriorityFee(computeUnits, priorityFeeAnalysis.minFee),
       standardTotalFee: baseTransactionFee +
           _calculatePriorityFee(computeUnits, priorityFeeAnalysis.medianFee),
       fastTotalFee: baseTransactionFee +
           _calculatePriorityFee(
-              computeUnits, priorityFeeAnalysis.percentile75Fee),
+              computeUnits, priorityFeeAnalysis.percentile75Fee,),
       urgentTotalFee: baseTransactionFee +
           _calculatePriorityFee(
-              computeUnits, priorityFeeAnalysis.percentile95Fee),
+              computeUnits, priorityFeeAnalysis.percentile95Fee,),
     );
   }
 
-  int _calculatePriorityFee(int computeUnits, int microlamportsPerComputeUnit) {
-    return (computeUnits * microlamportsPerComputeUnit / 1000000).round();
-  }
+  int _calculatePriorityFee(int computeUnits, int microlamportsPerComputeUnit) => (computeUnits * microlamportsPerComputeUnit / 1000000).round();
 
   List<OptimizationRecommendation> _generateOptimizationRecommendations(
     ComputeUnitBreakdown breakdown,
@@ -340,14 +334,14 @@ class ComputeUnitAnalyzer {
         impact: RecommendationImpact.high,
         title: 'High Compute Unit Usage Detected',
         description:
-            'Transaction uses ${totalUnits} compute units. Consider optimizing instructions.',
+            'Transaction uses $totalUnits compute units. Consider optimizing instructions.',
         estimatedSavings: (totalUnits * 0.2).round(),
         actionItems: [
           'Review instruction complexity',
           'Consider batching operations',
           'Optimize account access patterns',
         ],
-      ));
+      ),);
     }
 
     // Many instructions recommendation
@@ -357,7 +351,7 @@ class ComputeUnitAnalyzer {
         impact: RecommendationImpact.medium,
         title: 'High Instruction Count',
         description:
-            'Transaction contains ${instructionCount} instructions. Consider consolidation.',
+            'Transaction contains $instructionCount instructions. Consider consolidation.',
         estimatedSavings:
             (breakdown.perInstructionAverage * 0.3 * (instructionCount - 10))
                 .round(),
@@ -366,7 +360,7 @@ class ComputeUnitAnalyzer {
           'Use bulk operations where possible',
           'Review instruction necessity',
         ],
-      ));
+      ),);
     }
 
     // Account access optimization
@@ -382,7 +376,7 @@ class ComputeUnitAnalyzer {
           'Use program derived addresses efficiently',
           'Consider account consolidation',
         ],
-      ));
+      ),);
     }
 
     return recommendations;
@@ -420,7 +414,7 @@ class ComputeUnitAnalyzer {
       // and slot times to determine network congestion
       return NetworkConditions(
         congestionLevel: NetworkCongestionLevel.medium,
-        averageSlotTime: Duration(milliseconds: 400),
+        averageSlotTime: const Duration(milliseconds: 400),
         recentTps: 2500,
         queueLength: 150,
         timestamp: DateTime.now(),
@@ -428,7 +422,7 @@ class ComputeUnitAnalyzer {
     } catch (e) {
       return NetworkConditions(
         congestionLevel: NetworkCongestionLevel.medium,
-        averageSlotTime: Duration(milliseconds: 400),
+        averageSlotTime: const Duration(milliseconds: 400),
         recentTps: 2000,
         queueLength: 100,
         timestamp: DateTime.now(),
@@ -486,7 +480,7 @@ class ComputeUnitAnalyzer {
 
     if (estimatedUsage > maxAllowed * 0.9) {
       recommendations.add(
-          'Transaction is very complex, consider splitting into multiple transactions');
+          'Transaction is very complex, consider splitting into multiple transactions',);
     }
 
     if (recommendedBudget > estimatedUsage * 1.5) {
@@ -505,33 +499,25 @@ class ComputeUnitAnalyzer {
   void _cleanupExpiredCache() {
     final now = DateTime.now();
     _analysisCache.removeWhere((key, value) =>
-        now.difference(value.analysisTimestamp) > _config.cacheTimeout);
+        now.difference(value.analysisTimestamp) > _config.cacheTimeout,);
   }
 }
 
 /// Configuration for compute unit analysis
 class ComputeUnitAnalysisConfig {
-  final bool enableCaching;
-  final Duration cacheTimeout;
-  final int maxCacheSize;
 
   const ComputeUnitAnalysisConfig({
     this.enableCaching = true,
     this.cacheTimeout = const Duration(minutes: 5),
     this.maxCacheSize = 100,
   });
+  final bool enableCaching;
+  final Duration cacheTimeout;
+  final int maxCacheSize;
 }
 
 /// Result of compute unit analysis
 class ComputeUnitAnalysisResult {
-  final int totalComputeUnits;
-  final ComputeUnitBreakdown breakdown;
-  final PriorityFeeAnalysis priorityFeeAnalysis;
-  final FeeEstimates feeEstimates;
-  final List<OptimizationRecommendation> optimizationRecommendations;
-  final DateTime analysisTimestamp;
-  final NetworkConditions networkConditions;
-  final TransactionComplexity transactionComplexity;
 
   const ComputeUnitAnalysisResult({
     required this.totalComputeUnits,
@@ -543,24 +529,22 @@ class ComputeUnitAnalysisResult {
     required this.networkConditions,
     required this.transactionComplexity,
   });
+  final int totalComputeUnits;
+  final ComputeUnitBreakdown breakdown;
+  final PriorityFeeAnalysis priorityFeeAnalysis;
+  final FeeEstimates feeEstimates;
+  final List<OptimizationRecommendation> optimizationRecommendations;
+  final DateTime analysisTimestamp;
+  final NetworkConditions networkConditions;
+  final TransactionComplexity transactionComplexity;
 
   @override
-  String toString() {
-    return 'ComputeUnitAnalysisResult(totalUnits: $totalComputeUnits, '
+  String toString() => 'ComputeUnitAnalysisResult(totalUnits: $totalComputeUnits, '
         'complexity: $transactionComplexity, optimizations: ${optimizationRecommendations.length})';
-  }
 }
 
 /// Breakdown of compute unit usage
 class ComputeUnitBreakdown {
-  final int totalUnits;
-  final int baseTransactionOverhead;
-  final int instructionExecutionCost;
-  final int accountAccessCost;
-  final int perInstructionAverage;
-  final int instructionCount;
-  final int accountCount;
-  final Map<String, int> breakdown;
 
   const ComputeUnitBreakdown({
     required this.totalUnits,
@@ -572,26 +556,22 @@ class ComputeUnitBreakdown {
     required this.accountCount,
     required this.breakdown,
   });
+  final int totalUnits;
+  final int baseTransactionOverhead;
+  final int instructionExecutionCost;
+  final int accountAccessCost;
+  final int perInstructionAverage;
+  final int instructionCount;
+  final int accountCount;
+  final Map<String, int> breakdown;
 
   @override
-  String toString() {
-    return 'ComputeUnitBreakdown(total: $totalUnits, instructions: $instructionExecutionCost, '
+  String toString() => 'ComputeUnitBreakdown(total: $totalUnits, instructions: $instructionExecutionCost, '
         'accounts: $accountAccessCost, overhead: $baseTransactionOverhead)';
-  }
 }
 
 /// Priority fee analysis from network data
 class PriorityFeeAnalysis {
-  final int currentRecommended; // microlamports per compute unit
-  final int averageFee;
-  final int medianFee;
-  final int percentile75Fee;
-  final int percentile90Fee;
-  final int percentile95Fee;
-  final int minFee;
-  final int maxFee;
-  final int samples;
-  final DateTime analysisTimestamp;
 
   const PriorityFeeAnalysis({
     required this.currentRecommended,
@@ -605,25 +585,24 @@ class PriorityFeeAnalysis {
     required this.samples,
     required this.analysisTimestamp,
   });
+  final int currentRecommended; // microlamports per compute unit
+  final int averageFee;
+  final int medianFee;
+  final int percentile75Fee;
+  final int percentile90Fee;
+  final int percentile95Fee;
+  final int minFee;
+  final int maxFee;
+  final int samples;
+  final DateTime analysisTimestamp;
 
   @override
-  String toString() {
-    return 'PriorityFeeAnalysis(recommended: $currentRecommended, median: $medianFee, '
+  String toString() => 'PriorityFeeAnalysis(recommended: $currentRecommended, median: $medianFee, '
         'p95: $percentile95Fee, samples: $samples)';
-  }
 }
 
 /// Fee estimates for different priority levels
 class FeeEstimates {
-  final int baseTransactionFee;
-  final int economyPriorityFee;
-  final int standardPriorityFee;
-  final int fastPriorityFee;
-  final int urgentPriorityFee;
-  final int economyTotalFee;
-  final int standardTotalFee;
-  final int fastTotalFee;
-  final int urgentTotalFee;
 
   const FeeEstimates({
     required this.baseTransactionFee,
@@ -636,22 +615,23 @@ class FeeEstimates {
     required this.fastTotalFee,
     required this.urgentTotalFee,
   });
+  final int baseTransactionFee;
+  final int economyPriorityFee;
+  final int standardPriorityFee;
+  final int fastPriorityFee;
+  final int urgentPriorityFee;
+  final int economyTotalFee;
+  final int standardTotalFee;
+  final int fastTotalFee;
+  final int urgentTotalFee;
 
   @override
-  String toString() {
-    return 'FeeEstimates(economy: $economyTotalFee, standard: $standardTotalFee, '
+  String toString() => 'FeeEstimates(economy: $economyTotalFee, standard: $standardTotalFee, '
         'fast: $fastTotalFee, urgent: $urgentTotalFee)';
-  }
 }
 
 /// Optimization recommendation
 class OptimizationRecommendation {
-  final OptimizationType type;
-  final RecommendationImpact impact;
-  final String title;
-  final String description;
-  final int estimatedSavings; // compute units
-  final List<String> actionItems;
 
   const OptimizationRecommendation({
     required this.type,
@@ -661,24 +641,19 @@ class OptimizationRecommendation {
     required this.estimatedSavings,
     required this.actionItems,
   });
+  final OptimizationType type;
+  final RecommendationImpact impact;
+  final String title;
+  final String description;
+  final int estimatedSavings; // compute units
+  final List<String> actionItems;
 
   @override
-  String toString() {
-    return 'OptimizationRecommendation($title: $estimatedSavings CU savings, $impact impact)';
-  }
+  String toString() => 'OptimizationRecommendation($title: $estimatedSavings CU savings, $impact impact)';
 }
 
 /// Result of fee estimation
 class FeeEstimationResult {
-  final int baseTransactionFee;
-  final int priorityFee;
-  final int totalFee;
-  final int priorityFeePerComputeUnit;
-  final int estimatedComputeUnits;
-  final FeeEstimationStrategy strategy;
-  final NetworkConditions networkConditions;
-  final double confidence; // 0.0 to 1.0
-  final DateTime estimationTimestamp;
 
   const FeeEstimationResult({
     required this.baseTransactionFee,
@@ -691,27 +666,23 @@ class FeeEstimationResult {
     required this.confidence,
     required this.estimationTimestamp,
   });
+  final int baseTransactionFee;
+  final int priorityFee;
+  final int totalFee;
+  final int priorityFeePerComputeUnit;
+  final int estimatedComputeUnits;
+  final FeeEstimationStrategy strategy;
+  final NetworkConditions networkConditions;
+  final double confidence; // 0.0 to 1.0
+  final DateTime estimationTimestamp;
 
   @override
-  String toString() {
-    return 'FeeEstimationResult(total: $totalFee lamports, strategy: $strategy, '
+  String toString() => 'FeeEstimationResult(total: $totalFee lamports, strategy: $strategy, '
         'confidence: ${(confidence * 100).toStringAsFixed(1)}%)';
-  }
 }
 
 /// Historical compute unit analysis
 class ComputeUnitHistoricalAnalysis {
-  final String programId;
-  final String? instructionName;
-  final Duration period;
-  final int averageComputeUnits;
-  final int medianComputeUnits;
-  final int minComputeUnits;
-  final int maxComputeUnits;
-  final double standardDeviation;
-  final int sampleSize;
-  final ComputeUnitTrends trends;
-  final DateTime analysisTimestamp;
 
   const ComputeUnitHistoricalAnalysis({
     required this.programId,
@@ -726,41 +697,41 @@ class ComputeUnitHistoricalAnalysis {
     required this.trends,
     required this.analysisTimestamp,
   });
+  final String programId;
+  final String? instructionName;
+  final Duration period;
+  final int averageComputeUnits;
+  final int medianComputeUnits;
+  final int minComputeUnits;
+  final int maxComputeUnits;
+  final double standardDeviation;
+  final int sampleSize;
+  final ComputeUnitTrends trends;
+  final DateTime analysisTimestamp;
 
   @override
-  String toString() {
-    return 'ComputeUnitHistoricalAnalysis(program: $programId, avg: $averageComputeUnits, '
+  String toString() => 'ComputeUnitHistoricalAnalysis(program: $programId, avg: $averageComputeUnits, '
         'samples: $sampleSize, trend: ${trends.percentageChange}%)';
-  }
 }
 
 /// Compute unit trends analysis
 class ComputeUnitTrends {
-  final bool isIncreasing;
-  final double percentageChange;
-  final double volatility;
 
   const ComputeUnitTrends({
     required this.isIncreasing,
     required this.percentageChange,
     required this.volatility,
   });
+  final bool isIncreasing;
+  final double percentageChange;
+  final double volatility;
 
   @override
-  String toString() {
-    return 'ComputeUnitTrends(${isIncreasing ? "↗" : "↘"} ${percentageChange.toStringAsFixed(1)}%, volatility: ${volatility.toStringAsFixed(2)})';
-  }
+  String toString() => 'ComputeUnitTrends(${isIncreasing ? "↗" : "↘"} ${percentageChange.toStringAsFixed(1)}%, volatility: ${volatility.toStringAsFixed(2)})';
 }
 
 /// Compute unit budget recommendation
 class ComputeUnitBudgetRecommendation {
-  final int recommendedBudget;
-  final int estimatedUsage;
-  final double safetyMargin;
-  final double utilizationPercentage;
-  final bool isWithinLimits;
-  final int maxAllowedUnits;
-  final List<String> recommendations;
 
   const ComputeUnitBudgetRecommendation({
     required this.recommendedBudget,
@@ -771,21 +742,21 @@ class ComputeUnitBudgetRecommendation {
     required this.maxAllowedUnits,
     required this.recommendations,
   });
+  final int recommendedBudget;
+  final int estimatedUsage;
+  final double safetyMargin;
+  final double utilizationPercentage;
+  final bool isWithinLimits;
+  final int maxAllowedUnits;
+  final List<String> recommendations;
 
   @override
-  String toString() {
-    return 'ComputeUnitBudgetRecommendation(budget: $recommendedBudget, '
+  String toString() => 'ComputeUnitBudgetRecommendation(budget: $recommendedBudget, '
         'usage: $estimatedUsage, utilization: ${utilizationPercentage.toStringAsFixed(1)}%)';
-  }
 }
 
 /// Network conditions analysis
 class NetworkConditions {
-  final NetworkCongestionLevel congestionLevel;
-  final Duration averageSlotTime;
-  final int recentTps;
-  final int queueLength;
-  final DateTime timestamp;
 
   const NetworkConditions({
     required this.congestionLevel,
@@ -794,19 +765,18 @@ class NetworkConditions {
     required this.queueLength,
     required this.timestamp,
   });
+  final NetworkCongestionLevel congestionLevel;
+  final Duration averageSlotTime;
+  final int recentTps;
+  final int queueLength;
+  final DateTime timestamp;
 
   @override
-  String toString() {
-    return 'NetworkConditions($congestionLevel, TPS: $recentTps, queue: $queueLength)';
-  }
+  String toString() => 'NetworkConditions($congestionLevel, TPS: $recentTps, queue: $queueLength)';
 }
 
 /// Analysis statistics
 class ComputeUnitAnalysisStatistics {
-  final int totalAnalyses;
-  final double cacheHitRate;
-  final Duration averageAnalysisTime;
-  final DateTime? lastAnalysisTime;
 
   const ComputeUnitAnalysisStatistics({
     required this.totalAnalyses,
@@ -814,12 +784,14 @@ class ComputeUnitAnalysisStatistics {
     required this.averageAnalysisTime,
     this.lastAnalysisTime,
   });
+  final int totalAnalyses;
+  final double cacheHitRate;
+  final Duration averageAnalysisTime;
+  final DateTime? lastAnalysisTime;
 
   @override
-  String toString() {
-    return 'ComputeUnitAnalysisStatistics(analyses: $totalAnalyses, '
+  String toString() => 'ComputeUnitAnalysisStatistics(analyses: $totalAnalyses, '
         'cache hit rate: ${(cacheHitRate * 100).toStringAsFixed(1)}%)';
-  }
 }
 
 /// Fee estimation strategy

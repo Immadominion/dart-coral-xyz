@@ -2,7 +2,7 @@
 ///
 /// This module provides comprehensive Borsh serialization support for
 /// encoding and decoding Anchor program data, instructions, and accounts.
-library coder;
+library;
 
 // Core discriminator computation engine (Phase 1.1 - COMPLETED)
 export 'discriminator_computer.dart';

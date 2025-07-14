@@ -7,9 +7,9 @@
 library;
 
 import 'dart:typed_data';
-import '../idl/idl.dart';
-import '../types/public_key.dart';
-import '../coder/borsh_types.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
 
 /// Unified type conversion utilities
 class TypeConverter {
@@ -33,7 +33,7 @@ class TypeConverter {
         if (value is bool) return value;
         if (value is int) return value != 0;
         throw ArgumentError(
-            'Expected bool for bool type, got ${value.runtimeType}');
+            'Expected bool for bool type, got ${value.runtimeType}',);
 
       case 'u8':
       case 'u16':
@@ -49,11 +49,11 @@ class TypeConverter {
             return int.parse(value);
           } catch (e) {
             throw ArgumentError(
-                'Invalid number format for ${idlType.kind} type: $value');
+                'Invalid number format for ${idlType.kind} type: $value',);
           }
         }
         throw ArgumentError(
-            'Expected int for ${idlType.kind} type, got ${value.runtimeType}');
+            'Expected int for ${idlType.kind} type, got ${value.runtimeType}',);
 
       case 'string':
         if (value is String) return value;
@@ -65,12 +65,12 @@ class TypeConverter {
         if (value is String) return PublicKey.fromBase58(value);
         if (value is List<int>) return PublicKey.fromBytes(value);
         throw ArgumentError(
-            'Expected PublicKey for publicKey type, got ${value.runtimeType}');
+            'Expected PublicKey for publicKey type, got ${value.runtimeType}',);
 
       case 'vec':
         if (value is! List) {
           throw ArgumentError(
-              'Expected List for vec type, got ${value.runtimeType}');
+              'Expected List for vec type, got ${value.runtimeType}',);
         }
         if (idlType.inner == null) {
           throw ArgumentError('Vec type requires inner type');
@@ -89,14 +89,14 @@ class TypeConverter {
       case 'array':
         if (value is! List) {
           throw ArgumentError(
-              'Expected List for array type, got ${value.runtimeType}');
+              'Expected List for array type, got ${value.runtimeType}',);
         }
         if (idlType.inner == null || idlType.size == null) {
           throw ArgumentError('Array type requires inner type and size');
         }
         if (value.length != idlType.size) {
           throw ArgumentError(
-              'Array length ${value.length} doesn\'t match expected size ${idlType.size}');
+              'Array length ${value.length} doesn\'t match expected size ${idlType.size}',);
         }
         return value
             .map((item) => convertValueForIdlType(idlType.inner!, item))
@@ -109,7 +109,7 @@ class TypeConverter {
 
   /// Write value using specific IDL type
   static void _writeValueWithIdlType(
-      BorshSerializer serializer, IdlType idlType, dynamic value) {
+      BorshSerializer serializer, IdlType idlType, dynamic value,) {
     switch (idlType.kind) {
       case 'bool':
         serializer.writeBool(value as bool);
@@ -149,7 +149,7 @@ class TypeConverter {
           serializer.writeFixedArray(Uint8List.fromList(value));
         } else {
           throw ArgumentError(
-              'Expected PublicKey or List<int> for publicKey type');
+              'Expected PublicKey or List<int> for publicKey type',);
         }
         break;
       case 'vec':
@@ -175,7 +175,7 @@ class TypeConverter {
         }
         if (value.length != idlType.size) {
           throw ArgumentError(
-              'Array length ${value.length} doesn\'t match expected size ${idlType.size}');
+              'Array length ${value.length} doesn\'t match expected size ${idlType.size}',);
         }
         for (final item in value) {
           _writeValueWithIdlType(serializer, idlType.inner!, item);
@@ -183,13 +183,13 @@ class TypeConverter {
         break;
       default:
         throw ArgumentError(
-            'Unsupported IDL type for serialization: ${idlType.kind}');
+            'Unsupported IDL type for serialization: ${idlType.kind}',);
     }
   }
 
   /// Read value using specific IDL type
   static dynamic _readValueWithIdlType(
-      BorshDeserializer deserializer, IdlType idlType) {
+      BorshDeserializer deserializer, IdlType idlType,) {
     switch (idlType.kind) {
       case 'bool':
         return deserializer.readBool();
@@ -236,7 +236,7 @@ class TypeConverter {
         return result;
       default:
         throw ArgumentError(
-            'Unsupported IDL type for deserialization: ${idlType.kind}');
+            'Unsupported IDL type for deserialization: ${idlType.kind}',);
     }
   }
 

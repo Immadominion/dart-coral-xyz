@@ -7,23 +7,23 @@
 library;
 
 import 'dart:async';
-import '../types/public_key.dart';
-import '../idl/idl.dart';
-import '../program/program_class.dart';
-import '../provider/anchor_provider.dart';
-import 'workspace_config.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/workspace/workspace_config.dart';
 
 /// Exception thrown during program management operations
 class ProgramManagerException implements Exception {
-  final String message;
-  final String? programName;
-  final dynamic cause;
 
   const ProgramManagerException(
     this.message, {
     this.programName,
     this.cause,
   });
+  final String message;
+  final String? programName;
+  final dynamic cause;
 
   @override
   String toString() {
@@ -40,11 +40,6 @@ class ProgramManagerException implements Exception {
 
 /// Program dependency definition with version constraints
 class ProgramDependency {
-  final String name;
-  final PublicKey? programId;
-  final String? version;
-  final bool required;
-  final List<String> features;
 
   const ProgramDependency({
     required this.name,
@@ -65,27 +60,23 @@ class ProgramDependency {
       features: (map['features'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
+  final String name;
+  final PublicKey? programId;
+  final String? version;
+  final bool required;
+  final List<String> features;
 
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'name': name,
       if (programId != null) 'programId': programId!.toBase58(),
       if (version != null) 'version': version,
       'required': required,
       if (features.isNotEmpty) 'features': features,
     };
-  }
 }
 
 /// Program metadata with dependency information
 class ProgramMetadata {
-  final String name;
-  final PublicKey programId;
-  final Idl idl;
-  final String? version;
-  final List<ProgramDependency> dependencies;
-  final Map<String, dynamic> metadata;
-  final DateTime? loadedAt;
 
   const ProgramMetadata({
     required this.name,
@@ -113,6 +104,13 @@ class ProgramMetadata {
       loadedAt: DateTime.now(),
     );
   }
+  final String name;
+  final PublicKey programId;
+  final Idl idl;
+  final String? version;
+  final List<ProgramDependency> dependencies;
+  final Map<String, dynamic> metadata;
+  final DateTime? loadedAt;
 
   ProgramMetadata copyWith({
     String? name,
@@ -122,8 +120,7 @@ class ProgramMetadata {
     List<ProgramDependency>? dependencies,
     Map<String, dynamic>? metadata,
     DateTime? loadedAt,
-  }) {
-    return ProgramMetadata(
+  }) => ProgramMetadata(
       name: name ?? this.name,
       programId: programId ?? this.programId,
       idl: idl ?? this.idl,
@@ -132,7 +129,6 @@ class ProgramMetadata {
       metadata: metadata ?? this.metadata,
       loadedAt: loadedAt ?? this.loadedAt,
     );
-  }
 }
 
 /// Program lifecycle state tracking
@@ -148,10 +144,6 @@ enum ProgramLifecycleState {
 
 /// Program lifecycle information
 class ProgramLifecycleInfo {
-  final ProgramLifecycleState state;
-  final DateTime? stateChangedAt;
-  final String? errorMessage;
-  final Map<String, dynamic> stateData;
 
   const ProgramLifecycleInfo({
     required this.state,
@@ -166,19 +158,21 @@ class ProgramLifecycleInfo {
       stateChangedAt: DateTime.now(),
     );
   }
+  final ProgramLifecycleState state;
+  final DateTime? stateChangedAt;
+  final String? errorMessage;
+  final Map<String, dynamic> stateData;
 
   ProgramLifecycleInfo transition(
     ProgramLifecycleState newState, {
     String? errorMessage,
     Map<String, dynamic>? stateData,
-  }) {
-    return ProgramLifecycleInfo(
+  }) => ProgramLifecycleInfo(
       state: newState,
       stateChangedAt: DateTime.now(),
       errorMessage: errorMessage,
       stateData: stateData ?? this.stateData,
     );
-  }
 
   bool get isReady => state == ProgramLifecycleState.ready;
   bool get isLoaded =>
@@ -284,9 +278,7 @@ class ProgramRegistry {
   }
 
   /// Get a program by name
-  Program? getProgram(String name) {
-    return _programs[name];
-  }
+  Program? getProgram(String name) => _programs[name];
 
   /// Get programs by program ID
   List<Program> getProgramsById(PublicKey programId) {
@@ -295,14 +287,10 @@ class ProgramRegistry {
   }
 
   /// Get program metadata by name
-  ProgramMetadata? getProgramMetadata(String name) {
-    return _metadata[name];
-  }
+  ProgramMetadata? getProgramMetadata(String name) => _metadata[name];
 
   /// Get program lifecycle info
-  ProgramLifecycleInfo? getLifecycleInfo(String name) {
-    return _lifecycle[name];
-  }
+  ProgramLifecycleInfo? getLifecycleInfo(String name) => _lifecycle[name];
 
   /// Update program lifecycle state
   void updateLifecycleState(
@@ -329,19 +317,13 @@ class ProgramRegistry {
   }
 
   /// Check if program exists
-  bool hasProgram(String name) {
-    return _programs.containsKey(name);
-  }
+  bool hasProgram(String name) => _programs.containsKey(name);
 
   /// Get program dependencies
-  List<ProgramDependency> getDependencies(String name) {
-    return _metadata[name]?.dependencies ?? [];
-  }
+  List<ProgramDependency> getDependencies(String name) => _metadata[name]?.dependencies ?? [];
 
   /// Get programs that depend on the given program
-  List<String> getDependents(String name) {
-    return _reverseDependencyGraph[name]?.toList() ?? [];
-  }
+  List<String> getDependents(String name) => _reverseDependencyGraph[name]?.toList() ?? [];
 
   /// Resolve dependency order for initialization
   List<String> resolveDependencyOrder([List<String>? programNames]) {
@@ -394,7 +376,7 @@ class ProgramRegistry {
       for (final dep in metadata.dependencies) {
         if (dep.required && !hasProgram(dep.name)) {
           errors.add(
-              'Program $programName requires missing dependency: ${dep.name}');
+              'Program $programName requires missing dependency: ${dep.name}',);
         }
 
         if (dep.programId != null) {
@@ -449,14 +431,10 @@ class SharedResourceManager {
   }
 
   /// Get a shared provider
-  AnchorProvider? getProvider(String name) {
-    return _providers[name];
-  }
+  AnchorProvider? getProvider(String name) => _providers[name];
 
   /// Get or create a shared cache entry
-  T? getCachedValue<T>(String key) {
-    return _sharedCache[key] as T?;
-  }
+  T? getCachedValue<T>(String key) => _sharedCache[key] as T?;
 
   /// Set a shared cache entry
   void setCachedValue<T>(String key, T value) {
@@ -467,7 +445,7 @@ class SharedResourceManager {
   Stream<T> getEventStream<T>(String streamName) {
     final controller = _eventStreams.putIfAbsent(
       streamName,
-      () => StreamController<T>.broadcast(),
+      StreamController<T>.broadcast,
     ) as StreamController<T>;
 
     return controller.stream;
@@ -495,8 +473,7 @@ class SharedResourceManager {
   }
 
   /// Get resource usage statistics
-  Map<String, dynamic> getStats() {
-    return {
+  Map<String, dynamic> getStats() => {
       'providers': _providers.length,
       'cachedEntries': _sharedCache.length,
       'eventStreams': _eventStreams.length,
@@ -504,7 +481,6 @@ class SharedResourceManager {
           .where((controller) => !controller.isClosed)
           .length,
     };
-  }
 }
 
 /// Multi-program coordination manager with shared resources and lifecycle management
@@ -695,13 +671,11 @@ class ProgramManager {
   }
 
   /// Get coordination statistics
-  Map<String, dynamic> getStats() {
-    return {
+  Map<String, dynamic> getStats() => {
       'registry': _registry.getStats(),
       'resources': _resourceManager.getStats(),
       'loadingPrograms': _loadingPrograms.length,
     };
-  }
 
   /// Dispose all programs and cleanup resources
   Future<void> dispose() async {
@@ -709,7 +683,7 @@ class ProgramManager {
     for (final completer in _loadingPrograms.values) {
       if (!completer.isCompleted) {
         completer.completeError(
-          ProgramManagerException('Program manager disposed'),
+          const ProgramManagerException('Program manager disposed'),
         );
       }
     }

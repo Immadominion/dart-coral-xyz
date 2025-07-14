@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:test/test.dart';
 
-import '../lib/src/event/event_subscription_manager.dart';
-import '../lib/src/event/event_definition.dart';
-import '../lib/src/provider/connection.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/event/types.dart';
+import 'package:coral_xyz_anchor/src/event/event_subscription_manager.dart';
+import 'package:coral_xyz_anchor/src/event/event_definition.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
 
 void main() {
   group('EventSubscriptionManager - TypeScript Compatibility', () {
@@ -19,7 +19,7 @@ void main() {
       programId = PublicKey.fromBase58('11111111111111111111111111111111');
 
       eventDefinitions = [
-        EventDefinition(
+        const EventDefinition(
           name: 'TestEvent',
           docs: [],
           fields: [],
@@ -35,8 +35,6 @@ void main() {
           validationRules: EventValidationRules(
             customValidators: [],
           ),
-          inheritanceInfo: null,
-          versionInfo: null,
         ),
       ];
 
@@ -114,7 +112,7 @@ void main() {
       });
 
       test('creates manager with custom config', () {
-        final customConfig = EventSubscriptionConfig(
+        final customConfig = const EventSubscriptionConfig(
           includeFailed: true,
           maxBufferSize: 500,
         );
@@ -127,7 +125,7 @@ void main() {
         );
 
         expect(customManager.connectionState,
-            equals(ConnectionState.disconnected));
+            equals(ConnectionState.disconnected),);
         customManager.dispose();
       });
     });
@@ -162,9 +160,7 @@ void main() {
 
       test('broadcasts events to stream', () async {
         final streamEvents = <dynamic>[];
-        final streamSubscription = manager.eventStream.listen((event) {
-          streamEvents.add(event);
-        });
+        final streamSubscription = manager.eventStream.listen(streamEvents.add);
 
         // Stream is ready but no events will be received without actual connection
         expect(streamEvents.isEmpty, isTrue);

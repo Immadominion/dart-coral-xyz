@@ -6,15 +6,15 @@
 library;
 
 import 'package:test/test.dart';
-import '../lib/coral_xyz_anchor.dart';
-import '../lib/src/program/namespace/types.dart' as ns;
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/types.dart' as ns;
 
 // Mock Signer implementation for testing
 class MockSigner implements Signer {
-  @override
-  final PublicKey publicKey;
 
   const MockSigner(this.publicKey);
+  @override
+  final PublicKey publicKey;
 
   @override
   Future<List<int>> signMessage(List<int> message) async {
@@ -31,7 +31,7 @@ void main() {
 
     setUpAll(() {
       // Create a mock IDL with test instructions
-      testIdl = Idl(
+      testIdl = const Idl(
         address: '11111111111111111111111111111111',
         metadata: IdlMetadata(
           name: 'dynamic_method_test',
@@ -50,14 +50,12 @@ void main() {
               ),
               IdlInstructionAccount(
                 name: 'systemProgram',
-                writable: false,
-                signer: false,
               ),
             ],
             args: [
               IdlField(
                 name: 'value',
-                type: const IdlType(kind: 'u64'),
+                type: IdlType(kind: 'u64'),
               ),
             ],
           ),
@@ -68,22 +66,20 @@ void main() {
               IdlInstructionAccount(
                 name: 'dataAccount',
                 writable: true,
-                signer: false,
               ),
               IdlInstructionAccount(
                 name: 'authority',
-                writable: false,
                 signer: true,
               ),
             ],
             args: [
               IdlField(
                 name: 'newValue',
-                type: const IdlType(kind: 'string'),
+                type: IdlType(kind: 'string'),
               ),
               IdlField(
                 name: 'timestamp',
-                type: const IdlType(kind: 'i64'),
+                type: IdlType(kind: 'i64'),
               ),
             ],
           ),
@@ -93,7 +89,6 @@ void main() {
             accounts: [
               IdlInstructionAccount(
                 name: 'signer',
-                writable: false,
                 signer: true,
               ),
             ],
@@ -122,7 +117,7 @@ void main() {
           final dynamic methodsNamespace = program.methods;
           final result = methodsNamespace.initialize([42]);
           expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('should support bracket notation method access', () {
@@ -146,7 +141,7 @@ void main() {
           final dynamic methodsNamespace = program.methods;
           final result = methodsNamespace.noArgs([]);
           expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('should handle methods with multiple arguments', () {
@@ -157,7 +152,7 @@ void main() {
           final result =
               methodsNamespace.updateData(['test string', 1234567890]);
           expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('should throw helpful error for non-existent methods', () {
@@ -171,7 +166,7 @@ void main() {
               (e) => e.message,
               'message',
               contains('Method "nonExistentMethod" not found in program IDL'),
-            )));
+            ),),);
       });
 
       test('should list available methods in error message', () {
@@ -190,7 +185,7 @@ void main() {
                 contains('updateData'),
                 contains('noArgs'),
               ]),
-            )));
+            ),),);
       });
     });
 
@@ -210,7 +205,7 @@ void main() {
           }).signers(<Signer>[]);
 
           expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('should support method chaining with bracket notation', () {
@@ -230,7 +225,7 @@ void main() {
           }).signers(<Signer>[]);
 
           expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('should maintain builder state independently', () {
@@ -336,7 +331,7 @@ void main() {
           });
 
           expect(accountsSet, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('should support all TypeScript builder methods', () {
@@ -352,16 +347,16 @@ void main() {
             () => builder.remainingAccounts(<ns.AccountMeta>[
                   ns.AccountMeta(
                     publicKey: PublicKey.fromBase58(
-                        '11111111111111111111111111111111'),
+                        '11111111111111111111111111111111',),
                     isWritable: false,
                     isSigner: false,
-                  )
+                  ),
                 ]),
-            returnsNormally);
+            returnsNormally,);
         expect(() => builder.preInstructions(<ns.TransactionInstruction>[]),
-            returnsNormally);
+            returnsNormally,);
         expect(() => builder.postInstructions(<ns.TransactionInstruction>[]),
-            returnsNormally);
+            returnsNormally,);
 
         // Execution methods
         expect(builder.instruction, isA<Function>());
@@ -387,7 +382,7 @@ void main() {
                 contains('Available methods:'),
                 contains('[initialize, updateData, noArgs]'),
               ]),
-            )));
+            ),),);
       });
 
       test('should handle property access vs method calls correctly', () {
@@ -400,13 +395,13 @@ void main() {
           // This is property access, not a method call
           // ignore: unused_local_variable
           final something = methodsNamespace.nonExistentProperty;
-        }, throwsA(isA<NoSuchMethodError>()));
+        }, throwsA(isA<NoSuchMethodError>()),);
 
         // Method calls should be intercepted
         expect(() {
           // This is a method call - should be intercepted
           methodsNamespace.nonExistentMethod([]);
-        }, throwsA(isA<ArgumentError>()));
+        }, throwsA(isA<ArgumentError>()),);
       });
     });
   });

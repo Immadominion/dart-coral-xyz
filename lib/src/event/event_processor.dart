@@ -1,12 +1,17 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'event_definition.dart';
-import 'event_log_parser.dart';
+import 'package:coral_xyz_anchor/src/event/event_definition.dart';
+import 'package:coral_xyz_anchor/src/event/event_log_parser.dart';
 
 /// Event processing framework for handling events with middleware and pipelines
 /// Matches TypeScript's event processing capabilities with handler management
 class EventProcessor {
+
+  EventProcessor({
+    required List<EventDefinition> eventDefinitions,
+    EventProcessingConfig? config,
+  }) : _config = config ?? EventProcessingConfig.defaultConfig();
   /// Event handlers mapped by event name
   final Map<String, List<EventHandler>> _handlers = {};
 
@@ -31,11 +36,6 @@ class EventProcessor {
 
   /// Whether the processor is currently running
   bool _isRunning = false;
-
-  EventProcessor({
-    required List<EventDefinition> eventDefinitions,
-    EventProcessingConfig? config,
-  }) : _config = config ?? EventProcessingConfig.defaultConfig();
 
   /// Get processing metrics
   EventProcessingMetrics get metrics => _metrics;
@@ -105,7 +105,7 @@ class EventProcessor {
       _enqueueEvent(processingEvent);
       return ProcessedEventResult.queued(processingEvent);
     } else {
-      return await _processEventInternal(processingEvent);
+      return _processEventInternal(processingEvent);
     }
   }
 
@@ -170,7 +170,7 @@ class EventProcessor {
 
   /// Process a batch of events
   Future<List<ProcessedEventResult>> _processBatch(
-      List<ProcessingEvent> events) async {
+      List<ProcessingEvent> events,) async {
     _metrics.batchesProcessed++;
 
     final results = <ProcessedEventResult>[];
@@ -185,7 +185,7 @@ class EventProcessor {
 
   /// Process a single event internally
   Future<ProcessedEventResult> _processEventInternal(
-      ProcessingEvent processingEvent) async {
+      ProcessingEvent processingEvent,) async {
     final event = processingEvent.event;
     final context = processingEvent.context;
 
@@ -266,26 +266,6 @@ class EventProcessor {
 
 /// Configuration for event processing
 class EventProcessingConfig {
-  /// Whether to enable batch processing
-  final bool enableBatching;
-
-  /// Maximum batch size
-  final int maxBatchSize;
-
-  /// Batch timeout in milliseconds
-  final int batchTimeout;
-
-  /// Whether to continue processing on handler errors
-  final bool continueOnHandlerError;
-
-  /// Whether to continue processing on middleware errors
-  final bool continueOnMiddlewareError;
-
-  /// Maximum concurrent processing
-  final int maxConcurrency;
-
-  /// Whether to enable performance metrics
-  final bool enableMetrics;
 
   const EventProcessingConfig({
     this.enableBatching = false,
@@ -320,31 +300,57 @@ class EventProcessingConfig {
       maxConcurrency: 1,
     );
   }
+  /// Whether to enable batch processing
+  final bool enableBatching;
+
+  /// Maximum batch size
+  final int maxBatchSize;
+
+  /// Batch timeout in milliseconds
+  final int batchTimeout;
+
+  /// Whether to continue processing on handler errors
+  final bool continueOnHandlerError;
+
+  /// Whether to continue processing on middleware errors
+  final bool continueOnMiddlewareError;
+
+  /// Maximum concurrent processing
+  final int maxConcurrency;
+
+  /// Whether to enable performance metrics
+  final bool enableMetrics;
 }
 
 /// Abstract base class for event handlers
 abstract class EventHandler {
   /// Handle an event
   Future<EventHandlerResult> handle(
-      ParsedEvent event, EventProcessingContext context);
+      ParsedEvent event, EventProcessingContext context,);
 }
 
 /// Abstract base class for batch event handlers
 abstract class BatchEventHandler implements EventHandler {
   /// Handle a batch of events
   Future<List<EventHandlerResult>> handleBatch(
-      List<ParsedEvent> events, EventProcessingContext context);
+      List<ParsedEvent> events, EventProcessingContext context,);
 }
 
 /// Abstract base class for event middleware
 abstract class EventMiddleware {
   /// Process an event through middleware
   Future<ParsedEvent> process(
-      ParsedEvent event, EventProcessingContext context);
+      ParsedEvent event, EventProcessingContext context,);
 }
 
 /// Event processing context
 class EventProcessingContext {
+
+  EventProcessingContext({
+    String? processingId,
+  }) : processingId = processingId ?? _generateId() {
+    startTime = DateTime.now();
+  }
   /// Additional metadata
   final Map<String, dynamic> metadata = {};
 
@@ -357,48 +363,24 @@ class EventProcessingContext {
   /// Processing ID for tracking
   final String processingId;
 
-  EventProcessingContext({
-    String? processingId,
-  }) : processingId = processingId ?? _generateId() {
-    startTime = DateTime.now();
-  }
-
   /// Add metadata
   void addMetadata(String key, dynamic value) {
     metadata[key] = value;
   }
 
   /// Get metadata
-  T? getMetadata<T>(String key) {
-    return metadata[key] as T?;
-  }
+  T? getMetadata<T>(String key) => metadata[key] as T?;
 
   /// Signal to stop processing
   void stop() {
     shouldStop = true;
   }
 
-  static String _generateId() {
-    return DateTime.now().millisecondsSinceEpoch.toString();
-  }
+  static String _generateId() => DateTime.now().millisecondsSinceEpoch.toString();
 }
 
 /// Result of processing an event
 class ProcessedEventResult {
-  /// The original processing event
-  final ProcessingEvent processingEvent;
-
-  /// Handler results
-  final List<EventHandlerResult> handlerResults;
-
-  /// Processing duration
-  final Duration? duration;
-
-  /// Processing error (if any)
-  final ProcessingError? error;
-
-  /// Result status
-  final ProcessingStatus status;
 
   const ProcessedEventResult({
     required this.processingEvent,
@@ -449,6 +431,20 @@ class ProcessedEventResult {
       status: ProcessingStatus.stopped,
     );
   }
+  /// The original processing event
+  final ProcessingEvent processingEvent;
+
+  /// Handler results
+  final List<EventHandlerResult> handlerResults;
+
+  /// Processing duration
+  final Duration? duration;
+
+  /// Processing error (if any)
+  final ProcessingError? error;
+
+  /// Result status
+  final ProcessingStatus status;
 
   /// Whether the processing was successful
   bool get isSuccess => status == ProcessingStatus.success;
@@ -459,23 +455,6 @@ class ProcessedEventResult {
 
 /// Event handler result
 class EventHandlerResult {
-  /// Whether the handler was successful
-  final bool isSuccess;
-
-  /// Handler output data
-  final Map<String, dynamic> data;
-
-  /// Error message (if any)
-  final String? error;
-
-  /// Original error object
-  final dynamic originalError;
-
-  /// Whether to stop propagation to other handlers
-  final bool shouldStopPropagation;
-
-  /// Processing duration
-  final Duration? duration;
 
   const EventHandlerResult({
     required this.isSuccess,
@@ -515,10 +494,34 @@ class EventHandlerResult {
       duration: duration,
     );
   }
+  /// Whether the handler was successful
+  final bool isSuccess;
+
+  /// Handler output data
+  final Map<String, dynamic> data;
+
+  /// Error message (if any)
+  final String? error;
+
+  /// Original error object
+  final dynamic originalError;
+
+  /// Whether to stop propagation to other handlers
+  final bool shouldStopPropagation;
+
+  /// Processing duration
+  final Duration? duration;
 }
 
 /// Processing event wrapper
 class ProcessingEvent {
+
+  const ProcessingEvent({
+    required this.event,
+    required this.receivedAt,
+    required this.context,
+    this.priority = EventPriority.normal,
+  });
   /// The parsed event
   final ParsedEvent event;
 
@@ -531,19 +534,19 @@ class ProcessingEvent {
   /// Event priority
   final EventPriority priority;
 
-  const ProcessingEvent({
-    required this.event,
-    required this.receivedAt,
-    required this.context,
-    this.priority = EventPriority.normal,
-  });
-
   /// Processing age
   Duration get age => DateTime.now().difference(receivedAt);
 }
 
 /// Processing error details
 class ProcessingError {
+
+  ProcessingError({
+    required this.type,
+    required this.message,
+    this.originalError,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
   /// Error type
   final ProcessingErrorType type;
 
@@ -555,13 +558,6 @@ class ProcessingError {
 
   /// Error timestamp
   final DateTime timestamp;
-
-  ProcessingError({
-    required this.type,
-    required this.message,
-    this.originalError,
-    DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
 }
 
 /// Event processing metrics
@@ -615,14 +611,12 @@ class EventProcessingMetrics {
   }
 
   @override
-  String toString() {
-    return 'EventProcessingMetrics('
+  String toString() => 'EventProcessingMetrics('
         'events: $eventsProcessed, '
         'handlers: $handlersExecuted/$handlersRegistered, '
         'errors: $handlerErrors/$processingErrors, '
         'batches: $batchesProcessed'
         ')';
-  }
 }
 
 /// Processing status enumeration

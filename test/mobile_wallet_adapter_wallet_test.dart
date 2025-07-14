@@ -4,8 +4,8 @@ import 'dart:typed_data';
 
 /// Mock MWA client for testing
 class MockMWAClient implements MobileWalletAdapterClient {
-  final PublicKey pubkey;
   MockMWAClient(this.pubkey);
+  final PublicKey pubkey;
 
   @override
   Future<List<Uint8List>> signTransactions(List<Uint8List> messages) async {
@@ -46,7 +46,7 @@ void main() {
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
         ),
-      ], recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5');
+      ], recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',);
       final signed = await mwaWallet.signTransaction(tx);
       expect(signed.signatures.length, greaterThan(0));
       expect(signed.feePayer, isNull); // Not set by wallet
@@ -56,10 +56,10 @@ void main() {
       final txs = [
         Transaction(
             instructions: [],
-            recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5'),
+            recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',),
         Transaction(
             instructions: [],
-            recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5'),
+            recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',),
       ];
       final signed = await mwaWallet.signAllTransactions(txs);
       expect(signed.length, equals(2));
@@ -103,7 +103,7 @@ void main() {
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
         ),
-      ], recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5');
+      ], recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',);
       final sig = await provider.sendAndConfirm(tx);
       expect(sig, isA<String>());
     });

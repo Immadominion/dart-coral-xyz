@@ -4,13 +4,13 @@ library;
 
 import 'dart:convert';
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../types/keypair.dart';
-import '../types/transaction.dart';
-import '../idl/idl.dart';
-import '../program/program_class.dart';
-import '../provider/anchor_provider.dart';
-import '../provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
 
 // Export workspace configuration system
 export 'workspace_config.dart';
@@ -19,15 +19,15 @@ export 'workspace_config.dart';
 export 'program_manager.dart';
 
 // Import workspace configuration
-import 'workspace_config.dart';
+import 'package:coral_xyz_anchor/src/workspace/workspace_config.dart';
 
 /// TypeScript-like workspace for managing multiple Anchor programs
 class Workspace {
+
+  Workspace(this._provider);
   final Map<String, Program> _programs = {};
   final AnchorProvider _provider;
   final Map<String, Idl> _idls = {};
-
-  Workspace(this._provider);
 
   /// Get provider instance
   AnchorProvider get provider => _provider;
@@ -44,14 +44,10 @@ class Workspace {
   }
 
   /// Get a program by name
-  Program? getProgram(String name) {
-    return _programs[name];
-  }
+  Program? getProgram(String name) => _programs[name];
 
   /// Remove a program from workspace
-  bool removeProgram(String name) {
-    return _programs.remove(name) != null;
-  }
+  bool removeProgram(String name) => _programs.remove(name) != null;
 
   /// Load program from IDL and program ID
   Future<Program> loadProgram(
@@ -93,14 +89,10 @@ class Workspace {
   }
 
   /// Get IDL for a program
-  Idl? getIdl(String programName) {
-    return _idls[programName];
-  }
+  Idl? getIdl(String programName) => _idls[programName];
 
   /// Check if program exists in workspace
-  bool hasProgram(String name) {
-    return _programs.containsKey(name);
-  }
+  bool hasProgram(String name) => _programs.containsKey(name);
 
   /// Clear all programs from workspace
   void clear() {
@@ -119,9 +111,7 @@ class Workspace {
   }
 
   /// Create a new workspace from provider
-  static Workspace create(AnchorProvider provider) {
-    return Workspace(provider);
-  }
+  static Workspace create(AnchorProvider provider) => Workspace(provider);
 
   /// Create workspace with default connection
   static Future<Workspace> createDefault({
@@ -197,9 +187,7 @@ class Workspace {
   }
 
   /// Get all program IDs in the workspace
-  List<PublicKey> getProgramIds() {
-    return _programs.values.map((p) => p.programId).toList();
-  }
+  List<PublicKey> getProgramIds() => _programs.values.map((p) => p.programId).toList();
 
   /// Validate all programs in workspace
   Future<Map<String, bool>> validatePrograms() async {
@@ -224,9 +212,7 @@ class Workspace {
   }
 
   /// Create a transaction with multiple programs
-  Transaction createTransaction() {
-    return Transaction(instructions: []);
-  }
+  Transaction createTransaction() => Transaction(instructions: []);
 
   /// Get workspace statistics
   WorkspaceStats getStats() {
@@ -247,9 +233,7 @@ class Workspace {
   }
 
   @override
-  String toString() {
-    return 'Workspace(programs: ${_programs.length}, provider: local)';
-  }
+  String toString() => 'Workspace(programs: ${_programs.length}, provider: local)';
 
   /// Auto-discovery workspace loader with TypeScript-like proxy behavior
   static Future<Workspace> discover({
@@ -354,12 +338,10 @@ class Workspace {
   }
 
   /// Convert string to snake_case
-  String _toSnakeCase(String input) {
-    return input
+  String _toSnakeCase(String input) => input
         .replaceAllMapped(
             RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}')
         .replaceFirst(RegExp(r'^_'), '');
-  }
 
   /// Validate workspace health and configuration
   Future<WorkspaceHealthReport> validateHealth() async {
@@ -382,7 +364,7 @@ class Workspace {
             programName: name,
             message:
                 'Program ${program.programId.toBase58()} not found on-chain',
-          ));
+          ),);
           programStatuses[name] = ProgramStatus.notFound;
         } else if (!accountInfo.executable) {
           issues.add(WorkspaceIssue(
@@ -390,7 +372,7 @@ class Workspace {
             programName: name,
             message:
                 'Program ${program.programId.toBase58()} is not executable',
-          ));
+          ),);
           programStatuses[name] = ProgramStatus.notExecutable;
         } else {
           programStatuses[name] = ProgramStatus.healthy;
@@ -407,14 +389,14 @@ class Workspace {
             type: WorkspaceIssueType.idlValidationFailed,
             programName: name,
             message: 'IDL validation failed: $e',
-          ));
+          ),);
         }
       } catch (e) {
         issues.add(WorkspaceIssue(
           type: WorkspaceIssueType.connectionError,
           programName: name,
           message: 'Failed to validate program: $e',
-        ));
+        ),);
         programStatuses[name] = ProgramStatus.error;
       }
     }
@@ -538,8 +520,7 @@ class Workspace {
   }
 
   /// Create workspace development configuration
-  Map<String, dynamic> createDevConfig() {
-    return {
+  Map<String, dynamic> createDevConfig() => {
       'workspace': {
         'programs': _programs.length,
         'provider': 'local',
@@ -551,7 +532,6 @@ class Workspace {
             'accounts': program.idl.accounts?.length ?? 0,
           })),
     };
-  }
 
   /// Export workspace for deployment
   Future<Map<String, dynamic>> exportForDeployment() async {
@@ -583,10 +563,6 @@ class Workspace {
 
 /// Configuration for a single program in the workspace
 class ProgramConfig {
-  final Idl idl;
-  final PublicKey programId;
-  final String? name;
-  final Map<String, dynamic>? metadata;
 
   const ProgramConfig({
     required this.idl,
@@ -604,24 +580,22 @@ class ProgramConfig {
       metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
+  final Idl idl;
+  final PublicKey programId;
+  final String? name;
+  final Map<String, dynamic>? metadata;
 
   /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'idl': idl.toJson(),
       'programId': programId.toBase58(),
       if (name != null) 'name': name,
       if (metadata != null) 'metadata': metadata,
     };
-  }
 }
 
 /// Statistics about the workspace
 class WorkspaceStats {
-  final int programCount;
-  final int totalInstructions;
-  final int totalAccounts;
-  final List<String> programNames;
 
   const WorkspaceStats({
     required this.programCount,
@@ -629,23 +603,25 @@ class WorkspaceStats {
     required this.totalAccounts,
     required this.programNames,
   });
+  final int programCount;
+  final int totalInstructions;
+  final int totalAccounts;
+  final List<String> programNames;
 
   @override
-  String toString() {
-    return 'WorkspaceStats('
+  String toString() => 'WorkspaceStats('
         'programs: $programCount, '
         'instructions: $totalInstructions, '
         'accounts: $totalAccounts'
         ')';
-  }
 }
 
 /// Workspace builder for fluent API
 class WorkspaceBuilder {
-  final AnchorProvider _provider;
-  final Map<String, ProgramConfig> _programConfigs = {};
 
   WorkspaceBuilder(this._provider);
+  final AnchorProvider _provider;
+  final Map<String, ProgramConfig> _programConfigs = {};
 
   /// Add a program configuration
   WorkspaceBuilder addProgram(String name, ProgramConfig config) {
@@ -677,11 +653,6 @@ class WorkspaceBuilder {
 
 /// Workspace health report with validation results
 class WorkspaceHealthReport {
-  final bool isHealthy;
-  final List<WorkspaceIssue> issues;
-  final List<String> warnings;
-  final Map<String, ProgramStatus> programStatuses;
-  final DateTime checkedAt;
 
   const WorkspaceHealthReport({
     required this.isHealthy,
@@ -690,6 +661,11 @@ class WorkspaceHealthReport {
     required this.programStatuses,
     required this.checkedAt,
   });
+  final bool isHealthy;
+  final List<WorkspaceIssue> issues;
+  final List<String> warnings;
+  final Map<String, ProgramStatus> programStatuses;
+  final DateTime checkedAt;
 
   @override
   String toString() {
@@ -715,10 +691,6 @@ enum WorkspaceIssueType {
 
 /// Individual workspace issue
 class WorkspaceIssue {
-  final WorkspaceIssueType type;
-  final String? programName;
-  final String message;
-  final DateTime detectedAt;
 
   WorkspaceIssue({
     required this.type,
@@ -726,6 +698,10 @@ class WorkspaceIssue {
     required this.message,
     DateTime? detectedAt,
   }) : detectedAt = detectedAt ?? DateTime.now();
+  final WorkspaceIssueType type;
+  final String? programName;
+  final String message;
+  final DateTime detectedAt;
 
   @override
   String toString() {
@@ -751,11 +727,6 @@ enum ProgramStatus {
 
 /// Deployment result
 class DeploymentResult {
-  final bool success;
-  final PublicKey? programId;
-  final String? transactionId;
-  final String? error;
-  final DateTime deployedAt;
 
   const DeploymentResult({
     required this.success,
@@ -764,6 +735,11 @@ class DeploymentResult {
     this.error,
     required this.deployedAt,
   });
+  final bool success;
+  final PublicKey? programId;
+  final String? transactionId;
+  final String? error;
+  final DateTime deployedAt;
 
   @override
   String toString() {
@@ -777,11 +753,6 @@ class DeploymentResult {
 
 /// Upgrade result
 class UpgradeResult {
-  final bool success;
-  final PublicKey? programId;
-  final String? transactionId;
-  final String? error;
-  final DateTime upgradedAt;
 
   const UpgradeResult({
     required this.success,
@@ -790,6 +761,11 @@ class UpgradeResult {
     this.error,
     required this.upgradedAt,
   });
+  final bool success;
+  final PublicKey? programId;
+  final String? transactionId;
+  final String? error;
+  final DateTime upgradedAt;
 
   @override
   String toString() {
@@ -803,10 +779,6 @@ class UpgradeResult {
 
 /// Workspace template for initialization
 class WorkspaceTemplate {
-  final String name;
-  final String version;
-  final Map<String, ProgramConfig> programs;
-  final Map<String, dynamic> configuration;
 
   const WorkspaceTemplate({
     required this.name,
@@ -842,26 +814,28 @@ class WorkspaceTemplate {
       configuration: json['configuration'] as Map<String, dynamic>? ?? {},
     );
   }
+  final String name;
+  final String version;
+  final Map<String, ProgramConfig> programs;
+  final Map<String, dynamic> configuration;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       'version': version,
       'programs': programs.map((key, value) => MapEntry(key, value.toJson())),
       'configuration': configuration,
     };
-  }
 }
 
 /// Enhanced workspace builder with TypeScript-like features
 class EnhancedWorkspaceBuilder {
+
+  EnhancedWorkspaceBuilder(this._provider);
   final AnchorProvider _provider;
   final Map<String, ProgramConfig> _programConfigs = {};
   final Map<String, dynamic> _metadata = {};
   String? _workspacePath;
   bool _autoDiscover = false;
-
-  EnhancedWorkspaceBuilder(this._provider);
 
   /// Set workspace path for auto-discovery
   EnhancedWorkspaceBuilder withWorkspacePath(String path) {

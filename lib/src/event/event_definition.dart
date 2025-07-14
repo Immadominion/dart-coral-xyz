@@ -1,32 +1,9 @@
-import '../idl/idl.dart';
-import '../coder/discriminator_computer.dart';
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Comprehensive event definition system matching TypeScript's event metadata handling
 class EventDefinition {
-  /// Event name
-  final String name;
-
-  /// Event documentation
-  final List<String>? docs;
-
-  /// Event fields with complete type information
-  final List<EventFieldDefinition> fields;
-
-  /// Event discriminator for identification
-  final List<int>? discriminator;
-
-  /// Event metadata for additional validation and processing
-  final EventMetadata metadata;
-
-  /// Event validation rules
-  final EventValidationRules validationRules;
-
-  /// Event inheritance information
-  final EventInheritanceInfo? inheritanceInfo;
-
-  /// Event versioning information
-  final EventVersionInfo? versionInfo;
 
   const EventDefinition({
     required this.name,
@@ -87,6 +64,29 @@ class EventDefinition {
       versionInfo: versionInfo,
     );
   }
+  /// Event name
+  final String name;
+
+  /// Event documentation
+  final List<String>? docs;
+
+  /// Event fields with complete type information
+  final List<EventFieldDefinition> fields;
+
+  /// Event discriminator for identification
+  final List<int>? discriminator;
+
+  /// Event metadata for additional validation and processing
+  final EventMetadata metadata;
+
+  /// Event validation rules
+  final EventValidationRules validationRules;
+
+  /// Event inheritance information
+  final EventInheritanceInfo? inheritanceInfo;
+
+  /// Event versioning information
+  final EventVersionInfo? versionInfo;
 
   /// Validate event data against definition
   EventValidationResult validateEventData(Map<String, dynamic> eventData) {
@@ -168,8 +168,7 @@ class EventDefinition {
   }
 
   /// Generate event schema for external tools
-  Map<String, dynamic> generateSchema() {
-    return {
+  Map<String, dynamic> generateSchema() => {
       'name': name,
       'docs': docs,
       'discriminator': discriminator,
@@ -179,11 +178,8 @@ class EventDefinition {
       'inheritance': inheritanceInfo?.toMap(),
       'version': versionInfo?.toMap(),
     };
-  }
 
-  static int _calculateEstimatedSize(List<EventFieldDefinition> fields) {
-    return fields.fold(8, (sum, field) => sum + field.typeInfo.estimatedSize);
-  }
+  static int _calculateEstimatedSize(List<EventFieldDefinition> fields) => fields.fold(8, (sum, field) => sum + field.typeInfo.estimatedSize);
 
   static EventComplexity _calculateComplexity(List<EventFieldDefinition> fields) {
     final complexFields = fields.where((f) => f.typeInfo.isComplex).length;
@@ -252,29 +248,6 @@ class EventDefinition {
 
 /// Event field definition with comprehensive type information
 class EventFieldDefinition {
-  /// Field name
-  final String name;
-
-  /// Field documentation
-  final List<String>? docs;
-
-  /// Field type information
-  final EventFieldTypeInfo typeInfo;
-
-  /// Whether field is optional
-  final bool isOptional;
-
-  /// Whether field is required
-  bool get isRequired => !isOptional;
-
-  /// Field constraints
-  final List<EventFieldConstraint> constraints;
-
-  /// Default value (if any)
-  final dynamic defaultValue;
-
-  /// Whether field has a default value
-  bool get hasDefaultValue => defaultValue != null;
 
   const EventFieldDefinition({
     required this.name,
@@ -302,6 +275,29 @@ class EventFieldDefinition {
       defaultValue: _parseDefaultValue(idlField.docs, typeInfo),
     );
   }
+  /// Field name
+  final String name;
+
+  /// Field documentation
+  final List<String>? docs;
+
+  /// Field type information
+  final EventFieldTypeInfo typeInfo;
+
+  /// Whether field is optional
+  final bool isOptional;
+
+  /// Whether field is required
+  bool get isRequired => !isOptional;
+
+  /// Field constraints
+  final List<EventFieldConstraint> constraints;
+
+  /// Default value (if any)
+  final dynamic defaultValue;
+
+  /// Whether field has a default value
+  bool get hasDefaultValue => defaultValue != null;
 
   /// Validate field value
   EventFieldValidationResult validateValue(dynamic value) {
@@ -335,13 +331,10 @@ class EventFieldDefinition {
   }
 
   /// Calculate field size for given value
-  int calculateFieldSize(dynamic value) {
-    return typeInfo.calculateSize(value);
-  }
+  int calculateFieldSize(dynamic value) => typeInfo.calculateSize(value);
 
   /// Convert to schema map
-  Map<String, dynamic> toSchemaMap() {
-    return {
+  Map<String, dynamic> toSchemaMap() => {
       'name': name,
       'docs': docs,
       'type': typeInfo.toMap(),
@@ -349,7 +342,6 @@ class EventFieldDefinition {
       'constraints': constraints.map((c) => c.toMap()).toList(),
       'defaultValue': defaultValue,
     };
-  }
 
   static List<EventFieldConstraint> _parseConstraints(List<String>? docs) {
     if (docs == null) return [];
@@ -398,6 +390,24 @@ class EventFieldDefinition {
 
 /// Comprehensive type information for event fields
 class EventFieldTypeInfo {
+
+  const EventFieldTypeInfo({
+    required this.typeName,
+    required this.isPrimitive,
+    required this.isComplex,
+    required this.isOptional,
+    required this.hasNestedStructures,
+    required this.estimatedSize,
+    this.typeParameters,
+    this.constraints = const {},
+  });
+
+  /// Create from IDL type
+  factory EventFieldTypeInfo.fromIdlType(IdlType idlType, {
+    Map<String, IdlTypeDef>? customTypes,
+  }) {
+    return _parseIdlType(idlType, customTypes ?? {});
+  }
   /// Type name
   final String typeName;
 
@@ -421,24 +431,6 @@ class EventFieldTypeInfo {
 
   /// Type constraints
   final Map<String, dynamic> constraints;
-
-  const EventFieldTypeInfo({
-    required this.typeName,
-    required this.isPrimitive,
-    required this.isComplex,
-    required this.isOptional,
-    required this.hasNestedStructures,
-    required this.estimatedSize,
-    this.typeParameters,
-    this.constraints = const {},
-  });
-
-  /// Create from IDL type
-  factory EventFieldTypeInfo.fromIdlType(IdlType idlType, {
-    Map<String, IdlTypeDef>? customTypes,
-  }) {
-    return _parseIdlType(idlType, customTypes ?? {});
-  }
 
   static EventFieldTypeInfo _parseIdlType(IdlType idlType, Map<String, IdlTypeDef> customTypes) {
     // Handle simple types first
@@ -538,7 +530,7 @@ class EventFieldTypeInfo {
         );
     }
 
-    return EventFieldTypeInfo(
+    return const EventFieldTypeInfo(
       typeName: 'unknown',
       isPrimitive: false,
       isComplex: false,
@@ -781,7 +773,7 @@ class EventFieldTypeInfo {
     const numericTypes = [
       'u8', 'u16', 'u32', 'u64', 'u128',
       'i8', 'i16', 'i32', 'i64', 'i128',
-      'f32', 'f64'
+      'f32', 'f64',
     ];
     
     if (numericTypes.contains(typeName) && numericTypes.contains(other.typeName)) {
@@ -792,8 +784,7 @@ class EventFieldTypeInfo {
   }
 
   /// Convert to map representation
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'typeName': typeName,
       'isPrimitive': isPrimitive,
       'isComplex': isComplex,
@@ -803,7 +794,6 @@ class EventFieldTypeInfo {
       'typeParameters': typeParameters?.map((t) => t.toMap()).toList(),
       'constraints': constraints,
     };
-  }
 
   @override
   String toString() => 'EventFieldTypeInfo(type: $typeName)';
@@ -811,6 +801,15 @@ class EventFieldTypeInfo {
 
 /// Event metadata for validation and processing
 class EventMetadata {
+
+  const EventMetadata({
+    required this.totalFields,
+    required this.hasOptionalFields,
+    required this.hasNestedStructures,
+    required this.estimatedSize,
+    required this.complexity,
+    this.tags = const [],
+  });
   /// Total number of fields
   final int totalFields;
 
@@ -829,18 +828,8 @@ class EventMetadata {
   /// Event tags (parsed from documentation)
   final List<String> tags;
 
-  const EventMetadata({
-    required this.totalFields,
-    required this.hasOptionalFields,
-    required this.hasNestedStructures,
-    required this.estimatedSize,
-    required this.complexity,
-    this.tags = const [],
-  });
-
   /// Convert to map representation
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'totalFields': totalFields,
       'hasOptionalFields': hasOptionalFields,
       'hasNestedStructures': hasNestedStructures,
@@ -848,7 +837,6 @@ class EventMetadata {
       'complexity': complexity.toString(),
       'tags': tags,
     };
-  }
 }
 
 /// Event complexity levels
@@ -860,20 +848,6 @@ enum EventComplexity {
 
 /// Event validation rules
 class EventValidationRules {
-  /// Required field validation
-  final bool enforceRequiredFields;
-
-  /// Type validation strictness
-  final TypeValidationStrictness typeStrictness;
-
-  /// Maximum allowed event size
-  final int? maxEventSize;
-
-  /// Field constraints validation
-  final bool enforceFieldConstraints;
-
-  /// Custom validation functions
-  final List<EventValidator> customValidators;
 
   const EventValidationRules({
     this.enforceRequiredFields = true,
@@ -901,6 +875,20 @@ class EventValidationRules {
       enforceFieldConstraints: hasConstraints && config.enforceFieldConstraints,
     );
   }
+  /// Required field validation
+  final bool enforceRequiredFields;
+
+  /// Type validation strictness
+  final TypeValidationStrictness typeStrictness;
+
+  /// Maximum allowed event size
+  final int? maxEventSize;
+
+  /// Field constraints validation
+  final bool enforceFieldConstraints;
+
+  /// Custom validation functions
+  final List<EventValidator> customValidators;
 
   /// Validate event data
   EventValidationResult validate(Map<String, dynamic> eventData) {
@@ -931,15 +919,13 @@ class EventValidationRules {
   }
 
   /// Convert to map representation
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'enforceRequiredFields': enforceRequiredFields,
       'typeStrictness': typeStrictness.toString(),
       'maxEventSize': maxEventSize,
       'enforceFieldConstraints': enforceFieldConstraints,
       'customValidators': customValidators.length,
     };
-  }
 }
 
 /// Type validation strictness levels
@@ -951,6 +937,12 @@ enum TypeValidationStrictness {
 
 /// Event inheritance information
 class EventInheritanceInfo {
+
+  const EventInheritanceInfo({
+    required this.parentEvent,
+    required this.inheritanceType,
+    this.metadata,
+  });
   /// Parent event name
   final String parentEvent;
 
@@ -960,20 +952,12 @@ class EventInheritanceInfo {
   /// Additional inheritance metadata
   final Map<String, dynamic>? metadata;
 
-  const EventInheritanceInfo({
-    required this.parentEvent,
-    required this.inheritanceType,
-    this.metadata,
-  });
-
   /// Convert to map representation
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'parentEvent': parentEvent,
       'inheritanceType': inheritanceType.toString(),
       'metadata': metadata,
     };
-  }
 }
 
 /// Event inheritance types
@@ -985,6 +969,13 @@ enum EventInheritanceType {
 
 /// Event version information
 class EventVersionInfo {
+
+  const EventVersionInfo({
+    required this.major,
+    required this.minor,
+    required this.patch,
+    this.metadata,
+  });
   /// Major version
   final int major;
 
@@ -996,13 +987,6 @@ class EventVersionInfo {
 
   /// Version metadata
   final Map<String, dynamic>? metadata;
-
-  const EventVersionInfo({
-    required this.major,
-    required this.minor,
-    required this.patch,
-    this.metadata,
-  });
 
   /// Version string representation
   String get versionString => '$major.$minor.$patch';
@@ -1017,27 +1001,17 @@ class EventVersionInfo {
   }
 
   /// Convert to map representation
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'major': major,
       'minor': minor,
       'patch': patch,
       'versionString': versionString,
       'metadata': metadata,
     };
-  }
 }
 
 /// Event field constraint
 class EventFieldConstraint {
-  /// Constraint type
-  final EventConstraintType type;
-
-  /// Constraint value
-  final dynamic value;
-
-  /// Constraint metadata
-  final Map<String, dynamic>? metadata;
 
   const EventFieldConstraint({
     required this.type,
@@ -1076,6 +1050,14 @@ class EventFieldConstraint {
       value: [min, max],
     );
   }
+  /// Constraint type
+  final EventConstraintType type;
+
+  /// Constraint value
+  final dynamic value;
+
+  /// Constraint metadata
+  final Map<String, dynamic>? metadata;
 
   /// Validate constraint
   EventFieldValidationResult validate(dynamic fieldValue) {
@@ -1119,13 +1101,11 @@ class EventFieldConstraint {
   }
 
   /// Convert to map representation
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'type': type.toString(),
       'value': value,
       'metadata': metadata,
     };
-  }
 }
 
 /// Event constraint types
@@ -1139,6 +1119,13 @@ enum EventConstraintType {
 
 /// Event validation result
 class EventValidationResult {
+
+  const EventValidationResult({
+    required this.isValid,
+    this.errors = const [],
+    this.warnings = const [],
+    this.eventName,
+  });
   /// Whether validation passed
   final bool isValid;
 
@@ -1150,17 +1137,16 @@ class EventValidationResult {
 
   /// Event name (for context)
   final String? eventName;
-
-  const EventValidationResult({
-    required this.isValid,
-    this.errors = const [],
-    this.warnings = const [],
-    this.eventName,
-  });
 }
 
 /// Event field validation result
 class EventFieldValidationResult {
+
+  const EventFieldValidationResult({
+    required this.isValid,
+    this.errors = const [],
+    this.warnings = const [],
+  });
   /// Whether validation passed
   final bool isValid;
 
@@ -1169,12 +1155,6 @@ class EventFieldValidationResult {
 
   /// Validation warnings
   final List<String> warnings;
-
-  const EventFieldValidationResult({
-    required this.isValid,
-    this.errors = const [],
-    this.warnings = const [],
-  });
 }
 
 /// Custom event validator interface
@@ -1185,26 +1165,6 @@ abstract class EventValidator {
 
 /// Event definition configuration
 class EventDefinitionConfig {
-  /// Whether to automatically generate discriminators
-  final bool autoGenerateDiscriminator;
-
-  /// Whether to enforce required fields
-  final bool enforceRequiredFields;
-
-  /// Type validation strictness
-  final TypeValidationStrictness typeStrictness;
-
-  /// Maximum allowed event size
-  final int? maxEventSize;
-
-  /// Whether to enforce field constraints
-  final bool enforceFieldConstraints;
-
-  /// Whether to enable inheritance support
-  final bool enableInheritance;
-
-  /// Whether to enable versioning support
-  final bool enableVersioning;
 
   const EventDefinitionConfig({
     this.autoGenerateDiscriminator = true,
@@ -1239,6 +1199,26 @@ class EventDefinitionConfig {
       maxEventSize: 2048,
     );
   }
+  /// Whether to automatically generate discriminators
+  final bool autoGenerateDiscriminator;
+
+  /// Whether to enforce required fields
+  final bool enforceRequiredFields;
+
+  /// Type validation strictness
+  final TypeValidationStrictness typeStrictness;
+
+  /// Maximum allowed event size
+  final int? maxEventSize;
+
+  /// Whether to enforce field constraints
+  final bool enforceFieldConstraints;
+
+  /// Whether to enable inheritance support
+  final bool enableInheritance;
+
+  /// Whether to enable versioning support
+  final bool enableVersioning;
 }
 
 /// IDL event parser utility
@@ -1307,18 +1287,16 @@ class IdlEventParser {
 
 /// Event definition exception
 class EventDefinitionException implements Exception {
+
+  const EventDefinitionException(this.message, {this.eventName});
   /// Error message
   final String message;
 
   /// Event name (for context)
   final String? eventName;
 
-  const EventDefinitionException(this.message, {this.eventName});
-
   @override
-  String toString() {
-    return eventName != null 
+  String toString() => eventName != null 
         ? 'EventDefinitionException ($eventName): $message'
         : 'EventDefinitionException: $message';
-  }
 }

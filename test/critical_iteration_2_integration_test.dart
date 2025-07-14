@@ -6,7 +6,7 @@
 library;
 
 import 'package:test/test.dart';
-import '../lib/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 void main() {
   group('Critical Iteration 2: Integration Test', () {
@@ -14,7 +14,7 @@ void main() {
 
     setUpAll(() {
       // Use a realistic IDL example (similar to tutorial examples)
-      final idl = Idl(
+      final idl = const Idl(
         address: 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS',
         metadata: IdlMetadata(
           name: 'basic_tutorial',
@@ -38,14 +38,12 @@ void main() {
               ),
               IdlInstructionAccount(
                 name: 'systemProgram',
-                writable: false,
-                signer: false,
               ),
             ],
             args: [
               IdlField(
                 name: 'data',
-                type: const IdlType(kind: 'u64'),
+                type: IdlType(kind: 'u64'),
               ),
             ],
           ),
@@ -56,11 +54,9 @@ void main() {
               IdlInstructionAccount(
                 name: 'counter',
                 writable: true,
-                signer: false,
               ),
               IdlInstructionAccount(
                 name: 'authority',
-                writable: false,
                 signer: true,
               ),
             ],
@@ -98,7 +94,7 @@ void main() {
         });
 
         expect(accountsBuilder, isA<TypeSafeMethodBuilder>());
-      }, returnsNormally);
+      }, returnsNormally,);
     });
 
     test('TypeScript-style syntax: program.methods.increment()', () {
@@ -119,7 +115,7 @@ void main() {
         });
 
         expect(result, isA<TypeSafeMethodBuilder>());
-      }, returnsNormally);
+      }, returnsNormally,);
     });
 
     test('Bracket notation: program.methods["methodName"](args)', () {
@@ -139,7 +135,7 @@ void main() {
         });
 
         expect(result, isA<TypeSafeMethodBuilder>());
-      }, returnsNormally);
+      }, returnsNormally,);
     });
 
     test('Multiple independent method calls', () {
@@ -161,7 +157,7 @@ void main() {
         expect(identical(builder1, builder2), isFalse);
         expect(identical(builder1, builder3), isFalse);
         expect(identical(builder2, builder3), isFalse);
-      }, returnsNormally);
+      }, returnsNormally,);
     });
 
     test('Error handling for non-existent methods', () {
@@ -179,7 +175,7 @@ void main() {
               contains('initialize'),
               contains('increment'),
             ]),
-          )));
+          ),),);
     });
 
     test('Complete fluent chain like TypeScript examples', () {
@@ -212,7 +208,7 @@ void main() {
         expect(result.transaction, isA<Function>());
         expect(result.rpc, isA<Function>());
         expect(result.simulate, isA<Function>());
-      }, returnsNormally);
+      }, returnsNormally,);
     });
   });
 }

@@ -2,36 +2,37 @@
 ///
 /// Comprehensive testing framework matching TypeScript Anchor's testing capabilities
 /// with fixtures, mocks, development utilities, and scenario management.
+library;
 
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
-import '../provider/provider.dart';
-import '../provider/connection.dart';
-import '../provider/wallet.dart';
-import '../types/public_key.dart';
-import '../types/keypair.dart';
-import '../types/transaction.dart';
-import '../types/commitment.dart';
-import '../idl/idl.dart';
-import '../program/program_class.dart';
-import '../workspace/workspace.dart';
+import 'package:coral_xyz_anchor/src/provider/provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
+import 'package:coral_xyz_anchor/src/workspace/workspace.dart';
 
 /// Test Validator Management System
 /// Provides local validator setup, management, and cleanup for integration testing
 class TestValidator {
-  final String rpcUrl;
-  final Map<String, dynamic> config;
-  bool _isRunning = false;
-  Process? _validatorProcess;
-  final List<Keypair> _deployedPrograms = [];
 
   TestValidator({
     this.rpcUrl = 'http://localhost:8899',
     this.config = const {},
   });
+  final String rpcUrl;
+  final Map<String, dynamic> config;
+  bool _isRunning = false;
+  Process? _validatorProcess;
+  final List<Keypair> _deployedPrograms = [];
 
   /// Start the test validator with specified configuration
   Future<void> start({
@@ -126,12 +127,12 @@ class TestValidator {
 /// Test Account Management and Funding
 /// Manages test accounts, funding, and lifecycle for test scenarios
 class TestAccountManager {
+
+  TestAccountManager(this.connection, this.payerKeypair);
   final Connection connection;
   final Keypair payerKeypair;
   final Map<String, Keypair> _namedAccounts = {};
   final List<Keypair> _managedAccounts = [];
-
-  TestAccountManager(this.connection, this.payerKeypair);
 
   /// Create a funded test account
   Future<Keypair> createFundedAccount({
@@ -162,9 +163,7 @@ class TestAccountManager {
   Keypair? getAccount(String name) => _namedAccounts[name];
 
   /// Get account balance
-  Future<int> getBalance(PublicKey publicKey) async {
-    return await connection.getBalance(publicKey);
-  }
+  Future<int> getBalance(PublicKey publicKey) async => await connection.getBalance(publicKey);
 
   /// Create test account with specific data
   Future<Keypair> createAccountWithData({
@@ -208,9 +207,6 @@ class TestAccountManager {
 /// Mock Provider and Connection Framework
 /// Advanced mock implementations for isolated unit testing
 class AdvancedMockProvider extends AnchorProvider {
-  final AdvancedMockConnection mockConnection;
-  final MockWallet mockWallet;
-  final Map<String, dynamic> _configurations = {};
 
   AdvancedMockProvider._(this.mockConnection, this.mockWallet)
       : super(mockConnection, mockWallet);
@@ -230,10 +226,13 @@ class AdvancedMockProvider extends AnchorProvider {
 
     return provider;
   }
+  final AdvancedMockConnection mockConnection;
+  final MockWallet mockWallet;
+  final Map<String, dynamic> _configurations = {};
 
   /// Configure mock responses for specific scenarios
   void configureMockScenario(
-      String scenarioName, Map<String, dynamic> responses) {
+      String scenarioName, Map<String, dynamic> responses,) {
     mockConnection.setScenario(scenarioName, responses);
   }
 
@@ -258,7 +257,7 @@ class AdvancedMockConnection extends Connection {
   final List<String> _callHistory = [];
   int _callCount = 0;
 
-  AdvancedMockConnection(String endpoint) : super(endpoint);
+  AdvancedMockConnection(super.endpoint);
 
   /// Set responses for a named scenario
   void setScenario(String name, Map<String, dynamic> responses) {
@@ -303,7 +302,7 @@ class AdvancedMockConnection extends Connection {
 
   @override
   Future<int> getBalance(PublicKey address,
-      {CommitmentConfig? commitment}) async {
+      {CommitmentConfig? commitment,}) async {
     _recordCall('getBalance', {'address': address.toBase58()});
     final result = _currentResponses['getBalance'];
     return result is int ? result : 1000000000;
@@ -311,7 +310,7 @@ class AdvancedMockConnection extends Connection {
 
   @override
   Future<LatestBlockhash> getLatestBlockhash(
-      {CommitmentConfig? commitment}) async {
+      {CommitmentConfig? commitment,}) async {
     _recordCall('getLatestBlockhash');
     final mockBlockhash = _currentResponses['getLatestBlockhash'] ??
         '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
@@ -324,9 +323,9 @@ class AdvancedMockConnection extends Connection {
 
   @override
   Future<int> getMinimumBalanceForRentExemption(int dataLength,
-      {CommitmentConfig? commitment}) async {
+      {CommitmentConfig? commitment,}) async {
     _recordCall(
-        'getMinimumBalanceForRentExemption', {'dataLength': dataLength});
+        'getMinimumBalanceForRentExemption', {'dataLength': dataLength},);
     final result = _currentResponses['getMinimumBalanceForRentExemption'];
     return result is int ? result : 1000000;
   }
@@ -348,13 +347,13 @@ class AdvancedMockConnection extends Connection {
 
 /// Mock Wallet with advanced signing simulation
 class MockWallet implements Wallet {
+
+  MockWallet([Keypair? keypair])
+      : _keypair = keypair ?? _generateDefaultKeypair();
   final Keypair _keypair;
   final List<String> _signedTransactions = [];
   bool _shouldThrow = false;
   Exception? _throwException;
-
-  MockWallet([Keypair? keypair])
-      : _keypair = keypair ?? _generateDefaultKeypair();
 
   static Keypair _generateDefaultKeypair() {
     final seed = Uint8List(32);
@@ -410,7 +409,7 @@ class MockWallet implements Wallet {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions) async {
+      List<Transaction> transactions,) async {
     final results = <Transaction>[];
     for (final tx in transactions) {
       results.add(await signTransaction(tx));
@@ -469,13 +468,11 @@ class TestFixtures {
     required String name,
     required List<String> programs,
     Map<String, dynamic>? config,
-  }) {
-    return TestWorkspaceFixture(
+  }) => TestWorkspaceFixture(
       name: name,
       programs: programs,
       config: config ?? {},
     );
-  }
 
   /// Clear all fixtures
   static void clear() {
@@ -486,16 +483,16 @@ class TestFixtures {
 
 /// Test Workspace Fixture
 class TestWorkspaceFixture {
-  final String name;
-  final List<String> programs;
-  final Map<String, dynamic> config;
-  final Map<String, Program> _loadedPrograms = {};
 
   TestWorkspaceFixture({
     required this.name,
     required this.programs,
     required this.config,
   });
+  final String name;
+  final List<String> programs;
+  final Map<String, dynamic> config;
+  final Map<String, Program> _loadedPrograms = {};
 
   /// Load programs into workspace
   Future<Workspace> loadIntoWorkspace(AnchorProvider provider) async {
@@ -536,8 +533,7 @@ class TestDataGenerator {
     String name = 'test_program',
     List<IdlInstruction>? instructions,
     List<IdlAccount>? accounts,
-  }) {
-    return Idl(
+  }) => Idl(
       address: address ?? 'TestProgram111111111111111111111111111111',
       metadata: IdlMetadata(
         name: name,
@@ -563,7 +559,6 @@ class TestDataGenerator {
           ],
       accounts: accounts,
     );
-  }
 
   /// Generate test account data
   static Map<String, dynamic> generateAccountData({
@@ -588,15 +583,15 @@ class TestDataGenerator {
 /// Integration Testing Framework
 /// Utilities for running integration tests with real or mock validators
 class IntegrationTestRunner {
-  final TestValidator? validator;
-  final Connection connection;
-  final TestAccountManager accountManager;
 
   IntegrationTestRunner({
     this.validator,
     required this.connection,
     required this.accountManager,
   });
+  final TestValidator? validator;
+  final Connection connection;
+  final TestAccountManager accountManager;
 
   /// Run test with setup and cleanup
   Future<T> runTest<T>(Future<T> Function() testFn) async {

@@ -52,7 +52,5 @@ class BinaryWriter {
   }
 
   /// Get the serialized bytes
-  Uint8List toArray() {
-    return _buffer.takeBytes();
-  }
+  Uint8List toArray() => _buffer.takeBytes();
 }

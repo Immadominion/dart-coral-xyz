@@ -21,10 +21,8 @@ void main() {
               IdlField(name: 'market', type: idlTypePubkey()),
             ],
             accounts: [
-              IdlInstructionAccount(
+              const IdlInstructionAccount(
                 name: 'marketAccount',
-                writable: false, // Read-only
-                signer: false,
               ),
             ],
             returns: 'u64', // Has return value
@@ -37,13 +35,11 @@ void main() {
               IdlField(name: 'newPrice', type: idlTypeU64()),
             ],
             accounts: [
-              IdlInstructionAccount(
+              const IdlInstructionAccount(
                 name: 'marketAccount',
                 writable: true, // Writable - not eligible for view
-                signer: false,
               ),
             ],
-            returns: null, // No return value
           ),
           // Non-view instruction (no return value)
           IdlInstruction(
@@ -52,17 +48,15 @@ void main() {
               IdlField(name: 'authority', type: idlTypePubkey()),
             ],
             accounts: [
-              IdlInstructionAccount(
+              const IdlInstructionAccount(
                 name: 'authority',
-                writable: false, // Read-only
                 signer: true,
               ),
             ],
-            returns: null, // No return value - not eligible for view
           ),
         ],
         types: [
-          IdlTypeDef(
+          const IdlTypeDef(
             name: 'u64',
             type: IdlTypeDefType(kind: 'struct', fields: []),
           ),
@@ -106,7 +100,7 @@ void main() {
       // Should only include getPrice (read-only with return value)
       expect(viewsNamespace.contains('getPrice'), isTrue);
       expect(
-          viewsNamespace.contains('updatePrice'), isFalse); // Writable account
+          viewsNamespace.contains('updatePrice'), isFalse,); // Writable account
       expect(viewsNamespace.contains('initialize'), isFalse); // No return value
     });
 
@@ -170,14 +164,13 @@ void main() {
 
     group('View Eligibility Tests', () {
       test('instruction with writable account is not view-eligible', () {
-        final instruction = IdlInstruction(
+        final instruction = const IdlInstruction(
           name: 'testWritable',
           args: [],
           accounts: [
             IdlInstructionAccount(
               name: 'account',
               writable: true,
-              signer: false,
             ),
           ],
           returns: 'u64',
@@ -187,17 +180,14 @@ void main() {
       });
 
       test('instruction without return type is not view-eligible', () {
-        final instruction = IdlInstruction(
+        final instruction = const IdlInstruction(
           name: 'testNoReturn',
           args: [],
           accounts: [
             IdlInstructionAccount(
               name: 'account',
-              writable: false,
-              signer: false,
             ),
           ],
-          returns: null,
         );
 
         expect(ViewsNamespace.isViewEligible(instruction), isFalse);
@@ -206,14 +196,12 @@ void main() {
       test(
           'instruction with read-only accounts and return type is view-eligible',
           () {
-        final instruction = IdlInstruction(
+        final instruction = const IdlInstruction(
           name: 'testReadOnly',
           args: [],
           accounts: [
             IdlInstructionAccount(
               name: 'account',
-              writable: false,
-              signer: false,
             ),
           ],
           returns: 'u64',
@@ -223,7 +211,7 @@ void main() {
       });
 
       test('instruction with nested accounts checks writability correctly', () {
-        final instruction = IdlInstruction(
+        final instruction = const IdlInstruction(
           name: 'testNested',
           args: [],
           accounts: [
@@ -232,14 +220,11 @@ void main() {
               accounts: [
                 IdlInstructionAccount(
                   name: 'readOnlyAccount',
-                  writable: false,
-                  signer: false,
                 ),
                 IdlInstructionAccount(
                   name: 'writableAccount',
                   writable:
                       true, // This makes the instruction not view-eligible
-                  signer: false,
                 ),
               ],
             ),

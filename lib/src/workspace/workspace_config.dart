@@ -9,19 +9,18 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:toml/toml.dart';
 import 'package:path/path.dart' as path;
-import '../idl/idl.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Exception thrown when workspace configuration is invalid
 class WorkspaceConfigException implements Exception {
-  final String message;
-  final String? filePath;
-  final dynamic cause;
-
   const WorkspaceConfigException(
     this.message, {
     this.filePath,
     this.cause,
   });
+  final String message;
+  final String? filePath;
+  final dynamic cause;
 
   @override
   String toString() {
@@ -38,9 +37,6 @@ class WorkspaceConfigException implements Exception {
 
 /// Provider configuration section from Anchor.toml
 class ProviderConfig {
-  final String cluster;
-  final String wallet;
-
   const ProviderConfig({
     required this.cluster,
     required this.wallet,
@@ -52,20 +48,17 @@ class ProviderConfig {
       wallet: toml['wallet'] as String? ?? '~/.config/solana/id.json',
     );
   }
+  final String cluster;
+  final String wallet;
 
-  Map<String, dynamic> toToml() {
-    return {
-      'cluster': cluster,
-      'wallet': wallet,
-    };
-  }
+  Map<String, dynamic> toToml() => {
+        'cluster': cluster,
+        'wallet': wallet,
+      };
 }
 
 /// Program entry configuration with optional IDL path and address
 class ProgramEntry {
-  final String? address;
-  final String? idl;
-
   const ProgramEntry({
     this.address,
     this.idl,
@@ -87,6 +80,8 @@ class ProgramEntry {
       );
     }
   }
+  final String? address;
+  final String? idl;
 
   dynamic toToml() {
     if (idl == null && address != null) {
@@ -101,9 +96,6 @@ class ProgramEntry {
 
 /// Test configuration section from Anchor.toml
 class TestConfig {
-  final int? startupWait;
-  final List<ValidatorAccount>? validatorAccounts;
-
   const TestConfig({
     this.startupWait,
     this.validatorAccounts,
@@ -128,12 +120,14 @@ class TestConfig {
       validatorAccounts: accounts,
     );
   }
+  final int? startupWait;
+  final List<ValidatorAccount>? validatorAccounts;
 
   Map<String, dynamic> toToml() {
     final result = <String, dynamic>{};
 
     if (startupWait != null) {
-      result['startup_wait'] = startupWait!;
+      result['startup_wait'] = startupWait;
     }
 
     if (validatorAccounts != null && validatorAccounts!.isNotEmpty) {
@@ -149,9 +143,6 @@ class TestConfig {
 
 /// Validator account configuration for testing
 class ValidatorAccount {
-  final String address;
-  final String filename;
-
   const ValidatorAccount({
     required this.address,
     required this.filename,
@@ -163,20 +154,17 @@ class ValidatorAccount {
       filename: toml['filename'] as String,
     );
   }
+  final String address;
+  final String filename;
 
-  Map<String, dynamic> toToml() {
-    return {
-      'address': address,
-      'filename': filename,
-    };
-  }
+  Map<String, dynamic> toToml() => {
+        'address': address,
+        'filename': filename,
+      };
 }
 
 /// Features configuration section
 class FeaturesConfig {
-  final bool? seeds;
-  final bool? skipLint;
-
   const FeaturesConfig({
     this.seeds,
     this.skipLint,
@@ -188,19 +176,19 @@ class FeaturesConfig {
       skipLint: toml['skip-lint'] as bool?,
     );
   }
+  final bool? seeds;
+  final bool? skipLint;
 
   Map<String, dynamic> toToml() {
     final result = <String, dynamic>{};
-    if (seeds != null) result['seeds'] = seeds!;
-    if (skipLint != null) result['skip-lint'] = skipLint!;
+    if (seeds != null) result['seeds'] = seeds;
+    if (skipLint != null) result['skip-lint'] = skipLint;
     return result;
   }
 }
 
 /// Scripts configuration section
 class ScriptsConfig {
-  final Map<String, String> scripts;
-
   const ScriptsConfig({
     required this.scripts,
   });
@@ -214,21 +202,13 @@ class ScriptsConfig {
     });
     return ScriptsConfig(scripts: scripts);
   }
+  final Map<String, String> scripts;
 
-  Map<String, dynamic> toToml() {
-    return Map<String, dynamic>.from(scripts);
-  }
+  Map<String, dynamic> toToml() => Map<String, dynamic>.from(scripts);
 }
 
 /// Complete workspace configuration from Anchor.toml
 class WorkspaceConfig {
-  final ProviderConfig provider;
-  final Map<String, Map<String, ProgramEntry>> programs;
-  final TestConfig? test;
-  final FeaturesConfig? features;
-  final ScriptsConfig? scripts;
-  final String? workspaceRoot;
-
   const WorkspaceConfig({
     required this.provider,
     required this.programs,
@@ -333,6 +313,12 @@ class WorkspaceConfig {
       workspaceRoot: workspaceRoot,
     );
   }
+  final ProviderConfig provider;
+  final Map<String, Map<String, ProgramEntry>> programs;
+  final TestConfig? test;
+  final FeaturesConfig? features;
+  final ScriptsConfig? scripts;
+  final String? workspaceRoot;
 
   /// Get programs for the current cluster
   Map<String, ProgramEntry> getProgramsForCluster([String? cluster]) {
@@ -377,8 +363,8 @@ class WorkspaceConfig {
 
     // Use explicit IDL path if provided
     if (programEntry.idl != null) {
-      idlPath = programEntry.idl!;
-      if (!path.isAbsolute(idlPath) && workspaceRoot != null) {
+      idlPath = programEntry.idl;
+      if (!path.isAbsolute(idlPath ?? '') && workspaceRoot != null) {
         idlPath = path.join(workspaceRoot!, idlPath);
       }
     } else {
@@ -532,14 +518,12 @@ class WorkspaceConfig {
   }
 
   /// Convert camelCase to snake_case
-  String _camelToSnakeCase(String camelCase) {
-    return camelCase
-        .replaceAllMapped(
-          RegExp(r'([A-Z])'),
-          (match) => '_${match.group(1)!.toLowerCase()}',
-        )
-        .replaceFirst(RegExp(r'^_'), '');
-  }
+  String _camelToSnakeCase(String camelCase) => camelCase
+      .replaceAllMapped(
+        RegExp(r'([A-Z])'),
+        (match) => '_${match.group(1)!.toLowerCase()}',
+      )
+      .replaceFirst(RegExp(r'^_'), '');
 
   /// Convert snake_case to camelCase
   String _snakeToCamelCase(String snakeCase) {
@@ -631,8 +615,7 @@ class WorkspaceDiscovery {
     // Count programs
     final programsDir = Directory(path.join(workspacePath, 'programs'));
     if (programsDir.existsSync()) {
-      programCount =
-          programsDir.listSync().where((entity) => entity is Directory).length;
+      programCount = programsDir.listSync().whereType<Directory>().length;
     }
 
     // Count test files
@@ -640,9 +623,11 @@ class WorkspaceDiscovery {
     if (testsDir.existsSync()) {
       testCount = testsDir
           .listSync()
-          .where((entity) =>
-              entity is File &&
-              (entity.path.endsWith('.ts') || entity.path.endsWith('.js')))
+          .where(
+            (entity) =>
+                entity is File &&
+                (entity.path.endsWith('.ts') || entity.path.endsWith('.js')),
+          )
           .length;
     }
 
@@ -723,13 +708,6 @@ class WorkspaceDiscovery {
 
 /// Workspace configuration template detection
 class WorkspaceConfigTemplate {
-  final String name;
-  final WorkspaceType type;
-  final bool hasPrograms;
-  final bool hasTests;
-  final bool hasBuild;
-  final WorkspaceComplexity estimatedComplexity;
-
   const WorkspaceConfigTemplate({
     required this.name,
     required this.type,
@@ -738,6 +716,12 @@ class WorkspaceConfigTemplate {
     required this.hasBuild,
     required this.estimatedComplexity,
   });
+  final String name;
+  final WorkspaceType type;
+  final bool hasPrograms;
+  final bool hasTests;
+  final bool hasBuild;
+  final WorkspaceComplexity estimatedComplexity;
 }
 
 /// Workspace types
@@ -756,35 +740,24 @@ enum WorkspaceComplexity {
 
 /// Workspace validation result
 class WorkspaceValidationResult {
-  final bool isValid;
-  final List<String> issues;
-  final List<String> warnings;
-  final String workspacePath;
-
   const WorkspaceValidationResult({
     required this.isValid,
     required this.issues,
     required this.warnings,
     required this.workspacePath,
   });
+  final bool isValid;
+  final List<String> issues;
+  final List<String> warnings;
+  final String workspacePath;
 
   @override
-  String toString() {
-    return 'WorkspaceValidationResult(valid: $isValid, issues: ${issues.length}, warnings: ${warnings.length})';
-  }
+  String toString() =>
+      'WorkspaceValidationResult(valid: $isValid, issues: ${issues.length}, warnings: ${warnings.length})';
 }
 
 /// Workspace initialization template
 class WorkspaceInitializationTemplate {
-  final String name;
-  final String cluster;
-  final String wallet;
-  final bool createPrograms;
-  final bool createTests;
-  final bool createApp;
-  final List<String> additionalDirectories;
-  final Map<String, dynamic> customConfig;
-
   const WorkspaceInitializationTemplate({
     required this.name,
     this.cluster = 'localnet',
@@ -795,6 +768,14 @@ class WorkspaceInitializationTemplate {
     this.additionalDirectories = const [],
     this.customConfig = const {},
   });
+  final String name;
+  final String cluster;
+  final String wallet;
+  final bool createPrograms;
+  final bool createTests;
+  final bool createApp;
+  final List<String> additionalDirectories;
+  final Map<String, dynamic> customConfig;
 
   /// Generate Anchor.toml content
   String generateAnchorToml() {
@@ -833,29 +814,26 @@ class WorkspaceInitializationTemplate {
   }
 
   /// Basic template for new projects
-  static WorkspaceInitializationTemplate basic(String name) {
-    return WorkspaceInitializationTemplate(name: name);
-  }
+  static WorkspaceInitializationTemplate basic(String name) =>
+      WorkspaceInitializationTemplate(name: name);
 
   /// Template for complex multi-program workspaces
-  static WorkspaceInitializationTemplate multiProgram(String name) {
-    return WorkspaceInitializationTemplate(
-      name: name,
-      createPrograms: true,
-      createTests: true,
-      createApp: true,
-      additionalDirectories: ['scripts', 'migrations', 'docs'],
-    );
-  }
+  static WorkspaceInitializationTemplate multiProgram(String name) =>
+      WorkspaceInitializationTemplate(
+        name: name,
+        createPrograms: true,
+        createTests: true,
+        createApp: true,
+        additionalDirectories: ['scripts', 'migrations', 'docs'],
+      );
 
   /// Template for client-side applications
-  static WorkspaceInitializationTemplate clientApp(String name) {
-    return WorkspaceInitializationTemplate(
-      name: name,
-      createPrograms: false,
-      createTests: true,
-      createApp: true,
-      additionalDirectories: ['src', 'public'],
-    );
-  }
+  static WorkspaceInitializationTemplate clientApp(String name) =>
+      WorkspaceInitializationTemplate(
+        name: name,
+        createPrograms: false,
+        createTests: true,
+        createApp: true,
+        additionalDirectories: ['src', 'public'],
+      );
 }

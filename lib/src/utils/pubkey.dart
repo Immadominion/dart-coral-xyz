@@ -7,7 +7,7 @@ library;
 
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Utilities for working with PublicKeys and derived addresses
 class PublicKeyUtils {
@@ -37,9 +37,7 @@ class PublicKeyUtils {
   static Future<PdaResult> findProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async {
-    return PublicKey.findProgramAddress(seeds, programId);
-  }
+  ) async => PublicKey.findProgramAddress(seeds, programId);
 
   /// Create a program address directly (without finding bump)
   ///
@@ -48,9 +46,7 @@ class PublicKeyUtils {
   static Future<PublicKey> createProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async {
-    return PublicKey.createProgramAddress(seeds, programId);
-  }
+  ) async => PublicKey.createProgramAddress(seeds, programId);
 
   /// Check if a PublicKey is on the ed25519 curve
   ///
@@ -64,9 +60,7 @@ class PublicKeyUtils {
   }
 
   /// Validate that a string is a valid base58-encoded PublicKey
-  static bool isValidBase58(String address) {
-    return PublicKey.isValidBase58(address);
-  }
+  static bool isValidBase58(String address) => PublicKey.isValidBase58(address);
 
   /// Create a PublicKey from a byte array with validation
   static PublicKey fromBytes(Uint8List bytes) {
@@ -86,14 +80,10 @@ class PublicKeyUtils {
   }
 
   /// Convert a PublicKey to its base58 string representation
-  static String toBase58(PublicKey publicKey) {
-    return publicKey.toBase58();
-  }
+  static String toBase58(PublicKey publicKey) => publicKey.toBase58();
 
   /// Convert a PublicKey to its byte array representation
-  static Uint8List toBytes(PublicKey publicKey) {
-    return publicKey.bytes;
-  }
+  static Uint8List toBytes(PublicKey publicKey) => publicKey.bytes;
 
   /// Create a unique PublicKey using a random seed
   ///
@@ -110,17 +100,11 @@ class PublicKeyUtils {
   }
 
   /// Compare two PublicKeys for equality
-  static bool equals(PublicKey a, PublicKey b) {
-    return a == b;
-  }
+  static bool equals(PublicKey a, PublicKey b) => a == b;
 
   /// Get the default PublicKey (all zeros)
-  static PublicKey get defaultKey {
-    return PublicKey.defaultPubkey;
-  }
+  static PublicKey get defaultKey => PublicKey.defaultPubkey;
 
   /// Check if a PublicKey is the default (all zeros)
-  static bool isDefault(PublicKey publicKey) {
-    return equals(publicKey, defaultKey);
-  }
+  static bool isDefault(PublicKey publicKey) => equals(publicKey, defaultKey);
 }

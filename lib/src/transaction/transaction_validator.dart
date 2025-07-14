@@ -6,31 +6,11 @@
 
 library;
 
-import '../types/public_key.dart';
-import 'transaction.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
 
 /// Transaction validation configuration
 class TransactionValidationConfig {
-  /// Enable account validation
-  final bool validateAccounts;
-
-  /// Enable instruction data validation
-  final bool validateInstructionData;
-
-  /// Enable transaction size validation
-  final bool validateTransactionSize;
-
-  /// Enable compute budget validation
-  final bool validateComputeBudget;
-
-  /// Enable signer validation
-  final bool validateSigners;
-
-  /// Maximum transaction size in bytes
-  final int maxTransactionSize;
-
-  /// Maximum compute units
-  final int maxComputeUnits;
 
   const TransactionValidationConfig({
     this.validateAccounts = true,
@@ -57,21 +37,30 @@ class TransactionValidationConfig {
       validateSigners: false,
     );
   }
+  /// Enable account validation
+  final bool validateAccounts;
+
+  /// Enable instruction data validation
+  final bool validateInstructionData;
+
+  /// Enable transaction size validation
+  final bool validateTransactionSize;
+
+  /// Enable compute budget validation
+  final bool validateComputeBudget;
+
+  /// Enable signer validation
+  final bool validateSigners;
+
+  /// Maximum transaction size in bytes
+  final int maxTransactionSize;
+
+  /// Maximum compute units
+  final int maxComputeUnits;
 }
 
 /// Transaction validation result
 class TransactionValidationResult {
-  /// Whether the transaction is valid
-  final bool isValid;
-
-  /// List of validation errors
-  final List<TransactionValidationError> errors;
-
-  /// List of validation warnings
-  final List<TransactionValidationWarning> warnings;
-
-  /// Validation metrics
-  final TransactionValidationMetrics metrics;
 
   const TransactionValidationResult({
     required this.isValid,
@@ -106,6 +95,17 @@ class TransactionValidationResult {
       metrics: metrics ?? TransactionValidationMetrics.empty(),
     );
   }
+  /// Whether the transaction is valid
+  final bool isValid;
+
+  /// List of validation errors
+  final List<TransactionValidationError> errors;
+
+  /// List of validation warnings
+  final List<TransactionValidationWarning> warnings;
+
+  /// Validation metrics
+  final TransactionValidationMetrics metrics;
 
   /// Get summary of validation issues
   String get summary {
@@ -130,6 +130,13 @@ class TransactionValidationResult {
 
 /// Transaction validation error
 class TransactionValidationError {
+
+  const TransactionValidationError({
+    required this.type,
+    required this.message,
+    this.code,
+    this.context,
+  });
   /// Error type
   final String type;
 
@@ -142,19 +149,18 @@ class TransactionValidationError {
   /// Context information
   final Map<String, dynamic>? context;
 
-  const TransactionValidationError({
-    required this.type,
-    required this.message,
-    this.code,
-    this.context,
-  });
-
   @override
   String toString() => '$type: $message${code != null ? ' ($code)' : ''}';
 }
 
 /// Transaction validation warning
 class TransactionValidationWarning {
+
+  const TransactionValidationWarning({
+    required this.type,
+    required this.message,
+    this.context,
+  });
   /// Warning type
   final String type;
 
@@ -164,35 +170,12 @@ class TransactionValidationWarning {
   /// Context information
   final Map<String, dynamic>? context;
 
-  const TransactionValidationWarning({
-    required this.type,
-    required this.message,
-    this.context,
-  });
-
   @override
   String toString() => 'Warning - $type: $message';
 }
 
 /// Transaction validation metrics
 class TransactionValidationMetrics {
-  /// Estimated transaction size in bytes
-  final int estimatedSize;
-
-  /// Number of instructions
-  final int instructionCount;
-
-  /// Number of unique accounts
-  final int accountCount;
-
-  /// Number of signers
-  final int signerCount;
-
-  /// Estimated compute units
-  final int estimatedComputeUnits;
-
-  /// Validation time in milliseconds
-  final int validationTimeMs;
 
   const TransactionValidationMetrics({
     required this.estimatedSize,
@@ -214,6 +197,23 @@ class TransactionValidationMetrics {
       validationTimeMs: 0,
     );
   }
+  /// Estimated transaction size in bytes
+  final int estimatedSize;
+
+  /// Number of instructions
+  final int instructionCount;
+
+  /// Number of unique accounts
+  final int accountCount;
+
+  /// Number of signers
+  final int signerCount;
+
+  /// Estimated compute units
+  final int estimatedComputeUnits;
+
+  /// Validation time in milliseconds
+  final int validationTimeMs;
 
   /// Get efficiency score (0-100)
   double get efficiencyScore {
@@ -226,11 +226,11 @@ class TransactionValidationMetrics {
 
 /// Comprehensive transaction validator
 class TransactionValidator {
-  final TransactionValidationConfig _config;
 
   const TransactionValidator({
     TransactionValidationConfig? config,
   }) : _config = config ?? const TransactionValidationConfig();
+  final TransactionValidationConfig _config;
 
   /// Validate a transaction
   Future<TransactionValidationResult> validateTransaction(
@@ -252,7 +252,7 @@ class TransactionValidator {
       stopwatch.stop();
 
       final metrics = _calculateTransactionMetrics(
-          transaction, stopwatch.elapsedMilliseconds);
+          transaction, stopwatch.elapsedMilliseconds,);
 
       return errors.isEmpty
           ? TransactionValidationResult.success(
@@ -311,7 +311,7 @@ class TransactionValidator {
     stopwatch.stop();
 
     final metrics = _calculateTransactionMetrics(
-        transaction, stopwatch.elapsedMilliseconds);
+        transaction, stopwatch.elapsedMilliseconds,);
 
     return errors.isEmpty
         ? TransactionValidationResult.success(
@@ -338,14 +338,14 @@ class TransactionValidator {
         type: 'instruction_count',
         message: 'Transaction must contain at least one instruction',
         code: 'EMPTY_TRANSACTION',
-      ));
+      ),);
     } else if (count > 100) {
       warnings.add(TransactionValidationWarning(
         type: 'instruction_count',
         message:
             'High instruction count ($count) may increase transaction cost',
         context: {'count': count},
-      ));
+      ),);
     }
   }
 
@@ -364,14 +364,14 @@ class TransactionValidator {
             'Transaction size ($size bytes) exceeds limit (${_config.maxTransactionSize} bytes)',
         code: 'SIZE_EXCEEDED',
         context: {'size': size, 'limit': _config.maxTransactionSize},
-      ));
+      ),);
     } else if (size > _config.maxTransactionSize * 0.8) {
       warnings.add(TransactionValidationWarning(
         type: 'transaction_size',
         message:
             'Transaction size ($size bytes) is approaching limit (${_config.maxTransactionSize} bytes)',
         context: {'size': size, 'limit': _config.maxTransactionSize},
-      ));
+      ),);
     }
   }
 
@@ -391,15 +391,15 @@ class TransactionValidator {
         code: 'COMPUTE_EXCEEDED',
         context: {
           'estimated': estimatedUnits,
-          'limit': _config.maxComputeUnits
+          'limit': _config.maxComputeUnits,
         },
-      ));
+      ),);
     } else if (estimatedUnits > _config.maxComputeUnits * 0.8) {
       warnings.add(TransactionValidationWarning(
         type: 'compute_budget',
         message: 'Estimated compute units ($estimatedUnits) are high',
         context: {'estimated': estimatedUnits},
-      ));
+      ),);
     }
   }
 
@@ -418,7 +418,7 @@ class TransactionValidator {
         message:
             'High account count ($accountCount) may increase transaction cost',
         context: {'count': accountCount},
-      ));
+      ),);
     }
 
     if (signerCount > 10) {
@@ -427,7 +427,7 @@ class TransactionValidator {
         message:
             'High signer count ($signerCount) may complicate signing process',
         context: {'count': signerCount},
-      ));
+      ),);
     }
   }
 
@@ -444,7 +444,7 @@ class TransactionValidator {
         type: 'blockhash',
         message: 'Transaction must have a recent blockhash',
         code: 'MISSING_BLOCKHASH',
-      ));
+      ),);
     }
 
     // Validate fee payer
@@ -453,7 +453,7 @@ class TransactionValidator {
         type: 'fee_payer',
         message: 'Transaction must have a fee payer',
         code: 'MISSING_FEE_PAYER',
-      ));
+      ),);
     }
 
     // Validate instructions
@@ -462,7 +462,7 @@ class TransactionValidator {
         type: 'instructions',
         message: 'Transaction must have at least one instruction',
         code: 'EMPTY_INSTRUCTIONS',
-      ));
+      ),);
     }
   }
 
@@ -482,7 +482,7 @@ class TransactionValidator {
           message: 'Instruction $i has invalid program ID',
           code: 'INVALID_PROGRAM_ID',
           context: {'index': i},
-        ));
+        ),);
       }
 
       // Validate instruction data
@@ -491,7 +491,7 @@ class TransactionValidator {
           type: 'instruction_data',
           message: 'Instruction $i has empty data',
           context: {'index': i},
-        ));
+        ),);
       }
     }
   }
@@ -544,7 +544,7 @@ class TransactionValidator {
     final estimatedSize = 100 +
         (uniqueAccounts.length * 32) +
         transaction.instructions.fold<int>(0,
-            (int sum, TransactionInstruction ix) => sum + ix.data.length + 10);
+            (int sum, TransactionInstruction ix) => sum + ix.data.length + 10,);
 
     return TransactionValidationMetrics(
       estimatedSize: estimatedSize,

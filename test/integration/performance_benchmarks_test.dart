@@ -47,7 +47,7 @@ void main() {
       final stats = connectionBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
       expect(stats.average.inMilliseconds,
-          lessThan(5000)); // Should be under 5 seconds in test env
+          lessThan(5000),); // Should be under 5 seconds in test env
     });
 
     test('instruction encoding benchmark', () async {
@@ -56,7 +56,7 @@ void main() {
       // Create mock IDL for encoding tests
       final mockIdl = Idl(
         address: 'BenchmarkProgram1111111111111111111111111',
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'benchmark_program',
           version: '0.1.0',
           spec: '0.1.0',
@@ -96,7 +96,7 @@ void main() {
       final stats = encodingBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
       expect(stats.average.inMicroseconds,
-          lessThan(10000)); // Should be under 10ms
+          lessThan(10000),); // Should be under 10ms
     });
 
     test('transaction building benchmark', () async {
@@ -116,14 +116,14 @@ void main() {
             AccountMeta.readonly(programKeypair.publicKey),
           ],
           data: Uint8List.fromList(List.generate(
-              64, (index) => index % 256)), // 64 bytes of test data
+              64, (index) => index % 256,),), // 64 bytes of test data
         );
 
         final transaction = Transaction(
           instructions: [
             instruction,
             instruction,
-            instruction
+            instruction,
           ], // Multiple instructions
           feePayer: userKeypair.publicKey,
         );
@@ -137,7 +137,7 @@ void main() {
       final stats = transactionBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
       expect(
-          stats.average.inMicroseconds, lessThan(5000)); // Should be under 5ms
+          stats.average.inMicroseconds, lessThan(5000),); // Should be under 5ms
     });
 
     test('account data processing benchmark', () async {
@@ -147,7 +147,7 @@ void main() {
       // Create mock IDL with account definition
       final mockIdl = Idl(
         address: 'AccountBenchmark111111111111111111111111',
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'account_benchmark',
           version: '0.1.0',
           spec: '0.1.0',
@@ -200,7 +200,7 @@ void main() {
       final stats = accountBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
       expect(
-          stats.average.inMilliseconds, lessThan(100)); // Should be under 100ms
+          stats.average.inMilliseconds, lessThan(100),); // Should be under 100ms
 
       print('Account Processing Benchmark: $stats');
     });
@@ -225,7 +225,7 @@ void main() {
 
       // Create many account metas
       final accountMetas =
-          publicKeys.map((pk) => AccountMeta.readonly(pk)).toList();
+          publicKeys.map(AccountMeta.readonly).toList();
 
       memoryBenchmark.stop();
 
@@ -235,7 +235,7 @@ void main() {
 
       final stats = memoryBenchmark.stats;
       expect(stats.average.inSeconds,
-          lessThan(30)); // Should complete within 30 seconds
+          lessThan(30),); // Should complete within 30 seconds
 
       print('Memory Operations Benchmark: $stats');
     });

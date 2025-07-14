@@ -3,6 +3,7 @@
 /// This file contains comprehensive tests for the RPC utilities including
 /// custom method implementations, network detection, request/response logging,
 /// performance monitoring, and batching functionality.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -276,7 +277,6 @@ void main() {
       test('should create custom configuration', () {
         const config = RpcLoggingConfig(
           logRequests: false,
-          logResponses: true,
           logBodies: true,
           logPrefix: '[CUSTOM]',
         );
@@ -521,7 +521,7 @@ void main() {
         connection = Connection('http://localhost:8899');
         client = EnhancedRpcClient(connection);
         batcher = RpcBatcher(client,
-            batchSize: 3, batchDelay: Duration(milliseconds: 50));
+            batchSize: 3, batchDelay: const Duration(milliseconds: 50),);
       });
 
       tearDown(() {
@@ -624,7 +624,7 @@ void main() {
           SolanaNetwork.mainnet,
           SolanaNetwork.testnet,
           SolanaNetwork.devnet,
-          SolanaNetwork.localhost
+          SolanaNetwork.localhost,
         ]) {
           final config = createNetworkConfig(network);
 

@@ -1,8 +1,8 @@
-import '../idl/idl.dart';
-import 'instruction_coder.dart';
-import 'borsh_accounts_coder.dart';
-import 'event_coder.dart';
-import 'types_coder.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/coder/instruction_coder.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_accounts_coder.dart';
+import 'package:coral_xyz_anchor/src/coder/event_coder.dart';
+import 'package:coral_xyz_anchor/src/coder/types_coder.dart';
 
 /// Main coder interface for all serialization/deserialization operations
 ///
@@ -27,10 +27,6 @@ abstract class Coder<A extends String, T extends String> {
 /// This class provides a concrete implementation of the Coder interface
 /// using Borsh serialization for all operations.
 class BorshCoder<A extends String, T extends String> implements Coder<A, T> {
-  final InstructionCoder _instructions;
-  final AccountsCoder<A> _accounts;
-  final EventCoder _events;
-  final TypesCoder<T> _types;
 
   /// Creates a new BorshCoder from an IDL
   ///
@@ -40,6 +36,10 @@ class BorshCoder<A extends String, T extends String> implements Coder<A, T> {
         _accounts = BorshAccountsCoder<A>(idl),
         _events = BorshEventCoder(idl),
         _types = BorshTypesCoder<T>(idl);
+  final InstructionCoder _instructions;
+  final AccountsCoder<A> _accounts;
+  final EventCoder _events;
+  final TypesCoder<T> _types;
 
   @override
   InstructionCoder get instructions => _instructions;

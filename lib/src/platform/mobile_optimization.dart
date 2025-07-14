@@ -7,14 +7,16 @@
 library;
 
 import 'dart:async';
-import '../types/public_key.dart';
-import '../types/transaction.dart';
-import '../provider/anchor_provider.dart';
-import '../provider/connection.dart';
-import 'platform_optimization.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
 
 /// Mobile-specific secure storage implementation
 class MobileSecureStorage implements PlatformStorage {
+
+  MobileSecureStorage._();
   static MobileSecureStorage? _instance;
 
   /// Get singleton instance
@@ -22,8 +24,6 @@ class MobileSecureStorage implements PlatformStorage {
     _instance ??= MobileSecureStorage._();
     return _instance!;
   }
-
-  MobileSecureStorage._();
 
   /// In-memory fallback storage (would use secure storage APIs in real mobile environment)
   final Map<String, String> _secureStorage = {};
@@ -120,10 +120,6 @@ class MobileDeepLinkHandler {
 
 /// Deep link data structure
 class DeepLinkData {
-  final String scheme;
-  final String host;
-  final String path;
-  final Map<String, String> parameters;
 
   const DeepLinkData({
     required this.scheme,
@@ -141,6 +137,10 @@ class DeepLinkData {
       parameters: uri.queryParameters,
     );
   }
+  final String scheme;
+  final String host;
+  final String path;
+  final Map<String, String> parameters;
 
   /// Check if this is a wallet-related deep link
   bool get isWalletLink => scheme == 'solana' && host == 'wallet';
@@ -149,13 +149,16 @@ class DeepLinkData {
   String? get action => path.startsWith('/') ? path.substring(1) : path;
 
   @override
-  String toString() {
-    return 'DeepLinkData($scheme://$host$path)';
-  }
+  String toString() => 'DeepLinkData($scheme://$host$path)';
 }
 
 /// Mobile-optimized connection manager
 class MobileConnectionManager {
+
+  MobileConnectionManager(
+    this._connection, {
+    Duration healthCheckInterval = const Duration(seconds: 30),
+  }) : _healthCheckInterval = healthCheckInterval;
   final Connection _connection;
   final Duration _healthCheckInterval;
   final StreamController<ConnectionHealth> _healthController =
@@ -163,11 +166,6 @@ class MobileConnectionManager {
 
   Timer? _healthCheckTimer;
   ConnectionHealth _currentHealth = ConnectionHealth.unknown;
-
-  MobileConnectionManager(
-    this._connection, {
-    Duration healthCheckInterval = const Duration(seconds: 30),
-  }) : _healthCheckInterval = healthCheckInterval;
 
   /// Current connection health
   ConnectionHealth get health => _currentHealth;
@@ -228,12 +226,12 @@ enum ConnectionHealth {
 
 /// Mobile-optimized transaction manager
 class MobileTransactionManager {
+
+  MobileTransactionManager(this._provider);
   final AnchorProvider _provider;
   final List<PendingTransaction> _pendingTransactions = [];
   final StreamController<TransactionUpdate> _updateController =
       StreamController<TransactionUpdate>.broadcast();
-
-  MobileTransactionManager(this._provider);
 
   /// Stream of transaction updates
   Stream<TransactionUpdate> get transactionUpdates => _updateController.stream;
@@ -259,7 +257,7 @@ class MobileTransactionManager {
     _updateController.add(TransactionUpdate(
       transaction: pendingTx,
       status: TransactionStatus.submitting,
-    ));
+    ),);
 
     try {
       onStatusChange?.call(TransactionStatus.submitting);
@@ -273,7 +271,7 @@ class MobileTransactionManager {
       _updateController.add(TransactionUpdate(
         transaction: pendingTx,
         status: TransactionStatus.confirmed,
-      ));
+      ),);
 
       onStatusChange?.call(TransactionStatus.confirmed);
 
@@ -286,13 +284,13 @@ class MobileTransactionManager {
         transaction: pendingTx,
         status: TransactionStatus.failed,
         error: e.toString(),
-      ));
+      ),);
 
       onStatusChange?.call(TransactionStatus.failed);
 
       if (enableRetry && e.toString().contains('timeout')) {
         // Implement retry logic for mobile networks
-        return await _retryTransaction(pendingTx, onStatusChange);
+        return _retryTransaction(pendingTx, onStatusChange);
       }
 
       rethrow;
@@ -317,7 +315,7 @@ class MobileTransactionManager {
         _updateController.add(TransactionUpdate(
           transaction: pendingTx,
           status: TransactionStatus.retrying,
-        ));
+        ),);
 
         onStatusChange?.call(TransactionStatus.retrying);
 
@@ -329,7 +327,7 @@ class MobileTransactionManager {
         _updateController.add(TransactionUpdate(
           transaction: pendingTx,
           status: TransactionStatus.confirmed,
-        ));
+        ),);
 
         onStatusChange?.call(TransactionStatus.confirmed);
 
@@ -344,7 +342,7 @@ class MobileTransactionManager {
             transaction: pendingTx,
             status: TransactionStatus.failed,
             error: pendingTx.error,
-          ));
+          ),);
 
           onStatusChange?.call(TransactionStatus.failed);
           rethrow;
@@ -359,7 +357,7 @@ class MobileTransactionManager {
   void clearCompleted() {
     _pendingTransactions.removeWhere((tx) =>
         tx.status == TransactionStatus.confirmed ||
-        tx.status == TransactionStatus.failed);
+        tx.status == TransactionStatus.failed,);
   }
 
   /// Dispose resources
@@ -370,6 +368,12 @@ class MobileTransactionManager {
 
 /// Pending transaction tracking
 class PendingTransaction {
+
+  PendingTransaction({
+    required this.transaction,
+    required this.timestamp,
+    required this.timeout,
+  });
   final Transaction transaction;
   final DateTime timestamp;
   final Duration timeout;
@@ -377,12 +381,6 @@ class PendingTransaction {
   String? signature;
   TransactionStatus status = TransactionStatus.pending;
   String? error;
-
-  PendingTransaction({
-    required this.transaction,
-    required this.timestamp,
-    required this.timeout,
-  });
 
   /// Check if transaction has timed out
   bool get isTimedOut => DateTime.now().difference(timestamp) > timeout;
@@ -402,27 +400,27 @@ enum TransactionStatus {
 
 /// Transaction update event
 class TransactionUpdate {
-  final PendingTransaction transaction;
-  final TransactionStatus status;
-  final String? error;
 
   const TransactionUpdate({
     required this.transaction,
     required this.status,
     this.error,
   });
+  final PendingTransaction transaction;
+  final TransactionStatus status;
+  final String? error;
 }
 
 /// Mobile wallet session manager
 class MobileWalletSession {
+
+  MobileWalletSession({PlatformStorage? storage})
+      : _storage = storage ?? MobileSecureStorage.instance;
   static const String _sessionKey = 'mobile_wallet_session';
   static const Duration _defaultSessionTimeout = Duration(hours: 24);
 
   final PlatformStorage _storage;
   Timer? _sessionTimer;
-
-  MobileWalletSession({PlatformStorage? storage})
-      : _storage = storage ?? MobileSecureStorage.instance;
 
   /// Start wallet session
   Future<void> startSession(
@@ -439,9 +437,7 @@ class MobileWalletSession {
 
     // Set up session timeout
     _sessionTimer?.cancel();
-    _sessionTimer = Timer(timeout ?? _defaultSessionTimeout, () {
-      endSession();
-    });
+    _sessionTimer = Timer(timeout ?? _defaultSessionTimeout, endSession);
   }
 
   /// Check if session is active
@@ -484,7 +480,7 @@ class MobileWalletSession {
       final currentWallet = await getSessionWallet();
       if (currentWallet != null) {
         await startSession(currentWallet,
-            timeout: additionalTime ?? _defaultSessionTimeout);
+            timeout: additionalTime ?? _defaultSessionTimeout,);
       }
     }
   }
@@ -497,6 +493,11 @@ class MobileWalletSession {
 
 /// Mobile-specific background sync manager
 class MobileBackgroundSync {
+
+  MobileBackgroundSync(
+    this._provider, {
+    PlatformStorage? storage,
+  }) : _storage = storage ?? MobileSecureStorage.instance;
   static const Duration _defaultSyncInterval = Duration(minutes: 5);
   static const String _lastSyncKey = 'mobile_last_sync';
 
@@ -506,11 +507,6 @@ class MobileBackgroundSync {
 
   Timer? _syncTimer;
   bool _isSyncing = false;
-
-  MobileBackgroundSync(
-    this._provider, {
-    PlatformStorage? storage,
-  }) : _storage = storage ?? MobileSecureStorage.instance;
 
   /// Add background sync task
   void addSyncTask(BackgroundSyncTask task) {
@@ -555,7 +551,7 @@ class MobileBackgroundSync {
       }
 
       await _storage.store(
-          _lastSyncKey, DateTime.now().millisecondsSinceEpoch.toString());
+          _lastSyncKey, DateTime.now().millisecondsSinceEpoch.toString(),);
     } catch (e) {
       print('Background sync failed: $e');
     } finally {
@@ -598,15 +594,15 @@ abstract class BackgroundSyncTask {
 
 /// Account balance sync task
 class AccountBalanceSyncTask implements BackgroundSyncTask {
-  final String accountId;
-  final PublicKey accountAddress;
-  final void Function(int balance) onBalanceUpdate;
 
   const AccountBalanceSyncTask({
     required this.accountId,
     required this.accountAddress,
     required this.onBalanceUpdate,
   });
+  final String accountId;
+  final PublicKey accountAddress;
+  final void Function(int balance) onBalanceUpdate;
 
   @override
   String get id => 'balance_sync_$accountId';

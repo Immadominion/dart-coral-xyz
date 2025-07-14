@@ -3,34 +3,12 @@
 /// This module provides comprehensive code generation and IDE integration
 /// capabilities for the Dart Coral XYZ SDK, matching TypeScript's developer
 /// experience with IntelliSense, debugging, and development tools.
+library;
 
-import '../idl/idl.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Configuration for code generation
 class CodeGenerationConfig {
-  /// Output directory for generated files
-  final String outputDirectory;
-
-  /// Package name for generated code
-  final String packageName;
-
-  /// Whether to generate TypeScript-style interfaces
-  final bool generateInterfaces;
-
-  /// Whether to generate method builders
-  final bool generateMethodBuilders;
-
-  /// Whether to generate account classes
-  final bool generateAccountClasses;
-
-  /// Whether to generate error classes
-  final bool generateErrorClasses;
-
-  /// Custom imports to include in generated files
-  final List<String> customImports;
-
-  /// Naming convention (camelCase, snake_case, PascalCase)
-  final String namingConvention;
 
   const CodeGenerationConfig({
     this.outputDirectory = 'lib/generated',
@@ -64,24 +42,33 @@ class CodeGenerationConfig {
       namingConvention: 'camelCase',
     );
   }
+  /// Output directory for generated files
+  final String outputDirectory;
+
+  /// Package name for generated code
+  final String packageName;
+
+  /// Whether to generate TypeScript-style interfaces
+  final bool generateInterfaces;
+
+  /// Whether to generate method builders
+  final bool generateMethodBuilders;
+
+  /// Whether to generate account classes
+  final bool generateAccountClasses;
+
+  /// Whether to generate error classes
+  final bool generateErrorClasses;
+
+  /// Custom imports to include in generated files
+  final List<String> customImports;
+
+  /// Naming convention (camelCase, snake_case, PascalCase)
+  final String namingConvention;
 }
 
 /// Result of code generation operation
 class CodeGenerationResult {
-  /// Whether the generation was successful
-  final bool success;
-
-  /// Generated files with their content
-  final Map<String, String> generatedFiles;
-
-  /// Any warnings or messages
-  final List<String> warnings;
-
-  /// Any errors that occurred
-  final List<String> errors;
-
-  /// Generation statistics
-  final CodeGenerationStats stats;
 
   const CodeGenerationResult({
     required this.success,
@@ -121,30 +108,24 @@ class CodeGenerationResult {
       stats: stats ?? CodeGenerationStats.empty(),
     );
   }
+  /// Whether the generation was successful
+  final bool success;
+
+  /// Generated files with their content
+  final Map<String, String> generatedFiles;
+
+  /// Any warnings or messages
+  final List<String> warnings;
+
+  /// Any errors that occurred
+  final List<String> errors;
+
+  /// Generation statistics
+  final CodeGenerationStats stats;
 }
 
 /// Statistics for code generation
 class CodeGenerationStats {
-  /// Number of generated files
-  final int filesGenerated;
-
-  /// Total lines of code generated
-  final int linesGenerated;
-
-  /// Number of interfaces generated
-  final int interfacesGenerated;
-
-  /// Number of method builders generated
-  final int methodBuildersGenerated;
-
-  /// Number of account classes generated
-  final int accountClassesGenerated;
-
-  /// Number of error classes generated
-  final int errorClassesGenerated;
-
-  /// Generation time in milliseconds
-  final int generationTimeMs;
 
   const CodeGenerationStats({
     required this.filesGenerated,
@@ -168,13 +149,33 @@ class CodeGenerationStats {
       generationTimeMs: 0,
     );
   }
+  /// Number of generated files
+  final int filesGenerated;
+
+  /// Total lines of code generated
+  final int linesGenerated;
+
+  /// Number of interfaces generated
+  final int interfacesGenerated;
+
+  /// Number of method builders generated
+  final int methodBuildersGenerated;
+
+  /// Number of account classes generated
+  final int accountClassesGenerated;
+
+  /// Number of error classes generated
+  final int errorClassesGenerated;
+
+  /// Generation time in milliseconds
+  final int generationTimeMs;
 }
 
 /// Main code generator for IDL-based types and interfaces
 class AnchorCodeGenerator {
-  final CodeGenerationConfig config;
 
   const AnchorCodeGenerator(this.config);
+  final CodeGenerationConfig config;
 
   /// Generate code from IDL
   Future<CodeGenerationResult> generateFromIdl(Idl idl) async {
@@ -247,19 +248,19 @@ class AnchorCodeGenerator {
     // File header
     buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     buffer.writeln('// Generated from IDL: ${idl.name}');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Imports
     for (final import in config.customImports) {
       buffer.writeln("import '$import';");
     }
     buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
-    buffer.writeln('');
+    buffer.writeln();
 
     // Program interface
     final className = _formatClassName(idl.name ?? 'Unknown');
     buffer.writeln(
-        '/// Generated program interface for ${idl.name ?? 'Unknown'}');
+        '/// Generated program interface for ${idl.name ?? 'Unknown'}',);
     buffer.writeln('abstract class I$className {');
 
     // Method signatures
@@ -279,19 +280,19 @@ class AnchorCodeGenerator {
         buffer.writeln('    }');
       }
       buffer.writeln('  );');
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     buffer.writeln('}');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Concrete implementation
     buffer.writeln('/// Concrete implementation of ${idl.name} program');
     buffer.writeln('class $className implements I$className {');
     buffer.writeln('  final Program<Idl> _program;');
-    buffer.writeln('');
+    buffer.writeln();
     buffer.writeln('  const $className(this._program);');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Method implementations
     for (final instruction in idl.instructions) {
@@ -310,7 +311,7 @@ class AnchorCodeGenerator {
       }
       buffer.writeln('  ) async {');
       buffer.writeln(
-          "    return await _program.methods['${instruction.name}']([");
+          "    return await _program.methods['${instruction.name}']([",);
 
       // Method arguments
       for (final arg in instruction.args) {
@@ -320,7 +321,7 @@ class AnchorCodeGenerator {
 
       buffer.writeln('    ]).rpc();');
       buffer.writeln('  }');
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     buffer.writeln('}');
@@ -335,11 +336,11 @@ class AnchorCodeGenerator {
     // File header
     buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     buffer.writeln('// Generated account classes from IDL: ${idl.name}');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Imports
     buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
-    buffer.writeln('');
+    buffer.writeln();
 
     // Generate each account class
     final accounts = idl.accounts ?? [];
@@ -355,7 +356,7 @@ class AnchorCodeGenerator {
         final fieldType = _dartTypeFromIdlType(field.type);
         buffer.writeln('  final $fieldType $fieldName;');
       }
-      buffer.writeln('');
+      buffer.writeln();
 
       // Constructor
       buffer.writeln('  const $className({');
@@ -364,7 +365,7 @@ class AnchorCodeGenerator {
         buffer.writeln('    required this.$fieldName,');
       }
       buffer.writeln('  });');
-      buffer.writeln('');
+      buffer.writeln();
 
       // From map constructor
       buffer
@@ -376,7 +377,7 @@ class AnchorCodeGenerator {
       }
       buffer.writeln('    );');
       buffer.writeln('  }');
-      buffer.writeln('');
+      buffer.writeln();
 
       // To map method
       buffer.writeln('  Map<String, dynamic> toMap() {');
@@ -389,7 +390,7 @@ class AnchorCodeGenerator {
       buffer.writeln('  }');
 
       buffer.writeln('}');
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     return buffer.toString();
@@ -402,20 +403,20 @@ class AnchorCodeGenerator {
     // File header
     buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     buffer.writeln('// Generated method builders from IDL: ${idl.name}');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Imports
     buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
-    buffer.writeln('');
+    buffer.writeln();
 
     // Generate method builder class
     final className = _formatClassName('${idl.name}Methods');
     buffer.writeln('/// Generated method builders for ${idl.name}');
     buffer.writeln('class $className {');
     buffer.writeln('  final Program<Idl> _program;');
-    buffer.writeln('');
+    buffer.writeln();
     buffer.writeln('  const $className(this._program);');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Generate each method
     for (final instruction in idl.instructions) {
@@ -443,7 +444,7 @@ class AnchorCodeGenerator {
 
       buffer.writeln('    ]);');
       buffer.writeln('  }');
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     buffer.writeln('}');
@@ -458,11 +459,11 @@ class AnchorCodeGenerator {
     // File header
     buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     buffer.writeln('// Generated error classes from IDL: ${idl.name}');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Imports
     buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
-    buffer.writeln('');
+    buffer.writeln();
 
     // Generate each error class
     final errors = idl.errors ?? [];
@@ -476,18 +477,18 @@ class AnchorCodeGenerator {
       buffer.writeln("          message: '${error.msg}',");
       buffer.writeln("          name: '${error.name}',");
       buffer.writeln('        );');
-      buffer.writeln('');
+      buffer.writeln();
 
       // Factory constructor
       buffer.writeln('  factory $className.fromCode(int code) {');
       buffer.writeln('    if (code == ${error.code}) {');
       buffer.writeln('      return const $className();');
       buffer.writeln('    }');
-      buffer.writeln('    throw ArgumentError("Invalid error code: \$code");');
+      buffer.writeln(r'    throw ArgumentError("Invalid error code: $code");');
       buffer.writeln('  }');
 
       buffer.writeln('}');
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     return buffer.toString();
@@ -501,7 +502,7 @@ class AnchorCodeGenerator {
     buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     buffer
         .writeln('// Barrel file for generated ${config.packageName} modules');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Export all generated files
     for (final fileName in fileNames) {
@@ -515,9 +516,7 @@ class AnchorCodeGenerator {
 
   /// Format class name according to naming convention
   /// Class names should always be PascalCase in Dart
-  String _formatClassName(String name) {
-    return _toPascalCase(name);
-  }
+  String _formatClassName(String name) => _toPascalCase(name);
 
   /// Format method name according to naming convention
   String _formatMethodName(String name) {
@@ -553,17 +552,17 @@ class AnchorCodeGenerator {
     // Split by underscores, spaces, or camelCase boundaries
     final words = input
         .replaceAllMapped(
-            RegExp(r'([a-z])([A-Z])'),
+            RegExp('([a-z])([A-Z])'),
             (match) =>
-                '${match.group(1)}_${match.group(2)}') // Insert underscore before caps
+                '${match.group(1)}_${match.group(2)}',) // Insert underscore before caps
         .split(RegExp(r'[_\s]+'))
         .where((word) => word.isNotEmpty);
 
     return words
         .map((word) => word.isNotEmpty
             ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : '')
-        .join('');
+            : '',)
+        .join();
   }
 
   /// Convert to camelCase
@@ -575,12 +574,10 @@ class AnchorCodeGenerator {
   }
 
   /// Convert to snake_case
-  String _toSnakeCase(String input) {
-    return input
+  String _toSnakeCase(String input) => input
         .replaceAll(RegExp(r'[A-Z]'), '_\$0')
         .toLowerCase()
         .replaceAll(RegExp(r'^_'), '');
-  }
 
   /// Convert IDL type to Dart type
   String _dartTypeFromIdlType(dynamic idlType) {
@@ -689,8 +686,6 @@ class AnchorCodeGenerator {
   }
 
   /// Count total lines in generated files
-  int _countLines(Iterable<String> contents) {
-    return contents.fold(
+  int _countLines(Iterable<String> contents) => contents.fold(
         0, (total, content) => total + content.split('\n').length);
-  }
 }

@@ -9,10 +9,10 @@ library;
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../types/transaction.dart';
-import 'wallet_adapter.dart';
-import 'mobile_wallet_adapter.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/wallet/wallet_adapter.dart';
+import 'package:coral_xyz_anchor/src/wallet/mobile_wallet_adapter.dart';
 
 /// Wallet discovery service for automatic wallet detection and management
 ///
@@ -20,6 +20,13 @@ import 'mobile_wallet_adapter.dart';
 /// and automatic failover between different wallet types. It follows the
 /// TypeScript wallet adapter ecosystem patterns.
 class WalletDiscoveryService {
+
+  /// Constructor for wallet discovery service
+  WalletDiscoveryService({
+    WalletDiscoveryConfig? config,
+  }) : _config = config ?? WalletDiscoveryConfig.defaultConfig() {
+    _initialize();
+  }
   /// List of registered wallet adapters
   final List<WalletAdapter> _adapters = [];
 
@@ -36,13 +43,6 @@ class WalletDiscoveryService {
       StreamController<WalletAdapter?>.broadcast();
   final StreamController<WalletDiscoveryEvent> _eventsController =
       StreamController<WalletDiscoveryEvent>.broadcast();
-
-  /// Constructor for wallet discovery service
-  WalletDiscoveryService({
-    WalletDiscoveryConfig? config,
-  }) : _config = config ?? WalletDiscoveryConfig.defaultConfig() {
-    _initialize();
-  }
 
   /// List of all registered wallet adapters
   List<WalletAdapter> get wallets => List.unmodifiable(_adapters);
@@ -77,7 +77,7 @@ class WalletDiscoveryService {
     if (_isMobileEnvironment()) {
       registerWallet(MobileWalletAdapter(
         config: MobileWalletAdapterConfig.defaultConfig(),
-      ));
+      ),);
     }
 
     // PC/Desktop environment - could add desktop wallet adapters here in the future
@@ -85,11 +85,11 @@ class WalletDiscoveryService {
       // Future: Add desktop wallet adapters (Sollet, etc.)
       // For now, we can use mobile wallet adapter with custom configuration
       registerWallet(MobileWalletAdapter(
-        config: MobileWalletAdapterConfig(
+        config: const MobileWalletAdapterConfig(
           appName: 'Coral XYZ Dart SDK (Desktop)',
-          platform: const MobileWalletPlatform.universal(),
+          platform: MobileWalletPlatform.universal(),
         ),
-      ));
+      ),);
     }
   }
 
@@ -164,21 +164,15 @@ class WalletDiscoveryService {
   }
 
   /// Get wallets by ready state
-  List<WalletAdapter> getWalletsByState(WalletReadyState state) {
-    return _adapters.where((adapter) => adapter.readyState == state).toList();
-  }
+  List<WalletAdapter> getWalletsByState(WalletReadyState state) => _adapters.where((adapter) => adapter.readyState == state).toList();
 
   /// Get installed and ready wallets
-  List<WalletAdapter> getAvailableWallets() {
-    return getWalletsByState(WalletReadyState.installed)
+  List<WalletAdapter> getAvailableWallets() => getWalletsByState(WalletReadyState.installed)
         .where((adapter) => adapter.supported)
         .toList();
-  }
 
   /// Get connected wallets
-  List<WalletAdapter> getConnectedWallets() {
-    return _adapters.where((adapter) => adapter.connected).toList();
-  }
+  List<WalletAdapter> getConnectedWallets() => _adapters.where((adapter) => adapter.connected).toList();
 
   /// Find wallet by name
   WalletAdapter? findWalletByName(String name) {
@@ -219,12 +213,12 @@ class WalletDiscoveryService {
 
     if (!wallet.supported) {
       throw WalletNotSupportedException(
-          'Wallet "$walletName" is not supported');
+          'Wallet "$walletName" is not supported',);
     }
 
     if (wallet.readyState != WalletReadyState.installed) {
       throw WalletNotAvailableException(
-          'Wallet "$walletName" is not installed');
+          'Wallet "$walletName" is not installed',);
     }
 
     await wallet.connect();
@@ -315,6 +309,15 @@ class WalletDiscoveryService {
 
 /// Configuration for wallet discovery service
 class WalletDiscoveryConfig {
+
+  const WalletDiscoveryConfig({
+    this.autoRegisterWallets = true,
+    this.autoDiscovery = true,
+    this.discoveryInterval = const Duration(seconds: 5),
+    this.enabledWallets = const [],
+    this.walletPriority = const ['Mobile Wallet Adapter'],
+    this.operationTimeout = const Duration(minutes: 2),
+  });
   /// Whether to automatically register default wallets
   final bool autoRegisterWallets;
 
@@ -333,52 +336,26 @@ class WalletDiscoveryConfig {
   /// Maximum time to wait for wallet operations
   final Duration operationTimeout;
 
-  const WalletDiscoveryConfig({
-    this.autoRegisterWallets = true,
-    this.autoDiscovery = true,
-    this.discoveryInterval = const Duration(seconds: 5),
-    this.enabledWallets = const [],
-    this.walletPriority = const ['Mobile Wallet Adapter'],
-    this.operationTimeout = const Duration(minutes: 2),
-  });
-
   /// Default configuration
-  static WalletDiscoveryConfig defaultConfig() {
-    return const WalletDiscoveryConfig();
-  }
+  static WalletDiscoveryConfig defaultConfig() => const WalletDiscoveryConfig();
 
   /// Mobile-optimized configuration
-  static WalletDiscoveryConfig mobile() {
-    return const WalletDiscoveryConfig(
+  static WalletDiscoveryConfig mobile() => const WalletDiscoveryConfig(
       discoveryInterval: Duration(seconds: 10),
       walletPriority: ['Mobile Wallet Adapter'],
       operationTimeout: Duration(minutes: 5),
     );
-  }
 
   /// Desktop/PC-optimized configuration
-  static WalletDiscoveryConfig desktop() {
-    return const WalletDiscoveryConfig(
+  static WalletDiscoveryConfig desktop() => const WalletDiscoveryConfig(
       discoveryInterval: Duration(seconds: 5),
       walletPriority: ['Mobile Wallet Adapter'], // Use MWA for desktop too
       operationTimeout: Duration(minutes: 2),
     );
-  }
 }
 
 /// Wallet discovery events
 class WalletDiscoveryEvent {
-  /// Event type
-  final WalletDiscoveryEventType type;
-
-  /// Associated wallet adapter (if applicable)
-  final WalletAdapter? wallet;
-
-  /// Additional event data
-  final Map<String, dynamic> data;
-
-  /// Event timestamp
-  final DateTime timestamp;
 
   WalletDiscoveryEvent({
     required this.type,
@@ -471,11 +448,20 @@ class WalletDiscoveryEvent {
       type: WalletDiscoveryEventType.noWalletsAvailable,
     );
   }
+  /// Event type
+  final WalletDiscoveryEventType type;
+
+  /// Associated wallet adapter (if applicable)
+  final WalletAdapter? wallet;
+
+  /// Additional event data
+  final Map<String, dynamic> data;
+
+  /// Event timestamp
+  final DateTime timestamp;
 
   @override
-  String toString() {
-    return 'WalletDiscoveryEvent(type: $type, wallet: ${wallet?.name}, data: $data)';
-  }
+  String toString() => 'WalletDiscoveryEvent(type: $type, wallet: ${wallet?.name}, data: $data)';
 }
 
 /// Types of wallet discovery events
@@ -496,13 +482,13 @@ enum WalletDiscoveryEventType {
 /// This class provides a simplified interface for wallet operations while
 /// leveraging the discovery service for automatic wallet management.
 class UniversalWallet {
-  /// Discovery service instance
-  final WalletDiscoveryService _discoveryService;
 
   /// Constructor
   UniversalWallet({
     WalletDiscoveryConfig? config,
   }) : _discoveryService = WalletDiscoveryService(config: config);
+  /// Discovery service instance
+  final WalletDiscoveryService _discoveryService;
 
   /// Get the discovery service
   WalletDiscoveryService get discoveryService => _discoveryService;
@@ -537,7 +523,7 @@ class UniversalWallet {
     if (wallet == null || !wallet.connected) {
       throw const WalletNotConnectedException();
     }
-    return await wallet.signTransaction(transaction);
+    return wallet.signTransaction(transaction);
   }
 
   /// Sign multiple transactions using the active wallet
@@ -548,7 +534,7 @@ class UniversalWallet {
     if (wallet == null || !wallet.connected) {
       throw const WalletNotConnectedException();
     }
-    return await wallet.signAllTransactions(transactions);
+    return wallet.signAllTransactions(transactions);
   }
 
   /// Sign a message using the active wallet
@@ -557,29 +543,21 @@ class UniversalWallet {
     if (wallet == null || !wallet.connected) {
       throw const WalletNotConnectedException();
     }
-    return await wallet.signMessage(message);
+    return wallet.signMessage(message);
   }
 
   /// Get list of available wallets
-  List<WalletAdapter> getAvailableWallets() {
-    return _discoveryService.getAvailableWallets();
-  }
+  List<WalletAdapter> getAvailableWallets() => _discoveryService.getAvailableWallets();
 
   /// Stream of wallet connection events
-  Stream<bool> get onConnectionChanged {
-    return _discoveryService.onActiveWalletChanged
+  Stream<bool> get onConnectionChanged => _discoveryService.onActiveWalletChanged
         .map((wallet) => wallet?.connected ?? false);
-  }
 
   /// Stream of active wallet changes
-  Stream<WalletAdapter?> get onActiveWalletChanged {
-    return _discoveryService.onActiveWalletChanged;
-  }
+  Stream<WalletAdapter?> get onActiveWalletChanged => _discoveryService.onActiveWalletChanged;
 
   /// Stream of discovery events
-  Stream<WalletDiscoveryEvent> get onDiscoveryEvent {
-    return _discoveryService.onDiscoveryEvent;
-  }
+  Stream<WalletDiscoveryEvent> get onDiscoveryEvent => _discoveryService.onDiscoveryEvent;
 
   /// Clean up resources
   void dispose() {

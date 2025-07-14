@@ -3,16 +3,17 @@
 /// This test file verifies that the Dart implementation correctly implements
 /// the core TypeScript features including Program.at(), dynamic IDL conversion,
 /// context parameter patterns, and unified error handling.
+library;
 
 import 'package:test/test.dart';
 import 'dart:typed_data';
-import '../lib/src/program/program_class.dart';
-import '../lib/src/program/program_error_handler.dart';
-import '../lib/src/program/context.dart';
-import '../lib/src/idl/idl.dart';
-import '../lib/src/idl/idl_utils.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
+import 'package:coral_xyz_anchor/src/program/program_error_handler.dart';
+import 'package:coral_xyz_anchor/src/program/context.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/idl/idl_utils.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
 
 void main() {
   group('Critical Iteration 4: Core TypeScript Features', () {
@@ -30,7 +31,7 @@ void main() {
         // For now, we test the method signature and error handling
         expect(() async {
           await Program.at('11111111111111111111111111111112');
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('should return null when IDL is not found', () async {
@@ -51,7 +52,7 @@ void main() {
               anyOf([
                 isA<ArgumentError>(), // Invalid base58
                 isA<ProgramOperationError>(), // Wrapped error
-              ]));
+              ]),);
         }
       });
     });
@@ -81,7 +82,7 @@ void main() {
 
         // Test that field names are converted
         expect(converted.instructions.first.args.first.name,
-            equals('someFieldName'));
+            equals('someFieldName'),);
       });
 
       test('should handle dot notation in names', () {
@@ -105,7 +106,7 @@ void main() {
 
         // Should preserve dot notation while converting parts
         expect(converted.instructions.first.args.first.name,
-            equals('nestedField.subField'));
+            equals('nestedField.subField'),);
       });
 
       test('should preserve non-snake_case names', () {
@@ -130,7 +131,7 @@ void main() {
         // Should not change already camelCase names
         expect(converted.instructions.first.name, equals('simpleMethod'));
         expect(converted.instructions.first.args.first.name,
-            equals('alreadyCamelCase'));
+            equals('alreadyCamelCase'),);
       });
     });
 
@@ -203,7 +204,7 @@ void main() {
         expect(accountsContext.accounts, isNotNull);
 
         // Test copyWith
-        final commitment = CommitmentConfig(Commitment.confirmed);
+        final commitment = const CommitmentConfig(Commitment.confirmed);
         final updatedContext = accountsContext.copyWith(
           commitment: commitment,
         );
@@ -211,7 +212,7 @@ void main() {
         expect(updatedContext.commitment, equals(commitment));
 
         // Test merging
-        final signerContext = Context<DynamicAccounts>(
+        final signerContext = const Context<DynamicAccounts>(
           signers: [], // Empty list for test
         );
         // Note: There's no merge method in the current Context implementation
@@ -243,7 +244,7 @@ void main() {
         );
         expect(idlError.operation, equals('fetchIdl'));
         expect(
-            idlError.context!['programId'], equals(testProgramId.toBase58()));
+            idlError.context!['programId'], equals(testProgramId.toBase58()),);
 
         // Test account operation error
         final accountError = ProgramOperationError.accountOperation(
@@ -279,7 +280,7 @@ void main() {
               throw Exception('Test exception');
             },
           );
-        }, throwsA(isA<ProgramOperationError>()));
+        }, throwsA(isA<ProgramOperationError>()),);
       });
 
       test('should create user-friendly error messages', () {
@@ -323,7 +324,7 @@ void main() {
 
     group('Program Error Creation', () {
       test('should create unified errors from Program instance', () {
-        final testIdl = Idl(
+        final testIdl = const Idl(
           address: '11111111111111111111111111111112',
           instructions: [],
         );
@@ -333,11 +334,11 @@ void main() {
         expect(error, isA<ProgramOperationError>());
         expect(error.msg, equals('Test error message'));
         expect(
-            error.context!['programId'], equals(program.programId.toBase58()));
+            error.context!['programId'], equals(program.programId.toBase58()),);
       });
 
       test('should wrap operations with Program context', () async {
-        final testIdl = Idl(
+        final testIdl = const Idl(
           address: '11111111111111111111111111111112',
           instructions: [],
         );

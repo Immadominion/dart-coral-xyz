@@ -15,7 +15,7 @@ void main() {
     setUpAll(() async {
       print('Starting Anchor Dart Integration Test Suite...');
       print(
-          'Note: These tests require a local Solana test validator for full functionality');
+          'Note: These tests require a local Solana test validator for full functionality',);
     });
 
     tearDownAll(() async {
@@ -79,7 +79,7 @@ void main() {
       expect(results.length, equals(iterations));
 
       print(
-          'Stress test completed: average time ${averageTime.inMicroseconds}μs');
+          'Stress test completed: average time ${averageTime.inMicroseconds}μs',);
     });
 
     test('memory efficiency scenario', () async {

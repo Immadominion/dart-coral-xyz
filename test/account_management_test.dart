@@ -6,13 +6,13 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 // Mock classes for testing
 class MockConnection extends Connection {
+
+  MockConnection() : super('http://localhost:8899');
   final Map<String, dynamic> _accounts = {};
   final Map<String, StreamController<AccountInfo?>> _subscriptions = {};
   bool _shouldReturnNull = false;
   bool _shouldThrowError = false;
   String _errorType = '';
-
-  MockConnection() : super('http://localhost:8899');
 
   void setReturnNull(bool value) => _shouldReturnNull = value;
   void setThrowError(bool value, [String errorType = '']) {
@@ -46,12 +46,12 @@ class MockConnection extends Connection {
           ? data['lamports'] as int
           : int.tryParse(data['lamports']?.toString() ?? '') ?? 1000000,
       owner: PublicKey.fromBase58(
-          data['owner']?.toString() ?? '11111111111111111111111111111111'),
+          data['owner']?.toString() ?? '11111111111111111111111111111111',),
       data: Uint8List.fromList((data['data'] is List<int>)
           ? data['data'] as List<int>
           : (data['data'] is List)
               ? List<int>.from(data['data'] as List)
-              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],),
       executable: (data['executable'] is bool)
           ? data['executable'] as bool
           : (data['executable']?.toString() == 'true'),
@@ -65,11 +65,9 @@ class MockConnection extends Connection {
   Future<List<AccountInfo?>> getMultipleAccountsInfo(
     List<PublicKey> addresses, {
     CommitmentConfig? commitment,
-  }) async {
-    return Future.wait(
+  }) async => Future.wait(
       addresses.map((addr) => getAccountInfo(addr, commitment: commitment)),
     );
-  }
 
   @override
   Future<List<ProgramAccountInfo>> getProgramAccounts(
@@ -130,21 +128,15 @@ class MockWallet implements Wallet {
       PublicKey.fromBase58('11111111111111111111111111111111');
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async {
-    return transaction;
-  }
+  Future<Transaction> signTransaction(Transaction transaction) async => transaction;
 
   @override
   Future<List<Transaction>> signAllTransactions(
     List<Transaction> transactions,
-  ) async {
-    return transactions;
-  }
+  ) async => transactions;
 
   @override
-  Future<Uint8List> signMessage(Uint8List message) async {
-    return message;
-  }
+  Future<Uint8List> signMessage(Uint8List message) async => message;
 }
 
 class MockCoder implements Coder {
@@ -181,25 +173,19 @@ class MockAccountsCoder implements AccountsCoder {
   }
 
   @override
-  Future<Uint8List> encode<T>(String accountName, T data) async {
-    return Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  }
+  Future<Uint8List> encode<T>(String accountName, T data) async => Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
   @override
   int size(String accountName) => 100;
 
   @override
-  Map<String, dynamic> memcmp(String accountName, {Uint8List? appendData}) {
-    return {
+  Map<String, dynamic> memcmp(String accountName, {Uint8List? appendData}) => {
       'offset': 0,
       'bytes': 'base58string',
     };
-  }
 
   @override
-  Uint8List accountDiscriminator(String accountName) {
-    return Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
-  }
+  Uint8List accountDiscriminator(String accountName) => Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
 }
 
 class MockIdlAccount implements IdlAccount {
@@ -210,7 +196,7 @@ class MockIdlAccount implements IdlAccount {
   List<String>? get docs => null;
 
   @override
-  IdlTypeDefType get type => IdlTypeDefType(
+  IdlTypeDefType get type => const IdlTypeDefType(
         kind: 'struct',
         fields: [],
       );
@@ -219,13 +205,11 @@ class MockIdlAccount implements IdlAccount {
   List<int>? get discriminator => [1, 2, 3, 4, 5, 6, 7, 8];
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       'type': type.toJson(),
       'discriminator': discriminator,
     };
-  }
 }
 
 void main() {
@@ -248,7 +232,7 @@ void main() {
       programId =
           PublicKey.fromBase58('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
-      idlAccount = IdlAccount(
+      idlAccount = const IdlAccount(
         name: 'TestAccount',
         type: IdlTypeDefType(kind: 'struct', fields: []),
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
@@ -337,7 +321,7 @@ void main() {
       });
 
       test('should handle cache expiration', () async {
-        final config = AccountCacheConfig(
+        final config = const AccountCacheConfig(
           ttl: Duration(milliseconds: 50),
           maxEntries: 100,
           cleanupInterval: Duration(milliseconds: 25),
@@ -353,12 +337,12 @@ void main() {
         expect(cacheManagerWithTtl.get(address), equals(accountData));
 
         // Wait for expiration
-        await Future<void>.delayed(Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         expect(cacheManagerWithTtl.get(address), isNull);
       });
 
       test('should enforce cache size limits', () {
-        final config = AccountCacheConfig(
+        final config = const AccountCacheConfig(
           ttl: Duration(minutes: 5),
           maxEntries: 2,
           cleanupInterval: Duration(minutes: 1),
@@ -497,7 +481,7 @@ void main() {
         // Implementation will be added later when AccountOperationsManager API is finalized
       },
           skip:
-              'Test needs to be updated to match AccountOperationsManager API');
+              'Test needs to be updated to match AccountOperationsManager API',);
     });
   });
 }

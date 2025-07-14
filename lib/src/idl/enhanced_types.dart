@@ -51,9 +51,9 @@ abstract class IdlType {
 
 /// Primitive types (bool, u8, i8, etc.)
 class IdlTypePrimitive extends IdlType {
-  final String type;
 
   const IdlTypePrimitive(this.type);
+  final String type;
 
   @override
   dynamic toJson() => type;
@@ -71,9 +71,9 @@ class IdlTypePrimitive extends IdlType {
 
 /// Option type
 class IdlTypeOption extends IdlType {
-  final IdlType inner;
 
   const IdlTypeOption(this.inner);
+  final IdlType inner;
 
   @override
   dynamic toJson() => {'option': inner.toJson()};
@@ -91,9 +91,9 @@ class IdlTypeOption extends IdlType {
 
 /// COption type (compact option)
 class IdlTypeCOption extends IdlType {
-  final IdlType inner;
 
   const IdlTypeCOption(this.inner);
+  final IdlType inner;
 
   @override
   dynamic toJson() => {'coption': inner.toJson()};
@@ -111,9 +111,9 @@ class IdlTypeCOption extends IdlType {
 
 /// Vector type
 class IdlTypeVec extends IdlType {
-  final IdlType inner;
 
   const IdlTypeVec(this.inner);
+  final IdlType inner;
 
   @override
   dynamic toJson() => {'vec': inner.toJson()};
@@ -131,14 +131,14 @@ class IdlTypeVec extends IdlType {
 
 /// Array type with length
 class IdlTypeArray extends IdlType {
+
+  const IdlTypeArray(this.inner, this.length);
   final IdlType inner;
   final IdlArrayLen length;
 
-  const IdlTypeArray(this.inner, this.length);
-
   @override
   dynamic toJson() => {
-        'array': [inner.toJson(), length.toJson()]
+        'array': [inner.toJson(), length.toJson()],
       };
 
   @override
@@ -155,9 +155,9 @@ class IdlTypeArray extends IdlType {
 
 /// Defined type (user-defined)
 class IdlTypeDefined extends IdlType {
-  final IdlTypeDefinedData defined;
 
   const IdlTypeDefined(this.defined);
+  final IdlTypeDefinedData defined;
 
   @override
   dynamic toJson() => {'defined': defined.toJson()};
@@ -176,9 +176,9 @@ class IdlTypeDefined extends IdlType {
 
 /// Generic type parameter
 class IdlTypeGeneric extends IdlType {
-  final String name;
 
   const IdlTypeGeneric(this.name);
+  final String name;
 
   @override
   dynamic toJson() => {'generic': name};
@@ -202,9 +202,9 @@ abstract class IdlTypeDefinedData {
 
 /// Simple defined type (just a name)
 class IdlTypeDefinedSimple extends IdlTypeDefinedData {
-  final String name;
 
   const IdlTypeDefinedSimple(this.name);
+  final String name;
 
   @override
   dynamic toJson() => name;
@@ -223,8 +223,6 @@ class IdlTypeDefinedSimple extends IdlTypeDefinedData {
 
 /// Generic defined type (name + generics)
 class IdlTypeDefinedGeneric extends IdlTypeDefinedData {
-  final String name;
-  final List<IdlGenericArg>? generics;
 
   const IdlTypeDefinedGeneric(this.name, this.generics);
 
@@ -236,6 +234,8 @@ class IdlTypeDefinedGeneric extends IdlTypeDefinedData {
           .toList(),
     );
   }
+  final String name;
+  final List<IdlGenericArg>? generics;
 
   @override
   dynamic toJson() => {
@@ -276,9 +276,9 @@ abstract class IdlArrayLen {
 
 /// Fixed array length
 class IdlArrayLenValue extends IdlArrayLen {
-  final int value;
 
   const IdlArrayLenValue(this.value);
+  final int value;
 
   @override
   dynamic toJson() => value;
@@ -297,9 +297,9 @@ class IdlArrayLenValue extends IdlArrayLen {
 
 /// Generic array length
 class IdlArrayLenGeneric extends IdlArrayLen {
-  final String generic;
 
   const IdlArrayLenGeneric(this.generic);
+  final String generic;
 
   @override
   dynamic toJson() => {'generic': generic};
@@ -337,9 +337,9 @@ abstract class IdlGenericArg {
 
 /// Type generic argument
 class IdlGenericArgType extends IdlGenericArg {
-  final IdlType type;
 
   const IdlGenericArgType(this.type);
+  final IdlType type;
 
   @override
   dynamic toJson() => {
@@ -361,9 +361,9 @@ class IdlGenericArgType extends IdlGenericArg {
 
 /// Const generic argument
 class IdlGenericArgConst extends IdlGenericArg {
-  final String value;
 
   const IdlGenericArgConst(this.value);
+  final String value;
 
   @override
   dynamic toJson() => {
@@ -385,12 +385,6 @@ class IdlGenericArgConst extends IdlGenericArg {
 
 /// Enhanced type definition with generics support
 class IdlTypeDefEnhanced {
-  final String name;
-  final List<String>? docs;
-  final String? serialization;
-  final IdlRepr? repr;
-  final List<IdlTypeDefGeneric>? generics;
-  final IdlTypeDefTy type;
 
   const IdlTypeDefEnhanced({
     required this.name,
@@ -415,6 +409,12 @@ class IdlTypeDefEnhanced {
       type: IdlTypeDefTy.fromJson(json['type'] as Map<String, dynamic>),
     );
   }
+  final String name;
+  final List<String>? docs;
+  final String? serialization;
+  final IdlRepr? repr;
+  final List<IdlTypeDefGeneric>? generics;
+  final IdlTypeDefTy type;
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -452,9 +452,9 @@ abstract class IdlTypeDefGeneric {
 
 /// Type generic
 class IdlTypeDefGenericType extends IdlTypeDefGeneric {
-  final String name;
 
   const IdlTypeDefGenericType(this.name);
+  final String name;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -468,10 +468,10 @@ class IdlTypeDefGenericType extends IdlTypeDefGeneric {
 
 /// Const generic
 class IdlTypeDefGenericConst extends IdlTypeDefGeneric {
-  final String name;
-  final String type;
 
   const IdlTypeDefGenericConst(this.name, this.type);
+  final String name;
+  final String type;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -515,9 +515,9 @@ abstract class IdlTypeDefTy {
 
 /// Struct type definition
 class IdlTypeDefTyStruct extends IdlTypeDefTy {
-  final IdlDefinedFields? fields;
 
   const IdlTypeDefTyStruct(this.fields);
+  final IdlDefinedFields? fields;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -531,9 +531,9 @@ class IdlTypeDefTyStruct extends IdlTypeDefTy {
 
 /// Enum type definition
 class IdlTypeDefTyEnum extends IdlTypeDefTy {
-  final List<IdlEnumVariant> variants;
 
   const IdlTypeDefTyEnum(this.variants);
+  final List<IdlEnumVariant> variants;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -547,9 +547,9 @@ class IdlTypeDefTyEnum extends IdlTypeDefTy {
 
 /// Type alias definition
 class IdlTypeDefTyType extends IdlTypeDefTy {
-  final IdlType alias;
 
   const IdlTypeDefTyType(this.alias);
+  final IdlType alias;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -582,7 +582,7 @@ abstract class IdlDefinedFields {
       } else {
         // Tuple fields
         return IdlDefinedFieldsTuple(
-          json.map((e) => IdlType.fromJson(e)).toList(),
+          json.map(IdlType.fromJson).toList(),
         );
       }
     }
@@ -594,9 +594,9 @@ abstract class IdlDefinedFields {
 
 /// Named fields
 class IdlDefinedFieldsNamed extends IdlDefinedFields {
-  final List<IdlField> fields;
 
   const IdlDefinedFieldsNamed(this.fields);
+  final List<IdlField> fields;
 
   @override
   dynamic toJson() => fields.map((e) => e.toJson()).toList();
@@ -615,9 +615,9 @@ class IdlDefinedFieldsNamed extends IdlDefinedFields {
 
 /// Tuple fields
 class IdlDefinedFieldsTuple extends IdlDefinedFields {
-  final List<IdlType> fields;
 
   const IdlDefinedFieldsTuple(this.fields);
+  final List<IdlType> fields;
 
   @override
   dynamic toJson() => fields.map((e) => e.toJson()).toList();
@@ -636,8 +636,6 @@ class IdlDefinedFieldsTuple extends IdlDefinedFields {
 
 /// Enum variant
 class IdlEnumVariant {
-  final String name;
-  final IdlDefinedFields? fields;
 
   const IdlEnumVariant(this.name, this.fields);
 
@@ -647,6 +645,8 @@ class IdlEnumVariant {
       json['fields'] != null ? IdlDefinedFields.fromJson(json['fields']) : null,
     );
   }
+  final String name;
+  final IdlDefinedFields? fields;
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -694,10 +694,10 @@ abstract class IdlRepr {
 
 /// Rust representation
 class IdlReprRust extends IdlRepr {
-  final bool? packed;
-  final int? align;
 
   const IdlReprRust({this.packed, this.align});
+  final bool? packed;
+  final int? align;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -712,10 +712,10 @@ class IdlReprRust extends IdlRepr {
 
 /// C representation
 class IdlReprC extends IdlRepr {
-  final bool? packed;
-  final int? align;
 
   const IdlReprC({this.packed, this.align});
+  final bool? packed;
+  final int? align;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -741,9 +741,6 @@ class IdlReprTransparent extends IdlRepr {
 
 /// Field definition
 class IdlField {
-  final String name;
-  final List<String>? docs;
-  final IdlType type;
 
   const IdlField({
     required this.name,
@@ -758,6 +755,9 @@ class IdlField {
       type: IdlType.fromJson(json['type']),
     );
   }
+  final String name;
+  final List<String>? docs;
+  final IdlType type;
 
   Map<String, dynamic> toJson() => {
         'name': name,

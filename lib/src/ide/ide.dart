@@ -3,27 +3,20 @@
 /// This module provides comprehensive IDE integration features for the
 /// Dart Coral XYZ SDK, including code generation, documentation generation,
 /// and debugging utilities.
+library;
 
 export 'code_generator.dart';
 export 'documentation_generator.dart';
 export 'debug_utilities.dart';
 
 import 'dart:io';
-import 'code_generator.dart';
-import 'documentation_generator.dart';
-import 'debug_utilities.dart';
-import '../idl/idl.dart';
+import 'package:coral_xyz_anchor/src/ide/code_generator.dart';
+import 'package:coral_xyz_anchor/src/ide/documentation_generator.dart';
+import 'package:coral_xyz_anchor/src/ide/debug_utilities.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Main IDE integration facade
 class AnchorIdeIntegration {
-  /// Code generator instance
-  final AnchorCodeGenerator codeGenerator;
-
-  /// Documentation generator instance
-  final AnchorDocumentationGenerator documentationGenerator;
-
-  /// Debug utilities instance
-  final AnchorDebugger debugger;
 
   const AnchorIdeIntegration({
     required this.codeGenerator,
@@ -66,6 +59,14 @@ class AnchorIdeIntegration {
       debugger: AnchorDebugger(debugConfig),
     );
   }
+  /// Code generator instance
+  final AnchorCodeGenerator codeGenerator;
+
+  /// Documentation generator instance
+  final AnchorDocumentationGenerator documentationGenerator;
+
+  /// Debug utilities instance
+  final AnchorDebugger debugger;
 
   /// Generate complete development package from IDL
   Future<DevelopmentPackageResult> generateDevelopmentPackage(
@@ -90,7 +91,7 @@ class AnchorIdeIntegration {
         debugger.info('Code generation completed', context: {
           'files': codeResult.generatedFiles.length,
           'lines': codeResult.stats.linesGenerated,
-        });
+        },);
       }
 
       // Generate documentation
@@ -104,7 +105,7 @@ class AnchorIdeIntegration {
         warnings.addAll(docResult.warnings);
         debugger.info('Documentation generation completed', context: {
           'files': docResult.generatedDocs.length,
-        });
+        },);
       }
 
       // Analyze IDL for potential issues
@@ -130,7 +131,7 @@ class AnchorIdeIntegration {
       );
     } catch (e) {
       debugger.error('Development package generation failed',
-          context: {'error': e.toString()});
+          context: {'error': e.toString()},);
       errors.add('Package generation failed: $e');
 
       return DevelopmentPackageResult(
@@ -153,36 +154,36 @@ class AnchorIdeIntegration {
 
     // Header
     buffer.writeln('# ${idl.name ?? 'Anchor Program'} API Reference');
-    buffer.writeln('');
+    buffer.writeln();
     buffer.writeln(
-        'This document provides a complete API reference for the ${idl.name ?? 'Anchor program'}.');
-    buffer.writeln('');
+        'This document provides a complete API reference for the ${idl.name ?? 'Anchor program'}.',);
+    buffer.writeln();
 
     // Program interface
     buffer.writeln('## Program Interface');
-    buffer.writeln('');
+    buffer.writeln();
     buffer.writeln('```dart');
     buffer.writeln('final program = Program<Idl>(idl, provider: provider);');
     buffer.writeln('```');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Methods
     if (idl.instructions.isNotEmpty) {
       buffer.writeln('## Methods');
-      buffer.writeln('');
+      buffer.writeln();
 
       for (final instruction in idl.instructions) {
         buffer.writeln('### `${instruction.name}()`');
-        buffer.writeln('');
+        buffer.writeln();
 
         if (instruction.docs?.isNotEmpty == true) {
           buffer.writeln(instruction.docs!.join(' '));
-          buffer.writeln('');
+          buffer.writeln();
         }
 
         // TypeScript-style usage example
         buffer.writeln('**Usage:**');
-        buffer.writeln('');
+        buffer.writeln();
         buffer.writeln('```dart');
         buffer.write('await program.methods.${instruction.name}(');
         if (instruction.args.isNotEmpty) {
@@ -195,12 +196,12 @@ class AnchorIdeIntegration {
         }
         buffer.writeln(').rpc();');
         buffer.writeln('```');
-        buffer.writeln('');
+        buffer.writeln();
 
         // Fluent API example
         if (instruction.accounts.isNotEmpty) {
           buffer.writeln('**With account specification:**');
-          buffer.writeln('');
+          buffer.writeln();
           buffer.writeln('```dart');
           buffer.write('await program.methods.${instruction.name}(');
           if (instruction.args.isNotEmpty) {
@@ -214,7 +215,7 @@ class AnchorIdeIntegration {
           buffer.writeln('  })');
           buffer.writeln('  .rpc();');
           buffer.writeln('```');
-          buffer.writeln('');
+          buffer.writeln();
         }
       }
     }
@@ -223,27 +224,27 @@ class AnchorIdeIntegration {
     final accounts = idl.accounts ?? [];
     if (accounts.isNotEmpty) {
       buffer.writeln('## Account Fetching');
-      buffer.writeln('');
+      buffer.writeln();
 
       for (final account in accounts) {
         buffer.writeln('### `${account.name}`');
-        buffer.writeln('');
+        buffer.writeln();
 
         buffer.writeln('**Fetch single account:**');
-        buffer.writeln('');
+        buffer.writeln();
         buffer.writeln('```dart');
         buffer.writeln(
-            'final accountData = await program.account.${account.name}.fetch(accountAddress);');
+            'final accountData = await program.account.${account.name}.fetch(accountAddress);',);
         buffer.writeln('```');
-        buffer.writeln('');
+        buffer.writeln();
 
         buffer.writeln('**Fetch multiple accounts:**');
-        buffer.writeln('');
+        buffer.writeln();
         buffer.writeln('```dart');
         buffer.writeln(
-            'final accounts = await program.account.${account.name}.all();');
+            'final accounts = await program.account.${account.name}.all();',);
         buffer.writeln('```');
-        buffer.writeln('');
+        buffer.writeln();
       }
     }
 
@@ -253,9 +254,9 @@ class AnchorIdeIntegration {
 
   /// Create development workspace structure
   Future<void> createWorkspaceStructure(
-      String projectPath, String projectName) async {
+      String projectPath, String projectName,) async {
     debugger.info('Creating workspace structure',
-        context: {'path': projectPath, 'name': projectName});
+        context: {'path': projectPath, 'name': projectName},);
 
     final projectDir = Directory(projectPath);
     if (!projectDir.existsSync()) {
@@ -410,6 +411,15 @@ Run `dart pub get` to install dependencies.
 
 /// Result of development package generation
 class DevelopmentPackageResult {
+
+  const DevelopmentPackageResult({
+    required this.success,
+    required this.codeResult,
+    required this.documentationResult,
+    required this.warnings,
+    required this.errors,
+    this.debugSession,
+  });
   /// Whether generation was successful
   final bool success;
 
@@ -428,23 +438,14 @@ class DevelopmentPackageResult {
   /// Debug session used during generation
   final DebugSession? debugSession;
 
-  const DevelopmentPackageResult({
-    required this.success,
-    required this.codeResult,
-    required this.documentationResult,
-    required this.warnings,
-    required this.errors,
-    this.debugSession,
-  });
-
   /// Generate summary report
   String generateSummary() {
     final buffer = StringBuffer();
 
     buffer.writeln('# Development Package Generation Summary');
-    buffer.writeln('');
+    buffer.writeln();
     buffer.writeln('**Status:** ${success ? "SUCCESS" : "FAILED"}');
-    buffer.writeln('');
+    buffer.writeln();
 
     // Code generation
     buffer.writeln('## Code Generation');
@@ -454,32 +455,32 @@ class DevelopmentPackageResult {
       buffer.writeln('- Lines of code: ${codeResult.stats.linesGenerated}');
       buffer.writeln('- Interfaces: ${codeResult.stats.interfacesGenerated}');
       buffer.writeln(
-          '- Method builders: ${codeResult.stats.methodBuildersGenerated}');
+          '- Method builders: ${codeResult.stats.methodBuildersGenerated}',);
       buffer.writeln(
-          '- Account classes: ${codeResult.stats.accountClassesGenerated}');
+          '- Account classes: ${codeResult.stats.accountClassesGenerated}',);
       buffer.writeln(
-          '- Error classes: ${codeResult.stats.errorClassesGenerated}');
+          '- Error classes: ${codeResult.stats.errorClassesGenerated}',);
     } else {
       buffer.writeln('❌ **Failed**');
       for (final error in codeResult.errors) {
         buffer.writeln('- $error');
       }
     }
-    buffer.writeln('');
+    buffer.writeln();
 
     // Documentation generation
     buffer.writeln('## Documentation Generation');
     if (documentationResult.success) {
       buffer.writeln('✅ **Success**');
       buffer.writeln(
-          '- Documentation files: ${documentationResult.generatedDocs.length}');
+          '- Documentation files: ${documentationResult.generatedDocs.length}',);
     } else {
       buffer.writeln('❌ **Failed**');
       for (final error in documentationResult.errors) {
         buffer.writeln('- $error');
       }
     }
-    buffer.writeln('');
+    buffer.writeln();
 
     // Warnings
     if (warnings.isNotEmpty) {
@@ -487,7 +488,7 @@ class DevelopmentPackageResult {
       for (final warning in warnings) {
         buffer.writeln('⚠️ $warning');
       }
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     // Errors
@@ -496,7 +497,7 @@ class DevelopmentPackageResult {
       for (final error in errors) {
         buffer.writeln('❌ $error');
       }
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     return buffer.toString();

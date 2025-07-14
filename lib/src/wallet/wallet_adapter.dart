@@ -8,8 +8,8 @@ library;
 
 import 'dart:async';
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../types/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
 
 /// Standard wallet adapter interface following Solana wallet adapter standards
 ///
@@ -227,6 +227,13 @@ abstract class BaseWalletAdapter implements WalletAdapter {
 
 /// Exception thrown when wallet operations fail
 class WalletException implements Exception {
+
+  const WalletException(
+    this.message, {
+    this.code,
+    this.cause,
+    this.context,
+  });
   /// The error message describing what went wrong
   final String message;
 
@@ -238,13 +245,6 @@ class WalletException implements Exception {
 
   /// Additional context data for debugging
   final Map<String, dynamic>? context;
-
-  const WalletException(
-    this.message, {
-    this.code,
-    this.cause,
-    this.context,
-  });
 
   @override
   String toString() {
@@ -265,12 +265,11 @@ class WalletException implements Exception {
 /// Exception thrown when wallet connection fails
 class WalletConnectionException extends WalletException {
   const WalletConnectionException(
-    String message, {
+    super.message, {
     String? code,
-    dynamic cause,
-    Map<String, dynamic>? context,
-  }) : super(message,
-            code: code ?? 'CONNECTION_FAILED', cause: cause, context: context);
+    super.cause,
+    super.context,
+  }) : super(code: code ?? 'CONNECTION_FAILED',);
 }
 
 /// Exception thrown when user rejects a wallet operation
@@ -300,10 +299,10 @@ class WalletNotConnectedException extends WalletException {
 /// Exception thrown when wallet signing operations fail
 class WalletSigningException extends WalletException {
   const WalletSigningException(
-    String message, {
-    dynamic cause,
-    Map<String, dynamic>? context,
-  }) : super(message, code: 'SIGNING_FAILED', cause: cause, context: context);
+    super.message, {
+    super.cause,
+    super.context,
+  }) : super(code: 'SIGNING_FAILED');
 }
 
 /// Exception thrown when requested wallet is not available
@@ -332,7 +331,6 @@ class WalletNotSupportedException extends WalletException {
 
 /// Exception thrown when wallet operation times out
 class WalletTimeoutException extends WalletException {
-  final Duration timeout;
 
   WalletTimeoutException(
     this.timeout, [
@@ -344,4 +342,5 @@ class WalletTimeoutException extends WalletException {
           code: 'TIMEOUT',
           context: context,
         );
+  final Duration timeout;
 }

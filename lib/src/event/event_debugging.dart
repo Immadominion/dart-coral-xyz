@@ -2,6 +2,7 @@
 ///
 /// This module provides comprehensive debugging tools, performance monitoring,
 /// and diagnostic capabilities for the event system.
+library;
 
 import 'dart:async';
 import 'dart:collection';
@@ -9,6 +10,12 @@ import 'dart:math' as math;
 
 /// Event debugging and monitoring service
 class EventDebugMonitor {
+
+  EventDebugMonitor({this.config = const EventMonitorConfig()}) {
+    _statsCollector = EventStatisticsCollector(config);
+    _startTime = DateTime.now();
+    _startMonitoring();
+  }
   final EventMonitorConfig config;
 
   // Performance tracking
@@ -27,12 +34,6 @@ class EventDebugMonitor {
   late final EventStatisticsCollector _statsCollector;
   Timer? _monitoringTimer;
   DateTime? _startTime;
-
-  EventDebugMonitor({this.config = const EventMonitorConfig()}) {
-    _statsCollector = EventStatisticsCollector(config);
-    _startTime = DateTime.now();
-    _startMonitoring();
-  }
 
   /// Stream of debug information
   Stream<EventDebugInfo> get debugInfo => _debugInfoController.stream;
@@ -63,7 +64,7 @@ class EventDebugMonitor {
         eventName: eventName,
         message: 'Event processing started',
         metadata: metadata,
-      ));
+      ),);
     }
 
     return id;
@@ -109,13 +110,13 @@ class EventDebugMonitor {
         message:
             success ? 'Event processing completed' : 'Event processing failed',
         metadata: {'duration': duration.inMicroseconds, 'error': error},
-      ));
+      ),);
     }
   }
 
   /// Record event parsing performance
   void recordEventParsingPerformance(
-      String eventName, Duration parseTime, bool success) {
+      String eventName, Duration parseTime, bool success,) {
     _statsCollector.recordEventParsing(eventName, parseTime, success);
 
     if (!success || parseTime > config.parseTimeAlertThreshold) {
@@ -128,13 +129,13 @@ class EventDebugMonitor {
         eventName: eventName,
         timestamp: DateTime.now(),
         metadata: {'parseTime': parseTime.inMicroseconds, 'success': success},
-      ));
+      ),);
     }
   }
 
   /// Record subscription activity
   void recordSubscriptionActivity(
-      String eventName, SubscriptionActivity activity) {
+      String eventName, SubscriptionActivity activity,) {
     _statsCollector.recordSubscriptionActivity(eventName, activity);
 
     if (config.enableDetailedLogging) {
@@ -144,7 +145,7 @@ class EventDebugMonitor {
         eventName: eventName,
         message: 'Subscription activity: ${activity.name}',
         metadata: {'activity': activity.name},
-      ));
+      ),);
     }
   }
 
@@ -194,9 +195,7 @@ class EventDebugMonitor {
   }
 
   /// Get active performance trackers
-  Map<String, EventPerformanceTracker> getActiveTrackers() {
-    return Map.unmodifiable(_performanceTrackers);
-  }
+  Map<String, EventPerformanceTracker> getActiveTrackers() => Map.unmodifiable(_performanceTrackers);
 
   /// Generate performance report
   EventPerformanceReport generatePerformanceReport() {
@@ -259,7 +258,7 @@ class EventDebugMonitor {
         eventName: eventName,
         timestamp: DateTime.now(),
         metadata: {'processingTime': processingTime.inMicroseconds},
-      ));
+      ),);
     }
 
     // Check error rate
@@ -273,7 +272,7 @@ class EventDebugMonitor {
         eventName: eventName,
         timestamp: DateTime.now(),
         metadata: {'errorRate': recentFailures},
-      ));
+      ),);
     }
   }
 
@@ -288,9 +287,7 @@ class EventDebugMonitor {
   }
 
   /// Generate unique ID
-  String _generateId() {
-    return '${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
-  }
+  String _generateId() => '${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
 
   /// Dispose resources
   Future<void> dispose() async {
@@ -302,6 +299,13 @@ class EventDebugMonitor {
 
 /// Event performance tracker
 class EventPerformanceTracker {
+
+  EventPerformanceTracker({
+    required this.id,
+    required this.eventName,
+    required this.startTime,
+    this.metadata = const {},
+  });
   final String id;
   final String eventName;
   final DateTime startTime;
@@ -310,13 +314,6 @@ class EventPerformanceTracker {
   Duration? _duration;
   bool? _success;
   String? _error;
-
-  EventPerformanceTracker({
-    required this.id,
-    required this.eventName,
-    required this.startTime,
-    this.metadata = const {},
-  });
 
   void complete(Duration duration, bool success, String? error) {
     _duration = duration;
@@ -332,11 +329,6 @@ class EventPerformanceTracker {
 
 /// Debug entry for event processing
 class EventDebugEntry {
-  final DateTime timestamp;
-  final DebugLevel level;
-  final String eventName;
-  final String message;
-  final Map<String, dynamic> metadata;
 
   const EventDebugEntry({
     required this.timestamp,
@@ -345,16 +337,15 @@ class EventDebugEntry {
     required this.message,
     this.metadata = const {},
   });
+  final DateTime timestamp;
+  final DebugLevel level;
+  final String eventName;
+  final String message;
+  final Map<String, dynamic> metadata;
 }
 
 /// Event debug information
 class EventDebugInfo {
-  final String eventName;
-  final Duration processingTime;
-  final bool success;
-  final String? error;
-  final Map<String, dynamic> metadata;
-  final DateTime timestamp;
 
   EventDebugInfo({
     required this.eventName,
@@ -377,16 +368,16 @@ class EventDebugInfo {
       },
     );
   }
+  final String eventName;
+  final Duration processingTime;
+  final bool success;
+  final String? error;
+  final Map<String, dynamic> metadata;
+  final DateTime timestamp;
 }
 
 /// Event alert
 class EventAlert {
-  final AlertType type;
-  final AlertSeverity severity;
-  final String message;
-  final String eventName;
-  final DateTime timestamp;
-  final Map<String, dynamic> metadata;
 
   const EventAlert({
     required this.type,
@@ -396,18 +387,16 @@ class EventAlert {
     required this.timestamp,
     this.metadata = const {},
   });
+  final AlertType type;
+  final AlertSeverity severity;
+  final String message;
+  final String eventName;
+  final DateTime timestamp;
+  final Map<String, dynamic> metadata;
 }
 
 /// Event performance metrics
 class EventPerformanceMetrics {
-  final String eventName;
-  final int totalProcessed;
-  final Duration averageProcessingTime;
-  final Duration minProcessingTime;
-  final Duration maxProcessingTime;
-  final Duration p50ProcessingTime;
-  final Duration p95ProcessingTime;
-  final Duration p99ProcessingTime;
 
   const EventPerformanceMetrics({
     required this.eventName,
@@ -419,17 +408,18 @@ class EventPerformanceMetrics {
     required this.p95ProcessingTime,
     required this.p99ProcessingTime,
   });
+  final String eventName;
+  final int totalProcessed;
+  final Duration averageProcessingTime;
+  final Duration minProcessingTime;
+  final Duration maxProcessingTime;
+  final Duration p50ProcessingTime;
+  final Duration p95ProcessingTime;
+  final Duration p99ProcessingTime;
 }
 
 /// Event performance report
 class EventPerformanceReport {
-  final DateTime generatedAt;
-  final Duration uptime;
-  final int totalEventsProcessed;
-  final Map<String, EventPerformanceMetrics> eventMetrics;
-  final int activeTrackers;
-  final int debugHistorySize;
-  final EventMonitoringStats overallStats;
 
   const EventPerformanceReport({
     required this.generatedAt,
@@ -440,17 +430,17 @@ class EventPerformanceReport {
     required this.debugHistorySize,
     required this.overallStats,
   });
+  final DateTime generatedAt;
+  final Duration uptime;
+  final int totalEventsProcessed;
+  final Map<String, EventPerformanceMetrics> eventMetrics;
+  final int activeTrackers;
+  final int debugHistorySize;
+  final EventMonitoringStats overallStats;
 }
 
 /// Event monitoring configuration
 class EventMonitorConfig {
-  final bool enableDetailedLogging;
-  final bool enablePeriodicReporting;
-  final Duration reportingInterval;
-  final Duration slowProcessingThreshold;
-  final Duration parseTimeAlertThreshold;
-  final double errorRateThreshold;
-  final int maxDebugHistorySize;
 
   const EventMonitorConfig({
     this.enableDetailedLogging = true,
@@ -481,6 +471,13 @@ class EventMonitorConfig {
         errorRateThreshold: 0.15, // 15%
         maxDebugHistorySize: 2000,
       );
+  final bool enableDetailedLogging;
+  final bool enablePeriodicReporting;
+  final Duration reportingInterval;
+  final Duration slowProcessingThreshold;
+  final Duration parseTimeAlertThreshold;
+  final double errorRateThreshold;
+  final int maxDebugHistorySize;
 }
 
 /// Debug levels
@@ -497,16 +494,16 @@ enum SubscriptionActivity { subscribe, unsubscribe, reconnect, error }
 
 /// Statistics collector
 class EventStatisticsCollector {
+
+  EventStatisticsCollector(this.config);
   final EventMonitorConfig config;
   final Map<String, List<bool>> _recentResults = {};
   final Map<String, List<Duration>> _recentProcessingTimes = {};
   final Map<String, int> _eventCounts = {};
   final Map<String, int> _errorCounts = {};
 
-  EventStatisticsCollector(this.config);
-
   void recordEventProcessing(
-      String eventName, Duration duration, bool success) {
+      String eventName, Duration duration, bool success,) {
     _eventCounts[eventName] = (_eventCounts[eventName] ?? 0) + 1;
     if (!success) {
       _errorCounts[eventName] = (_errorCounts[eventName] ?? 0) + 1;
@@ -531,26 +528,24 @@ class EventStatisticsCollector {
   }
 
   void recordSubscriptionActivity(
-      String eventName, SubscriptionActivity activity) {
+      String eventName, SubscriptionActivity activity,) {
     // Track subscription activities
   }
 
   double getRecentFailureRate(String eventName) {
     final results = _recentResults[eventName];
-    if (results == null || results.isEmpty) return 0.0;
+    if (results == null || results.isEmpty) return 0;
 
     final failures = results.where((r) => !r).length;
     return failures / results.length;
   }
 
-  EventMonitoringStats getStats() {
-    return EventMonitoringStats(
+  EventMonitoringStats getStats() => EventMonitoringStats(
       totalEvents: _eventCounts.values.fold(0, (a, b) => a + b),
       totalErrors: _errorCounts.values.fold(0, (a, b) => a + b),
       eventBreakdown: Map.from(_eventCounts),
       errorBreakdown: Map.from(_errorCounts),
     );
-  }
 
   void reset() {
     _recentResults.clear();
@@ -562,10 +557,6 @@ class EventStatisticsCollector {
 
 /// Event monitoring statistics
 class EventMonitoringStats {
-  final int totalEvents;
-  final int totalErrors;
-  final Map<String, int> eventBreakdown;
-  final Map<String, int> errorBreakdown;
 
   const EventMonitoringStats({
     required this.totalEvents,
@@ -573,6 +564,10 @@ class EventMonitoringStats {
     required this.eventBreakdown,
     required this.errorBreakdown,
   });
+  final int totalEvents;
+  final int totalErrors;
+  final Map<String, int> eventBreakdown;
+  final Map<String, int> errorBreakdown;
 
   double get errorRate => totalEvents > 0 ? totalErrors / totalEvents : 0.0;
 }

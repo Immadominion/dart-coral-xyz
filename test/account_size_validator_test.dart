@@ -4,19 +4,15 @@ import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 void main() {
   group('AccountSizeValidator', () {
-    setUp(() {
-      // Reset statistics before each test
-      AccountSizeValidator.resetStatistics();
-    });
+    setUp(AccountSizeValidator.resetStatistics);
 
     group('Basic Size Validation', () {
       test('validates correct account size with discriminator', () {
         // Create account data: 8-byte discriminator + 16 bytes payload = 24 bytes total
         final accountData = Uint8List(24);
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16, // Payload size (discriminator added automatically)
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
@@ -33,10 +29,9 @@ void main() {
       test('rejects account data too small', () {
         // Create account data: only 4 bytes (too small for discriminator)
         final accountData = Uint8List(4);
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16,
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
@@ -54,11 +49,10 @@ void main() {
       test('rejects account data too large with maximum size', () {
         // Create large account data
         final accountData = Uint8List(1000);
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16,
           maximumSize: 32, // 32 bytes payload + 8 discriminator = 40 total max
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
@@ -78,10 +72,9 @@ void main() {
       test('validates discriminator space requirement', () {
         // Account with discriminator but insufficient size
         final accountData = Uint8List(6); // Less than 8 bytes for discriminator
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 0, // No additional payload required
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
@@ -98,7 +91,7 @@ void main() {
       test('allows accounts without discriminator', () {
         // Account without discriminator requirement
         final accountData = Uint8List(16);
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'SystemAccount',
           minimumSize: 16,
           hasDiscriminator: false,
@@ -116,13 +109,13 @@ void main() {
 
       test('checks discriminator space utility', () {
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(8)), isTrue);
+            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(8)), isTrue,);
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(10)), isTrue);
+            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(10)), isTrue,);
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(7)), isFalse);
+            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(7)), isFalse,);
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(0)), isFalse);
+            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(0)), isFalse,);
       });
     });
 
@@ -130,14 +123,13 @@ void main() {
       test('validates variable-length account with strict mode disabled', () {
         // Account with variable-length fields
         final accountData = Uint8List(50); // More than minimum
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'VariableAccount',
           minimumSize: 16,
           hasVariableLengthFields: true,
-          hasDiscriminator: true,
         );
 
-        final config = AccountSizeValidationConfig(strictValidation: false);
+        final config = const AccountSizeValidationConfig(strictValidation: false);
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -153,14 +145,13 @@ void main() {
       test('rejects variable-length account in strict mode', () {
         // Account with variable-length fields but strict validation
         final accountData = Uint8List(50); // More than minimum
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'VariableAccount',
           minimumSize: 16,
           hasVariableLengthFields: true,
-          hasDiscriminator: true,
         );
 
-        final config = AccountSizeValidationConfig(strictValidation: true);
+        final config = const AccountSizeValidationConfig();
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -168,21 +159,19 @@ void main() {
         );
 
         expect(
-            result.isValid, isTrue); // Should pass since it has variable fields
+            result.isValid, isTrue,); // Should pass since it has variable fields
       });
 
       test('strict validation fails for fixed-size account with wrong size',
           () {
         // Fixed-size account with wrong size
         final accountData = Uint8List(50);
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'FixedAccount',
           minimumSize: 16,
-          hasVariableLengthFields: false, // Fixed size
-          hasDiscriminator: true,
         );
 
-        final config = AccountSizeValidationConfig(strictValidation: true);
+        final config = const AccountSizeValidationConfig();
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -198,13 +187,12 @@ void main() {
       test('allows size within minimum tolerance', () {
         // Account slightly smaller than expected but within tolerance
         final accountData = Uint8List(22); // 2 bytes short
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16,
-          hasDiscriminator: true,
         );
 
-        final config = AccountSizeValidationConfig(
+        final config = const AccountSizeValidationConfig(
           minimumSizeTolerance: 4,
           strictValidation: false, // Allow tolerance to work
         );
@@ -220,14 +208,13 @@ void main() {
       test('allows size within maximum tolerance', () {
         // Account slightly larger than max but within tolerance
         final accountData = Uint8List(34); // 2 bytes over max (32 + 2 = 34)
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16,
           maximumSize: 24, // 32 total with discriminator
-          hasDiscriminator: true,
         );
 
-        final config = AccountSizeValidationConfig(maximumSizeTolerance: 4);
+        final config = const AccountSizeValidationConfig(maximumSizeTolerance: 4);
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -240,13 +227,12 @@ void main() {
       test('rejects size outside tolerance', () {
         // Account too far outside tolerance
         final accountData = Uint8List(18); // 6 bytes short
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16,
-          hasDiscriminator: true,
         );
 
-        final config = AccountSizeValidationConfig(minimumSizeTolerance: 4);
+        final config = const AccountSizeValidationConfig(minimumSizeTolerance: 4);
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -260,16 +246,14 @@ void main() {
     group('Configuration Presets', () {
       test('strict configuration validates exactly', () {
         final accountData = Uint8List(25); // 1 byte too large
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16,
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
-          config: AccountSizeValidationConfig.strict,
         );
 
         expect(result.isValid, isFalse);
@@ -277,10 +261,9 @@ void main() {
 
       test('permissive configuration allows some variance', () {
         final accountData = Uint8List(32); // 8 bytes larger than minimum
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 16,
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
@@ -294,10 +277,9 @@ void main() {
 
       test('bypass configuration always succeeds', () {
         final accountData = Uint8List(1); // Way too small
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'TestAccount',
           minimumSize: 100,
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
@@ -316,7 +298,6 @@ void main() {
         expect(
           AccountSizeValidator.calculateExpectedSize(
             baseFieldsSize: 32,
-            includeDiscriminator: true,
           ),
           equals(40),
         );
@@ -372,16 +353,15 @@ void main() {
     group('Complex Account Structures', () {
       test('validates account with field definitions', () {
         final fields = [
-          AccountFieldDefinition(name: 'authority', size: 32),
-          AccountFieldDefinition(name: 'amount', size: 8),
-          AccountFieldDefinition(name: 'bump', size: 1),
+          const AccountFieldDefinition(name: 'authority', size: 32),
+          const AccountFieldDefinition(name: 'amount', size: 8),
+          const AccountFieldDefinition(name: 'bump', size: 1),
         ];
 
         final structureDefinition = AccountStructureDefinition(
           name: 'ComplexAccount',
           minimumSize: 41, // 32 + 8 + 1
           fields: fields,
-          hasDiscriminator: true,
         );
 
         final accountData = Uint8List(49); // 8 (discriminator) + 41 (fields)
@@ -396,8 +376,8 @@ void main() {
 
       test('validates account with optional fields', () {
         final fields = [
-          AccountFieldDefinition(name: 'required_field', size: 8),
-          AccountFieldDefinition(
+          const AccountFieldDefinition(name: 'required_field', size: 8),
+          const AccountFieldDefinition(
             name: 'optional_field',
             size: 4,
             isOptional: true,
@@ -410,7 +390,6 @@ void main() {
           maximumSize: 12, // Both fields
           hasVariableLengthFields: true,
           fields: fields,
-          hasDiscriminator: true,
         );
 
         // Test with only required field
@@ -440,7 +419,7 @@ void main() {
         final validations = [
           (
             accountData: Uint8List(24),
-            structureDefinition: AccountStructureDefinition(
+            structureDefinition: const AccountStructureDefinition(
               name: 'Account1',
               minimumSize: 16,
             ),
@@ -448,7 +427,7 @@ void main() {
           ),
           (
             accountData: Uint8List(32),
-            structureDefinition: AccountStructureDefinition(
+            structureDefinition: const AccountStructureDefinition(
               name: 'Account2',
               minimumSize: 24,
             ),
@@ -456,7 +435,7 @@ void main() {
           ),
           (
             accountData: Uint8List(4), // Too small
-            structureDefinition: AccountStructureDefinition(
+            structureDefinition: const AccountStructureDefinition(
               name: 'Account3',
               minimumSize: 16,
             ),
@@ -475,7 +454,7 @@ void main() {
 
     group('Size Breakdown Analysis', () {
       test('provides detailed size breakdown', () {
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'AnalysisAccount',
           minimumSize: 24,
           maximumSize: 48,
@@ -488,7 +467,6 @@ void main() {
               isVariableLength: true,
             ),
           ],
-          hasDiscriminator: true,
         );
 
         final accountData = Uint8List(40);
@@ -519,7 +497,7 @@ void main() {
         // Successful validation
         AccountSizeValidator.validateAccountSize(
           accountData: Uint8List(24),
-          structureDefinition: AccountStructureDefinition(
+          structureDefinition: const AccountStructureDefinition(
             name: 'TestAccount',
             minimumSize: 16,
           ),
@@ -532,7 +510,7 @@ void main() {
         // Failed validation
         AccountSizeValidator.validateAccountSize(
           accountData: Uint8List(4),
-          structureDefinition: AccountStructureDefinition(
+          structureDefinition: const AccountStructureDefinition(
             name: 'TestAccount',
             minimumSize: 16,
           ),
@@ -551,7 +529,7 @@ void main() {
     group('Error Context and Reporting', () {
       test('includes detailed context in validation results', () {
         final accountData = Uint8List(4); // Too small
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'DetailedAccount',
           minimumSize: 16,
         );
@@ -559,7 +537,7 @@ void main() {
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
-          config: AccountSizeValidationConfig(includeContext: true),
+          config: const AccountSizeValidationConfig(),
         );
 
         expect(result.isValid, isFalse);
@@ -572,7 +550,7 @@ void main() {
 
       test('excludes context when configured', () {
         final accountData = Uint8List(4);
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'NoContextAccount',
           minimumSize: 16,
         );
@@ -580,7 +558,7 @@ void main() {
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
-          config: AccountSizeValidationConfig(includeContext: false),
+          config: const AccountSizeValidationConfig(includeContext: false),
         );
 
         expect(result.isValid, isFalse);
@@ -591,7 +569,7 @@ void main() {
     group('Edge Cases', () {
       test('handles empty account data', () {
         final accountData = Uint8List(0);
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'EmptyAccount',
           minimumSize: 0,
           hasDiscriminator: false,
@@ -607,10 +585,9 @@ void main() {
 
       test('handles very large accounts', () {
         final accountData = Uint8List(1000000); // 1MB
-        final structureDefinition = AccountStructureDefinition(
+        final structureDefinition = const AccountStructureDefinition(
           name: 'LargeAccount',
           minimumSize: 999992, // 1MB - 8 bytes discriminator
-          hasDiscriminator: true,
         );
 
         final result = AccountSizeValidator.validateAccountSize(
@@ -627,7 +604,7 @@ void main() {
         // This should not cause any crashes or exceptions
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
-          structureDefinition: AccountStructureDefinition(
+          structureDefinition: const AccountStructureDefinition(
             name: 'ErrorTestAccount',
             minimumSize: -1, // Invalid minimum size
           ),

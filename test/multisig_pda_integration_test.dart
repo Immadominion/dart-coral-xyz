@@ -69,21 +69,21 @@ void main() {
 
       // Step 5: Simulate owner approvals
       expect(MultisigUtils.canExecuteTransaction(transaction, config.threshold),
-          isFalse);
+          isFalse,);
 
       // First owner approves
       final owner1Index = MultisigUtils.getOwnerIndex(owners, owners[0]);
       transaction = MultisigUtils.signTransaction(transaction, owner1Index);
       expect(transaction.signatureCount, equals(1));
       expect(MultisigUtils.canExecuteTransaction(transaction, config.threshold),
-          isFalse);
+          isFalse,);
 
       // Second owner approves
       final owner2Index = MultisigUtils.getOwnerIndex(owners, owners[1]);
       transaction = MultisigUtils.signTransaction(transaction, owner2Index);
       expect(transaction.signatureCount, equals(2));
       expect(MultisigUtils.canExecuteTransaction(transaction, config.threshold),
-          isTrue);
+          isTrue,);
 
       // Step 6: Prepare execution accounts
       final executionMetas = MultisigUtils.createExecutionAccountMetas(

@@ -3,6 +3,7 @@
 /// This test validates the complete event system integration including
 /// BorshEventCoder delegation, Connection.onLogs integration, and
 /// TypeScript compatibility patterns.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -36,7 +37,7 @@ void main() {
         final filter = EventFilter(
           eventNames: {'TestEvent'},
           programIds: {
-            PublicKey.fromBase58('11111111111111111111111111111112')
+            PublicKey.fromBase58('11111111111111111111111111111112'),
           },
           maxSlot: 100,
         );
@@ -181,7 +182,7 @@ void main() {
         final programId =
             PublicKey.fromBase58('11111111111111111111111111111112');
         final eventDefinitions = <EventDefinition>[];
-        final config = EventSubscriptionConfig();
+        final config = const EventSubscriptionConfig();
 
         final manager = EventSubscriptionManager(
           connection: connection,
@@ -201,7 +202,7 @@ void main() {
         final programId =
             PublicKey.fromBase58('11111111111111111111111111111112');
         final eventDefinitions = <EventDefinition>[];
-        final config = EventSubscriptionConfig();
+        final config = const EventSubscriptionConfig();
 
         final manager = EventSubscriptionManager(
           connection: connection,
@@ -290,7 +291,7 @@ void main() {
         // 4. Event subscription management
         final connection = Connection('https://api.devnet.solana.com');
         final eventDefinitions = <EventDefinition>[];
-        final config = EventSubscriptionConfig();
+        final config = const EventSubscriptionConfig();
         final manager = EventSubscriptionManager(
           connection: connection,
           programId: programId,
@@ -302,18 +303,18 @@ void main() {
         // All components integrate seamlessly
         expect(
             () => manager.subscribe(
-                eventName: 'TransferEvent', onEvent: (event) {}),
-            returnsNormally);
+                eventName: 'TransferEvent', onEvent: (event) {},),
+            returnsNormally,);
       });
 
       test('event configuration patterns match TypeScript', () {
         // Default configuration
-        final defaultConfig = EventSubscriptionConfig();
+        final defaultConfig = const EventSubscriptionConfig();
         expect(defaultConfig.maxBufferSize, isNull);
         expect(defaultConfig.maxReconnectAttempts, equals(5));
 
         // Custom configuration
-        final customConfig = EventSubscriptionConfig(
+        final customConfig = const EventSubscriptionConfig(
           maxBufferSize: 2000,
           maxReconnectAttempts: 10,
           reconnectTimeout: Duration(seconds: 30),
@@ -323,7 +324,7 @@ void main() {
       });
 
       test('event replay system provides TypeScript-compatible interface', () {
-        final replayConfig = EventReplayConfig(
+        final replayConfig = const EventReplayConfig(
           fromSlot: 1000,
           toSlot: 2000,
           filter: EventFilter(eventNames: {'TestEvent'}),
@@ -341,7 +342,7 @@ void main() {
         final programId =
             PublicKey.fromBase58('11111111111111111111111111111112');
         final eventDefinitions = <EventDefinition>[];
-        final config = EventSubscriptionConfig();
+        final config = const EventSubscriptionConfig();
 
         final manager = EventSubscriptionManager(
           connection: connection,

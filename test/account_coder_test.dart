@@ -8,7 +8,7 @@ void main() {
     late BorshAccountsCoder<String> accountsCoder;
 
     setUp(() {
-      testIdl = Idl(
+      testIdl = const Idl(
         address: 'test_address',
         metadata: IdlMetadata(name: 'test', version: '0.1.0', spec: '0.1.0'),
         instructions: [],

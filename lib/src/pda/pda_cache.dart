@@ -3,22 +3,18 @@
 /// This module provides comprehensive caching capabilities for Program Derived Addresses,
 /// matching and exceeding TypeScript Anchor client caching strategies with advanced
 /// optimization features.
+library;
 
 import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
-import '../types/public_key.dart';
-import 'pda_derivation_engine.dart' as pda;
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/pda/pda_derivation_engine.dart' as pda;
 
 /// Cache entry for storing PDA derivation results with metadata
 class PdaCacheEntry {
-  final PublicKey address;
-  final int bump;
-  final DateTime createdAt;
-  final DateTime lastAccessed;
-  final int accessCount;
 
   PdaCacheEntry({
     required this.address,
@@ -27,17 +23,20 @@ class PdaCacheEntry {
     required this.lastAccessed,
     this.accessCount = 1,
   });
+  final PublicKey address;
+  final int bump;
+  final DateTime createdAt;
+  final DateTime lastAccessed;
+  final int accessCount;
 
   /// Create a copy with updated access information
-  PdaCacheEntry copyWithAccess() {
-    return PdaCacheEntry(
+  PdaCacheEntry copyWithAccess() => PdaCacheEntry(
       address: address,
       bump: bump,
       createdAt: createdAt,
       lastAccessed: DateTime.now(),
       accessCount: accessCount + 1,
     );
-  }
 
   /// Get the age of this cache entry in milliseconds
   int get ageMs => DateTime.now().difference(createdAt).inMilliseconds;
@@ -49,8 +48,6 @@ class PdaCacheEntry {
 
 /// Cache key for PDA derivation results
 class PdaCacheKey {
-  final PublicKey programId;
-  final List<List<int>> seedBytes;
 
   PdaCacheKey({
     required this.programId,
@@ -68,6 +65,8 @@ class PdaCacheKey {
       seedBytes: seedBytes,
     );
   }
+  final PublicKey programId;
+  final List<List<int>> seedBytes;
 
   /// Generate deterministic string key for HashMap usage
   String get key {
@@ -76,7 +75,7 @@ class PdaCacheKey {
     for (final seed in seedBytes) {
       buffer.write(':');
       buffer
-          .write(seed.map((b) => b.toRadixString(16).padLeft(2, '0')).join(''));
+          .write(seed.map((b) => b.toRadixString(16).padLeft(2, '0')).join());
     }
     return buffer.toString();
   }
@@ -142,31 +141,29 @@ class PdaCacheStats {
   }
 
   @override
-  String toString() {
-    return 'PdaCacheStats('
+  String toString() => 'PdaCacheStats('
         'hits: $hits, '
         'misses: $misses, '
         'hitRate: ${hitRate.toStringAsFixed(2)}%, '
         'evictions: $evictions, '
         'entries: $totalEntries'
         ')';
-  }
 }
 
 /// High-performance LRU cache for PDA derivation results
 class PdaCache {
-  final int maxSize;
-  final Duration maxAge;
-  final bool enableStats;
-
-  final LinkedHashMap<String, PdaCacheEntry> _cache = LinkedHashMap();
-  final PdaCacheStats _stats = PdaCacheStats();
 
   PdaCache({
     this.maxSize = 1000,
     this.maxAge = const Duration(minutes: 30),
     this.enableStats = true,
   });
+  final int maxSize;
+  final Duration maxAge;
+  final bool enableStats;
+
+  final LinkedHashMap<String, PdaCacheEntry> _cache = LinkedHashMap();
+  final PdaCacheStats _stats = PdaCacheStats();
 
   /// Get PDA from cache, returning null if not found or expired
   pda.PdaResult? get(PdaCacheKey key) {
@@ -341,7 +338,7 @@ class PdaCache {
 
     if (_stats.totalOperations > 0) {
       buffer.writeln(
-          'Operations/Eviction: ${(_stats.totalOperations / math.max(1, _stats.evictions)).toStringAsFixed(2)}');
+          'Operations/Eviction: ${(_stats.totalOperations / math.max(1, _stats.evictions)).toStringAsFixed(2)}',);
     }
 
     return buffer.toString();
@@ -374,18 +371,14 @@ class PdaCache {
   }
 
   @override
-  String toString() {
-    return 'PdaCache(size: $size/$maxSize, hitRate: ${_stats.hitRate.toStringAsFixed(1)}%)';
-  }
+  String toString() => 'PdaCache(size: $size/$maxSize, hitRate: ${_stats.hitRate.toStringAsFixed(1)}%)';
 }
 
 /// Global PDA cache instance for performance optimization
 PdaCache? _globalCache;
 
 /// Get or create the global PDA cache instance
-PdaCache getGlobalPdaCache() {
-  return _globalCache ??= PdaCache();
-}
+PdaCache getGlobalPdaCache() => _globalCache ??= PdaCache();
 
 /// Set a custom global PDA cache instance
 void setGlobalPdaCache(PdaCache cache) {

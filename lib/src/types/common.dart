@@ -53,7 +53,7 @@ class ByteUtils {
 
     int value = 0;
     for (int i = 0; i < 8; i++) {
-      value |= (bytes[i] << (i * 8));
+      value |= bytes[i] << (i * 8);
     }
     return value;
   }
@@ -75,7 +75,7 @@ class ByteUtils {
 
     int value = 0;
     for (int i = 0; i < 4; i++) {
-      value |= (bytes[i] << (i * 8));
+      value |= bytes[i] << (i * 8);
     }
     return value;
   }
@@ -98,9 +98,7 @@ class ByteUtils {
   }
 
   /// Convert an 8-bit unsigned integer to bytes
-  static Uint8List uint8ToBytes(int value) {
-    return Uint8List.fromList([value & 0xFF]);
-  }
+  static Uint8List uint8ToBytes(int value) => Uint8List.fromList([value & 0xFF]);
 
   /// Convert bytes to an 8-bit unsigned integer
   static int bytesToUint8(Uint8List bytes) {
@@ -141,9 +139,7 @@ class ByteUtils {
   }
 
   /// Convert bytes to hexadecimal string
-  static String toHex(Uint8List bytes) {
-    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
-  }
+  static String toHex(Uint8List bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Convert hexadecimal string to bytes
   static Uint8List fromHex(String hex) {
@@ -166,12 +162,10 @@ class ByteUtils {
 /// Utility functions for working with strings
 class StringUtils {
   /// Convert camelCase to snake_case
-  static String camelToSnake(String input) {
-    return input.replaceAllMapped(
+  static String camelToSnake(String input) => input.replaceAllMapped(
       RegExp(r'[A-Z]'),
       (match) => '_${match.group(0)!.toLowerCase()}',
     );
-  }
 
   /// Convert snake_case to camelCase
   static String snakeToCamel(String input) {
@@ -219,14 +213,10 @@ class StringUtils {
 /// Utility functions for working with numbers and precision
 class NumberUtils {
   /// Convert lamports to SOL with proper decimal precision
-  static double lamportsToSol(int lamports) {
-    return lamports / AnchorConstants.lamportsPerSol;
-  }
+  static double lamportsToSol(int lamports) => lamports / AnchorConstants.lamportsPerSol;
 
   /// Convert SOL to lamports
-  static int solToLamports(double sol) {
-    return (sol * AnchorConstants.lamportsPerSol).round();
-  }
+  static int solToLamports(double sol) => (sol * AnchorConstants.lamportsPerSol).round();
 
   /// Format lamports as a human-readable SOL amount
   static String formatSol(int lamports, {int decimals = 9}) {
@@ -253,9 +243,6 @@ class NumberUtils {
 
 /// Result type for operations that can fail
 class Result<T, E> {
-  final T? _value;
-  final E? _error;
-  final bool _isSuccess;
 
   const Result._(this._value, this._error, this._isSuccess);
 
@@ -268,6 +255,9 @@ class Result<T, E> {
   factory Result.failure(E error) {
     return Result._(null, error, false);
   }
+  final T? _value;
+  final E? _error;
+  final bool _isSuccess;
 
   /// Check if the result is successful
   bool get isSuccess => _isSuccess;
@@ -292,24 +282,22 @@ class Result<T, E> {
   }
 
   /// Get the value or return a default
-  T valueOr(T defaultValue) {
-    return _isSuccess ? _value! : defaultValue;
-  }
+  T valueOr(T defaultValue) => _isSuccess ? _value! : defaultValue;
 
   /// Map the value if successful
   Result<U, E> map<U>(U Function(T) mapper) {
     if (_isSuccess) {
-      return Result.success(mapper(_value!));
+      return Result.success(mapper(_value as T));
     }
-    return Result.failure(_error!);
+    return Result.failure(_error as E);
   }
 
   /// Map the error if failed
   Result<T, U> mapError<U>(U Function(E) mapper) {
     if (_isSuccess) {
-      return Result.success(_value!);
+      return Result.success(_value as T);
     }
-    return Result.failure(mapper(_error!));
+    return Result.failure(mapper(_error as E));
   }
 
   @override
@@ -323,10 +311,10 @@ class Result<T, E> {
 
 /// Exception base class for Anchor-related errors
 abstract class AnchorException implements Exception {
-  final String message;
-  final dynamic cause;
 
   const AnchorException(this.message, [this.cause]);
+  final String message;
+  final dynamic cause;
 
   @override
   String toString() => 'AnchorException: $message';
@@ -334,8 +322,7 @@ abstract class AnchorException implements Exception {
 
 /// Exception thrown when a public key is invalid
 class InvalidPublicKeyException extends AnchorException {
-  const InvalidPublicKeyException(String message, [dynamic cause])
-    : super(message, cause);
+  const InvalidPublicKeyException(super.message, [super.cause]);
 
   @override
   String toString() => 'InvalidPublicKeyException: $message';
@@ -343,8 +330,7 @@ class InvalidPublicKeyException extends AnchorException {
 
 /// Exception thrown when a transaction fails
 class TransactionException extends AnchorException {
-  const TransactionException(String message, [dynamic cause])
-    : super(message, cause);
+  const TransactionException(super.message, [super.cause]);
 
   @override
   String toString() => 'TransactionException: $message';
@@ -352,8 +338,7 @@ class TransactionException extends AnchorException {
 
 /// Exception thrown when an account is not found
 class AccountNotFoundException extends AnchorException {
-  const AccountNotFoundException(String message, [dynamic cause])
-    : super(message, cause);
+  const AccountNotFoundException(super.message, [super.cause]);
 
   @override
   String toString() => 'AccountNotFoundException: $message';
@@ -361,8 +346,7 @@ class AccountNotFoundException extends AnchorException {
 
 /// Exception thrown when serialization fails
 class SerializationException extends AnchorException {
-  const SerializationException(String message, [dynamic cause])
-    : super(message, cause);
+  const SerializationException(super.message, [super.cause]);
 
   @override
   String toString() => 'SerializationException: $message';

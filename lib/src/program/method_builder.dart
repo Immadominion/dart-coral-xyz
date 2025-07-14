@@ -6,24 +6,19 @@
 
 library;
 
-import '../idl/idl.dart';
-import '../types/public_key.dart';
-import '../types/transaction.dart';
-import '../transaction/transaction_simulator.dart';
-import '../provider/anchor_provider.dart';
-import '../program/context.dart';
-import '../program/instruction_builder.dart';
-import '../program/accounts_resolver.dart';
-import '../coder/instruction_coder.dart';
-import '../types/common.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/program/context.dart';
+import 'package:coral_xyz_anchor/src/program/instruction_builder.dart';
+import 'package:coral_xyz_anchor/src/program/accounts_resolver.dart';
+import 'package:coral_xyz_anchor/src/coder/instruction_coder.dart';
+import 'package:coral_xyz_anchor/src/types/common.dart';
 
 /// Builder for creating typed methods from IDL instructions
 class MethodBuilder {
-  final IdlInstruction _instruction;
-  final PublicKey _programId;
-  final AnchorProvider _provider;
-  final InstructionCoder _instructionCoder;
-  final AccountsResolver _accountsResolver;
 
   MethodBuilder({
     required IdlInstruction instruction,
@@ -36,11 +31,15 @@ class MethodBuilder {
         _provider = provider,
         _instructionCoder = instructionCoder,
         _accountsResolver = accountsResolver;
+  final IdlInstruction _instruction;
+  final PublicKey _programId;
+  final AnchorProvider _provider;
+  final InstructionCoder _instructionCoder;
+  final AccountsResolver _accountsResolver;
 
   /// Create a method that builds and executes an instruction
   Future<String> Function(Map<String, dynamic> args, Context context)
-      get execute {
-    return (Map<String, dynamic> args, Context context) async {
+      get execute => (Map<String, dynamic> args, Context context) async {
       // Validate arguments against IDL instruction
       _validateArguments(args);
 
@@ -56,21 +55,17 @@ class MethodBuilder {
       // Send and confirm the transaction
       return await _provider.sendAndConfirm(transaction);
     };
-  }
 
   /// Create a method that builds an instruction without executing
   Future<TransactionInstruction> Function(
-      Map<String, dynamic> args, Context context) get instruction {
-    return (Map<String, dynamic> args, Context context) async {
+      Map<String, dynamic> args, Context context,) get instruction => (Map<String, dynamic> args, Context context) async {
       _validateArguments(args);
       return await _buildInstruction(args, context);
     };
-  }
 
   /// Create a method that builds a transaction without executing
   Future<Transaction> Function(Map<String, dynamic> args, Context context)
-      get transaction {
-    return (Map<String, dynamic> args, Context context) async {
+      get transaction => (Map<String, dynamic> args, Context context) async {
       _validateArguments(args);
       final instruction = await _buildInstruction(args, context);
 
@@ -79,12 +74,10 @@ class MethodBuilder {
         feePayer: _provider.wallet?.publicKey,
       );
     };
-  }
 
   /// Create a method that simulates the instruction
   Future<TransactionSimulationResult> Function(
-      Map<String, dynamic> args, Context context) get simulate {
-    return (Map<String, dynamic> args, Context context) async {
+      Map<String, dynamic> args, Context context,) get simulate => (Map<String, dynamic> args, Context context) async {
       _validateArguments(args);
       final instruction = await _buildInstruction(args, context);
 
@@ -95,7 +88,6 @@ class MethodBuilder {
 
       return await _provider.simulate(transaction);
     };
-  }
 
   /// Build the instruction from arguments and context
   Future<TransactionInstruction> _buildInstruction(
@@ -147,7 +139,7 @@ class MethodBuilder {
       );
     } catch (e) {
       throw MethodBuildError(
-          'Failed to build instruction ${_instruction.name}: $e');
+          'Failed to build instruction ${_instruction.name}: $e',);
     }
   }
 
@@ -201,9 +193,7 @@ class MethodBuilder {
   }
 
   /// Check if an argument is optional based on IDL type
-  bool _isOptionalArg(IdlField arg) {
-    return arg.type.kind == 'option';
-  }
+  bool _isOptionalArg(IdlField arg) => arg.type.kind == 'option';
 
   /// Validate argument type against IDL type definition
   void _validateArgumentType(String argName, dynamic value, IdlType type) {
@@ -260,7 +250,7 @@ class MethodBuilder {
         // For defined types, we assume they're structs/objects
         if (value != null && value is! Map<String, dynamic>) {
           throw MethodArgumentError(
-              'Argument "$argName" must be a Map for defined type');
+              'Argument "$argName" must be a Map for defined type',);
         }
         break;
       default:
@@ -272,10 +262,6 @@ class MethodBuilder {
 
 /// Factory for creating method builders
 class MethodBuilderFactory {
-  final PublicKey _programId;
-  final AnchorProvider _provider;
-  final InstructionCoder _instructionCoder;
-  final AccountsResolver _accountsResolver;
 
   MethodBuilderFactory({
     required PublicKey programId,
@@ -286,17 +272,19 @@ class MethodBuilderFactory {
         _provider = provider,
         _instructionCoder = instructionCoder,
         _accountsResolver = accountsResolver;
+  final PublicKey _programId;
+  final AnchorProvider _provider;
+  final InstructionCoder _instructionCoder;
+  final AccountsResolver _accountsResolver;
 
   /// Create a method builder for an IDL instruction
-  MethodBuilder createMethodBuilder(IdlInstruction instruction) {
-    return MethodBuilder(
+  MethodBuilder createMethodBuilder(IdlInstruction instruction) => MethodBuilder(
       instruction: instruction,
       programId: _programId,
       provider: _provider,
       instructionCoder: _instructionCoder,
       accountsResolver: _accountsResolver,
     );
-  }
 
   /// Create method builders for all instructions in an IDL
   Map<String, MethodBuilder> createAllMethodBuilders(Idl idl) {
@@ -312,21 +300,6 @@ class MethodBuilderFactory {
 
 /// Method interface that combines all method types
 class MethodInterface {
-  /// Execute the method and return transaction signature
-  final Future<String> Function(Map<String, dynamic> args, Context context)
-      execute;
-
-  /// Build instruction without executing
-  final Future<TransactionInstruction> Function(
-      Map<String, dynamic> args, Context context) instruction;
-
-  /// Build transaction without executing
-  final Future<Transaction> Function(Map<String, dynamic> args, Context context)
-      transaction;
-
-  /// Simulate the method execution
-  final Future<TransactionSimulationResult> Function(
-      Map<String, dynamic> args, Context context) simulate;
 
   const MethodInterface({
     required this.execute,
@@ -344,6 +317,21 @@ class MethodInterface {
       simulate: builder.simulate,
     );
   }
+  /// Execute the method and return transaction signature
+  final Future<String> Function(Map<String, dynamic> args, Context context)
+      execute;
+
+  /// Build instruction without executing
+  final Future<TransactionInstruction> Function(
+      Map<String, dynamic> args, Context context,) instruction;
+
+  /// Build transaction without executing
+  final Future<Transaction> Function(Map<String, dynamic> args, Context context)
+      transaction;
+
+  /// Simulate the method execution
+  final Future<TransactionSimulationResult> Function(
+      Map<String, dynamic> args, Context context,) simulate;
 }
 
 /// Error thrown when method argument validation fails

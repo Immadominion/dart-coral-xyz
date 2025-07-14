@@ -9,7 +9,7 @@ library;
 import 'dart:async';
 import 'dart:collection';
 
-import '../../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Cache invalidation strategy
 enum CacheInvalidationStrategy {
@@ -31,6 +31,14 @@ enum CacheInvalidationStrategy {
 
 /// Cache entry metadata
 class CacheEntry<T> {
+
+  CacheEntry({
+    required this.data,
+    required this.timestamp,
+    this.slot,
+    this.isPinned = false,
+    this.sizeEstimate = 1024, // Default 1KB estimate
+  }) : lastAccess = DateTime.now();
   /// Cached data
   final T data;
 
@@ -52,18 +60,8 @@ class CacheEntry<T> {
   /// Size estimate in bytes (for memory management)
   final int sizeEstimate;
 
-  CacheEntry({
-    required this.data,
-    required this.timestamp,
-    this.slot,
-    this.isPinned = false,
-    this.sizeEstimate = 1024, // Default 1KB estimate
-  }) : lastAccess = DateTime.now();
-
   /// Check if entry is expired based on TTL
-  bool isExpired(Duration ttl) {
-    return DateTime.now().difference(timestamp) > ttl;
-  }
+  bool isExpired(Duration ttl) => DateTime.now().difference(timestamp) > ttl;
 
   /// Check if entry is stale based on slot
   bool isStaleBySlot(int? currentSlot) {
@@ -78,13 +76,24 @@ class CacheEntry<T> {
   }
 
   @override
-  String toString() {
-    return 'CacheEntry(timestamp: $timestamp, slot: $slot, accessCount: $accessCount, isPinned: $isPinned)';
-  }
+  String toString() => 'CacheEntry(timestamp: $timestamp, slot: $slot, accessCount: $accessCount, isPinned: $isPinned)';
 }
 
 /// Cache statistics for monitoring
 class CacheStatistics {
+
+  const CacheStatistics({
+    required this.totalOperations,
+    required this.hits,
+    required this.misses,
+    required this.invalidations,
+    required this.evictions,
+    required this.currentSize,
+    required this.maxSize,
+    required this.memoryUsage,
+    this.lastCleanup,
+    required this.averageAccessTime,
+  });
   /// Total number of cache operations
   final int totalOperations;
 
@@ -115,64 +124,21 @@ class CacheStatistics {
   /// Average access time in microseconds
   final double averageAccessTime;
 
-  const CacheStatistics({
-    required this.totalOperations,
-    required this.hits,
-    required this.misses,
-    required this.invalidations,
-    required this.evictions,
-    required this.currentSize,
-    required this.maxSize,
-    required this.memoryUsage,
-    this.lastCleanup,
-    required this.averageAccessTime,
-  });
-
   /// Cache hit rate as percentage
   double get hitRate {
-    if (totalOperations == 0) return 0.0;
+    if (totalOperations == 0) return 0;
     return (hits / totalOperations) * 100.0;
   }
 
   /// Memory utilization as percentage
-  double get memoryUtilization {
-    return (currentSize / maxSize) * 100.0;
-  }
+  double get memoryUtilization => (currentSize / maxSize) * 100.0;
 
   @override
-  String toString() {
-    return 'CacheStatistics(hitRate: ${hitRate.toStringAsFixed(1)}%, size: $currentSize/$maxSize, memory: ${(memoryUsage / 1024).toStringAsFixed(1)}KB)';
-  }
+  String toString() => 'CacheStatistics(hitRate: ${hitRate.toStringAsFixed(1)}%, size: $currentSize/$maxSize, memory: ${(memoryUsage / 1024).toStringAsFixed(1)}KB)';
 }
 
 /// Configuration for account cache manager
 class AccountCacheConfig {
-  /// Maximum number of entries in cache
-  final int maxEntries;
-
-  /// Time-to-live for cache entries
-  final Duration ttl;
-
-  /// Cache invalidation strategy
-  final CacheInvalidationStrategy strategy;
-
-  /// Maximum memory usage in bytes
-  final int maxMemoryBytes;
-
-  /// Cleanup interval for expired entries
-  final Duration cleanupInterval;
-
-  /// Whether to enable cache statistics
-  final bool enableStatistics;
-
-  /// Whether to enable automatic cleanup
-  final bool enableAutoCleanup;
-
-  /// Threshold for memory pressure cleanup (percentage)
-  final double memoryPressureThreshold;
-
-  /// Number of entries to evict during memory pressure
-  final int evictionBatchSize;
 
   const AccountCacheConfig({
     this.maxEntries = 1000,
@@ -230,10 +196,44 @@ class AccountCacheConfig {
       evictionBatchSize: 25,
     );
   }
+  /// Maximum number of entries in cache
+  final int maxEntries;
+
+  /// Time-to-live for cache entries
+  final Duration ttl;
+
+  /// Cache invalidation strategy
+  final CacheInvalidationStrategy strategy;
+
+  /// Maximum memory usage in bytes
+  final int maxMemoryBytes;
+
+  /// Cleanup interval for expired entries
+  final Duration cleanupInterval;
+
+  /// Whether to enable cache statistics
+  final bool enableStatistics;
+
+  /// Whether to enable automatic cleanup
+  final bool enableAutoCleanup;
+
+  /// Threshold for memory pressure cleanup (percentage)
+  final double memoryPressureThreshold;
+
+  /// Number of entries to evict during memory pressure
+  final int evictionBatchSize;
 }
 
 /// Intelligent account cache manager
 class AccountCacheManager<T> {
+
+  AccountCacheManager({
+    AccountCacheConfig? config,
+  }) : _config = config ?? const AccountCacheConfig() {
+    if (_config.enableAutoCleanup) {
+      _startCleanupTimer();
+    }
+  }
   /// Cache configuration
   final AccountCacheConfig _config;
 
@@ -259,14 +259,6 @@ class AccountCacheManager<T> {
 
   /// Whether cache is active
   bool _isActive = true;
-
-  AccountCacheManager({
-    AccountCacheConfig? config,
-  }) : _config = config ?? const AccountCacheConfig() {
-    if (_config.enableAutoCleanup) {
-      _startCleanupTimer();
-    }
-  }
 
   /// Get cached data for account
   T? get(PublicKey publicKey, {int? slot}) {
@@ -432,9 +424,7 @@ class AccountCacheManager<T> {
   }
 
   /// Get all cached keys
-  List<String> getCachedKeys() {
-    return _cache.keys.toList();
-  }
+  List<String> getCachedKeys() => _cache.keys.toList();
 
   /// Check if entry is valid based on cache strategy
   bool _isEntryValid(CacheEntry<T> entry, int? currentSlot) {

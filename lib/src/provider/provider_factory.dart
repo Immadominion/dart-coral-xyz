@@ -7,15 +7,15 @@
 library;
 
 import 'dart:async';
-import '../types/public_key.dart';
-import '../types/commitment.dart';
-import '../types/keypair.dart';
-import '../types/transaction.dart' as transaction_types;
-import 'connection.dart';
-import 'wallet.dart';
-import '../types/connection_config.dart';
-import 'provider_interface.dart';
-import 'anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/types/connection_config.dart';
+import 'package:coral_xyz_anchor/src/provider/provider_interface.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 
 /// Factory for creating and configuring providers
 ///
@@ -95,7 +95,7 @@ class ProviderFactory {
       options: options ?? const ProviderOptions(),
     );
 
-    return await createProvider(config);
+    return createProvider(config);
   }
 
   /// Create local development provider
@@ -123,7 +123,7 @@ class ProviderFactory {
       options: options ?? const ProviderOptions(),
     );
 
-    return await createProvider(config);
+    return createProvider(config);
   }
 
   /// Register custom provider builder
@@ -144,9 +144,7 @@ class ProviderFactory {
   ///
   /// Returns list of currently supported provider types based on
   /// registered builders and environment capabilities.
-  static List<ProviderType> getAvailableProviderTypes() {
-    return _providerBuilders.keys.toList();
-  }
+  static List<ProviderType> getAvailableProviderTypes() => _providerBuilders.keys.toList();
 
   /// Detect optimal provider type for current environment
   static Future<ProviderType> _detectProviderType() async {
@@ -229,6 +227,14 @@ typedef ProviderBuilder = Future<ProviderInterface> Function(
 
 /// Configuration for provider creation
 class ProviderCreationConfig {
+
+  const ProviderCreationConfig({
+    this.type,
+    required this.connectionConfig,
+    required this.walletConfig,
+    required this.options,
+    this.requiredCapabilities = const {},
+  });
   /// Desired provider type (null for auto-detection)
   final ProviderType? type;
 
@@ -243,20 +249,19 @@ class ProviderCreationConfig {
 
   /// Required provider capabilities
   final Set<ProviderCapability> requiredCapabilities;
-
-  const ProviderCreationConfig({
-    this.type,
-    required this.connectionConfig,
-    required this.walletConfig,
-    required this.options,
-    this.requiredCapabilities = const {},
-  });
 }
 
 /// Connection configuration
 
 /// Wallet configuration
 class WalletConfig {
+
+  const WalletConfig({
+    required this.type,
+    this.autoGenerate = false,
+    this.keypair,
+    this.config = const {},
+  });
   /// Wallet type
   final WalletType type;
 
@@ -268,13 +273,6 @@ class WalletConfig {
 
   /// Wallet-specific configuration
   final Map<String, dynamic> config;
-
-  const WalletConfig({
-    required this.type,
-    this.autoGenerate = false,
-    this.keypair,
-    this.config = const {},
-  });
 }
 
 /// Wallet type enumeration
@@ -291,16 +289,16 @@ enum WalletType {
 
 /// Provider options
 class ProviderOptions {
-  /// Default confirmation options
-  final ConfirmOptions confirmOptions;
-
-  /// Additional provider-specific options
-  final Map<String, dynamic> additionalOptions;
 
   const ProviderOptions({
     this.confirmOptions = ConfirmOptions.defaultOptions,
     this.additionalOptions = const {},
   });
+  /// Default confirmation options
+  final ConfirmOptions confirmOptions;
+
+  /// Additional provider-specific options
+  final Map<String, dynamic> additionalOptions;
 
   /// Get commitment level
   CommitmentConfig? get commitment => confirmOptions.commitment;
@@ -308,8 +306,6 @@ class ProviderOptions {
 
 /// Keypair-based provider implementation
 class KeypairProvider extends BaseProvider {
-  @override
-  final Wallet wallet;
 
   KeypairProvider({
     required super.connection,
@@ -331,6 +327,8 @@ class KeypairProvider extends BaseProvider {
     // Mark as connected since keypair provider is always ready
     updateConnectionStatus(ProviderConnectionStatus.connected());
   }
+  @override
+  final Wallet wallet;
 
   @override
   PublicKey? get publicKey => wallet.publicKey;
@@ -354,7 +352,7 @@ class KeypairProvider extends BaseProvider {
       options: options ?? ConfirmOptions.defaultOptions,
     );
 
-    return await anchorProvider.sendAndConfirm(
+    return anchorProvider.sendAndConfirm(
       transaction,
       signers: signers,
       options: options,
@@ -373,7 +371,7 @@ class KeypairProvider extends BaseProvider {
       options: options ?? ConfirmOptions.defaultOptions,
     );
 
-    return await anchorProvider.sendAll(
+    return anchorProvider.sendAll(
       transactions,
       options: options,
     );
@@ -382,8 +380,8 @@ class KeypairProvider extends BaseProvider {
 
 /// Provider-related exceptions
 class ProviderFactoryException implements Exception {
-  final String message;
   const ProviderFactoryException(this.message);
+  final String message;
 
   @override
   String toString() => 'ProviderFactoryException: $message';

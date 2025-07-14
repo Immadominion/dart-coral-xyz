@@ -9,16 +9,17 @@ library;
 import 'dart:async';
 import 'dart:typed_data';
 
-import '../../types/public_key.dart';
-import '../../types/commitment.dart';
-import '../../types/transaction.dart';
-import '../../types/keypair.dart';
-import '../../coder/main_coder.dart';
-import '../../idl/idl.dart';
-import '../../provider/anchor_provider.dart';
-import '../../error/account_errors.dart';
-import 'account_cache_manager.dart';
-import 'account_subscription_manager.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/error/account_errors.dart';
+import 'package:coral_xyz_anchor/src/native/system_program.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_cache_manager.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_subscription_manager.dart';
 
 /// Account relationship types
 enum AccountRelationshipType {
@@ -32,6 +33,13 @@ enum AccountRelationshipType {
 
 /// Account relationship information
 class AccountRelationship {
+
+  const AccountRelationship({
+    required this.publicKey,
+    required this.type,
+    this.description,
+    this.isVerified = false,
+  });
   /// Related account public key
   final PublicKey publicKey;
 
@@ -44,21 +52,21 @@ class AccountRelationship {
   /// Whether this relationship is verified
   final bool isVerified;
 
-  const AccountRelationship({
-    required this.publicKey,
-    required this.type,
-    this.description,
-    this.isVerified = false,
-  });
-
   @override
-  String toString() {
-    return 'AccountRelationship(publicKey: $publicKey, type: $type, verified: $isVerified)';
-  }
+  String toString() => 'AccountRelationship(publicKey: $publicKey, type: $type, verified: $isVerified)';
 }
 
 /// Account creation parameters
 class AccountCreationParams {
+
+  const AccountCreationParams({
+    required this.space,
+    this.lamports,
+    this.owner,
+    this.keypair,
+    this.executable = false,
+    this.initData,
+  });
   /// Size of the account in bytes
   final int space;
 
@@ -76,19 +84,26 @@ class AccountCreationParams {
 
   /// Additional initialization data
   final Map<String, dynamic>? initData;
-
-  const AccountCreationParams({
-    required this.space,
-    this.lamports,
-    this.owner,
-    this.keypair,
-    this.executable = false,
-    this.initData,
-  });
 }
 
 /// Account debugging information
 class AccountDebugInfo {
+
+  const AccountDebugInfo({
+    required this.publicKey,
+    required this.size,
+    required this.owner,
+    required this.lamports,
+    required this.executable,
+    required this.rentEpoch,
+    this.slot,
+    this.discriminator,
+    this.data,
+    this.parsedData,
+    this.relationships = const [],
+    this.creationSignature,
+    this.lastUpdateSignature,
+  });
   /// Account public key
   final PublicKey publicKey;
 
@@ -128,26 +143,8 @@ class AccountDebugInfo {
   /// Last update transaction signature (if known)
   final String? lastUpdateSignature;
 
-  const AccountDebugInfo({
-    required this.publicKey,
-    required this.size,
-    required this.owner,
-    required this.lamports,
-    required this.executable,
-    required this.rentEpoch,
-    this.slot,
-    this.discriminator,
-    this.data,
-    this.parsedData,
-    this.relationships = const [],
-    this.creationSignature,
-    this.lastUpdateSignature,
-  });
-
   /// Check if account is rent exempt
-  bool isRentExempt(int minimumBalance) {
-    return lamports >= minimumBalance;
-  }
+  bool isRentExempt(int minimumBalance) => lamports >= minimumBalance;
 
   /// Check if account has valid discriminator for program
   bool hasValidDiscriminator(List<int> expectedDiscriminator) {
@@ -161,13 +158,28 @@ class AccountDebugInfo {
   }
 
   @override
-  String toString() {
-    return 'AccountDebugInfo(publicKey: $publicKey, size: $size, owner: $owner, lamports: $lamports)';
-  }
+  String toString() => 'AccountDebugInfo(publicKey: $publicKey, size: $size, owner: $owner, lamports: $lamports)';
 }
 
 /// Comprehensive account operations manager
 class AccountOperationsManager<T> {
+
+  AccountOperationsManager({
+    required IdlAccount idlAccount,
+    required Coder coder,
+    required PublicKey programId,
+    required AnchorProvider provider,
+    AccountCacheConfig? cacheConfig,
+    AccountSubscriptionConfig? subscriptionConfig,
+  })  : _idlAccount = idlAccount,
+        _coder = coder,
+        _programId = programId,
+        _provider = provider,
+        _cacheManager = AccountCacheManager<T>(config: cacheConfig),
+        _subscriptionManager = AccountSubscriptionManager(
+          connection: provider.connection,
+          config: subscriptionConfig,
+        );
   /// IDL account definition
   final IdlAccount _idlAccount;
 
@@ -191,23 +203,6 @@ class AccountOperationsManager<T> {
 
   /// Relationship tracking
   final Map<String, List<AccountRelationship>> _relationships = {};
-
-  AccountOperationsManager({
-    required IdlAccount idlAccount,
-    required Coder coder,
-    required PublicKey programId,
-    required AnchorProvider provider,
-    AccountCacheConfig? cacheConfig,
-    AccountSubscriptionConfig? subscriptionConfig,
-  })  : _idlAccount = idlAccount,
-        _coder = coder,
-        _programId = programId,
-        _provider = provider,
-        _cacheManager = AccountCacheManager<T>(config: cacheConfig),
-        _subscriptionManager = AccountSubscriptionManager(
-          connection: provider.connection,
-          config: subscriptionConfig,
-        );
 
   /// Fetch account with comprehensive caching and error handling
   Future<T?> fetchNullable(
@@ -239,7 +234,7 @@ class AccountOperationsManager<T> {
           actual: accountInfo.owner,
           errorLogs: ['Account owned by wrong program'],
           logs: [
-            'Account ownership validation failed for ${address.toBase58()}'
+            'Account ownership validation failed for ${address.toBase58()}',
           ],
           accountAddress: address,
           accountName: _idlAccount.name,
@@ -392,10 +387,82 @@ class AccountOperationsManager<T> {
   Future<TransactionInstruction> createAccountInstruction(
     AccountCreationParams params,
   ) async {
-    // TODO: Implement SystemProgram.createAccount equivalent
-    // For now, throw an error indicating this feature is not yet implemented
-    throw UnimplementedError(
-        'Account creation instruction not yet implemented');
+    try {
+      // Generate keypair if not provided
+      final accountKeypair = params.keypair ?? await Keypair.generate();
+
+      // Determine the owner program
+      final owner = params.owner ?? _programId;
+
+      // Calculate required lamports for rent exemption if not provided
+      int lamports = params.lamports ?? 0;
+      if (lamports == 0) {
+        lamports = await _provider.connection.getMinimumBalanceForRentExemption(
+          params.space,
+        );
+      }
+
+      // Get fee payer (usually the provider's wallet)
+      final wallet = _provider.wallet;
+      if (wallet == null) {
+        throw Exception(
+            'Provider wallet is not set. Cannot determine fee payer.',);
+      }
+      final feePayer = wallet.publicKey;
+
+      // Create the system program instruction using our existing SystemProgram class
+      return SystemProgram.createAccount(
+        fromPubkey: feePayer,
+        newAccountPubkey: accountKeypair.publicKey,
+        lamports: lamports,
+        space: params.space,
+        programId: owner,
+      );
+    } catch (e) {
+      throw Exception('Failed to create account instruction: $e');
+    }
+  }
+
+  /// Create PDA (Program Derived Address) account instruction
+  Future<TransactionInstruction> createPdaAccountInstruction({
+    required List<Uint8List> seeds,
+    required int space,
+    PublicKey? owner,
+    int? lamports,
+  }) async {
+    try {
+      // Derive the PDA
+      final pdaResult = await PublicKey.findProgramAddress(
+        seeds,
+        owner ?? _programId,
+      );
+
+      // Calculate required lamports for rent exemption if not provided
+      int finalLamports = lamports ?? 0;
+      if (finalLamports == 0) {
+        finalLamports =
+            await _provider.connection.getMinimumBalanceForRentExemption(space);
+      }
+
+      // Get fee payer
+      final wallet = _provider.wallet;
+      if (wallet == null) {
+        throw Exception(
+            'Provider wallet is not set. Cannot determine fee payer.',);
+      }
+      final feePayer = wallet.publicKey;
+
+      // Create the account creation instruction
+      return SystemProgram.createAccount(
+        fromPubkey: feePayer,
+        newAccountPubkey: pdaResult.address,
+        lamports: finalLamports,
+        space: space,
+        programId: owner ?? _programId,
+      );
+    } catch (e) {
+      throw Exception('Failed to create PDA account instruction: $e');
+    }
   }
 
   /// Get comprehensive debugging information for account
@@ -472,9 +539,7 @@ class AccountOperationsManager<T> {
   }
 
   /// Get account relationships
-  List<AccountRelationship> getRelationships(PublicKey account) {
-    return _relationships[account.toBase58()] ?? [];
-  }
+  List<AccountRelationship> getRelationships(PublicKey account) => _relationships[account.toBase58()] ?? [];
 
   /// Validate account size against expected size
   bool validateAccountSize(PublicKey address, int expectedSize) {
@@ -486,7 +551,7 @@ class AccountOperationsManager<T> {
   /// Calculate minimum balance for rent exemption
   Future<int> calculateMinimumBalance({int? customSize}) async {
     final size = customSize ?? _coder.accounts.size(_idlAccount.name);
-    return await _provider.connection.getMinimumBalanceForRentExemption(size);
+    return _provider.connection.getMinimumBalanceForRentExemption(size);
   }
 
   /// Check if account is rent exempt
@@ -525,14 +590,10 @@ class AccountOperationsManager<T> {
   }
 
   /// Get cache statistics
-  CacheStatistics getCacheStatistics() {
-    return _cacheManager.getStatistics();
-  }
+  CacheStatistics getCacheStatistics() => _cacheManager.getStatistics();
 
   /// Get subscription statistics
-  Map<String, dynamic> getSubscriptionStatistics() {
-    return _subscriptionManager.getManagerStats();
-  }
+  Map<String, dynamic> getSubscriptionStatistics() => _subscriptionManager.getManagerStats();
 
   /// Cleanup expired cache entries
   void cleanupCache() {

@@ -2,9 +2,10 @@
 ///
 /// This module provides the core interfaces for event subscriptions,
 /// allowing clients to manage event listeners and their lifecycle.
+library;
 
 import 'dart:async';
-import 'types.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
 
 /// Interface for event subscriptions
 ///
@@ -29,6 +30,14 @@ abstract class EventSubscription {
 
 /// Basic implementation of EventSubscription
 class BasicEventSubscription implements EventSubscription {
+
+  BasicEventSubscription({
+    required this.id,
+    required Future<void> Function() cancelFunction,
+    required EventStats Function() statsFunction,
+    this.filter,
+  })  : _cancelFunction = cancelFunction,
+        _statsFunction = statsFunction;
   @override
   final String id;
 
@@ -39,14 +48,6 @@ class BasicEventSubscription implements EventSubscription {
   final EventFilter? filter;
 
   bool _isActive = true;
-
-  BasicEventSubscription({
-    required this.id,
-    required Future<void> Function() cancelFunction,
-    required EventStats Function() statsFunction,
-    this.filter,
-  })  : _cancelFunction = cancelFunction,
-        _statsFunction = statsFunction;
 
   @override
   bool get isActive => _isActive;
@@ -65,6 +66,11 @@ class BasicEventSubscription implements EventSubscription {
 
 /// Subscription handle that manages multiple child subscriptions
 class CompositeEventSubscription implements EventSubscription {
+
+  CompositeEventSubscription({
+    required this.id,
+    this.filter,
+  });
   @override
   final String id;
 
@@ -73,11 +79,6 @@ class CompositeEventSubscription implements EventSubscription {
 
   final List<EventSubscription> _childSubscriptions = [];
   bool _isActive = true;
-
-  CompositeEventSubscription({
-    required this.id,
-    this.filter,
-  });
 
   /// Add a child subscription
   void addChild(EventSubscription subscription) {
@@ -114,7 +115,7 @@ class CompositeEventSubscription implements EventSubscription {
         parseErrors: 0,
         filteredEvents: 0,
         lastProcessed: DateTime.now(),
-        eventsPerSecond: 0.0,
+        eventsPerSecond: 0,
       );
     }
 
@@ -174,9 +175,7 @@ class EventSubscriptionBuilder {
   }
 
   /// Filter by single event name
-  EventSubscriptionBuilder event(String eventName) {
-    return events({eventName});
-  }
+  EventSubscriptionBuilder event(String eventName) => events({eventName});
 
   /// Filter by slot range
   EventSubscriptionBuilder slotRange(int minSlot, [int? maxSlot]) {
@@ -188,12 +187,10 @@ class EventSubscriptionBuilder {
   BasicEventSubscription build({
     required Future<void> Function() cancelFunction,
     required EventStats Function() statsFunction,
-  }) {
-    return BasicEventSubscription(
+  }) => BasicEventSubscription(
       id: _id ?? 'subscription_${DateTime.now().millisecondsSinceEpoch}',
       cancelFunction: cancelFunction,
       statsFunction: statsFunction,
       filter: _filter,
     );
-  }
 }

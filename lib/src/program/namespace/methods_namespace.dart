@@ -1,15 +1,15 @@
-import '../../types/public_key.dart';
-import '../../coder/main_coder.dart';
-import '../../idl/idl.dart';
-import '../../provider/anchor_provider.dart' hide SimulationResult;
-import 'account_namespace.dart';
-import 'instruction_namespace.dart';
-import 'rpc_namespace.dart';
-import 'simulate_namespace.dart';
-import 'transaction_namespace.dart';
-import '../method_interface_generator.dart';
-import '../type_safe_method_builder.dart';
-import '../method_validator.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart' hide SimulationResult;
+import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/method_interface_generator.dart';
+import 'package:coral_xyz_anchor/src/program/type_safe_method_builder.dart';
+import 'package:coral_xyz_anchor/src/program/method_validator.dart';
 
 /// The methods namespace provides a fluent interface for building and executing
 /// program methods with type-safe parameters.
@@ -30,10 +30,10 @@ import '../method_validator.dart';
 ///     .rpc();
 /// ```
 class MethodsNamespace {
-  final Map<String, TypeSafeMethodBuilder> _builders = {};
-  final MethodInterfaceGenerator _generator;
 
   MethodsNamespace._(this._generator);
+  final Map<String, TypeSafeMethodBuilder> _builders = {};
+  final MethodInterfaceGenerator _generator;
 
   /// Build methods namespace from IDL
   static MethodsNamespace build({
@@ -102,7 +102,7 @@ class MethodsNamespace {
     if (builder == null) return null;
 
     // Return a function that accepts arguments and returns the configured builder
-    return (List<dynamic> args) => builder.withArgs(args);
+    return builder.withArgs;
   }
 
   /// Get a method builder directly by name (for advanced use cases)
@@ -176,7 +176,5 @@ class MethodsNamespace {
   }
 
   @override
-  String toString() {
-    return 'MethodsNamespace(methods: ${_builders.keys.toList()})';
-  }
+  String toString() => 'MethodsNamespace(methods: ${_builders.keys.toList()})';
 }

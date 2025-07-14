@@ -1,7 +1,7 @@
-import '../../types/public_key.dart';
-import '../../idl/idl.dart';
-import '../../provider/anchor_provider.dart';
-import 'simulate_namespace.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
 
 /// Type definitions for namespace generation system
 ///
@@ -26,6 +26,14 @@ typedef AllEvents<I extends Idl> = List<IdlEvent>;
 
 /// Context for instruction execution
 class Context<T> {
+
+  const Context({
+    required this.accounts,
+    this.remainingAccounts,
+    this.signers,
+    this.preInstructions,
+    this.postInstructions,
+  });
   /// The accounts required for the instruction
   final T accounts;
 
@@ -40,18 +48,16 @@ class Context<T> {
 
   /// Instructions to run after this one
   final List<TransactionInstruction>? postInstructions;
-
-  const Context({
-    required this.accounts,
-    this.remainingAccounts,
-    this.signers,
-    this.preInstructions,
-    this.postInstructions,
-  });
 }
 
 /// Account meta for instruction execution
 class AccountMeta {
+
+  const AccountMeta({
+    required this.publicKey,
+    required this.isWritable,
+    required this.isSigner,
+  });
   /// The public key of the account
   final PublicKey publicKey;
 
@@ -61,16 +67,8 @@ class AccountMeta {
   /// Whether the account is a signer
   final bool isSigner;
 
-  const AccountMeta({
-    required this.publicKey,
-    required this.isWritable,
-    required this.isSigner,
-  });
-
   @override
-  String toString() {
-    return 'AccountMeta(publicKey: $publicKey, isWritable: $isWritable, isSigner: $isSigner)';
-  }
+  String toString() => 'AccountMeta(publicKey: $publicKey, isWritable: $isWritable, isSigner: $isSigner)';
 
   @override
   bool operator ==(Object other) {
@@ -83,9 +81,7 @@ class AccountMeta {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(publicKey, isWritable, isSigner);
-  }
+  int get hashCode => Object.hash(publicKey, isWritable, isSigner);
 }
 
 /// Signer interface for accounts that can sign transactions
@@ -99,6 +95,12 @@ abstract class Signer {
 
 /// Transaction instruction for Solana programs
 class TransactionInstruction {
+
+  const TransactionInstruction({
+    required this.programId,
+    required this.accounts,
+    required this.data,
+  });
   /// The program ID that owns this instruction
   final PublicKey programId;
 
@@ -108,17 +110,9 @@ class TransactionInstruction {
   /// The instruction data
   final List<int> data;
 
-  const TransactionInstruction({
-    required this.programId,
-    required this.accounts,
-    required this.data,
-  });
-
   @override
-  String toString() {
-    return 'TransactionInstruction(programId: $programId, '
+  String toString() => 'TransactionInstruction(programId: $programId, '
         'accounts: ${accounts.length}, data: ${data.length} bytes)';
-  }
 
   @override
   bool operator ==(Object other) {
@@ -131,9 +125,7 @@ class TransactionInstruction {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(programId, accounts, data);
-  }
+  int get hashCode => Object.hash(programId, accounts, data);
 
   static bool _listEquals<T>(List<T> a, List<T> b) {
     if (a.length != b.length) return false;
@@ -146,6 +138,12 @@ class TransactionInstruction {
 
 /// Transaction containing multiple instructions
 class AnchorTransaction {
+
+  const AnchorTransaction({
+    this.feePayer,
+    this.recentBlockhash,
+    required this.instructions,
+  });
   /// The fee payer for this transaction
   final PublicKey? feePayer;
 
@@ -155,38 +153,26 @@ class AnchorTransaction {
   /// The instructions in this transaction
   final List<TransactionInstruction> instructions;
 
-  const AnchorTransaction({
-    this.feePayer,
-    this.recentBlockhash,
-    required this.instructions,
-  });
-
   /// Create a new transaction with a fee payer
-  AnchorTransaction setFeePayer(PublicKey feePayer) {
-    return AnchorTransaction(
+  AnchorTransaction setFeePayer(PublicKey feePayer) => AnchorTransaction(
       feePayer: feePayer,
       recentBlockhash: recentBlockhash,
       instructions: instructions,
     );
-  }
 
   /// Create a new transaction with a recent blockhash
-  AnchorTransaction setRecentBlockhash(String blockhash) {
-    return AnchorTransaction(
+  AnchorTransaction setRecentBlockhash(String blockhash) => AnchorTransaction(
       feePayer: feePayer,
       recentBlockhash: blockhash,
       instructions: instructions,
     );
-  }
 
   /// Add an instruction to this transaction
-  AnchorTransaction add(TransactionInstruction instruction) {
-    return AnchorTransaction(
+  AnchorTransaction add(TransactionInstruction instruction) => AnchorTransaction(
       feePayer: feePayer,
       recentBlockhash: recentBlockhash,
       instructions: [...instructions, instruction],
     );
-  }
 
   /// Estimate the size of the transaction in bytes (rough estimate)
   int estimateSize() {
@@ -220,9 +206,7 @@ class AnchorTransaction {
     SimulateFunction simulateFn,
     List<dynamic> args,
     Context<Accounts> context,
-  ) async {
-    return await simulateFn(args, context);
-  }
+  ) async => await simulateFn(args, context);
 
   /// Confirm this transaction (requires provider/connection and signature)
   Future<bool> confirm(
@@ -235,10 +219,8 @@ class AnchorTransaction {
   }
 
   @override
-  String toString() {
-    return 'AnchorTransaction(feePayer: $feePayer, '
+  String toString() => 'AnchorTransaction(feePayer: $feePayer, '
         'instructions: ${instructions.length})';
-  }
 }
 
 /// Generic accounts type for instruction contexts
@@ -246,25 +228,30 @@ typedef Accounts = Map<String, PublicKey>;
 
 /// Transaction result containing signature
 class TransactionResult {
+
+  const TransactionResult({
+    required this.signature,
+    this.confirmed = false,
+  });
   /// The transaction signature
   final String signature;
 
   /// Confirmation status
   final bool confirmed;
 
-  const TransactionResult({
-    required this.signature,
-    this.confirmed = false,
-  });
-
   @override
-  String toString() {
-    return 'TransactionResult(signature: $signature, confirmed: $confirmed)';
-  }
+  String toString() => 'TransactionResult(signature: $signature, confirmed: $confirmed)';
 }
 
 /// Simulation result for transactions
 class SimulationResult {
+
+  const SimulationResult({
+    required this.success,
+    required this.logs,
+    this.error,
+    this.unitsConsumed,
+  });
   /// Whether the simulation was successful
   final bool success;
 
@@ -277,16 +264,7 @@ class SimulationResult {
   /// Compute units consumed
   final int? unitsConsumed;
 
-  const SimulationResult({
-    required this.success,
-    required this.logs,
-    this.error,
-    this.unitsConsumed,
-  });
-
   @override
-  String toString() {
-    return 'SimulationResult(success: $success, logs: ${logs.length}, '
+  String toString() => 'SimulationResult(success: $success, logs: ${logs.length}, '
         'error: $error, unitsConsumed: $unitsConsumed)';
-  }
 }

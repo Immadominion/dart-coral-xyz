@@ -15,7 +15,7 @@ void main() {
           maxFileSize: 1024,
         );
 
-        final testEvent = ParsedEvent(
+        final testEvent = const ParsedEvent(
           name: 'TestEvent',
           data: {'value': 42},
           context: EventContext(signature: 'test', slot: 1),
@@ -80,12 +80,11 @@ void main() {
         );
 
         // Simulate processing time
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
 
         // Complete tracking
         monitor.completeEventProcessing(
           trackingId,
-          success: true,
           resultMetadata: {'result': 'success'},
         );
 
@@ -100,7 +99,7 @@ void main() {
 
       test('EventDebugMonitor alert generation', () async {
         final monitor = EventDebugMonitor(
-          config: EventMonitorConfig(
+          config: const EventMonitorConfig(
             slowProcessingThreshold: Duration(milliseconds: 1),
           ),
         );
@@ -110,11 +109,11 @@ void main() {
 
         // Process a slow event
         final trackingId = monitor.startEventProcessing('SlowEvent', {});
-        await Future.delayed(Duration(milliseconds: 5));
-        monitor.completeEventProcessing(trackingId, success: true);
+        await Future.delayed(const Duration(milliseconds: 5));
+        monitor.completeEventProcessing(trackingId);
 
         // Wait for alert processing
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
 
         expect(alerts.length, greaterThan(0));
         expect(alerts.first.type, equals(AlertType.performance));
@@ -160,7 +159,7 @@ void main() {
         }
 
         // Wait for processing
-        await Future.delayed(Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 200));
 
         expect(aggregatedEvents.length, greaterThan(0));
         final firstAggregation = aggregatedEvents.first;
@@ -226,11 +225,11 @@ void main() {
 
         // Add a filter processor
         pipeline.addProcessor(
-            FilterProcessor((event) => event.eventName.startsWith('Keep')));
+            FilterProcessor((event) => event.eventName.startsWith('Keep')),);
 
         // Add a transform processor
         pipeline.addProcessor(TransformProcessor((event) => event
-            .copyWith(data: {'transformed': true, 'original': event.data})));
+            .copyWith(data: {'transformed': true, 'original': event.data}),),);
 
         final outputEvents = <ProcessedEvent>[];
         pipeline.output.listen(outputEvents.add);
@@ -240,16 +239,16 @@ void main() {
           eventName: 'KeepThis',
           data: {'value': 1},
           timestamp: DateTime.now(),
-        ));
+        ),);
 
         pipeline.input.add(ProcessedEvent(
           eventName: 'FilterThis',
           data: {'value': 2},
           timestamp: DateTime.now(),
-        ));
+        ),);
 
         // Wait for processing
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
 
         expect(outputEvents.length, equals(1));
         expect(outputEvents.first.eventName, equals('KeepThis'));
@@ -263,7 +262,7 @@ void main() {
         final processor = EnrichmentProcessor((event) => {
               'enriched_at': DateTime.now().toIso8601String(),
               'event_type': event.eventName.toLowerCase(),
-            });
+            },);
 
         final event = ProcessedEvent(
           eventName: 'TestEvent',
@@ -322,14 +321,14 @@ void main() {
 
           // Process for aggregation
           aggregationService.processEvent(
-              event.name, event.data, DateTime.now());
+              event.name, event.data, DateTime.now(),);
 
           // Complete tracking
-          debugMonitor.completeEventProcessing(trackingId, success: true);
+          debugMonitor.completeEventProcessing(trackingId);
         }
 
         // Wait for processing
-        await Future.delayed(Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 200));
 
         // Verify all components worked
         final persistenceStats = await persistenceService.getStatistics();

@@ -8,9 +8,9 @@ library;
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'borsh_types.dart';
-import 'borsh_utils.dart';
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_utils.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Anchor-specific Borsh serialization extensions
 class AnchorBorsh {
@@ -169,9 +169,7 @@ class AnchorBorsh {
 /// Extension methods for PublicKey to add Borsh serialization support
 extension PublicKeyBorsh on PublicKey {
   /// Serialize this PublicKey using Borsh format
-  Uint8List serializeBorsh() {
-    return AnchorBorsh.serializePublicKey(this);
-  }
+  Uint8List serializeBorsh() => AnchorBorsh.serializePublicKey(this);
 }
 
 /// Extension methods for BorshSerializer to add Anchor-specific types
@@ -198,9 +196,7 @@ extension AnchorBorshSerializer on BorshSerializer {
 /// Extension methods for BorshDeserializer to add Anchor-specific types
 extension AnchorBorshDeserializer on BorshDeserializer {
   /// Read a PublicKey
-  Uint8List readPublicKeyBytes() {
-    return BorshUtils.readPublicKey(this);
-  }
+  Uint8List readPublicKeyBytes() => BorshUtils.readPublicKey(this);
 
   /// Read a PublicKey as PublicKey object
   PublicKey readPublicKeyObject() {

@@ -8,15 +8,15 @@ library;
 
 import 'dart:async';
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../types/keypair.dart';
-import '../types/transaction.dart';
-import '../provider/wallet.dart';
-import '../provider/anchor_provider.dart';
-import '../provider/connection.dart';
-import '../program/program.dart';
-import '../idl/idl.dart';
-import 'platform_optimization.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/program/program.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
 
 /// Abstract widget interface for Flutter integration
 /// This would extend StatefulWidget in a real Flutter environment
@@ -30,6 +30,10 @@ abstract class SolanaWidget {
 
 /// Wallet connection widget for Flutter applications
 class SolanaWalletWidget implements SolanaWidget {
+
+  SolanaWalletWidget({
+    SolanaWalletConfig? config,
+  }) : config = config ?? SolanaWalletConfig.defaultConfig();
   /// Connection state stream
   final StreamController<WalletConnectionState> _connectionStateController =
       StreamController<WalletConnectionState>.broadcast();
@@ -48,10 +52,6 @@ class SolanaWalletWidget implements SolanaWidget {
 
   /// Configuration for the widget
   final SolanaWalletConfig config;
-
-  SolanaWalletWidget({
-    SolanaWalletConfig? config,
-  }) : config = config ?? SolanaWalletConfig.defaultConfig();
 
   /// Get current connection state
   WalletConnectionState get connectionState => _currentState;
@@ -102,7 +102,7 @@ class SolanaWalletWidget implements SolanaWidget {
     // In production, this would integrate with Mobile Wallet Adapter
     final keypair = await Keypair.generate();
     _wallet = KeypairWallet(keypair);
-    _provider = AnchorProvider(_connection!, _wallet!);
+    _provider = AnchorProvider(_connection!, _wallet);
   }
 
   /// Initialize web wallet (placeholder)
@@ -111,7 +111,7 @@ class SolanaWalletWidget implements SolanaWidget {
     // For demo, create a keypair wallet
     final keypair = await Keypair.generate();
     _wallet = KeypairWallet(keypair);
-    _provider = AnchorProvider(_connection!, _wallet!);
+    _provider = AnchorProvider(_connection!, _wallet);
   }
 
   /// Initialize desktop wallet (simplified)
@@ -120,7 +120,7 @@ class SolanaWalletWidget implements SolanaWidget {
     // For demo, create a keypair wallet
     final keypair = await Keypair.generate();
     _wallet = KeypairWallet(keypair);
-    _provider = AnchorProvider(_connection!, _wallet!);
+    _provider = AnchorProvider(_connection!, _wallet);
   }
 
   /// Connect to wallet
@@ -174,7 +174,7 @@ class SolanaWalletWidget implements SolanaWidget {
       throw Exception('Provider not initialized');
     }
 
-    return await _provider!.sendAndConfirm(transaction);
+    return _provider!.sendAndConfirm(transaction);
   }
 
   /// Get account balance
@@ -188,7 +188,7 @@ class SolanaWalletWidget implements SolanaWidget {
       throw Exception('No address provided and wallet not connected');
     }
 
-    return await _connection!.getBalance(targetAddress);
+    return _connection!.getBalance(targetAddress);
   }
 
   /// Update connection state and notify listeners
@@ -206,21 +206,6 @@ class SolanaWalletWidget implements SolanaWidget {
 
 /// Configuration for Solana wallet widget
 class SolanaWalletConfig {
-  /// RPC URL for connection
-  final String rpcUrl;
-
-  /// Wallet adapter options
-  final Map<String, dynamic> walletOptions;
-
-  /// Auto-connect on initialization
-  final bool autoConnect;
-
-  /// Retry configuration
-  final int maxRetries;
-  final Duration retryDelay;
-
-  /// Platform-specific optimizations
-  final bool enablePlatformOptimizations;
 
   const SolanaWalletConfig({
     required this.rpcUrl,
@@ -263,6 +248,21 @@ class SolanaWalletConfig {
       enablePlatformOptimizations: false,
     );
   }
+  /// RPC URL for connection
+  final String rpcUrl;
+
+  /// Wallet adapter options
+  final Map<String, dynamic> walletOptions;
+
+  /// Auto-connect on initialization
+  final bool autoConnect;
+
+  /// Retry configuration
+  final int maxRetries;
+  final Duration retryDelay;
+
+  /// Platform-specific optimizations
+  final bool enablePlatformOptimizations;
 }
 
 /// Wallet connection states
@@ -288,6 +288,12 @@ enum WalletConnectionState {
 
 /// Program interaction widget for Flutter applications
 class SolanaProgramWidget implements SolanaWidget {
+
+  SolanaProgramWidget({
+    required this.provider,
+    required this.idl,
+    this.programId,
+  });
   /// The program instance
   Program? _program;
 
@@ -309,12 +315,6 @@ class SolanaProgramWidget implements SolanaWidget {
 
   /// Current program state
   ProgramState _currentState = ProgramState.uninitialized;
-
-  SolanaProgramWidget({
-    required this.provider,
-    required this.idl,
-    this.programId,
-  });
 
   /// Get current program
   Program? get program => _program;
@@ -370,7 +370,7 @@ class SolanaProgramWidget implements SolanaWidget {
     }
 
     // Execute transaction
-    return await builder.rpc();
+    return builder.rpc();
   }
 
   /// Fetch account data
@@ -407,7 +407,7 @@ class SolanaProgramWidget implements SolanaWidget {
       const Duration(seconds: 5),
       (i) => {
         'mockEvent': 'data',
-        'timestamp': DateTime.now().millisecondsSinceEpoch
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
       },
     ).listen((event) {
       callback(event, 0); // Mock slot
@@ -457,6 +457,8 @@ enum ProgramState {
 
 /// Transaction builder widget for Flutter applications
 class SolanaTransactionWidget implements SolanaWidget {
+
+  SolanaTransactionWidget({required this.provider});
   /// Current transaction being built
   Transaction? _transaction;
 
@@ -469,8 +471,6 @@ class SolanaTransactionWidget implements SolanaWidget {
 
   /// Provider for sending transactions
   final AnchorProvider provider;
-
-  SolanaTransactionWidget({required this.provider});
 
   /// Get current transaction
   Transaction? get transaction => _transaction;
@@ -585,6 +585,11 @@ enum TransactionState {
 
 /// Account monitor widget for real-time account updates
 class SolanaAccountMonitor implements SolanaWidget {
+
+  SolanaAccountMonitor({
+    required this.connection,
+    this.updateInterval = const Duration(seconds: 5),
+  });
   /// Accounts being monitored
   final Map<PublicKey, StreamSubscription<dynamic>> _monitoredAccounts = {};
 
@@ -597,11 +602,6 @@ class SolanaAccountMonitor implements SolanaWidget {
 
   /// Update interval for polling
   final Duration updateInterval;
-
-  SolanaAccountMonitor({
-    required this.connection,
-    this.updateInterval = const Duration(seconds: 5),
-  });
 
   /// Stream of account updates
   Stream<AccountUpdate> get accountUpdates => _accountUpdateController.stream;
@@ -634,9 +634,7 @@ class SolanaAccountMonitor implements SolanaWidget {
           timestamp: DateTime.now(),
         );
       }
-    }).listen((update) {
-      _accountUpdateController.add(update);
-    });
+    }).listen(_accountUpdateController.add);
 
     _monitoredAccounts[address] = subscription;
   }
@@ -667,6 +665,14 @@ class SolanaAccountMonitor implements SolanaWidget {
 
 /// Account update data
 class AccountUpdate {
+
+  const AccountUpdate({
+    required this.address,
+    this.balance,
+    this.data,
+    this.error,
+    required this.timestamp,
+  });
   /// Account address
   final PublicKey address;
 
@@ -681,14 +687,6 @@ class AccountUpdate {
 
   /// Update timestamp
   final DateTime timestamp;
-
-  const AccountUpdate({
-    required this.address,
-    this.balance,
-    this.data,
-    this.error,
-    required this.timestamp,
-  });
 
   /// Whether this update contains an error
   bool get hasError => error != null;

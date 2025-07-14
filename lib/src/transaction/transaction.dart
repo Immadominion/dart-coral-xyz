@@ -2,23 +2,24 @@
 ///
 /// This file provides a working transaction serialization implementation
 /// using the espresso-cash solana package, replacing all broken stubs.
+library;
 
 import 'dart:typed_data';
 import 'package:solana/solana.dart' as solana;
 import 'package:solana/encoder.dart' as encoder;
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Account metadata for transaction building
 class AccountMeta {
-  final PublicKey publicKey;
-  final bool isSigner;
-  final bool isWritable;
 
   const AccountMeta({
     required this.publicKey,
     required this.isSigner,
     required this.isWritable,
   });
+  final PublicKey publicKey;
+  final bool isSigner;
+  final bool isWritable;
 
   @override
   String toString() =>
@@ -27,15 +28,15 @@ class AccountMeta {
 
 /// Transaction instruction
 class TransactionInstruction {
-  final PublicKey programId;
-  final List<AccountMeta> accounts;
-  final Uint8List data;
 
   const TransactionInstruction({
     required this.programId,
     required this.accounts,
     required this.data,
   });
+  final PublicKey programId;
+  final List<AccountMeta> accounts;
+  final Uint8List data;
 
   @override
   String toString() =>
@@ -44,15 +45,15 @@ class TransactionInstruction {
 
 /// Transaction implementation using espresso-cash solana package
 class Transaction {
-  final List<TransactionInstruction> instructions;
-  final PublicKey? feePayer;
-  final String? recentBlockhash;
 
   Transaction({
     required this.instructions,
     this.feePayer,
     this.recentBlockhash,
   });
+  final List<TransactionInstruction> instructions;
+  final PublicKey? feePayer;
+  final String? recentBlockhash;
 
   /// Convert to espresso-cash format and serialize
   Future<Uint8List> serialize({
@@ -65,9 +66,9 @@ class Transaction {
     for (final instruction in instructions) {
       final workingInstruction = encoder.Instruction(
         programId: solana.Ed25519HDPublicKey.fromBase58(
-            instruction.programId.toBase58()),
+            instruction.programId.toBase58(),),
         accounts: instruction.accounts
-            .map((account) => _convertAccountMeta(account))
+            .map(_convertAccountMeta)
             .toList(),
         data: encoder.ByteArray(instruction.data),
       );
@@ -123,7 +124,7 @@ class Transaction {
     // Convert to base64 for RPC
     final encodedTx =
         encoder.SignedTx.fromBytes(serializedTransaction).encode();
-    return await client.rpcClient.sendTransaction(
+    return client.rpcClient.sendTransaction(
       encodedTx,
       preflightCommitment: commitment ?? solana.Commitment.confirmed,
     );

@@ -2,11 +2,12 @@
 ///
 /// This file contains additional type definitions needed for the advanced
 /// event system features in the Program class.
+library;
 
 import 'dart:async';
-import '../types/public_key.dart';
-import '../provider/anchor_provider.dart';
-import 'types.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
 
 /// Event processor interface for event pipelines
 abstract class EventProcessor {
@@ -15,9 +16,9 @@ abstract class EventProcessor {
 
 /// Simple filter processor implementation
 class FilterProcessor implements EventProcessor {
-  final bool Function(dynamic) _filterFn;
 
   FilterProcessor(this._filterFn);
+  final bool Function(dynamic) _filterFn;
 
   @override
   Future<dynamic> process(dynamic event) async {
@@ -30,10 +31,6 @@ class FilterProcessor implements EventProcessor {
 
 /// Event pipeline for processing events
 class EventPipeline {
-  final List<EventProcessor> _processors;
-  final StreamController<dynamic> _inputController =
-      StreamController<dynamic>();
-  late final Stream<dynamic> outputStream;
 
   EventPipeline(this._processors) {
     final transformedStream = _inputController.stream;
@@ -48,6 +45,10 @@ class EventPipeline {
       }
     });
   }
+  final List<EventProcessor> _processors;
+  final StreamController<dynamic> _inputController =
+      StreamController<dynamic>();
+  late final Stream<dynamic> outputStream;
 
   void addEvent(dynamic event) {
     _inputController.add(event);
@@ -60,23 +61,19 @@ class EventPipeline {
 
 /// Event connection state
 class EventConnectionState {
-  final bool isConnected;
-  final DateTime? lastConnectionTime;
-  final String? connectionError;
 
   const EventConnectionState({
     required this.isConnected,
     this.lastConnectionTime,
     this.connectionError,
   });
+  final bool isConnected;
+  final DateTime? lastConnectionTime;
+  final String? connectionError;
 }
 
 /// Event statistics
 class EventStats {
-  final int totalEvents;
-  final int parseErrors;
-  final int lastEventSlot;
-  final DateTime? lastEventTime;
 
   const EventStats({
     required this.totalEvents,
@@ -84,42 +81,44 @@ class EventStats {
     required this.lastEventSlot,
     this.lastEventTime,
   });
+  final int totalEvents;
+  final int parseErrors;
+  final int lastEventSlot;
+  final DateTime? lastEventTime;
 }
 
 /// Program event data structure
 class ProgramEvent {
-  final String eventName;
-  final dynamic eventData;
-  final EventContext context;
 
   const ProgramEvent({
     required this.eventName,
     required this.eventData,
     required this.context,
   });
+  final String eventName;
+  final dynamic eventData;
+  final EventContext context;
 }
 
 /// Event persistence service
 class EventPersistenceService {
+
+  EventPersistenceService(this._programId, this._provider);
   final PublicKey _programId;
   final AnchorProvider _provider;
   bool _initialized = false;
-
-  EventPersistenceService(this._programId, this._provider);
 
   Future<void> initialize() async {
     // Implementation would set up storage and listeners for _programId
     _initialized = true;
   }
 
-  Future<Map<String, dynamic>> getStats() async {
-    return {
+  Future<Map<String, dynamic>> getStats() async => {
       'enabled': _initialized,
       'events': 0,
       'storage': 'memory',
       'programId': _programId.toBase58(),
     };
-  }
 
   Future<List<ProgramEvent>> restoreEvents() async {
     // Implementation would retrieve events from storage using _provider and _programId
@@ -135,24 +134,22 @@ class EventPersistenceService {
 
 /// Event debugging monitor
 class EventDebugMonitor {
-  final PublicKey _programId;
-  bool _initialized = false;
 
   EventDebugMonitor(this._programId);
+  final PublicKey _programId;
+  bool _initialized = false;
 
   Future<void> initialize() async {
     // Implementation would set up debugging tools for _programId
     _initialized = true;
   }
 
-  Future<Map<String, dynamic>> getStats() async {
-    return {
+  Future<Map<String, dynamic>> getStats() async => {
       'enabled': _initialized,
       'events': 0,
       'monitors': <String>[],
       'programId': _programId.toBase58(),
     };
-  }
 
   Future<void> dispose() async {
     // Implementation would clean up resources
@@ -162,12 +159,12 @@ class EventDebugMonitor {
 
 /// Event aggregation service
 class EventAggregationService {
+
+  EventAggregationService(this._programId, this._provider);
   final PublicKey _programId;
   final AnchorProvider _provider;
   bool _initialized = false;
   final List<EventPipeline> _pipelines = [];
-
-  EventAggregationService(this._programId, this._provider);
 
   Future<void> initialize() async {
     // Implementation would set up aggregation system for _programId using _provider

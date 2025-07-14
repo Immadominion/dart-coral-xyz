@@ -1,12 +1,17 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'transaction_simulator.dart';
-import 'enhanced_simulation_analyzer.dart';
-import 'simulation_cache_manager.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/transaction/enhanced_simulation_analyzer.dart';
+import 'package:coral_xyz_anchor/src/transaction/simulation_cache_manager.dart';
 
 /// Comprehensive debugging and development tools for transaction simulation
 class SimulationDebugger {
+
+  SimulationDebugger({
+    SimulationCacheManager? cacheManager,
+    this.config = const DebugConfig(),
+  }) : _cacheManager = cacheManager ?? SimulationCacheManager();
   /// Cache manager for storing debug sessions
   final SimulationCacheManager _cacheManager;
 
@@ -18,11 +23,6 @@ class SimulationDebugger {
 
   /// Debug statistics
   final DebugStatistics statistics = DebugStatistics();
-
-  SimulationDebugger({
-    SimulationCacheManager? cacheManager,
-    this.config = const DebugConfig(),
-  }) : _cacheManager = cacheManager ?? SimulationCacheManager();
 
   /// Start a new debug session
   DebugSession startDebugSession({
@@ -131,7 +131,6 @@ class SimulationDebugger {
         simulationKey: '',
         analysisKey: '',
         simulation: simulation,
-        analysis: null,
         timestamp: DateTime.now(),
         processingTime: DateTime.now().difference(stepStartTime),
         metadata: metadata ?? {},
@@ -335,7 +334,7 @@ class SimulationDebugger {
   String _generateSessionId() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final random = math.Random().nextInt(1000);
-    return 'debug_${timestamp}_${random}';
+    return 'debug_${timestamp}_$random';
   }
 
   Comparison _compareSteps(DebugStep previous, AnalysisResult current) {
@@ -356,18 +355,18 @@ class SimulationDebugger {
   }
 
   double _calculatePerformanceChange(
-      AnalysisResult? previous, AnalysisResult current) {
-    if (previous == null) return 0.0;
+      AnalysisResult? previous, AnalysisResult current,) {
+    if (previous == null) return 0;
 
     final prevScore = previous.performanceMetrics.throughputScore;
     final currScore = current.performanceMetrics.throughputScore;
 
-    if (prevScore == 0) return 0.0;
+    if (prevScore == 0) return 0;
     return ((currScore - prevScore) / prevScore) * 100;
   }
 
   List<String> _identifySignificantChanges(
-      AnalysisResult? previous, AnalysisResult current) {
+      AnalysisResult? previous, AnalysisResult current,) {
     if (previous == null) return ['Initial step'];
 
     final changes = <String>[];
@@ -377,7 +376,7 @@ class SimulationDebugger {
         previous.computeAnalysis.unitsConsumed;
     if (computeDiff.abs() > 10000) {
       changes.add(
-          'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}');
+          'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}',);
     }
 
     // Check for account count changes
@@ -385,7 +384,7 @@ class SimulationDebugger {
         previous.accountAnalysis.totalAccounts;
     if (accountDiff != 0) {
       changes.add(
-          'Account count ${accountDiff > 0 ? 'increased' : 'decreased'} by ${accountDiff.abs()}');
+          'Account count ${accountDiff > 0 ? 'increased' : 'decreased'} by ${accountDiff.abs()}',);
     }
 
     return changes;
@@ -408,7 +407,7 @@ class SimulationDebugger {
             'Transaction uses ${analysis.computeAnalysis.unitsConsumed} compute units',
         recommendation: 'Consider optimizing instruction complexity',
         affectedStep: session.steps.length,
-      ));
+      ),);
     }
 
     // Detect pattern anomalies
@@ -428,7 +427,7 @@ class SimulationDebugger {
               'This step uses significantly more compute units than average',
           recommendation: 'Investigate what changed in this transaction',
           affectedStep: session.steps.length,
-        ));
+        ),);
       }
     }
 
@@ -451,7 +450,7 @@ class SimulationDebugger {
             'This transaction is highly efficient with ${(analysis.computeAnalysis.efficiency * 100).toStringAsFixed(1)}% efficiency',
         impact: InsightImpact.positive,
         confidence: 0.9,
-      ));
+      ),);
     }
 
     // Pattern insight
@@ -465,16 +464,16 @@ class SimulationDebugger {
       if (computeUnits.length > 1) {
         final isDecreasing = computeUnits.every((units) =>
             computeUnits.indexOf(units) == 0 ||
-            units <= computeUnits[computeUnits.indexOf(units) - 1]);
+            units <= computeUnits[computeUnits.indexOf(units) - 1],);
 
         if (isDecreasing) {
-          insights.add(DebugInsight(
+          insights.add(const DebugInsight(
             type: DebugInsightType.pattern,
             title: 'Optimization Trend',
             description: 'Compute unit usage is consistently decreasing',
             impact: InsightImpact.positive,
             confidence: 0.8,
-          ));
+          ),);
         }
       }
     }
@@ -483,7 +482,7 @@ class SimulationDebugger {
   }
 
   Future<List<SessionPattern>> _analyzeSessionPatterns(
-      DebugSession session) async {
+      DebugSession session,) async {
     final patterns = <SessionPattern>[];
 
     if (session.steps.length < 2) return patterns;
@@ -507,7 +506,7 @@ class SimulationDebugger {
           description: 'Compute unit usage is stable across steps',
           confidence: 0.9,
           affectedSteps: List.generate(session.steps.length, (i) => i),
-        ));
+        ),);
       }
     }
 
@@ -515,7 +514,7 @@ class SimulationDebugger {
   }
 
   Future<List<PerformanceBottleneck>> _identifyBottlenecks(
-      DebugSession session) async {
+      DebugSession session,) async {
     final bottlenecks = <PerformanceBottleneck>[];
 
     for (int i = 0; i < session.steps.length; i++) {
@@ -533,7 +532,7 @@ class SimulationDebugger {
                 'High compute unit usage: ${analysis.computeAnalysis.unitsConsumed}',
             impact: 'May cause transaction failures or high fees',
             recommendation: 'Optimize instruction complexity',
-          ));
+          ),);
         }
 
         // Check for many account accesses
@@ -546,7 +545,7 @@ class SimulationDebugger {
                 'Many account accesses: ${analysis.accountAnalysis.totalAccounts}',
             impact: 'May increase transaction size and processing time',
             recommendation: 'Consider account lookup tables',
-          ));
+          ),);
         }
       }
     }
@@ -555,7 +554,7 @@ class SimulationDebugger {
   }
 
   Future<List<SessionOptimization>> _generateSessionOptimizations(
-      DebugSession session) async {
+      DebugSession session,) async {
     final optimizations = <SessionOptimization>[];
 
     // Global optimization recommendations based on session patterns
@@ -583,7 +582,7 @@ class SimulationDebugger {
             'Optimize data processing',
             'Consider breaking into smaller transactions',
           ],
-        ));
+        ),);
       }
     }
 
@@ -591,7 +590,7 @@ class SimulationDebugger {
   }
 
   Future<ExecutionFlowAnalysis> _analyzeExecutionFlow(
-      DebugSession session) async {
+      DebugSession session,) async {
     final flowSteps = <FlowStep>[];
 
     for (int i = 0; i < session.steps.length; i++) {
@@ -605,7 +604,7 @@ class SimulationDebugger {
         duration: step.processingTime,
         issues: step.issues?.length ?? 0,
         insights: step.insights?.length ?? 0,
-      ));
+      ),);
     }
 
     return ExecutionFlowAnalysis(
@@ -621,7 +620,7 @@ class SimulationDebugger {
   }
 
   Future<ComparisonMatrix> _generateComparisonMatrix(
-      DebugSession session) async {
+      DebugSession session,) async {
     final validSteps = session.steps.where((s) => s.analysis != null).toList();
     final matrix = <List<ComparisonCell>>[];
 
@@ -633,9 +632,9 @@ class SimulationDebugger {
           row.add(ComparisonCell(
             row: i,
             column: j,
-            value: 0.0,
+            value: 0,
             type: ComparisonType.identity,
-          ));
+          ),);
         } else {
           final stepA = validSteps[i];
           final stepB = validSteps[j];
@@ -651,7 +650,7 @@ class SimulationDebugger {
               'stepA': stepA.name,
               'stepB': stepB.name,
             },
-          ));
+          ),);
         }
       }
 
@@ -726,7 +725,7 @@ class SimulationDebugger {
   // Export methods
 
   DebugExportResult _exportSessionToJson(
-      DebugSession session, DebugExportOptions options) {
+      DebugSession session, DebugExportOptions options,) {
     final data = {
       'session': {
         'id': session.id,
@@ -744,7 +743,7 @@ class SimulationDebugger {
                 'computeUnits': step.analysis?.computeAnalysis.unitsConsumed,
                 'issues': step.issues?.length ?? 0,
                 'insights': step.insights?.length ?? 0,
-              })
+              },)
           .toList(),
     };
 
@@ -758,7 +757,7 @@ class SimulationDebugger {
   }
 
   DebugExportResult _exportSessionToCsv(
-      DebugSession session, DebugExportOptions options) {
+      DebugSession session, DebugExportOptions options,) {
     final csv = StringBuffer();
     csv.writeln('Index,Name,Timestamp,Success,ComputeUnits,Issues,Insights');
 
@@ -779,7 +778,7 @@ class SimulationDebugger {
   }
 
   DebugExportResult _exportSessionToMarkdown(
-      DebugSession session, DebugExportOptions options) {
+      DebugSession session, DebugExportOptions options,) {
     final md = StringBuffer();
     md.writeln('# Debug Session: ${session.name}');
     md.writeln();
@@ -792,9 +791,9 @@ class SimulationDebugger {
     md.writeln('## Steps Summary');
     md.writeln();
     md.writeln(
-        '| Index | Name | Success | Compute Units | Issues | Insights |');
+        '| Index | Name | Success | Compute Units | Issues | Insights |',);
     md.writeln(
-        '|-------|------|---------|---------------|---------|----------|');
+        '|-------|------|---------|---------------|---------|----------|',);
 
     for (final step in session.steps) {
       md.writeln(
@@ -813,19 +812,19 @@ class SimulationDebugger {
   }
 
   DebugExportResult _exportSessionToHtml(
-      DebugSession session, DebugExportOptions options) {
+      DebugSession session, DebugExportOptions options,) {
     final html = StringBuffer();
     html.writeln('<!DOCTYPE html>');
     html.writeln(
-        '<html><head><title>Debug Session: ${session.name}</title></head><body>');
+        '<html><head><title>Debug Session: ${session.name}</title></head><body>',);
     html.writeln('<h1>Debug Session: ${session.name}</h1>');
     html.writeln('<p><strong>Session ID:</strong> ${session.id}</p>');
     html.writeln(
-        '<p><strong>Start Time:</strong> ${session.startTime.toIso8601String()}</p>');
+        '<p><strong>Start Time:</strong> ${session.startTime.toIso8601String()}</p>',);
     html.writeln('<h2>Steps</h2>');
     html.writeln('<table border="1">');
     html.writeln(
-        '<tr><th>Index</th><th>Name</th><th>Success</th><th>Compute Units</th><th>Issues</th><th>Insights</th></tr>');
+        '<tr><th>Index</th><th>Name</th><th>Success</th><th>Compute Units</th><th>Issues</th><th>Insights</th></tr>',);
 
     for (final step in session.steps) {
       html.writeln('<tr>');
@@ -833,7 +832,7 @@ class SimulationDebugger {
       html.writeln('<td>${step.name}</td>');
       html.writeln('<td>${step.simulation.success}</td>');
       html.writeln(
-          '<td>${step.analysis?.computeAnalysis.unitsConsumed ?? 0}</td>');
+          '<td>${step.analysis?.computeAnalysis.unitsConsumed ?? 0}</td>',);
       html.writeln('<td>${step.issues?.length ?? 0}</td>');
       html.writeln('<td>${step.insights?.length ?? 0}</td>');
       html.writeln('</tr>');
@@ -856,10 +855,6 @@ class SimulationDebugger {
 
 /// Configuration for debugging
 class DebugConfig {
-  final bool enableCaching;
-  final bool enableComparison;
-  final bool enableInsights;
-  final int maxSessionHistory;
 
   const DebugConfig({
     this.enableCaching = true,
@@ -867,14 +862,14 @@ class DebugConfig {
     this.enableInsights = true,
     this.maxSessionHistory = 100,
   });
+  final bool enableCaching;
+  final bool enableComparison;
+  final bool enableInsights;
+  final int maxSessionHistory;
 }
 
 /// Options for debug sessions
 class DebugSessionOptions {
-  final bool autoAnalyze;
-  final bool trackPerformance;
-  final bool detectAnomalies;
-  final bool generateInsights;
 
   const DebugSessionOptions({
     this.autoAnalyze = true,
@@ -882,16 +877,16 @@ class DebugSessionOptions {
     this.detectAnomalies = true,
     this.generateInsights = true,
   });
+  final bool autoAnalyze;
+  final bool trackPerformance;
+  final bool detectAnomalies;
+  final bool generateInsights;
 
   static DebugSessionOptions defaultOptions() => const DebugSessionOptions();
 }
 
 /// Options for debug steps
 class DebugStepOptions {
-  final bool enableComparison;
-  final bool detectIssues;
-  final bool generateInsights;
-  final bool cacheResults;
 
   const DebugStepOptions({
     this.enableComparison = true,
@@ -899,16 +894,16 @@ class DebugStepOptions {
     this.generateInsights = true,
     this.cacheResults = true,
   });
+  final bool enableComparison;
+  final bool detectIssues;
+  final bool generateInsights;
+  final bool cacheResults;
 
   static DebugStepOptions defaultOptions() => const DebugStepOptions();
 }
 
 /// Options for debug reports
 class DebugReportOptions {
-  final bool includeComparisonMatrix;
-  final bool includeFlowAnalysis;
-  final bool includeOptimizations;
-  final bool includeDetailedInsights;
 
   const DebugReportOptions({
     this.includeComparisonMatrix = true,
@@ -916,16 +911,16 @@ class DebugReportOptions {
     this.includeOptimizations = true,
     this.includeDetailedInsights = true,
   });
+  final bool includeComparisonMatrix;
+  final bool includeFlowAnalysis;
+  final bool includeOptimizations;
+  final bool includeDetailedInsights;
 
   static DebugReportOptions defaultOptions() => const DebugReportOptions();
 }
 
 /// Options for interactive debugging
 class InteractiveDebugOptions {
-  final bool enableBreakpoints;
-  final bool enableWatchlist;
-  final bool enableCommandHistory;
-  final int maxHistorySize;
 
   const InteractiveDebugOptions({
     this.enableBreakpoints = true,
@@ -933,6 +928,10 @@ class InteractiveDebugOptions {
     this.enableCommandHistory = true,
     this.maxHistorySize = 1000,
   });
+  final bool enableBreakpoints;
+  final bool enableWatchlist;
+  final bool enableCommandHistory;
+  final int maxHistorySize;
 
   static InteractiveDebugOptions defaultOptions() =>
       const InteractiveDebugOptions();
@@ -940,10 +939,6 @@ class InteractiveDebugOptions {
 
 /// Options for monitoring
 class MonitoringOptions {
-  final Duration checkInterval;
-  final bool enableAlerts;
-  final bool enableMetrics;
-  final int maxAlertHistory;
 
   const MonitoringOptions({
     this.checkInterval = const Duration(seconds: 30),
@@ -951,16 +946,16 @@ class MonitoringOptions {
     this.enableMetrics = true,
     this.maxAlertHistory = 1000,
   });
+  final Duration checkInterval;
+  final bool enableAlerts;
+  final bool enableMetrics;
+  final int maxAlertHistory;
 
   static MonitoringOptions defaultOptions() => const MonitoringOptions();
 }
 
 /// Options for debug export
 class DebugExportOptions {
-  final bool includeMetadata;
-  final bool includeAnalysisDetails;
-  final bool includeComparisons;
-  final bool prettyFormat;
 
   const DebugExportOptions({
     this.includeMetadata = true,
@@ -968,6 +963,10 @@ class DebugExportOptions {
     this.includeComparisons = true,
     this.prettyFormat = true,
   });
+  final bool includeMetadata;
+  final bool includeAnalysisDetails;
+  final bool includeComparisons;
+  final bool prettyFormat;
 
   static DebugExportOptions defaultOptions() => const DebugExportOptions();
 }
@@ -976,14 +975,6 @@ class DebugExportOptions {
 
 /// Debug session
 class DebugSession {
-  final String id;
-  final String name;
-  final DateTime startTime;
-  final DebugSessionOptions options;
-  final List<DebugStep> steps;
-  final Map<String, dynamic> metadata;
-  DateTime? endTime;
-  DateTime? lastUpdated;
 
   DebugSession({
     required this.id,
@@ -995,23 +986,18 @@ class DebugSession {
     this.endTime,
     this.lastUpdated,
   });
+  final String id;
+  final String name;
+  final DateTime startTime;
+  final DebugSessionOptions options;
+  final List<DebugStep> steps;
+  final Map<String, dynamic> metadata;
+  DateTime? endTime;
+  DateTime? lastUpdated;
 }
 
 /// Individual debug step
 class DebugStep {
-  final int index;
-  final String name;
-  final String simulationKey;
-  final String analysisKey;
-  final TransactionSimulationResult simulation;
-  final AnalysisResult? analysis;
-  final Comparison? comparison;
-  final List<DebugIssue>? issues;
-  final List<DebugInsight>? insights;
-  final DateTime timestamp;
-  final Duration processingTime;
-  final Map<String, dynamic> metadata;
-  final String? error;
 
   const DebugStep({
     required this.index,
@@ -1028,14 +1014,23 @@ class DebugStep {
     required this.metadata,
     this.error,
   });
+  final int index;
+  final String name;
+  final String simulationKey;
+  final String analysisKey;
+  final TransactionSimulationResult simulation;
+  final AnalysisResult? analysis;
+  final Comparison? comparison;
+  final List<DebugIssue>? issues;
+  final List<DebugInsight>? insights;
+  final DateTime timestamp;
+  final Duration processingTime;
+  final Map<String, dynamic> metadata;
+  final String? error;
 }
 
 /// Result of adding a debug step
 class DebugStepResult {
-  final DebugStep step;
-  final DebugSession session;
-  final bool success;
-  final String? error;
 
   const DebugStepResult({
     required this.step,
@@ -1043,14 +1038,14 @@ class DebugStepResult {
     required this.success,
     this.error,
   });
+  final DebugStep step;
+  final DebugSession session;
+  final bool success;
+  final String? error;
 }
 
 /// Comparison between debug steps
 class Comparison {
-  final int computeUnitsDifference;
-  final int accountCountDifference;
-  final double performanceChange;
-  final List<String> significantChanges;
 
   const Comparison({
     required this.computeUnitsDifference,
@@ -1058,16 +1053,14 @@ class Comparison {
     required this.performanceChange,
     required this.significantChanges,
   });
+  final int computeUnitsDifference;
+  final int accountCountDifference;
+  final double performanceChange;
+  final List<String> significantChanges;
 }
 
 /// Debug issue
 class DebugIssue {
-  final DebugIssueType type;
-  final DebugIssueSeverity severity;
-  final String title;
-  final String description;
-  final String? recommendation;
-  final int? affectedStep;
 
   const DebugIssue({
     required this.type,
@@ -1077,15 +1070,16 @@ class DebugIssue {
     this.recommendation,
     this.affectedStep,
   });
+  final DebugIssueType type;
+  final DebugIssueSeverity severity;
+  final String title;
+  final String description;
+  final String? recommendation;
+  final int? affectedStep;
 }
 
 /// Debug insight
 class DebugInsight {
-  final DebugInsightType type;
-  final String title;
-  final String description;
-  final InsightImpact impact;
-  final double confidence;
 
   const DebugInsight({
     required this.type,
@@ -1094,21 +1088,15 @@ class DebugInsight {
     required this.impact,
     required this.confidence,
   });
+  final DebugInsightType type;
+  final String title;
+  final String description;
+  final InsightImpact impact;
+  final double confidence;
 }
 
 /// Debug report
 class DebugReport {
-  final String sessionId;
-  final DebugSession session;
-  final List<SessionPattern> patterns;
-  final List<PerformanceBottleneck> bottlenecks;
-  final List<SessionOptimization> optimizations;
-  final ExecutionFlowAnalysis flowAnalysis;
-  final ComparisonMatrix? comparisonMatrix;
-  final IssueSummary issueSummary;
-  final InsightsSummary insightsSummary;
-  final Map<String, dynamic> metadata;
-  final DateTime timestamp;
 
   const DebugReport({
     required this.sessionId,
@@ -1123,14 +1111,21 @@ class DebugReport {
     required this.metadata,
     required this.timestamp,
   });
+  final String sessionId;
+  final DebugSession session;
+  final List<SessionPattern> patterns;
+  final List<PerformanceBottleneck> bottlenecks;
+  final List<SessionOptimization> optimizations;
+  final ExecutionFlowAnalysis flowAnalysis;
+  final ComparisonMatrix? comparisonMatrix;
+  final IssueSummary issueSummary;
+  final InsightsSummary insightsSummary;
+  final Map<String, dynamic> metadata;
+  final DateTime timestamp;
 }
 
 /// Session pattern analysis
 class SessionPattern {
-  final PatternType type;
-  final String description;
-  final double confidence;
-  final List<int> affectedSteps;
 
   const SessionPattern({
     required this.type,
@@ -1138,16 +1133,14 @@ class SessionPattern {
     required this.confidence,
     required this.affectedSteps,
   });
+  final PatternType type;
+  final String description;
+  final double confidence;
+  final List<int> affectedSteps;
 }
 
 /// Performance bottleneck
 class PerformanceBottleneck {
-  final BottleneckType type;
-  final int stepIndex;
-  final BottleneckSeverity severity;
-  final String description;
-  final String impact;
-  final String recommendation;
 
   const PerformanceBottleneck({
     required this.type,
@@ -1157,16 +1150,16 @@ class PerformanceBottleneck {
     required this.impact,
     required this.recommendation,
   });
+  final BottleneckType type;
+  final int stepIndex;
+  final BottleneckSeverity severity;
+  final String description;
+  final String impact;
+  final String recommendation;
 }
 
 /// Session optimization recommendation
 class SessionOptimization {
-  final OptimizationType type;
-  final OptimizationPriority priority;
-  final String title;
-  final String description;
-  final String estimatedImpact;
-  final List<String> implementation;
 
   const SessionOptimization({
     required this.type,
@@ -1176,14 +1169,16 @@ class SessionOptimization {
     required this.estimatedImpact,
     required this.implementation,
   });
+  final OptimizationType type;
+  final OptimizationPriority priority;
+  final String title;
+  final String description;
+  final String estimatedImpact;
+  final List<String> implementation;
 }
 
 /// Execution flow analysis
 class ExecutionFlowAnalysis {
-  final List<FlowStep> steps;
-  final Duration totalDuration;
-  final double successRate;
-  final double averageComputeUnits;
 
   const ExecutionFlowAnalysis({
     required this.steps,
@@ -1191,17 +1186,14 @@ class ExecutionFlowAnalysis {
     required this.successRate,
     required this.averageComputeUnits,
   });
+  final List<FlowStep> steps;
+  final Duration totalDuration;
+  final double successRate;
+  final double averageComputeUnits;
 }
 
 /// Flow step
 class FlowStep {
-  final int index;
-  final String name;
-  final bool success;
-  final int computeUnits;
-  final Duration duration;
-  final int issues;
-  final int insights;
 
   const FlowStep({
     required this.index,
@@ -1212,28 +1204,30 @@ class FlowStep {
     required this.issues,
     required this.insights,
   });
+  final int index;
+  final String name;
+  final bool success;
+  final int computeUnits;
+  final Duration duration;
+  final int issues;
+  final int insights;
 }
 
 /// Comparison matrix for steps
 class ComparisonMatrix {
-  final List<List<ComparisonCell>> matrix;
-  final int size;
-  final List<String> labels;
 
   const ComparisonMatrix({
     required this.matrix,
     required this.size,
     required this.labels,
   });
+  final List<List<ComparisonCell>> matrix;
+  final int size;
+  final List<String> labels;
 }
 
 /// Cell in comparison matrix
 class ComparisonCell {
-  final int row;
-  final int column;
-  final double value;
-  final ComparisonType type;
-  final Map<String, dynamic>? metadata;
 
   const ComparisonCell({
     required this.row,
@@ -1242,14 +1236,15 @@ class ComparisonCell {
     required this.type,
     this.metadata,
   });
+  final int row;
+  final int column;
+  final double value;
+  final ComparisonType type;
+  final Map<String, dynamic>? metadata;
 }
 
 /// Issue summary
 class IssueSummary {
-  final int totalIssues;
-  final Map<DebugIssueType, int> byType;
-  final Map<DebugIssueSeverity, int> bySeverity;
-  final List<DebugIssue> criticalIssues;
 
   const IssueSummary({
     required this.totalIssues,
@@ -1257,14 +1252,14 @@ class IssueSummary {
     required this.bySeverity,
     required this.criticalIssues,
   });
+  final int totalIssues;
+  final Map<DebugIssueType, int> byType;
+  final Map<DebugIssueSeverity, int> bySeverity;
+  final List<DebugIssue> criticalIssues;
 }
 
 /// Insights summary
 class InsightsSummary {
-  final int totalInsights;
-  final Map<DebugInsightType, int> byType;
-  final List<DebugInsight> highConfidenceInsights;
-  final List<DebugInsight> positiveInsights;
 
   const InsightsSummary({
     required this.totalInsights,
@@ -1272,17 +1267,14 @@ class InsightsSummary {
     required this.highConfidenceInsights,
     required this.positiveInsights,
   });
+  final int totalInsights;
+  final Map<DebugInsightType, int> byType;
+  final List<DebugInsight> highConfidenceInsights;
+  final List<DebugInsight> positiveInsights;
 }
 
 /// Interactive debug session
 class InteractiveDebugSession {
-  final String id;
-  final String name;
-  final DateTime startTime;
-  final InteractiveDebugOptions options;
-  final List<DebugCommand> commandHistory;
-  final List<String> watchlist;
-  final List<Breakpoint> breakpoints;
 
   const InteractiveDebugSession({
     required this.id,
@@ -1293,29 +1285,30 @@ class InteractiveDebugSession {
     required this.watchlist,
     required this.breakpoints,
   });
+  final String id;
+  final String name;
+  final DateTime startTime;
+  final InteractiveDebugOptions options;
+  final List<DebugCommand> commandHistory;
+  final List<String> watchlist;
+  final List<Breakpoint> breakpoints;
 }
 
 /// Debug command
 class DebugCommand {
-  final DebugCommandType type;
-  final String command;
-  final Map<String, dynamic> parameters;
 
   const DebugCommand({
     required this.type,
     required this.command,
     required this.parameters,
   });
+  final DebugCommandType type;
+  final String command;
+  final Map<String, dynamic> parameters;
 }
 
 /// Debug command result
 class DebugCommandResult {
-  final DebugCommand command;
-  final bool success;
-  final dynamic result;
-  final String? error;
-  final Duration executionTime;
-  final DateTime timestamp;
 
   const DebugCommandResult({
     required this.command,
@@ -1325,30 +1318,29 @@ class DebugCommandResult {
     required this.executionTime,
     required this.timestamp,
   });
+  final DebugCommand command;
+  final bool success;
+  final dynamic result;
+  final String? error;
+  final Duration executionTime;
+  final DateTime timestamp;
 }
 
 /// Breakpoint for debugging
 class Breakpoint {
-  final String id;
-  final String condition;
-  final bool enabled;
 
   const Breakpoint({
     required this.id,
     required this.condition,
     required this.enabled,
   });
+  final String id;
+  final String condition;
+  final bool enabled;
 }
 
 /// Monitoring session
 class MonitoringSession {
-  final String id;
-  final String name;
-  final List<MonitoringRule> rules;
-  final MonitoringOptions options;
-  final DateTime startTime;
-  final List<MonitoringAlert> alerts;
-  final MonitoringMetrics metrics;
 
   const MonitoringSession({
     required this.id,
@@ -1359,14 +1351,17 @@ class MonitoringSession {
     required this.alerts,
     required this.metrics,
   });
+  final String id;
+  final String name;
+  final List<MonitoringRule> rules;
+  final MonitoringOptions options;
+  final DateTime startTime;
+  final List<MonitoringAlert> alerts;
+  final MonitoringMetrics metrics;
 }
 
 /// Monitoring rule
 class MonitoringRule {
-  final String id;
-  final String name;
-  final String condition;
-  final MonitoringRuleType type;
 
   const MonitoringRule({
     required this.id,
@@ -1374,15 +1369,14 @@ class MonitoringRule {
     required this.condition,
     required this.type,
   });
+  final String id;
+  final String name;
+  final String condition;
+  final MonitoringRuleType type;
 }
 
 /// Monitoring alert
 class MonitoringAlert {
-  final String id;
-  final String ruleId;
-  final String message;
-  final MonitoringAlertSeverity severity;
-  final DateTime timestamp;
 
   const MonitoringAlert({
     required this.id,
@@ -1391,6 +1385,11 @@ class MonitoringAlert {
     required this.severity,
     required this.timestamp,
   });
+  final String id;
+  final String ruleId;
+  final String message;
+  final MonitoringAlertSeverity severity;
+  final DateTime timestamp;
 }
 
 /// Monitoring metrics
@@ -1402,10 +1401,6 @@ class MonitoringMetrics {
 
 /// Debug export result
 class DebugExportResult {
-  final DebugExportFormat format;
-  final String data;
-  final int size;
-  final int itemCount;
 
   const DebugExportResult({
     required this.format,
@@ -1413,6 +1408,10 @@ class DebugExportResult {
     required this.size,
     required this.itemCount,
   });
+  final DebugExportFormat format;
+  final String data;
+  final int size;
+  final int itemCount;
 }
 
 /// Debug statistics

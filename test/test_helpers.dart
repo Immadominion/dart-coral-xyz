@@ -5,8 +5,7 @@ import 'dart:math';
 
 /// Mock provider for testing with configurable behavior
 class MockProvider extends AnchorProvider {
-  MockProvider(Connection connection, Wallet? wallet)
-      : super(connection, wallet);
+  MockProvider(super.connection, super.wallet);
 
   /// Create a mock provider with default test configuration
   factory MockProvider.createDefault() {
@@ -18,12 +17,12 @@ class MockProvider extends AnchorProvider {
 
 /// Mock connection for testing with configurable responses
 class MockConnection extends Connection {
+
+  MockConnection(String endpoint) : super(endpoint);
   final Map<String, dynamic> _mockResponses = {};
   final List<String> _callLog = [];
   bool _shouldThrow = false;
   Exception? _throwException;
-
-  MockConnection(String endpoint) : super(endpoint);
 
   /// Configure the connection to throw an exception on next call
   void setThrowOnNextCall(Exception exception) {
@@ -61,7 +60,7 @@ class MockConnection extends Connection {
 
   @override
   Future<int> getBalance(PublicKey address,
-      {CommitmentConfig? commitment}) async {
+      {CommitmentConfig? commitment,}) async {
     _callLog.add('getBalance:${address.toBase58()}');
     if (_shouldThrow) {
       _shouldThrow = false;
@@ -74,14 +73,14 @@ class MockConnection extends Connection {
 
 /// Mock wallet for testing with customizable signing behavior
 class MockWallet implements Wallet {
-  final Keypair _keypair;
-  bool _shouldThrowOnSign = false;
-  Exception? _signException;
 
   MockWallet([Keypair? keypair])
       : _keypair = keypair ??
             Keypair.fromSecretKey(
                 Uint8List.fromList(List.generate(32, (i) => i + 1)));
+  final Keypair _keypair;
+  bool _shouldThrowOnSign = false;
+  Exception? _signException;
 
   /// Create a mock wallet with a deterministic keypair
   static Future<MockWallet> createWithKeypair([Keypair? keypair]) async {
@@ -95,7 +94,7 @@ class MockWallet implements Wallet {
     for (int i = 0; i < 32; i++) {
       seed[i] = i + 1; // Avoid all zeros
     }
-    return await Keypair.fromSeed(seed);
+    return Keypair.fromSeed(seed);
   }
 
   @override
@@ -134,7 +133,7 @@ class MockWallet implements Wallet {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions) async {
+      List<Transaction> transactions,) async {
     final results = <Transaction>[];
     for (final tx in transactions) {
       results.add(await signTransaction(tx));
@@ -154,9 +153,7 @@ class MockWallet implements Wallet {
 }
 
 /// Utility to create a test keypair and public key
-Future<Keypair> createTestKeypair() async {
-  return await Keypair.generate();
-}
+Future<Keypair> createTestKeypair() async => await Keypair.generate();
 
 /// Create a deterministic test keypair from seed for reproducible tests
 Future<Keypair> createDeterministicTestKeypair(int seed) async {
@@ -165,7 +162,7 @@ Future<Keypair> createDeterministicTestKeypair(int seed) async {
   for (int i = 0; i < 32; i++) {
     seedBytes[i] = random.nextInt(256);
   }
-  return await Keypair.fromSeed(seedBytes);
+  return Keypair.fromSeed(seedBytes);
 }
 
 /// Utility to create a test account data map
@@ -193,13 +190,11 @@ TransactionInstruction buildTestInstruction({
   List<AccountMeta> accounts = const [],
   List<int> data = const [],
   String? instructionName,
-}) {
-  return TransactionInstruction(
+}) => TransactionInstruction(
     programId: programId,
     accounts: accounts,
     data: Uint8List.fromList(data),
   );
-}
 
 /// Create a test IDL for testing purposes
 Idl createTestIdl({
@@ -208,8 +203,7 @@ Idl createTestIdl({
   List<IdlInstruction>? instructions,
   List<IdlAccount>? accounts,
   List<IdlTypeDef>? types,
-}) {
-  return Idl(
+}) => Idl(
     address: address ?? 'TestProgram111111111111111111111111111111',
     metadata: IdlMetadata(
       name: name,
@@ -236,7 +230,6 @@ Idl createTestIdl({
     accounts: accounts,
     types: types,
   );
-}
 
 /// Create a test program with mock provider
 Program createTestProgram({
@@ -257,17 +250,17 @@ void expectAnchorAccount(
 }) {
   expect(account, isNotNull, reason: 'Account should not be null');
   expect(account!['name'], equals(expectedName),
-      reason: 'Account name mismatch');
+      reason: 'Account name mismatch',);
 
   if (expectedLamports != null) {
     expect(account['lamports'], equals(expectedLamports),
-        reason: 'Lamports mismatch');
+        reason: 'Lamports mismatch',);
   }
 
   if (expectedFields != null) {
     for (final entry in expectedFields.entries) {
       expect(account[entry.key], equals(entry.value),
-          reason: 'Field ${entry.key} mismatch');
+          reason: 'Field ${entry.key} mismatch',);
     }
   }
 }
@@ -281,32 +274,32 @@ void expectTransactionInstruction(
   List<AccountMeta>? expectedAccounts,
 }) {
   expect(instruction.programId, equals(expectedProgramId),
-      reason: 'Program ID mismatch');
+      reason: 'Program ID mismatch',);
 
   if (expectedAccountCount != null) {
     expect(instruction.accounts.length, equals(expectedAccountCount),
-        reason: 'Account count mismatch');
+        reason: 'Account count mismatch',);
   }
 
   if (expectedDataLength != null) {
     expect(instruction.data.length, equals(expectedDataLength),
-        reason: 'Data length mismatch');
+        reason: 'Data length mismatch',);
   }
 
   if (expectedAccounts != null) {
     expect(instruction.accounts.length, equals(expectedAccounts.length),
-        reason: 'Expected accounts count mismatch');
+        reason: 'Expected accounts count mismatch',);
 
     for (int i = 0; i < expectedAccounts.length; i++) {
       final actual = instruction.accounts[i];
       final expected = expectedAccounts[i];
 
       expect(actual.pubkey, equals(expected.pubkey),
-          reason: 'Account $i pubkey mismatch');
+          reason: 'Account $i pubkey mismatch',);
       expect(actual.isSigner, equals(expected.isSigner),
-          reason: 'Account $i signer flag mismatch');
+          reason: 'Account $i signer flag mismatch',);
       expect(actual.isWritable, equals(expected.isWritable),
-          reason: 'Account $i writable flag mismatch');
+          reason: 'Account $i writable flag mismatch',);
     }
   }
 }
@@ -320,18 +313,18 @@ void expectProgram(
   int? expectedAccountCount,
 }) {
   expect(program.programId.toBase58(), equals(expectedAddress),
-      reason: 'Program address mismatch');
+      reason: 'Program address mismatch',);
   expect(program.idl.metadata?.name, equals(expectedName),
-      reason: 'Program name mismatch');
+      reason: 'Program name mismatch',);
 
   if (expectedInstructionCount != null) {
     expect(program.idl.instructions.length, equals(expectedInstructionCount),
-        reason: 'Instruction count mismatch');
+        reason: 'Instruction count mismatch',);
   }
 
   if (expectedAccountCount != null) {
     expect(program.idl.accounts?.length ?? 0, equals(expectedAccountCount),
-        reason: 'Account type count mismatch');
+        reason: 'Account type count mismatch',);
   }
 }
 
@@ -363,7 +356,7 @@ class CallCapture {
 
   void expectCall(String expectedCall) {
     expect(_calls, contains(expectedCall),
-        reason: 'Expected call not found: $expectedCall');
+        reason: 'Expected call not found: $expectedCall',);
   }
 
   void expectCallCount(int expectedCount) {

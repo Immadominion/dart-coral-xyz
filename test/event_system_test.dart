@@ -16,7 +16,7 @@ void main() {
       programId = PublicKey.fromBase58('11111111111111111111111111111112');
 
       // Create a test event definition
-      testEventDef = IdlEvent(
+      testEventDef = const IdlEvent(
         name: 'TestEvent',
         fields: [
           IdlField(name: 'id', type: IdlType(kind: 'u64')),
@@ -74,7 +74,7 @@ void main() {
     group('Event Parser', () {
       test('EventParser initialization', () {
         // Create a type definition for the event
-        final testTypeDef = IdlTypeDef(
+        final testTypeDef = const IdlTypeDef(
           name: 'TestEvent',
           type: IdlTypeDefType(
             kind: 'struct',
@@ -88,8 +88,8 @@ void main() {
 
         final mockIdl = Idl(
           address: '11111111111111111111111111111112',
-          metadata: IdlMetadata(
-              name: 'test_program', version: '0.1.0', spec: '0.1.0'),
+          metadata: const IdlMetadata(
+              name: 'test_program', version: '0.1.0', spec: '0.1.0',),
           instructions: [],
           accounts: [],
           events: [testEventDef],
@@ -108,7 +108,7 @@ void main() {
 
       test('Log parsing with valid program logs', () {
         // Create a type definition for the event
-        final testTypeDef = IdlTypeDef(
+        final testTypeDef = const IdlTypeDef(
           name: 'TestEvent',
           type: IdlTypeDefType(
             kind: 'struct',
@@ -122,8 +122,8 @@ void main() {
 
         final mockIdl = Idl(
           address: '11111111111111111111111111111112',
-          metadata: IdlMetadata(
-              name: 'test_program', version: '0.1.0', spec: '0.1.0'),
+          metadata: const IdlMetadata(
+              name: 'test_program', version: '0.1.0', spec: '0.1.0',),
           instructions: [],
           accounts: [],
           events: [testEventDef],
@@ -150,7 +150,7 @@ void main() {
 
     group('Event Filters', () {
       test('Basic event filter matching', () {
-        final filter = EventFilter(
+        final filter = const EventFilter(
           eventNames: {'TestEvent', 'AnotherEvent'},
         );
 
@@ -181,7 +181,7 @@ void main() {
       });
 
       test('Slot range filtering', () {
-        final filter = EventFilter(
+        final filter = const EventFilter(
           minSlot: 100,
           maxSlot: 200,
         );
@@ -215,16 +215,16 @@ void main() {
 
     group('Event Subscription Types', () {
       test('EventSubscriptionConfig with defaults', () {
-        final config = EventSubscriptionConfig();
+        final config = const EventSubscriptionConfig();
 
         expect(config.commitment, equals(CommitmentConfigs.confirmed));
         expect(config.includeFailed, equals(false));
-        expect(config.reconnectTimeout, equals(Duration(seconds: 30)));
+        expect(config.reconnectTimeout, equals(const Duration(seconds: 30)));
         expect(config.maxReconnectAttempts, equals(5));
       });
 
       test('EventSubscriptionConfig with custom values', () {
-        final config = EventSubscriptionConfig(
+        final config = const EventSubscriptionConfig(
           commitment: CommitmentConfigs.finalized,
           includeFailed: true,
           maxBufferSize: 1000,
@@ -235,14 +235,14 @@ void main() {
         expect(config.commitment, equals(CommitmentConfigs.finalized));
         expect(config.includeFailed, equals(true));
         expect(config.maxBufferSize, equals(1000));
-        expect(config.reconnectTimeout, equals(Duration(minutes: 1)));
+        expect(config.reconnectTimeout, equals(const Duration(minutes: 1)));
         expect(config.maxReconnectAttempts, equals(10));
       });
     });
 
     group('Event Replay System', () {
       test('EventReplayConfig validation', () {
-        final config = EventReplayConfig(
+        final config = const EventReplayConfig(
           fromSlot: 100,
           toSlot: 200,
           maxEvents: 1000,
@@ -255,7 +255,7 @@ void main() {
       });
 
       test('EventReplayConfig with filter', () {
-        final filter = EventFilter(
+        final filter = const EventFilter(
           eventNames: {'ImportantEvent'},
         );
 
@@ -273,7 +273,7 @@ void main() {
 
     group('LogsNotification', () {
       test('LogsNotification creation and success status', () {
-        final notification = event_types.LogsNotification(
+        final notification = const event_types.LogsNotification(
           signature: 'test_signature',
           logs: ['Program log: test'],
           slot: 12345,
@@ -287,7 +287,7 @@ void main() {
       });
 
       test('LogsNotification with error', () {
-        final notification = event_types.LogsNotification(
+        final notification = const event_types.LogsNotification(
           signature: 'failed_signature',
           logs: ['Program log: error'],
           err: 'Transaction failed',

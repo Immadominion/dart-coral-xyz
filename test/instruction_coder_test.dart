@@ -8,9 +8,9 @@ void main() {
     late BorshInstructionCoder coder;
 
     setUp(() {
-      testIdl = Idl(
+      testIdl = const Idl(
         address: 'Test111111111111111111111111111111111111111',
-        metadata: const IdlMetadata(
+        metadata: IdlMetadata(
           name: 'test',
           version: '0.0.0',
           spec: '0.1.0',
@@ -29,18 +29,16 @@ void main() {
               IdlInstructionAccount(
                 // Changed from IdlInstructionAccountItem
                 name: 'program',
-                writable: false, // Changed from isMut
-                signer: false, // Changed from isSigner
               ),
             ],
             args: [
               IdlField(
                 name: 'amount',
-                type: const IdlType(kind: 'u64'), // Changed
+                type: IdlType(kind: 'u64'), // Changed
               ),
               IdlField(
                 name: 'name',
-                type: const IdlType(kind: 'string'), // Changed
+                type: IdlType(kind: 'string'), // Changed
               ),
             ],
           ),
@@ -51,14 +49,13 @@ void main() {
               IdlInstructionAccount(
                 // Changed from IdlInstructionAccountItem
                 name: 'authority',
-                writable: false, // Changed from isMut
                 signer: true, // Changed from isSigner
               ),
             ],
             args: [
               IdlField(
                 name: 'newValue',
-                type: const IdlType(kind: 'u32'), // Changed
+                type: IdlType(kind: 'u32'), // Changed
               ),
             ],
           ),
@@ -69,20 +66,20 @@ void main() {
             args: [
               IdlField(
                 name: 'optionalField',
-                type: const IdlType(
-                    kind: 'option', inner: IdlType(kind: 'u8')), // Changed
+                type: IdlType(
+                    kind: 'option', inner: IdlType(kind: 'u8'),), // Changed
               ),
               IdlField(
                 name: 'vector',
-                type: const IdlType(
-                    kind: 'vec', inner: IdlType(kind: 'string')), // Changed
+                type: IdlType(
+                    kind: 'vec', inner: IdlType(kind: 'string'),), // Changed
               ),
               IdlField(
                 name: 'array',
-                type: const IdlType(
+                type: IdlType(
                     kind: 'array',
                     inner: IdlType(kind: 'u16'),
-                    size: 3), // Changed
+                    size: 3,), // Changed
               ),
             ],
           ),
@@ -244,7 +241,7 @@ void main() {
 
     group('Instruction Formatting', () {
       test('should format instruction with accounts correctly', () {
-        final instruction = Instruction(
+        final instruction = const Instruction(
           name: 'initialize',
           data: {
             'amount': 12345,
@@ -255,13 +252,13 @@ void main() {
         final accountMetas = [
           AccountMeta(
             pubkey: PublicKey.fromBase58(
-                'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+                'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',),
             isSigner: true,
             isWritable: true,
           ),
           AccountMeta(
             pubkey: PublicKey.fromBase58(
-                'So11111111111111111111111111111111111111112'),
+                'So11111111111111111111111111111111111111112',),
             isSigner: false,
             isWritable: false,
           ),
@@ -281,18 +278,18 @@ void main() {
         expect(formatted.accounts.length, equals(2));
         expect(formatted.accounts[0].name, equals('user'));
         expect(formatted.accounts[0].pubkey,
-            equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'));
+            equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),);
         expect(formatted.accounts[0].isSigner, isTrue);
         expect(formatted.accounts[0].isWritable, isTrue);
         expect(formatted.accounts[1].name, equals('program'));
         expect(formatted.accounts[1].pubkey,
-            equals('So11111111111111111111111111111111111111112'));
+            equals('So11111111111111111111111111111111111111112'),);
         expect(formatted.accounts[1].isSigner, isFalse);
         expect(formatted.accounts[1].isWritable, isFalse);
       });
 
       test('should format instruction with extra accounts', () {
-        final instruction = Instruction(
+        final instruction = const Instruction(
           name: 'update',
           data: {
             'newValue': 999,
@@ -307,7 +304,7 @@ void main() {
           ),
           AccountMeta(
             pubkey: PublicKey.fromBase58(
-                'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',),
             isSigner: false,
             isWritable: true,
           ),
@@ -322,7 +319,7 @@ void main() {
       });
 
       test('should throw on unknown instruction for formatting', () {
-        final instruction = Instruction(
+        final instruction = const Instruction(
           name: 'unknown',
           data: {},
         );
@@ -334,7 +331,7 @@ void main() {
       });
 
       test('should format complex types correctly', () {
-        final instruction = Instruction(
+        final instruction = const Instruction(
           name: 'complexTypes',
           data: {
             'optionalField': 42,
@@ -373,7 +370,7 @@ void main() {
 
       test('should handle all supported primitive types', () {
         // Create a test IDL with all primitive types
-        final primitiveIdl = Idl(
+        final primitiveIdl = const Idl(
           address: 'Primitive111111111111111111111111111111111',
           metadata: IdlMetadata(
             name: 'primitive_test',
@@ -388,35 +385,35 @@ void main() {
               args: [
                 IdlField(
                     name: 'boolVal',
-                    type: const IdlType(kind: 'bool')), // Changed
+                    type: IdlType(kind: 'bool'),), // Changed
                 IdlField(
-                    name: 'u8Val', type: const IdlType(kind: 'u8')), // Changed
+                    name: 'u8Val', type: IdlType(kind: 'u8'),), // Changed
                 IdlField(
-                    name: 'i8Val', type: const IdlType(kind: 'i8')), // Changed
+                    name: 'i8Val', type: IdlType(kind: 'i8'),), // Changed
                 IdlField(
                     name: 'u16Val',
-                    type: const IdlType(kind: 'u16')), // Changed
+                    type: IdlType(kind: 'u16'),), // Changed
                 IdlField(
                     name: 'i16Val',
-                    type: const IdlType(kind: 'i16')), // Changed
+                    type: IdlType(kind: 'i16'),), // Changed
                 IdlField(
                     name: 'u32Val',
-                    type: const IdlType(kind: 'u32')), // Changed
+                    type: IdlType(kind: 'u32'),), // Changed
                 IdlField(
                     name: 'i32Val',
-                    type: const IdlType(kind: 'i32')), // Changed
+                    type: IdlType(kind: 'i32'),), // Changed
                 IdlField(
                     name: 'u64Val',
-                    type: const IdlType(kind: 'u64')), // Changed
+                    type: IdlType(kind: 'u64'),), // Changed
                 IdlField(
                     name: 'i64Val',
-                    type: const IdlType(kind: 'i64')), // Changed
+                    type: IdlType(kind: 'i64'),), // Changed
                 IdlField(
                     name: 'stringVal',
-                    type: const IdlType(kind: 'string')), // Changed
+                    type: IdlType(kind: 'string'),), // Changed
                 IdlField(
                     name: 'pubkeyVal',
-                    type: const IdlType(kind: 'pubkey')), // Changed
+                    type: IdlType(kind: 'pubkey'),), // Changed
               ],
             ),
           ],

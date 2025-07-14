@@ -13,18 +13,20 @@
 /// - Performance profiling and analysis tools
 /// - Adaptive optimization based on usage patterns
 
-library performance_optimization;
+library;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
 
 /// Global performance optimization manager
 class PerformanceOptimizer {
-  static final PerformanceOptimizer _instance =
-      PerformanceOptimizer._internal();
   factory PerformanceOptimizer() => _instance;
   PerformanceOptimizer._internal();
+  static final PerformanceOptimizer _instance =
+      PerformanceOptimizer._internal();
 
   final RequestBatcher _batcher = RequestBatcher();
   final PerformanceMonitor _monitor = PerformanceMonitor();
@@ -44,14 +46,12 @@ class PerformanceOptimizer {
   }
 
   /// Get performance metrics
-  PerformanceMetrics getMetrics() {
-    return PerformanceMetrics(
-      batchMetrics: _batcher.getMetrics(),
-      monitoringMetrics: _monitor.getMetrics(),
-      resourceMetrics: _resourceManager.getMetrics(),
-      adaptiveMetrics: _adaptiveOptimizer.getMetrics(),
-    );
-  }
+  PerformanceMetrics getMetrics() => PerformanceMetrics(
+        batchMetrics: _batcher.getMetrics(),
+        monitoringMetrics: _monitor.getMetrics(),
+        resourceMetrics: _resourceManager.getMetrics(),
+        adaptiveMetrics: _adaptiveOptimizer.getMetrics(),
+      );
 
   /// Generate optimization recommendations
   List<OptimizationRecommendation> getRecommendations() {
@@ -93,11 +93,21 @@ class RequestBatcher {
   final Queue<_QueuedRequest> _requestQueue = Queue();
   Timer? _batchTimer;
   BatchingConfig _config = BatchingConfig.defaultConfig();
+  Connection? _connection;
 
   /// Initialize the request batcher
-  Future<void> initialize(BatchingConfig config) async {
+  Future<void> initialize(
+    BatchingConfig config, {
+    Connection? connection,
+  }) async {
     _config = config;
+    _connection = connection;
     _startBatchTimer();
+  }
+
+  /// Set the connection for RPC calls
+  void setConnection(Connection connection) {
+    _connection = connection;
   }
 
   /// Batch an RPC request
@@ -134,17 +144,16 @@ class RequestBatcher {
   }
 
   /// Get batching metrics
-  BatchingMetrics getMetrics() {
-    return BatchingMetrics(
-      pendingRequests: _pendingRequests.length,
-      activeBatches: _activeBatches.length,
-      queuedRequests: _requestQueue.length,
-      totalBatches: _totalBatches,
-      totalRequests: _totalRequests,
-      averageBatchSize: _totalRequests > 0 ? _totalRequests / _totalBatches : 0,
-      deduplicationRate: _deduplicationCount / math.max(1, _totalRequests),
-    );
-  }
+  BatchingMetrics getMetrics() => BatchingMetrics(
+        pendingRequests: _pendingRequests.length,
+        activeBatches: _activeBatches.length,
+        queuedRequests: _requestQueue.length,
+        totalBatches: _totalBatches,
+        totalRequests: _totalRequests,
+        averageBatchSize:
+            _totalRequests > 0 ? _totalRequests / _totalBatches : 0,
+        deduplicationRate: _deduplicationCount / math.max(1, _totalRequests),
+      );
 
   /// Get optimization recommendations
   List<OptimizationRecommendation> getRecommendations() {
@@ -152,24 +161,29 @@ class RequestBatcher {
     final metrics = getMetrics();
 
     if (metrics.averageBatchSize < _config.maxBatchSize * 0.3) {
-      recommendations.add(OptimizationRecommendation(
-        type: OptimizationType.batching,
-        severity: RecommendationSeverity.medium,
-        title: 'Low batch utilization',
-        description: 'Consider increasing batch timeout to improve efficiency',
-        action:
-            'Increase batchTimeout from ${_config.batchTimeout.inMilliseconds}ms to ${(_config.batchTimeout.inMilliseconds * 1.5).round()}ms',
-      ));
+      recommendations.add(
+        OptimizationRecommendation(
+          type: OptimizationType.batching,
+          severity: RecommendationSeverity.medium,
+          title: 'Low batch utilization',
+          description:
+              'Consider increasing batch timeout to improve efficiency',
+          action:
+              'Increase batchTimeout from ${_config.batchTimeout.inMilliseconds}ms to ${(_config.batchTimeout.inMilliseconds * 1.5).round()}ms',
+        ),
+      );
     }
 
     if (metrics.deduplicationRate > 0.3) {
-      recommendations.add(OptimizationRecommendation(
-        type: OptimizationType.caching,
-        severity: RecommendationSeverity.high,
-        title: 'High request duplication',
-        description: 'Many duplicate requests detected - implement caching',
-        action: 'Enable aggressive caching for frequently requested data',
-      ));
+      recommendations.add(
+        const OptimizationRecommendation(
+          type: OptimizationType.caching,
+          severity: RecommendationSeverity.high,
+          title: 'High request duplication',
+          description: 'Many duplicate requests detected - implement caching',
+          action: 'Enable aggressive caching for frequently requested data',
+        ),
+      );
     }
 
     return recommendations;
@@ -178,7 +192,7 @@ class RequestBatcher {
   // Private implementation
   int _totalBatches = 0;
   int _totalRequests = 0;
-  int _deduplicationCount = 0;
+  final int _deduplicationCount = 0;
 
   void _startBatchTimer() {
     _batchTimer?.cancel();
@@ -239,17 +253,48 @@ class RequestBatcher {
   }
 
   Future<void> _executeMethodGroup(
-      String method, List<_PendingRequest> requests) async {
-    // Simulate batch execution (would integrate with actual RPC client)
-    for (final request in requests) {
-      try {
-        // Mock response - in real implementation, this would make the actual RPC call
-        final response = _generateMockResponse(request.method, request.params);
-        final result = request.deserializer(response);
-        request.completer.complete(result);
-      } catch (error) {
+    String method,
+    List<_PendingRequest> requests,
+  ) async {
+    // Execute batch RPC call with real Solana RPC integration
+    try {
+      // Group by method for efficient batch processing
+      final batchPayload = requests
+          .map(
+            (request) => {
+              'jsonrpc': '2.0',
+              'id': request.id,
+              'method': request.method,
+              'params': request.params,
+            },
+          )
+          .toList();
+
+      // Execute the actual batch RPC call
+      final results = await _executeBatchRpcCall(batchPayload);
+
+      // Process results and complete futures
+      for (int i = 0; i < requests.length; i++) {
+        final request = requests[i];
+        try {
+          final rpcResult = results[i];
+          if (rpcResult['error'] != null) {
+            request.completer
+                .completeError(Exception('RPC Error: ${rpcResult['error']}'));
+          } else {
+            final result = request.deserializer(rpcResult['result']);
+            request.completer.complete(result);
+          }
+        } catch (error) {
+          request.completer.completeError(error);
+        } finally {
+          _pendingRequests.remove(request.id);
+        }
+      }
+    } catch (error) {
+      // Complete all requests with error if batch fails
+      for (final request in requests) {
         request.completer.completeError(error);
-      } finally {
         _pendingRequests.remove(request.id);
       }
     }
@@ -260,13 +305,86 @@ class RequestBatcher {
     return '$method:${paramStr.hashCode}';
   }
 
-  String _generateBatchId() {
-    return 'batch_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(1000)}';
+  String _generateBatchId() =>
+      'batch_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(1000)}';
+
+  /// Execute batch RPC call with real Solana connection
+  Future<List<Map<String, dynamic>>> _executeBatchRpcCall(
+    List<Map<String, dynamic>> batchPayload,
+  ) async {
+    if (_connection == null) {
+      throw Exception('Connection not available for batch RPC call');
+    }
+
+    try {
+      // Use connection's RPC client for batch execution
+      final results = <Map<String, dynamic>>[];
+
+      // For now, execute requests individually
+      // Future enhancement: implement true batch RPC when supported
+      for (final payload in batchPayload) {
+        try {
+          final result = await _executeSingleRpcCall(
+            payload['method'] as String,
+            payload['params'] as List<dynamic>,
+          );
+          results.add({
+            'jsonrpc': '2.0',
+            'id': payload['id'],
+            'result': result,
+          });
+        } catch (error) {
+          results.add({
+            'jsonrpc': '2.0',
+            'id': payload['id'],
+            'error': {
+              'code': -1,
+              'message': error.toString(),
+            },
+          });
+        }
+      }
+
+      return results;
+    } catch (error) {
+      throw Exception('Batch RPC execution failed: $error');
+    }
   }
 
-  dynamic _generateMockResponse(String method, List<dynamic> params) {
-    // Mock response generation - replace with actual RPC integration
-    return {'result': 'mock_result_for_$method'};
+  /// Execute single RPC call
+  Future<dynamic> _executeSingleRpcCall(
+    String method,
+    List<dynamic> params,
+  ) async {
+    // Map RPC methods to connection methods
+    switch (method) {
+      case 'getAccountInfo':
+        if (params.isNotEmpty) {
+          final pubkeyStr = params[0] as String;
+          final pubkey = PublicKey.fromBase58(pubkeyStr);
+          return _connection!.getAccountInfo(pubkey);
+        }
+        break;
+      case 'getMultipleAccounts':
+        if (params.isNotEmpty) {
+          final pubkeys = (params[0] as List)
+              .map((p) => PublicKey.fromBase58(p as String))
+              .toList();
+          return _connection!.getMultipleAccountsInfo(pubkeys);
+        }
+        break;
+      case 'getProgramAccounts':
+        if (params.isNotEmpty) {
+          final programId = PublicKey.fromBase58(params[0] as String);
+          return _connection!.getProgramAccounts(programId);
+        }
+        break;
+      case 'getHealth':
+        return _connection!.checkHealth();
+      default:
+        throw Exception('Unsupported RPC method: $method');
+    }
+    throw Exception('Invalid parameters for method: $method');
   }
 
   Future<void> shutdown() async {
@@ -300,24 +418,28 @@ class PerformanceMonitor {
   }
 
   /// Start timing an operation
-  PerformanceTimer startTimer(String operation) {
-    return PerformanceTimer(operation, this);
-  }
+  PerformanceTimer startTimer(String operation) =>
+      PerformanceTimer(operation, this);
 
   /// Record a performance measurement
-  void recordMeasurement(String operation, Duration duration,
-      {Map<String, dynamic>? metadata}) {
+  void recordMeasurement(
+    String operation,
+    Duration duration, {
+    Map<String, dynamic>? metadata,
+  }) {
     final entry =
         _entries.putIfAbsent(operation, () => _PerformanceEntry(operation));
     entry.addMeasurement(duration);
 
     if (_config.enableEventTracking) {
-      _events.add(_PerformanceEvent(
-        operation: operation,
-        duration: duration,
-        timestamp: DateTime.now(),
-        metadata: metadata,
-      ));
+      _events.add(
+        _PerformanceEvent(
+          operation: operation,
+          duration: duration,
+          timestamp: DateTime.now(),
+          metadata: metadata,
+        ),
+      );
 
       // Limit event history
       while (_events.length > _config.maxEventHistory) {
@@ -360,25 +482,29 @@ class PerformanceMonitor {
     for (final entry in _entries.values) {
       if (entry.averageDuration.inMilliseconds >
           _config.slowOperationThreshold.inMilliseconds) {
-        recommendations.add(OptimizationRecommendation(
-          type: OptimizationType.performance,
-          severity: RecommendationSeverity.high,
-          title: 'Slow operation detected',
-          description:
-              '${entry.operation} is taking ${entry.averageDuration.inMilliseconds}ms on average',
-          action: 'Consider caching or optimizing ${entry.operation}',
-        ));
+        recommendations.add(
+          OptimizationRecommendation(
+            type: OptimizationType.performance,
+            severity: RecommendationSeverity.high,
+            title: 'Slow operation detected',
+            description:
+                '${entry.operation} is taking ${entry.averageDuration.inMilliseconds}ms on average',
+            action: 'Consider caching or optimizing ${entry.operation}',
+          ),
+        );
       }
 
       if (entry.errorRate > _config.highErrorRateThreshold) {
-        recommendations.add(OptimizationRecommendation(
-          type: OptimizationType.reliability,
-          severity: RecommendationSeverity.critical,
-          title: 'High error rate',
-          description:
-              '${entry.operation} has ${(entry.errorRate * 100).toStringAsFixed(1)}% error rate',
-          action: 'Investigate and fix errors in ${entry.operation}',
-        ));
+        recommendations.add(
+          OptimizationRecommendation(
+            type: OptimizationType.reliability,
+            severity: RecommendationSeverity.critical,
+            title: 'High error rate',
+            description:
+                '${entry.operation} has ${(entry.errorRate * 100).toStringAsFixed(1)}% error rate',
+            action: 'Investigate and fix errors in ${entry.operation}',
+          ),
+        );
       }
     }
 
@@ -485,26 +611,30 @@ class ResourceManager {
 
     for (final tracker in _trackers.values) {
       if (tracker.activeCount > _config.maxResourcesPerType) {
-        recommendations.add(OptimizationRecommendation(
-          type: OptimizationType.memory,
-          severity: RecommendationSeverity.high,
-          title: 'High resource usage',
-          description:
-              '${tracker.type} has ${tracker.activeCount} active resources',
-          action: 'Clean up unused ${tracker.type} resources',
-        ));
+        recommendations.add(
+          OptimizationRecommendation(
+            type: OptimizationType.memory,
+            severity: RecommendationSeverity.high,
+            title: 'High resource usage',
+            description:
+                '${tracker.type} has ${tracker.activeCount} active resources',
+            action: 'Clean up unused ${tracker.type} resources',
+          ),
+        );
       }
 
       if (tracker.oldestResourceAge.inMinutes >
           _config.maxResourceAge.inMinutes) {
-        recommendations.add(OptimizationRecommendation(
-          type: OptimizationType.memory,
-          severity: RecommendationSeverity.medium,
-          title: 'Old resources detected',
-          description:
-              'Oldest ${tracker.type} resource is ${tracker.oldestResourceAge.inMinutes} minutes old',
-          action: 'Implement automatic cleanup for ${tracker.type}',
-        ));
+        recommendations.add(
+          OptimizationRecommendation(
+            type: OptimizationType.memory,
+            severity: RecommendationSeverity.medium,
+            title: 'Old resources detected',
+            description:
+                'Oldest ${tracker.type} resource is ${tracker.oldestResourceAge.inMinutes} minutes old',
+            action: 'Implement automatic cleanup for ${tracker.type}',
+          ),
+        );
       }
     }
 
@@ -579,24 +709,28 @@ class AdaptiveOptimizer {
     for (final pattern in _patterns.values) {
       if (pattern.frequency > _config.highFrequencyThreshold &&
           pattern.confidence > 0.8) {
-        recommendations.add(OptimizationRecommendation(
-          type: OptimizationType.caching,
-          severity: RecommendationSeverity.high,
-          title: 'High-frequency operation',
-          description:
-              '${pattern.operation} is used ${pattern.frequency} times per minute',
-          action: 'Enable aggressive caching for ${pattern.operation}',
-        ));
+        recommendations.add(
+          OptimizationRecommendation(
+            type: OptimizationType.caching,
+            severity: RecommendationSeverity.high,
+            title: 'High-frequency operation',
+            description:
+                '${pattern.operation} is used ${pattern.frequency} times per minute',
+            action: 'Enable aggressive caching for ${pattern.operation}',
+          ),
+        );
       }
 
       if (pattern.trend == UsageTrend.increasing && pattern.confidence > 0.7) {
-        recommendations.add(OptimizationRecommendation(
-          type: OptimizationType.preloading,
-          severity: RecommendationSeverity.medium,
-          title: 'Increasing usage trend',
-          description: '${pattern.operation} usage is trending upward',
-          action: 'Consider preloading data for ${pattern.operation}',
-        ));
+        recommendations.add(
+          OptimizationRecommendation(
+            type: OptimizationType.preloading,
+            severity: RecommendationSeverity.medium,
+            title: 'Increasing usage trend',
+            description: '${pattern.operation} usage is trending upward',
+            action: 'Consider preloading data for ${pattern.operation}',
+          ),
+        );
       }
     }
 
@@ -650,7 +784,7 @@ class AdaptiveOptimizer {
   }
 
   double _calculateOptimizationScore() {
-    if (_patterns.isEmpty) return 1.0;
+    if (_patterns.isEmpty) return 1;
 
     final avgConfidence =
         _patterns.values.map((p) => p.confidence).fold(0.0, (a, b) => a + b) /
@@ -670,12 +804,11 @@ class AdaptiveOptimizer {
 
 /// Performance timer utility
 class PerformanceTimer {
+  PerformanceTimer(this.operation, this.monitor) : startTime = DateTime.now();
   final String operation;
   final PerformanceMonitor monitor;
   final DateTime startTime;
   bool _completed = false;
-
-  PerformanceTimer(this.operation, this.monitor) : startTime = DateTime.now();
 
   /// Stop the timer and record the measurement
   void stop({Map<String, dynamic>? metadata}) {
@@ -704,11 +837,6 @@ class PerformanceTimer {
 
 // Data classes for configuration
 class PerformanceConfig {
-  final BatchingConfig batchingConfig;
-  final MonitoringConfig monitoringConfig;
-  final ResourceConfig resourceConfig;
-  final AdaptiveConfig adaptiveConfig;
-
   const PerformanceConfig({
     required this.batchingConfig,
     required this.monitoringConfig,
@@ -736,14 +864,13 @@ class PerformanceConfig {
         resourceConfig: ResourceConfig.development(),
         adaptiveConfig: AdaptiveConfig.development(),
       );
+  final BatchingConfig batchingConfig;
+  final MonitoringConfig monitoringConfig;
+  final ResourceConfig resourceConfig;
+  final AdaptiveConfig adaptiveConfig;
 }
 
 class BatchingConfig {
-  final int maxBatchSize;
-  final Duration batchTimeout;
-  final bool enableDeduplication;
-  final int maxPendingRequests;
-
   const BatchingConfig({
     required this.maxBatchSize,
     required this.batchTimeout,
@@ -771,16 +898,13 @@ class BatchingConfig {
         enableDeduplication: false,
         maxPendingRequests: 100,
       );
+  final int maxBatchSize;
+  final Duration batchTimeout;
+  final bool enableDeduplication;
+  final int maxPendingRequests;
 }
 
 class MonitoringConfig {
-  final bool enableMetricsCollection;
-  final bool enableEventTracking;
-  final Duration metricsInterval;
-  final int maxEventHistory;
-  final Duration slowOperationThreshold;
-  final double highErrorRateThreshold;
-
   const MonitoringConfig({
     required this.enableMetricsCollection,
     required this.enableEventTracking,
@@ -816,14 +940,15 @@ class MonitoringConfig {
         slowOperationThreshold: Duration(milliseconds: 100),
         highErrorRateThreshold: 0.01,
       );
+  final bool enableMetricsCollection;
+  final bool enableEventTracking;
+  final Duration metricsInterval;
+  final int maxEventHistory;
+  final Duration slowOperationThreshold;
+  final double highErrorRateThreshold;
 }
 
 class ResourceConfig {
-  final int maxResourcesPerType;
-  final Duration maxResourceAge;
-  final Duration cleanupInterval;
-  final bool enableAutoCleanup;
-
   const ResourceConfig({
     required this.maxResourcesPerType,
     required this.maxResourceAge,
@@ -851,14 +976,13 @@ class ResourceConfig {
         cleanupInterval: Duration(minutes: 1),
         enableAutoCleanup: true,
       );
+  final int maxResourcesPerType;
+  final Duration maxResourceAge;
+  final Duration cleanupInterval;
+  final bool enableAutoCleanup;
 }
 
 class AdaptiveConfig {
-  final double highFrequencyThreshold;
-  final Duration optimizationInterval;
-  final Duration minOptimizationInterval;
-  final double optimizationConfidenceThreshold;
-
   const AdaptiveConfig({
     required this.highFrequencyThreshold,
     required this.optimizationInterval,
@@ -886,32 +1010,27 @@ class AdaptiveConfig {
         minOptimizationInterval: Duration(minutes: 1),
         optimizationConfidenceThreshold: 0.8,
       );
+  final double highFrequencyThreshold;
+  final Duration optimizationInterval;
+  final Duration minOptimizationInterval;
+  final double optimizationConfidenceThreshold;
 }
 
 // Data classes for metrics
 class PerformanceMetrics {
-  final BatchingMetrics batchMetrics;
-  final MonitoringMetrics monitoringMetrics;
-  final ResourceMetrics resourceMetrics;
-  final AdaptiveMetrics adaptiveMetrics;
-
   const PerformanceMetrics({
     required this.batchMetrics,
     required this.monitoringMetrics,
     required this.resourceMetrics,
     required this.adaptiveMetrics,
   });
+  final BatchingMetrics batchMetrics;
+  final MonitoringMetrics monitoringMetrics;
+  final ResourceMetrics resourceMetrics;
+  final AdaptiveMetrics adaptiveMetrics;
 }
 
 class BatchingMetrics {
-  final int pendingRequests;
-  final int activeBatches;
-  final int queuedRequests;
-  final int totalBatches;
-  final int totalRequests;
-  final double averageBatchSize;
-  final double deduplicationRate;
-
   const BatchingMetrics({
     required this.pendingRequests,
     required this.activeBatches,
@@ -921,33 +1040,29 @@ class BatchingMetrics {
     required this.averageBatchSize,
     required this.deduplicationRate,
   });
+  final int pendingRequests;
+  final int activeBatches;
+  final int queuedRequests;
+  final int totalBatches;
+  final int totalRequests;
+  final double averageBatchSize;
+  final double deduplicationRate;
 }
 
 class MonitoringMetrics {
-  final Map<String, OperationMetrics> operations;
-  final int totalOperations;
-  final int totalMeasurements;
-  final SystemHealth systemHealth;
-
   const MonitoringMetrics({
     required this.operations,
     required this.totalOperations,
     required this.totalMeasurements,
     required this.systemHealth,
   });
+  final Map<String, OperationMetrics> operations;
+  final int totalOperations;
+  final int totalMeasurements;
+  final SystemHealth systemHealth;
 }
 
 class OperationMetrics {
-  final String operation;
-  final int totalCalls;
-  final Duration averageLatency;
-  final Duration minLatency;
-  final Duration maxLatency;
-  final Duration p95Latency;
-  final Duration p99Latency;
-  final double errorsPerSecond;
-  final double callsPerSecond;
-
   const OperationMetrics({
     required this.operation,
     required this.totalCalls,
@@ -959,28 +1074,29 @@ class OperationMetrics {
     required this.errorsPerSecond,
     required this.callsPerSecond,
   });
+  final String operation;
+  final int totalCalls;
+  final Duration averageLatency;
+  final Duration minLatency;
+  final Duration maxLatency;
+  final Duration p95Latency;
+  final Duration p99Latency;
+  final double errorsPerSecond;
+  final double callsPerSecond;
 }
 
 class ResourceMetrics {
-  final Map<String, ResourceTypeMetrics> types;
-  final int totalActiveResources;
-  final int totalMemoryUsage;
-
   const ResourceMetrics({
     required this.types,
     required this.totalActiveResources,
     required this.totalMemoryUsage,
   });
+  final Map<String, ResourceTypeMetrics> types;
+  final int totalActiveResources;
+  final int totalMemoryUsage;
 }
 
 class ResourceTypeMetrics {
-  final String type;
-  final int activeResources;
-  final int totalAllocated;
-  final int totalReleased;
-  final int memoryUsage;
-  final Duration oldestResource;
-
   const ResourceTypeMetrics({
     required this.type,
     required this.activeResources,
@@ -989,27 +1105,26 @@ class ResourceTypeMetrics {
     required this.memoryUsage,
     required this.oldestResource,
   });
+  final String type;
+  final int activeResources;
+  final int totalAllocated;
+  final int totalReleased;
+  final int memoryUsage;
+  final Duration oldestResource;
 }
 
 class AdaptiveMetrics {
-  final Map<String, UsagePatternMetrics> patterns;
-  final int totalOptimizations;
-  final double optimizationScore;
-
   const AdaptiveMetrics({
     required this.patterns,
     required this.totalOptimizations,
     required this.optimizationScore,
   });
+  final Map<String, UsagePatternMetrics> patterns;
+  final int totalOptimizations;
+  final double optimizationScore;
 }
 
 class UsagePatternMetrics {
-  final String operation;
-  final double usageFrequency;
-  final UsageTrend trendDirection;
-  final double confidenceScore;
-  final DateTime lastOptimized;
-
   const UsagePatternMetrics({
     required this.operation,
     required this.usageFrequency,
@@ -1017,16 +1132,15 @@ class UsagePatternMetrics {
     required this.confidenceScore,
     required this.lastOptimized,
   });
+  final String operation;
+  final double usageFrequency;
+  final UsageTrend trendDirection;
+  final double confidenceScore;
+  final DateTime lastOptimized;
 }
 
 // Optimization recommendation system
 class OptimizationRecommendation {
-  final OptimizationType type;
-  final RecommendationSeverity severity;
-  final String title;
-  final String description;
-  final String action;
-
   const OptimizationRecommendation({
     required this.type,
     required this.severity,
@@ -1034,6 +1148,11 @@ class OptimizationRecommendation {
     required this.description,
     required this.action,
   });
+  final OptimizationType type;
+  final RecommendationSeverity severity;
+  final String title;
+  final String description;
+  final String action;
 }
 
 enum OptimizationType {
@@ -1067,13 +1186,6 @@ enum UsageTrend {
 
 // Private implementation classes
 class _PendingRequest {
-  final String id;
-  final String method;
-  final List<dynamic> params;
-  final Completer completer;
-  final Function(dynamic) deserializer;
-  final DateTime timestamp;
-
   _PendingRequest({
     required this.id,
     required this.method,
@@ -1082,37 +1194,40 @@ class _PendingRequest {
     required this.deserializer,
     required this.timestamp,
   });
+  final String id;
+  final String method;
+  final List<dynamic> params;
+  final Completer<dynamic> completer;
+  final dynamic Function(dynamic) deserializer;
+  final DateTime timestamp;
 
-  Future get future => completer.future;
+  Future<dynamic> get future => completer.future;
 }
 
 class _QueuedRequest {
-  final String requestId;
-
   _QueuedRequest(this.requestId);
+  final String requestId;
 }
 
 class _RequestBatch {
-  final String id;
-  final List<_PendingRequest> requests;
-  final DateTime timestamp;
-
   _RequestBatch({
     required this.id,
     required this.requests,
     required this.timestamp,
   });
+  final String id;
+  final List<_PendingRequest> requests;
+  final DateTime timestamp;
 }
 
 class _PerformanceEntry {
+  _PerformanceEntry(this.operation);
   final String operation;
   final List<Duration> _measurements = [];
   final List<DateTime> _timestamps = [];
   final List<bool> _errors = [];
-  double _callRate = 0.0;
-  double _errorRate = 0.0;
-
-  _PerformanceEntry(this.operation);
+  double _callRate = 0;
+  double _errorRate = 0;
 
   void addMeasurement(Duration duration, {bool hasError = false}) {
     _measurements.add(duration);
@@ -1141,7 +1256,8 @@ class _PerformanceEntry {
         .asMap()
         .entries
         .where(
-            (entry) => entry.value.isAfter(windowStart) && _errors[entry.key])
+          (entry) => entry.value.isAfter(windowStart) && _errors[entry.key],
+        )
         .length;
 
     _callRate = recentMeasurements / interval.inSeconds;
@@ -1182,26 +1298,24 @@ class _PerformanceEntry {
 }
 
 class _PerformanceEvent {
-  final String operation;
-  final Duration duration;
-  final DateTime timestamp;
-  final Map<String, dynamic>? metadata;
-
   _PerformanceEvent({
     required this.operation,
     required this.duration,
     required this.timestamp,
     this.metadata,
   });
+  final String operation;
+  final Duration duration;
+  final DateTime timestamp;
+  final Map<String, dynamic>? metadata;
 }
 
 class _ResourceTracker {
+  _ResourceTracker(this.type);
   final String type;
   final Map<String, _ResourceInfo> _resources = {};
   int _totalAllocated = 0;
   int _totalReleased = 0;
-
-  _ResourceTracker(this.type);
 
   void addResource(String id, Map<String, dynamic>? metadata) {
     _resources[id] = _ResourceInfo(
@@ -1255,23 +1369,21 @@ class _ResourceTracker {
 }
 
 class _ResourceInfo {
-  final String id;
-  final DateTime allocatedAt;
-  final Map<String, dynamic>? metadata;
-
   _ResourceInfo({
     required this.id,
     required this.allocatedAt,
     this.metadata,
   });
+  final String id;
+  final DateTime allocatedAt;
+  final Map<String, dynamic>? metadata;
 }
 
 class _UsagePattern {
+  _UsagePattern(this.operation);
   final String operation;
   final List<DateTime> _usageHistory = [];
   DateTime _lastOptimized = DateTime.now().subtract(const Duration(days: 1));
-
-  _UsagePattern(this.operation);
 
   void recordUsage(Map<String, dynamic>? context) {
     _usageHistory.add(DateTime.now());
@@ -1283,7 +1395,7 @@ class _UsagePattern {
   }
 
   double get frequency {
-    if (_usageHistory.length < 2) return 0.0;
+    if (_usageHistory.length < 2) return 0;
 
     final now = DateTime.now();
     final oneMinuteAgo = now.subtract(const Duration(minutes: 1));
@@ -1308,10 +1420,10 @@ class _UsagePattern {
 
   double get confidence {
     // Confidence based on sample size and consistency
-    if (_usageHistory.length < 5) return 0.0;
+    if (_usageHistory.length < 5) return 0;
 
-    final sampleSize = math.min(_usageHistory.length / 100.0, 1.0);
-    return sampleSize; // Simplified confidence calculation
+    final sampleSize = math.min(_usageHistory.length / 100.0, 1);
+    return sampleSize.toDouble(); // Simplified confidence calculation
   }
 
   DateTime get lastOptimized => _lastOptimized;

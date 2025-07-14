@@ -32,11 +32,11 @@ void main() {
 
       expect(stack.stack.length, equals(2));
       expect(stack.stack[0].toBase58(),
-          equals('11111111111111111111111111111112'));
+          equals('11111111111111111111111111111112'),);
       expect(stack.stack[1].toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'));
+          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
       expect(stack.currentProgram?.toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'));
+          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
     });
 
     test('AnchorError.parse handles basic error format', () {
@@ -56,7 +56,7 @@ void main() {
       expect(error.origin, isNull);
       expect(error.comparedValues, isNull);
       expect(error.program.toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'));
+          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
     });
 
     test('AnchorError.parse handles file location format', () {
@@ -115,9 +115,9 @@ void main() {
       expect(error.comparedValues!.publicKeys, isNotNull);
       expect(error.comparedValues!.publicKeys!.length, equals(2));
       expect(error.comparedValues!.publicKeys![0].toBase58(),
-          equals('11111111111111111111111111111111'));
+          equals('11111111111111111111111111111111'),);
       expect(error.comparedValues!.publicKeys![1].toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'));
+          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
     });
 
     test('AnchorError.parse handles compared values', () {
@@ -156,7 +156,7 @@ void main() {
         'Error: custom program error: 6000',
         [
           'Program J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54 invoke [1]',
-          'Program J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54 failed: custom program error: 0x1770'
+          'Program J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54 failed: custom program error: 0x1770',
         ],
       );
 
@@ -170,7 +170,7 @@ void main() {
       expect(error!.code, equals(6000));
       expect(error.message, equals('Custom user error message'));
       expect(error.program?.toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'));
+          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
     });
 
     test('ProgramError.parse handles JSON error format', () {
@@ -178,7 +178,7 @@ void main() {
         'Error: {"Custom":2000}',
         [
           'Program J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54 invoke [1]',
-          'Program J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54 failed'
+          'Program J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54 failed',
         ],
       );
 
@@ -209,7 +209,7 @@ void main() {
 
       expect(translatedError, isA<AnchorError>());
       expect((translatedError as AnchorError).errorCode.code,
-          equals('ConstraintMut'));
+          equals('ConstraintMut'),);
     });
 
     test('translateError falls back to ProgramError when no AnchorError', () {
@@ -230,7 +230,7 @@ void main() {
     });
 
     test('createIdlErrorMap builds error map from IDL', () {
-      final idl = Idl(
+      final idl = const Idl(
         address: '11111111111111111111111111111112',
         metadata: IdlMetadata(
           name: 'test_program',
@@ -240,9 +240,9 @@ void main() {
         instructions: [],
         errors: [
           IdlErrorCode(
-              code: 6000, name: 'CustomError1', msg: 'First custom error'),
+              code: 6000, name: 'CustomError1', msg: 'First custom error',),
           IdlErrorCode(
-              code: 6001, name: 'CustomError2', msg: 'Second custom error'),
+              code: 6001, name: 'CustomError2', msg: 'Second custom error',),
           IdlErrorCode(code: 6002, name: 'CustomError3'), // No message
         ],
       );
@@ -256,10 +256,10 @@ void main() {
     });
 
     test('Error toString methods produce readable output', () {
-      final errorCode = ErrorCode(code: 'TestError', number: 1234);
+      final errorCode = const ErrorCode(code: 'TestError', number: 1234);
       expect(errorCode.toString(), equals('TestError (1234)'));
 
-      final fileLine = FileLine(file: 'src/lib.rs', line: 42);
+      final fileLine = const FileLine(file: 'src/lib.rs', line: 42);
       expect(fileLine.toString(), equals('src/lib.rs:42'));
 
       final origin = ErrorOrigin.accountName('user_account');
@@ -274,26 +274,26 @@ void main() {
       expect(
           LangErrorMessage
               .langErrorMessages[LangErrorMessage.instructionMissing],
-          equals('Instruction discriminator not provided'));
+          equals('Instruction discriminator not provided'),);
       expect(LangErrorMessage.langErrorMessages[LangErrorMessage.constraintMut],
-          equals('A mut constraint was violated'));
+          equals('A mut constraint was violated'),);
       expect(
           LangErrorMessage
               .langErrorMessages[LangErrorMessage.accountDidNotDeserialize],
-          equals('Failed to deserialize the account'));
+          equals('Failed to deserialize the account'),);
       expect(
           LangErrorMessage.langErrorMessages[LangErrorMessage.requireViolated],
-          equals('A require expression was violated'));
+          equals('A require expression was violated'),);
     });
   });
 }
 
 /// Mock error class for testing error parsing
 class MockError {
-  final String message;
-  final List<String> logs;
 
   MockError(this.message, this.logs);
+  final String message;
+  final List<String> logs;
 
   @override
   String toString() => message;

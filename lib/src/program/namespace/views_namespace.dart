@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
-import '../../types/public_key.dart';
-import '../../coder/main_coder.dart';
-import '../../idl/idl.dart';
-import 'simulate_namespace.dart';
-import 'types.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
 
 /// The views namespace provides read-only method calls that return data
 /// without modifying blockchain state.
@@ -20,9 +20,9 @@ import 'types.dart';
 /// final result = await program.views.getPrice(market);
 /// ```
 class ViewsNamespace {
-  final Map<String, ViewFunction> _functions = {};
 
   ViewsNamespace._();
+  final Map<String, ViewFunction> _functions = {};
 
   /// Build views namespace from IDL
   static ViewsNamespace build({
@@ -68,7 +68,7 @@ class ViewsNamespace {
     if (accountItem is IdlInstructionAccount) {
       return accountItem.writable == true;
     } else if (accountItem is IdlInstructionAccounts) {
-      return accountItem.accounts.any((item) => _accountIsWritable(item));
+      return accountItem.accounts.any(_accountIsWritable);
     }
     return false;
   }
@@ -86,17 +86,11 @@ class ViewsNamespace {
   int get length => _functions.length;
 
   @override
-  String toString() {
-    return 'ViewsNamespace(views: ${_functions.keys.toList()})';
-  }
+  String toString() => 'ViewsNamespace(views: ${_functions.keys.toList()})';
 }
 
 /// A view function that can be called to get read-only data from a program
 class ViewFunction {
-  final IdlInstruction _instruction;
-  final PublicKey _programId;
-  final SimulateNamespace _simulateNamespace;
-  final Coder _coder;
 
   ViewFunction({
     required IdlInstruction instruction,
@@ -107,6 +101,10 @@ class ViewFunction {
         _programId = programId,
         _simulateNamespace = simulateNamespace,
         _coder = coder;
+  final IdlInstruction _instruction;
+  final PublicKey _programId;
+  final SimulateNamespace _simulateNamespace;
+  final Coder _coder;
 
   /// Call the view function with the given arguments and accounts
   Future<dynamic> call(
@@ -117,7 +115,7 @@ class ViewFunction {
     final simulateFn = _simulateNamespace[_instruction.name];
     if (simulateFn == null) {
       throw ArgumentError(
-          'Simulate function not found for view: ${_instruction.name}');
+          'Simulate function not found for view: ${_instruction.name}',);
     }
 
     // Simulate the instruction
@@ -148,7 +146,7 @@ class ViewFunction {
           return _decodeBase64(returnDataBase64);
         } catch (e) {
           throw FormatException(
-              'Failed to decode return data from log: $log, error: $e');
+              'Failed to decode return data from log: $log, error: $e',);
         }
       }
     }
@@ -164,7 +162,7 @@ class ViewFunction {
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     final bytes = <int>[];
 
-    var cleanBase64 = base64.replaceAll(RegExp(r'[^A-Za-z0-9+/]'), '');
+    var cleanBase64 = base64.replaceAll(RegExp('[^A-Za-z0-9+/]'), '');
 
     // Handle padding
     while (cleanBase64.length % 4 != 0) {
@@ -190,8 +188,9 @@ class ViewFunction {
       // Extract bytes (up to 3 bytes per 4-character chunk)
       if (chunk[3] != '=') bytes.add((value >> 16) & 0xFF);
       if (chunk[3] != '=' && chunk[2] != '=') bytes.add((value >> 8) & 0xFF);
-      if (chunk[3] != '=' && chunk[2] != '=' && chunk[1] != '=')
+      if (chunk[3] != '=' && chunk[2] != '=' && chunk[1] != '=') {
         bytes.add(value & 0xFF);
+      }
     }
 
     return Uint8List.fromList(bytes);
@@ -206,11 +205,11 @@ class ViewFunction {
         return borshCoder.types.decode(returnTypeName, data);
       } else {
         throw UnsupportedError(
-            'View functions require BorshCoder for return data decoding');
+            'View functions require BorshCoder for return data decoding',);
       }
     } catch (e) {
       throw FormatException(
-          'Failed to decode return data for ${_instruction.name}: $e');
+          'Failed to decode return data for ${_instruction.name}: $e',);
     }
   }
 
@@ -224,7 +223,5 @@ class ViewFunction {
   bool get hasReturnType => _instruction.returns != null;
 
   @override
-  String toString() {
-    return 'ViewFunction(name: ${_instruction.name}, returnType: ${_instruction.returns})';
-  }
+  String toString() => 'ViewFunction(name: ${_instruction.name}, returnType: ${_instruction.returns})';
 }

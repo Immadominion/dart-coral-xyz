@@ -8,13 +8,15 @@ library;
 
 import 'dart:async';
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../types/transaction.dart';
-import '../provider/wallet.dart';
-import 'platform_optimization.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
 
 /// Web-specific storage implementation using browser APIs
 class WebStorage implements PlatformStorage {
+
+  WebStorage._();
   static WebStorage? _instance;
 
   /// Get singleton instance
@@ -22,8 +24,6 @@ class WebStorage implements PlatformStorage {
     _instance ??= WebStorage._();
     return _instance!;
   }
-
-  WebStorage._();
 
   /// In-memory fallback storage (would use localStorage in real web environment)
   final Map<String, String> _memoryStorage = {};
@@ -79,8 +79,7 @@ class WebStorage implements PlatformStorage {
 /// Web-specific connection optimizations
 class WebConnectionOptimizer {
   /// Optimize connection for web environment
-  static Map<String, dynamic> getWebOptimizedConfig() {
-    return {
+  static Map<String, dynamic> getWebOptimizedConfig() => {
       'keepAlive': true,
       'timeout': PlatformOptimization.connectionTimeout.inMilliseconds,
       'maxConcurrentRequests': PlatformOptimization.maxConcurrentConnections,
@@ -91,17 +90,14 @@ class WebConnectionOptimizer {
         'Content-Type': 'application/json',
       },
     };
-  }
 
   /// Get web-specific retry configuration
-  static Map<String, dynamic> getRetryConfig() {
-    return {
+  static Map<String, dynamic> getRetryConfig() => {
       'maxRetries': 3,
       'retryDelay': PlatformOptimization.retryDelay.inMilliseconds,
       'exponentialBackoff': true,
       'retryOn': ['timeout', 'network_error', '5xx'],
     };
-  }
 }
 
 /// Browser wallet adapter interface
@@ -160,15 +156,13 @@ class PhantomWalletAdapter implements BrowserWalletAdapter {
   bool get connected => _connected;
 
   @override
-  Future<bool> isReady() async {
-    return isInstalled;
-  }
+  Future<bool> isReady() async => isInstalled;
 
   @override
   Future<void> requestConnection() async {
     if (!isInstalled) {
       throw Exception(
-          'Phantom wallet is not installed. Install from: $installUrl');
+          'Phantom wallet is not installed. Install from: $installUrl',);
     }
 
     // Mock connection request
@@ -212,7 +206,7 @@ class PhantomWalletAdapter implements BrowserWalletAdapter {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions) async {
+      List<Transaction> transactions,) async {
     final signed = <Transaction>[];
     for (final tx in transactions) {
       signed.add(await signTransaction(tx));
@@ -281,15 +275,13 @@ class SolflareWalletAdapter implements BrowserWalletAdapter {
   bool get connected => _connected;
 
   @override
-  Future<bool> isReady() async {
-    return isInstalled;
-  }
+  Future<bool> isReady() async => isInstalled;
 
   @override
   Future<void> requestConnection() async {
     if (!isInstalled) {
       throw Exception(
-          'Solflare wallet is not installed. Install from: $installUrl');
+          'Solflare wallet is not installed. Install from: $installUrl',);
     }
 
     // Mock connection request
@@ -330,7 +322,7 @@ class SolflareWalletAdapter implements BrowserWalletAdapter {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions) async {
+      List<Transaction> transactions,) async {
     final signed = <Transaction>[];
     for (final tx in transactions) {
       signed.add(await signTransaction(tx));
@@ -419,7 +411,7 @@ class WebPerformanceMonitor {
 
   /// Record request performance
   static void recordRequest(String endpoint, Duration duration,
-      {bool success = true}) {
+      {bool success = true,}) {
     _requestTimes.putIfAbsent(endpoint, () => []).add(duration);
     _requestCounts[endpoint] = (_requestCounts[endpoint] ?? 0) + 1;
 
@@ -442,7 +434,7 @@ class WebPerformanceMonitor {
     final total = _requestCounts[endpoint] ?? 0;
     final errors = _errorCounts[endpoint] ?? 0;
 
-    if (total == 0) return 0.0;
+    if (total == 0) return 0;
     return errors / total;
   }
 
@@ -479,7 +471,7 @@ class WebCacheManager {
 
   /// Store data in cache
   static Future<void> store(String key, dynamic data,
-      {Duration? expiration}) async {
+      {Duration? expiration,}) async {
     final entry = CacheEntry(
       data: data,
       timestamp: DateTime.now(),
@@ -578,15 +570,15 @@ class WebCacheManager {
 
 /// Cache entry for web storage
 class CacheEntry {
-  final dynamic data;
-  final DateTime timestamp;
-  final Duration? expiration;
 
   const CacheEntry({
     required this.data,
     required this.timestamp,
     this.expiration,
   });
+  final dynamic data;
+  final DateTime timestamp;
+  final Duration? expiration;
 
   /// Check if entry is expired
   bool get isExpired {

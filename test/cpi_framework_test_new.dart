@@ -81,7 +81,7 @@ void main() {
             PublicKey.fromBase58('11111111111111111111111111111113');
         final seeds = [
           [1, 2, 3],
-          [4, 5, 6]
+          [4, 5, 6],
         ];
         final authority = CpiAuthority.pda(
           publicKey: pubkey,
@@ -109,8 +109,6 @@ void main() {
         final dependency = CpiAccountDependency(
           publicKey: pubkey,
           owner: owner,
-          isRequired: true,
-          shouldValidate: true,
           expectedSize: 100,
           discriminator: discriminator,
         );
@@ -345,7 +343,7 @@ void main() {
         expect(context.instructionName, equals('instruction1'));
         expect(context.nestedInvocations.length, equals(1));
         expect(context.nestedInvocations.first.programId,
-            equals(program2.programId));
+            equals(program2.programId),);
         expect(context.depth, equals(2));
       });
 
@@ -361,7 +359,7 @@ void main() {
         builder.clear();
 
         expect(
-          () => builder.build(),
+          builder.build,
           throwsA(isA<CpiException>()),
         );
       });
@@ -446,7 +444,7 @@ void main() {
       test('should throw CpiException for invalid operations', () {
         expect(
           () => cpiFramework.builder().account(
-              'test', PublicKey.fromBase58('11111111111111111111111111111112')),
+              'test', PublicKey.fromBase58('11111111111111111111111111111112'),),
           throwsA(isA<CpiException>()),
         );
       });

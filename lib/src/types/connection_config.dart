@@ -6,42 +6,10 @@
 
 library;
 
-import 'commitment.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
 
 /// Configuration for Solana RPC connection
 class ConnectionConfig {
-  /// The RPC endpoint URL
-  final String rpcUrl;
-
-  /// The WebSocket endpoint URL (optional)
-  final String? websocketUrl;
-
-  /// Default commitment level for requests
-  final CommitmentConfig commitment;
-
-  /// Request timeout in milliseconds
-  final int timeoutMs;
-
-  /// Number of retry attempts for failed requests
-  final int retryAttempts;
-
-  /// Delay between retry attempts in milliseconds
-  final int retryDelayMs;
-
-  /// Whether to confirm transactions automatically
-  final bool confirmTransactions;
-
-  /// Skip preflight checks for transactions
-  final bool skipPreflight;
-
-  /// Preflight commitment level
-  final CommitmentConfig preflightCommitment;
-
-  /// Maximum number of retries for transaction confirmation
-  final int maxRetries;
-
-  /// Custom HTTP headers
-  final Map<String, String> headers;
 
   const ConnectionConfig({
     required this.rpcUrl,
@@ -110,52 +78,6 @@ class ConnectionConfig {
     );
   }
 
-  /// Copy this config with some fields changed
-  ConnectionConfig copyWith({
-    String? rpcUrl,
-    String? websocketUrl,
-    CommitmentConfig? commitment,
-    int? timeoutMs,
-    int? retryAttempts,
-    int? retryDelayMs,
-    bool? confirmTransactions,
-    bool? skipPreflight,
-    CommitmentConfig? preflightCommitment,
-    int? maxRetries,
-    Map<String, String>? headers,
-  }) {
-    return ConnectionConfig(
-      rpcUrl: rpcUrl ?? this.rpcUrl,
-      websocketUrl: websocketUrl ?? this.websocketUrl,
-      commitment: commitment ?? this.commitment,
-      timeoutMs: timeoutMs ?? this.timeoutMs,
-      retryAttempts: retryAttempts ?? this.retryAttempts,
-      retryDelayMs: retryDelayMs ?? this.retryDelayMs,
-      confirmTransactions: confirmTransactions ?? this.confirmTransactions,
-      skipPreflight: skipPreflight ?? this.skipPreflight,
-      preflightCommitment: preflightCommitment ?? this.preflightCommitment,
-      maxRetries: maxRetries ?? this.maxRetries,
-      headers: headers ?? this.headers,
-    );
-  }
-
-  /// Convert to JSON representation
-  Map<String, dynamic> toJson() {
-    return {
-      'rpcUrl': rpcUrl,
-      'websocketUrl': websocketUrl,
-      'commitment': commitment.toJson(),
-      'timeoutMs': timeoutMs,
-      'retryAttempts': retryAttempts,
-      'retryDelayMs': retryDelayMs,
-      'confirmTransactions': confirmTransactions,
-      'skipPreflight': skipPreflight,
-      'preflightCommitment': preflightCommitment.toJson(),
-      'maxRetries': maxRetries,
-      'headers': headers,
-    };
-  }
-
   /// Create from JSON
   factory ConnectionConfig.fromJson(Map<String, dynamic> json) {
     return ConnectionConfig(
@@ -178,11 +100,83 @@ class ConnectionConfig {
       ),
     );
   }
+  /// The RPC endpoint URL
+  final String rpcUrl;
+
+  /// The WebSocket endpoint URL (optional)
+  final String? websocketUrl;
+
+  /// Default commitment level for requests
+  final CommitmentConfig commitment;
+
+  /// Request timeout in milliseconds
+  final int timeoutMs;
+
+  /// Number of retry attempts for failed requests
+  final int retryAttempts;
+
+  /// Delay between retry attempts in milliseconds
+  final int retryDelayMs;
+
+  /// Whether to confirm transactions automatically
+  final bool confirmTransactions;
+
+  /// Skip preflight checks for transactions
+  final bool skipPreflight;
+
+  /// Preflight commitment level
+  final CommitmentConfig preflightCommitment;
+
+  /// Maximum number of retries for transaction confirmation
+  final int maxRetries;
+
+  /// Custom HTTP headers
+  final Map<String, String> headers;
+
+  /// Copy this config with some fields changed
+  ConnectionConfig copyWith({
+    String? rpcUrl,
+    String? websocketUrl,
+    CommitmentConfig? commitment,
+    int? timeoutMs,
+    int? retryAttempts,
+    int? retryDelayMs,
+    bool? confirmTransactions,
+    bool? skipPreflight,
+    CommitmentConfig? preflightCommitment,
+    int? maxRetries,
+    Map<String, String>? headers,
+  }) => ConnectionConfig(
+      rpcUrl: rpcUrl ?? this.rpcUrl,
+      websocketUrl: websocketUrl ?? this.websocketUrl,
+      commitment: commitment ?? this.commitment,
+      timeoutMs: timeoutMs ?? this.timeoutMs,
+      retryAttempts: retryAttempts ?? this.retryAttempts,
+      retryDelayMs: retryDelayMs ?? this.retryDelayMs,
+      confirmTransactions: confirmTransactions ?? this.confirmTransactions,
+      skipPreflight: skipPreflight ?? this.skipPreflight,
+      preflightCommitment: preflightCommitment ?? this.preflightCommitment,
+      maxRetries: maxRetries ?? this.maxRetries,
+      headers: headers ?? this.headers,
+    );
+
+  /// Convert to JSON representation
+  Map<String, dynamic> toJson() => {
+      'rpcUrl': rpcUrl,
+      'websocketUrl': websocketUrl,
+      'commitment': commitment.toJson(),
+      'timeoutMs': timeoutMs,
+      'retryAttempts': retryAttempts,
+      'retryDelayMs': retryDelayMs,
+      'confirmTransactions': confirmTransactions,
+      'skipPreflight': skipPreflight,
+      'preflightCommitment': preflightCommitment.toJson(),
+      'maxRetries': maxRetries,
+      'headers': headers,
+    };
 
   @override
-  String toString() {
-    return 'ConnectionConfig(rpcUrl: $rpcUrl, commitment: ${commitment.commitment.value})';
-  }
+  String toString() => 'ConnectionConfig(rpcUrl: $rpcUrl, commitment: ${commitment.commitment.value})';
 
   @override
   bool operator ==(Object other) {
@@ -201,8 +195,7 @@ class ConnectionConfig {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(
+  int get hashCode => Object.hash(
       rpcUrl,
       websocketUrl,
       commitment,
@@ -214,11 +207,17 @@ class ConnectionConfig {
       preflightCommitment,
       maxRetries,
     );
-  }
 }
 
 /// Configuration for transaction sending
 class SendTransactionConfig {
+
+  const SendTransactionConfig({
+    this.skipPreflight = false,
+    this.preflightCommitment = CommitmentConfigs.processed,
+    this.maxRetries = 3,
+    this.minContextSlot = 0,
+  });
   /// Skip preflight transaction verification
   final bool skipPreflight;
 
@@ -231,25 +230,14 @@ class SendTransactionConfig {
   /// Minimum number of slot confirmations for the transaction
   final int minContextSlot;
 
-  const SendTransactionConfig({
-    this.skipPreflight = false,
-    this.preflightCommitment = CommitmentConfigs.processed,
-    this.maxRetries = 3,
-    this.minContextSlot = 0,
-  });
-
   /// Convert to JSON for RPC calls
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'skipPreflight': skipPreflight,
       'preflightCommitment': preflightCommitment.commitment.value,
       'maxRetries': maxRetries,
       'minContextSlot': minContextSlot,
     };
-  }
 
   @override
-  String toString() {
-    return 'SendTransactionConfig(skipPreflight: $skipPreflight, maxRetries: $maxRetries)';
-  }
+  String toString() => 'SendTransactionConfig(skipPreflight: $skipPreflight, maxRetries: $maxRetries)';
 }

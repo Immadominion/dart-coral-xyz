@@ -2,16 +2,17 @@
 ///
 /// This test suite validates the provider abstraction, factory patterns,
 /// and provider lifecycle management to ensure TypeScript compatibility.
+library;
 
 import 'package:test/test.dart';
-import '../lib/src/provider/provider_interface.dart';
-import '../lib/src/provider/provider_factory.dart';
-import '../lib/src/provider/anchor_provider.dart';
-import '../lib/src/provider/connection.dart';
-import '../lib/src/provider/wallet.dart';
-import '../lib/src/types/commitment.dart';
-import '../lib/src/types/transaction.dart';
-import '../lib/src/types/connection_config.dart';
+import 'package:coral_xyz_anchor/src/provider/provider_interface.dart';
+import 'package:coral_xyz_anchor/src/provider/provider_factory.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/connection_config.dart';
 
 void main() {
   group('ProviderInterface', () {
@@ -23,7 +24,7 @@ void main() {
     });
 
     test('should support provider configuration', () {
-      final config = ProviderConfig(
+      final config = const ProviderConfig(
         type: ProviderType.keypair,
         name: 'TestProvider',
         version: '1.0.0',
@@ -71,7 +72,7 @@ void main() {
 
       expect(capabilities.contains(ProviderCapability.signTransaction), isTrue);
       expect(
-          capabilities.contains(ProviderCapability.hardwareSecurity), isFalse);
+          capabilities.contains(ProviderCapability.hardwareSecurity), isFalse,);
       expect(capabilities.length, equals(4));
     });
   });
@@ -79,7 +80,6 @@ void main() {
   group('ProviderFactory', () {
     test('should support environment provider creation', () async {
       final provider = await ProviderFactory.createEnvironmentProvider(
-        environment: 'localnet',
         options: const ProviderOptions(),
       );
 
@@ -104,7 +104,7 @@ void main() {
 
     test('should support different endpoint environments', () async {
       final localProvider = await ProviderFactory.createEnvironmentProvider(
-        environment: 'localnet',
+        
       );
       final devnetProvider = await ProviderFactory.createEnvironmentProvider(
         environment: 'devnet',
@@ -117,7 +117,7 @@ void main() {
     });
 
     test('should support custom provider configuration', () async {
-      final config = ProviderCreationConfig(
+      final config = const ProviderCreationConfig(
         type: ProviderType.keypair,
         connectionConfig: ConnectionConfig(
           rpcUrl: 'http://127.0.0.1:8899',
@@ -127,7 +127,7 @@ void main() {
           type: WalletType.keypair,
           autoGenerate: true,
         ),
-        options: const ProviderOptions(),
+        options: ProviderOptions(),
       );
 
       final provider = await ProviderFactory.createProvider(config);
@@ -138,7 +138,7 @@ void main() {
     });
 
     test('should validate provider requirements', () async {
-      final config = ProviderCreationConfig(
+      final config = const ProviderCreationConfig(
         type: ProviderType.keypair,
         connectionConfig: ConnectionConfig(
           rpcUrl: 'http://127.0.0.1:8899',
@@ -147,7 +147,7 @@ void main() {
           type: WalletType.keypair,
           autoGenerate: true,
         ),
-        options: const ProviderOptions(),
+        options: ProviderOptions(),
         requiredCapabilities: {
           ProviderCapability.signTransaction,
           ProviderCapability.simulateTransaction,
@@ -160,16 +160,16 @@ void main() {
           provider.config.capabilities.contains(
             ProviderCapability.signTransaction,
           ),
-          isTrue);
+          isTrue,);
       expect(
           provider.config.capabilities.contains(
             ProviderCapability.simulateTransaction,
           ),
-          isTrue);
+          isTrue,);
     });
 
     test('should throw on missing capabilities', () async {
-      final config = ProviderCreationConfig(
+      final config = const ProviderCreationConfig(
         type: ProviderType.keypair,
         connectionConfig: ConnectionConfig(
           rpcUrl: 'http://127.0.0.1:8899',
@@ -178,7 +178,7 @@ void main() {
           type: WalletType.keypair,
           autoGenerate: true,
         ),
-        options: const ProviderOptions(),
+        options: ProviderOptions(),
         requiredCapabilities: {
           ProviderCapability
               .hardwareSecurity, // Not supported by keypair provider
@@ -186,7 +186,7 @@ void main() {
       );
 
       expect(
-        () async => await ProviderFactory.createProvider(config),
+        () async => ProviderFactory.createProvider(config),
         throwsA(isA<ProviderValidationException>()),
       );
     });
@@ -248,7 +248,7 @@ void main() {
       await provider.connect();
 
       // Give time for stream to emit
-      await Future<void>.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
       expect(receivedStatus, isTrue);
     });
 
@@ -272,20 +272,19 @@ void main() {
 
       expect(capabilities.contains(ProviderCapability.signTransaction), isTrue);
       expect(capabilities.contains(ProviderCapability.signAllTransactions),
-          isTrue);
+          isTrue,);
       expect(capabilities.contains(ProviderCapability.signMessage), isTrue);
       expect(capabilities.contains(ProviderCapability.simulateTransaction),
-          isTrue);
+          isTrue,);
       expect(
-          capabilities.contains(ProviderCapability.hardwareSecurity), isFalse);
+          capabilities.contains(ProviderCapability.hardwareSecurity), isFalse,);
     });
   });
 
   group('ProviderConfiguration', () {
     test('should support connection configuration', () {
-      final config = ConnectionConfig(
+      final config = const ConnectionConfig(
         rpcUrl: 'https://api.mainnet-beta.solana.com',
-        commitment: CommitmentConfigs.finalized,
       );
 
       expect(config.rpcUrl, equals('https://api.mainnet-beta.solana.com'));
@@ -293,7 +292,7 @@ void main() {
     });
 
     test('should support wallet configuration', () {
-      final walletConfig = WalletConfig(
+      final walletConfig = const WalletConfig(
         type: WalletType.keypair,
         autoGenerate: true,
         config: {'test': 'value'},
@@ -305,12 +304,12 @@ void main() {
     });
 
     test('should support provider options', () {
-      final options = ProviderOptions(
-        confirmOptions: const ConfirmOptions(
+      final options = const ProviderOptions(
+        confirmOptions: ConfirmOptions(
           commitment: CommitmentConfigs.confirmed,
           skipPreflight: true,
         ),
-        additionalOptions: const {'timeout': 30000},
+        additionalOptions: {'timeout': 30000},
       );
 
       expect(options.commitment, equals(CommitmentConfigs.confirmed));
@@ -322,27 +321,27 @@ void main() {
   group('ProviderExceptions', () {
     test('should throw unsupported provider exception', () {
       expect(
-        () => throw UnsupportedProviderException('Test message'),
+        () => throw const UnsupportedProviderException('Test message'),
         throwsA(isA<UnsupportedProviderException>()),
       );
     });
 
     test('should throw provider validation exception', () {
       expect(
-        () => throw ProviderValidationException('Validation failed'),
+        () => throw const ProviderValidationException('Validation failed'),
         throwsA(isA<ProviderValidationException>()),
       );
     });
 
     test('should throw provider configuration exception', () {
       expect(
-        () => throw ProviderConfigurationException('Config error'),
+        () => throw const ProviderConfigurationException('Config error'),
         throwsA(isA<ProviderConfigurationException>()),
       );
     });
 
     test('should format exception messages correctly', () {
-      final exception = UnsupportedProviderException('Test message');
+      final exception = const UnsupportedProviderException('Test message');
       expect(exception.toString(), contains('ProviderFactoryException'));
       expect(exception.toString(), contains('Test message'));
     });

@@ -6,25 +6,21 @@
 /// - Async removeEventListener taking numeric ID
 /// - Automatic subscription management
 /// - Event parsing and distribution
+library;
 
 import 'dart:async';
-import '../types/public_key.dart';
-import '../types/commitment.dart';
-import '../provider/anchor_provider.dart';
-import '../coder/main_coder.dart';
-import 'types.dart';
-import 'event_parser.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz_anchor/src/event/event_parser.dart';
 
 /// TypeScript-compatible event callback type
 typedef EventCallback<T> = void Function(T event, int slot, String signature);
 
 /// Logs notification data structure
 class LogsNotification {
-  final String signature;
-  final List<String> logs;
-  final String? err;
-  final int slot;
-  final DateTime? blockTime;
 
   LogsNotification({
     required this.signature,
@@ -33,12 +29,22 @@ class LogsNotification {
     required this.slot,
     this.blockTime,
   });
+  final String signature;
+  final List<String> logs;
+  final String? err;
+  final int slot;
+  final DateTime? blockTime;
 
   bool get isSuccess => err == null;
 }
 
 /// Event management system matching TypeScript Anchor's EventManager exactly
 class EventManager {
+
+  EventManager(PublicKey programId, AnchorProvider provider, BorshCoder coder)
+      : _programId = programId,
+        _provider = provider,
+        _eventParser = EventParser(programId: programId, coder: coder);
   /// Program ID for event subscriptions.
   final PublicKey _programId;
 
@@ -64,11 +70,6 @@ class EventManager {
   int _totalEvents = 0;
   int _parseErrors = 0;
 
-  EventManager(PublicKey programId, AnchorProvider provider, BorshCoder coder)
-      : _programId = programId,
-        _provider = provider,
-        _eventParser = EventParser(programId: programId, coder: coder);
-
   /// Add event listener - matches TypeScript API exactly
   ///
   /// Returns numeric listener ID synchronously like TypeScript.
@@ -78,7 +79,7 @@ class EventManager {
     EventCallback<T> callback, {
     CommitmentConfig? commitment,
   }) {
-    int listener = _listenerIdCount;
+    final int listener = _listenerIdCount;
     _listenerIdCount += 1;
 
     // Store the listener into the event map.
@@ -130,7 +131,7 @@ class EventManager {
     if (_eventCallbacks.isEmpty) {
       if (_eventListeners.isNotEmpty) {
         throw StateError(
-            'Expected event listeners size to be 0 but got ${_eventListeners.length}');
+            'Expected event listeners size to be 0 but got ${_eventListeners.length}',);
       }
 
       if (_onLogsSubscriptionId != null) {
@@ -194,7 +195,7 @@ class EventManager {
         parseErrors: _parseErrors,
         filteredEvents: 0, // Simplified for now
         lastProcessed: DateTime.now(),
-        eventsPerSecond: 0.0, // Simplified for now
+        eventsPerSecond: 0, // Simplified for now
       );
 
   /// Simple connection state

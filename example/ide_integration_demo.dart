@@ -3,6 +3,7 @@
 /// This example demonstrates the comprehensive IDE integration features
 /// implemented in Step 8.4, showing code generation, documentation,
 /// and debugging capabilities that match TypeScript's developer experience.
+library;
 
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/ide/debug_utilities.dart' as ide;
@@ -12,7 +13,7 @@ void main() async {
   print('=' * 60);
 
   // Create a sample IDL for demonstration
-  final testIdl = Idl(
+  final testIdl = const Idl(
     name: 'DemoProgram',
     version: '1.0.0',
     instructions: [
@@ -22,13 +23,11 @@ void main() async {
         accounts: [
           IdlInstructionAccount(
             name: 'authority',
-            writable: false,
             signer: true,
           ),
           IdlInstructionAccount(
             name: 'account',
             writable: true,
-            signer: false,
           ),
         ],
         args: [
@@ -77,11 +76,11 @@ void main() async {
     print('📊 Generated ${codeResult.stats.filesGenerated} files');
     print('📊 Generated ${codeResult.stats.linesGenerated} lines of code');
     print(
-        '📊 Created ${codeResult.stats.interfacesGenerated} program interfaces');
+        '📊 Created ${codeResult.stats.interfacesGenerated} program interfaces',);
     print(
-        '📊 Created ${codeResult.stats.accountClassesGenerated} account classes');
+        '📊 Created ${codeResult.stats.accountClassesGenerated} account classes',);
     print(
-        '📊 Created ${codeResult.stats.methodBuildersGenerated} method builders');
+        '📊 Created ${codeResult.stats.methodBuildersGenerated} method builders',);
     print('📊 Created ${codeResult.stats.errorClassesGenerated} error classes');
 
     // Show a sample of generated code
@@ -123,7 +122,7 @@ void main() async {
     // Show a snippet of markdown documentation
     final markdownDoc = docResult.generatedDocs.entries
         .firstWhere((e) => e.key.endsWith('.md'),
-            orElse: () => const MapEntry('', ''))
+            orElse: () => const MapEntry('', ''),)
         .value;
 
     if (markdownDoc.isNotEmpty) {
@@ -187,7 +186,7 @@ void main() async {
     print('✅ Complete development package generated!');
     print('📊 Code files: ${packageResult.codeResult.generatedFiles.length}');
     print(
-        '📊 Documentation files: ${packageResult.documentationResult.generatedDocs.length}');
+        '📊 Documentation files: ${packageResult.documentationResult.generatedDocs.length}',);
 
     // Show summary
     final summary = packageResult.generateSummary();
@@ -196,8 +195,9 @@ void main() async {
     for (int i = 0; i < 15 && i < summaryLines.length; i++) {
       print('  ${summaryLines[i]}');
     }
-    if (summaryLines.length > 15)
+    if (summaryLines.length > 15) {
       print('  ... (${summaryLines.length - 15} more lines)');
+    }
   } else {
     print('❌ Development package generation failed');
     for (final error in packageResult.errors) {
@@ -205,12 +205,12 @@ void main() async {
     }
   }
 
-  print('\n' + '=' * 60);
+  print('\n${'=' * 60}');
   print('🎉 IDE Integration Demo Complete!');
   print('');
   print('The Dart Coral XYZ SDK now provides comprehensive IDE integration');
   print(
-      'and developer experience features that match and exceed TypeScript\'s');
+      'and developer experience features that match and exceed TypeScript\'s',);
   print('capabilities, including:');
   print('');
   print('✅ Smart code generation with proper type mapping');

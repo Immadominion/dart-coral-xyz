@@ -3,6 +3,7 @@
 /// These tests validate that the code examples in the documentation
 /// compile and work as expected. They help ensure documentation
 /// stays in sync with the actual API.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -10,8 +11,8 @@ import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 // Exception classes for testing documentation examples
 class AnchorException implements Exception {
-  final String message;
   AnchorException(this.message);
+  final String message;
 }
 
 class AccountCoderException extends AnchorException {
@@ -62,9 +63,9 @@ void main() {
 
           // Verify the program was created correctly
           expect(program.programId.toBase58(),
-              equals('11111111111111111111111111111112'));
+              equals('11111111111111111111111111111112'),);
           expect(program.idl.metadata?.name, equals('test_program'));
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('PublicKey examples compile', () {
@@ -102,10 +103,10 @@ void main() {
         // Test with custom config
         final connectionWithConfig = Connection(
           'https://api.devnet.solana.com',
-          config: ConnectionConfig(rpcUrl: 'https://api.devnet.solana.com'),
+          config: const ConnectionConfig(rpcUrl: 'https://api.devnet.solana.com'),
         );
         expect(connectionWithConfig.rpcUrl,
-            equals('https://api.devnet.solana.com'));
+            equals('https://api.devnet.solana.com'),);
       });
 
       test('AnchorProvider examples compile', () async {
@@ -154,7 +155,7 @@ void main() {
         final program = Program(mockIdl, provider: provider);
 
         expect(program.programId.toBase58(),
-            equals('Counter111111111111111111111111111111111111'));
+            equals('Counter111111111111111111111111111111111111'),);
         expect(program.provider, equals(provider));
       });
 
@@ -162,31 +163,31 @@ void main() {
         // Test IDL type creation examples
 
         // Basic types
-        final boolType = IdlType(kind: 'bool');
+        final boolType = const IdlType(kind: 'bool');
         expect(boolType.kind, equals('bool'));
 
-        final u64Type = IdlType(kind: 'u64');
+        final u64Type = const IdlType(kind: 'u64');
         expect(u64Type.kind, equals('u64'));
 
-        final stringType = IdlType(kind: 'string');
+        final stringType = const IdlType(kind: 'string');
         expect(stringType.kind, equals('string'));
 
         // Complex types
-        final vecType = IdlType(
+        final vecType = const IdlType(
           kind: 'vec',
           inner: IdlType(kind: 'u8'),
         );
         expect(vecType.kind, equals('vec'));
         expect(vecType.inner?.kind, equals('u8'));
 
-        final optionType = IdlType(
+        final optionType = const IdlType(
           kind: 'option',
           inner: IdlType(kind: 'string'),
         );
         expect(optionType.kind, equals('option'));
         expect(optionType.inner?.kind, equals('string'));
 
-        final arrayType = IdlType(
+        final arrayType = const IdlType(
           kind: 'array',
           inner: IdlType(kind: 'u8'),
           size: 32,
@@ -201,48 +202,48 @@ void main() {
         // Validate the complete counter IDL from the example
 
         final counterIdl = {
-          "address": "Counter111111111111111111111111111111111111",
-          "metadata": {
-            "name": "counter",
-            "version": "0.1.0",
-            "spec": "0.1.0",
+          'address': 'Counter111111111111111111111111111111111111',
+          'metadata': {
+            'name': 'counter',
+            'version': '0.1.0',
+            'spec': '0.1.0',
           },
-          "instructions": [
+          'instructions': [
             {
-              "name": "initialize",
-              "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
-              "accounts": [
+              'name': 'initialize',
+              'discriminator': [175, 175, 109, 31, 13, 152, 155, 237],
+              'accounts': [
                 {
-                  "name": "counter",
-                  "writable": true,
-                  "signer": true,
+                  'name': 'counter',
+                  'writable': true,
+                  'signer': true,
                 },
                 {
-                  "name": "user",
-                  "writable": true,
-                  "signer": true,
+                  'name': 'user',
+                  'writable': true,
+                  'signer': true,
                 },
                 {
-                  "name": "systemProgram",
-                  "address": "11111111111111111111111111111112",
+                  'name': 'systemProgram',
+                  'address': '11111111111111111111111111111112',
                 }
               ],
-              "args": [
-                {"name": "authority", "type": "pubkey"}
-              ]
+              'args': [
+                {'name': 'authority', 'type': 'pubkey'},
+              ],
             }
           ],
-          "accounts": [
+          'accounts': [
             {
-              "name": "counter",
-              "discriminator": [255, 176, 4, 245, 188, 253, 124, 25],
-              "type": {
-                "kind": "struct",
-                "fields": [
-                  {"name": "authority", "type": "pubkey"},
-                  {"name": "count", "type": "u64"}
-                ]
-              }
+              'name': 'counter',
+              'discriminator': [255, 176, 4, 245, 188, 253, 124, 25],
+              'type': {
+                'kind': 'struct',
+                'fields': [
+                  {'name': 'authority', 'type': 'pubkey'},
+                  {'name': 'count', 'type': 'u64'},
+                ],
+              },
             }
           ],
         };
@@ -255,7 +256,7 @@ void main() {
           expect(idl.instructions.first.name, equals('initialize'));
           expect(idl.accounts?.length, equals(1));
           expect(idl.accounts?.first.name, equals('counter'));
-        }, returnsNormally);
+        }, returnsNormally,);
       });
 
       test('error handling patterns compile', () {
@@ -269,24 +270,24 @@ void main() {
             expect(e.message, equals('Test error'));
             expect(e, isA<AnchorException>());
           }
-        }, returnsNormally);
+        }, returnsNormally,);
 
         // Test specific exception types
         expect(() {
           throw InstructionCoderException('Instruction error');
-        }, throwsA(isA<InstructionCoderException>()));
+        }, throwsA(isA<InstructionCoderException>()),);
 
         expect(() {
           throw AccountCoderException('Account error');
-        }, throwsA(isA<AccountCoderException>()));
+        }, throwsA(isA<AccountCoderException>()),);
 
         expect(() {
           throw EventCoderException('Event error');
-        }, throwsA(isA<EventCoderException>()));
+        }, throwsA(isA<EventCoderException>()),);
 
         expect(() {
           throw TypesCoderException('Types error');
-        }, throwsA(isA<TypesCoderException>()));
+        }, throwsA(isA<TypesCoderException>()),);
       });
     });
 
@@ -332,17 +333,17 @@ void main() {
                   'writable': true,
                 }
               ],
-              'args': <Map<String, dynamic>>[]
+              'args': <Map<String, dynamic>>[],
             }
           ],
-          'types': <Map<String, dynamic>>[]
+          'types': <Map<String, dynamic>>[],
         };
 
         expect(() {
           final idl = Idl.fromJson(complexIdl);
           expect(idl.instructions.length, equals(1));
           expect(idl.instructions.first.name, equals('processData'));
-        }, returnsNormally);
+        }, returnsNormally,);
       });
     });
   });
@@ -377,7 +378,7 @@ void main() {
       // Test that common patterns used in examples work consistently
 
       // Pattern 1: Basic program setup
-      final setupPattern = () async {
+      setupPattern() async {
         final connection = Connection('https://api.devnet.solana.com');
         final keypair = await Keypair.generate();
         final wallet = KeypairWallet(keypair);
@@ -390,30 +391,30 @@ void main() {
         });
 
         return Program(mockIdl, provider: provider);
-      };
+      }
 
       expect(setupPattern, returnsNormally);
 
       // Pattern 2: Key generation
-      final keyPattern = () async {
+      keyPattern() async {
         final keypair = await Keypair.generate();
         final publicKey = keypair.publicKey;
         final base58 = publicKey.toBase58();
         final fromBase58 = PublicKey.fromBase58(base58);
         return fromBase58 == publicKey;
-      };
+      }
 
       expect(await keyPattern(), isTrue);
 
       // Pattern 3: IDL type construction
-      final typePattern = () {
-        final simpleType = IdlType(kind: 'u64');
-        final complexType = IdlType(
+      typePattern() {
+        final simpleType = const IdlType(kind: 'u64');
+        final complexType = const IdlType(
           kind: 'vec',
           inner: IdlType(kind: 'string'),
         );
         return simpleType.kind == 'u64' && complexType.kind == 'vec';
-      };
+      }
 
       expect(typePattern(), isTrue);
     });

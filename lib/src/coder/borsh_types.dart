@@ -5,12 +5,13 @@
 /// and deserialization of data structures.
 ///
 /// Based on the Borsh specification at: https://borsh.io/
+library;
 
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../types/public_key.dart';
-import '../idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Interface for Borsh-serializable types
 abstract class BorshSerializable {
@@ -29,10 +30,10 @@ abstract class BorshDeserializable<T> {
 
 /// Main Borsh serializer and deserializer
 class BorshSerializer {
-  final List<int> _buffer = [];
 
   /// Create a new serializer
   BorshSerializer();
+  final List<int> _buffer = [];
 
   /// Get the serialized bytes
   Uint8List toBytes() => Uint8List.fromList(_buffer);
@@ -52,7 +53,7 @@ class BorshSerializer {
   void writeU16(int value) {
     if (value < 0 || value > 65535) {
       throw BorshException(
-          'u16 value must be between 0 and 65535, got: $value');
+          'u16 value must be between 0 and 65535, got: $value',);
     }
     _buffer.add(value & 0xFF);
     _buffer.add((value >> 8) & 0xFF);
@@ -62,7 +63,7 @@ class BorshSerializer {
   void writeU32(int value) {
     if (value < 0 || value > 4294967295) {
       throw BorshException(
-          'u32 value must be between 0 and 4294967295, got: $value');
+          'u32 value must be between 0 and 4294967295, got: $value',);
     }
     _buffer.add(value & 0xFF);
     _buffer.add((value >> 8) & 0xFF);
@@ -86,7 +87,7 @@ class BorshSerializer {
   void writeI8(int value) {
     if (value < -128 || value > 127) {
       throw BorshException(
-          'i8 value must be between -128 and 127, got: $value');
+          'i8 value must be between -128 and 127, got: $value',);
     }
     _buffer.add(value < 0 ? value + 256 : value);
   }
@@ -95,7 +96,7 @@ class BorshSerializer {
   void writeI16(int value) {
     if (value < -32768 || value > 32767) {
       throw BorshException(
-          'i16 value must be between -32768 and 32767, got: $value');
+          'i16 value must be between -32768 and 32767, got: $value',);
     }
     final unsigned = value < 0 ? value + 65536 : value;
     _buffer.add(unsigned & 0xFF);
@@ -106,7 +107,7 @@ class BorshSerializer {
   void writeI32(int value) {
     if (value < -2147483648 || value > 2147483647) {
       throw BorshException(
-          'i32 value must be between -2147483648 and 2147483647, got: $value');
+          'i32 value must be between -2147483648 and 2147483647, got: $value',);
     }
     final unsigned = value < 0 ? value + 4294967296 : value;
     _buffer.add(unsigned & 0xFF);
@@ -119,7 +120,7 @@ class BorshSerializer {
   void writeI64(int value) {
     if (value < -9223372036854775808 || value > 9223372036854775807) {
       throw BorshException(
-          'i64 value must be between -9223372036854775808 and 9223372036854775807, got: $value');
+          'i64 value must be between -9223372036854775808 and 9223372036854775807, got: $value',);
     }
     // Convert to bytes using ByteData for proper signed integer handling
     final data = ByteData(8);
@@ -165,11 +166,11 @@ class BorshSerializer {
 
 /// Borsh deserializer
 class BorshDeserializer {
-  final Uint8List _data;
-  int _offset = 0;
 
   /// Create a deserializer for the given data
   BorshDeserializer(this._data);
+  final Uint8List _data;
+  int _offset = 0;
 
   /// Get remaining bytes in the buffer
   int get remaining => _data.length - _offset;
@@ -180,7 +181,7 @@ class BorshDeserializer {
   /// Read a u8 (unsigned 8-bit integer)
   int readU8() {
     if (_offset >= _data.length) {
-      throw BorshException('Not enough bytes to read u8');
+      throw const BorshException('Not enough bytes to read u8');
     }
     return _data[_offset++];
   }
@@ -188,7 +189,7 @@ class BorshDeserializer {
   /// Read a u16 (unsigned 16-bit integer, little endian)
   int readU16() {
     if (_offset + 2 > _data.length) {
-      throw BorshException('Not enough bytes to read u16');
+      throw const BorshException('Not enough bytes to read u16');
     }
     final value = _data[_offset] | (_data[_offset + 1] << 8);
     _offset += 2;
@@ -198,7 +199,7 @@ class BorshDeserializer {
   /// Read a u32 (unsigned 32-bit integer, little endian)
   int readU32() {
     if (_offset + 4 > _data.length) {
-      throw BorshException('Not enough bytes to read u32');
+      throw const BorshException('Not enough bytes to read u32');
     }
     final value = _data[_offset] |
         (_data[_offset + 1] << 8) |
@@ -242,7 +243,7 @@ class BorshDeserializer {
   /// Read an i64 (signed 64-bit integer, little endian)
   int readI64() {
     if (_offset + 8 > _data.length) {
-      throw BorshException('Not enough bytes to read i64');
+      throw const BorshException('Not enough bytes to read i64');
     }
     final bytes =
         Uint8List.fromList(_data.getRange(_offset, _offset + 8).toList());
@@ -275,7 +276,7 @@ class BorshDeserializer {
   Uint8List readFixedArray(int length) {
     if (_offset + length > _data.length) {
       throw BorshException(
-          'Not enough bytes to read fixed array of length $length');
+          'Not enough bytes to read fixed array of length $length',);
     }
     final result = _data.sublist(_offset, _offset + length);
     _offset += length;
@@ -311,14 +312,10 @@ class BorshDeserializer {
   }
 
   /// Read a fixed number of bytes
-  Uint8List readBytes(int length) {
-    return readFixedArray(length);
-  }
+  Uint8List readBytes(int length) => readFixedArray(length);
 
   /// Read a vector (same as array but explicitly named for IDL compatibility)
-  List<T> readVec<T>(T Function() readItem) {
-    return readArray<T>(readItem);
-  }
+  List<T> readVec<T>(T Function() readItem) => readArray<T>(readItem);
 
   /// Read a struct based on IDL field definitions
   Map<String, dynamic> readStruct(Map<String, IdlType> fields) {
@@ -356,12 +353,12 @@ class BorshDeserializer {
         return readPublicKey();
       case 'vec':
         if (type.inner == null) {
-          throw BorshException('Vec type missing inner type');
+          throw const BorshException('Vec type missing inner type');
         }
         return readVec(() => readIdlType(type.inner!));
       case 'array':
         if (type.inner == null || type.size == null) {
-          throw BorshException('Array type missing inner type or size');
+          throw const BorshException('Array type missing inner type or size');
         }
         final result = <dynamic>[];
         for (int i = 0; i < type.size!; i++) {
@@ -370,7 +367,7 @@ class BorshDeserializer {
         return result;
       case 'option':
         if (type.inner == null) {
-          throw BorshException('Option type missing inner type');
+          throw const BorshException('Option type missing inner type');
         }
         return readOption(() => readIdlType(type.inner!));
       case 'bytes':
@@ -383,7 +380,7 @@ class BorshDeserializer {
           // For defined types, we would need access to the IDL's type definitions
           // For now, fall back to reading bytes
           throw BorshException(
-              'Defined type "${type.defined}" not supported without IDL context');
+              'Defined type "${type.defined}" not supported without IDL context',);
         }
         throw BorshException('Unsupported IDL type: ${type.kind}');
     }
@@ -392,9 +389,9 @@ class BorshDeserializer {
 
 /// Exception thrown by Borsh operations
 class BorshException implements Exception {
-  final String message;
 
   const BorshException(this.message);
+  final String message;
 
   @override
   String toString() => 'BorshException: $message';

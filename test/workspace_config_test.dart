@@ -2,6 +2,7 @@
 ///
 /// Tests comprehensive workspace management with Anchor.toml parsing,
 /// program discovery, and configuration validation.
+library;
 
 import 'dart:io';
 import 'dart:convert';
@@ -44,7 +45,7 @@ my_program = "BPFLoader2111111111111111111111111111111111"
         expect(config.provider.cluster, equals('localnet'));
         expect(config.provider.wallet, equals('~/.config/solana/id.json'));
         expect(config.programs['localnet']?['my_program']?.address,
-            equals('BPFLoader2111111111111111111111111111111111'));
+            equals('BPFLoader2111111111111111111111111111111111'),);
       });
 
       test('should parse complete Anchor.toml with all sections', () {
@@ -95,26 +96,26 @@ filename = "./tests/accounts/ANOTHER_ACCOUNT.json"
 
         // Test programs
         expect(config.programs['localnet']?['my_program']?.address,
-            equals('BPFLoader2111111111111111111111111111111111'));
+            equals('BPFLoader2111111111111111111111111111111111'),);
         expect(config.programs['localnet']?['complex_program']?.address,
-            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'));
+            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),);
         expect(config.programs['localnet']?['complex_program']?.idl,
-            equals('target/idl/complex.json'));
+            equals('target/idl/complex.json'),);
         expect(config.programs['devnet']?['devnet_program']?.address,
-            equals('DevnetProgram111111111111111111111111111'));
+            equals('DevnetProgram111111111111111111111111111'),);
 
         // Test scripts
         expect(config.scripts?.scripts['test'],
-            equals('yarn run ts-mocha -t 1000000 tests/**/*.ts'));
+            equals('yarn run ts-mocha -t 1000000 tests/**/*.ts'),);
         expect(config.scripts?.scripts['build'], equals('anchor build'));
 
         // Test test configuration
         expect(config.test?.startupWait, equals(20000));
         expect(config.test?.validatorAccounts, hasLength(2));
         expect(config.test?.validatorAccounts?[0].address,
-            equals('3vMPj13emX9JmifYcWc77ekEzV1F37ga36E1YeSr6Mdj'));
+            equals('3vMPj13emX9JmifYcWc77ekEzV1F37ga36E1YeSr6Mdj'),);
         expect(config.test?.validatorAccounts?[0].filename,
-            equals('./tests/accounts/SOME_ACCOUNT.json'));
+            equals('./tests/accounts/SOME_ACCOUNT.json'),);
       });
 
       test('should handle missing Anchor.toml file', () {
@@ -239,7 +240,7 @@ my_program = { address = "BPFLoader2111111111111111111111111111111111", idl = "t
         expect(idl, isNotNull);
         expect(idl!.name, equals('my_program'));
         expect(
-            idl.address, equals('BPFLoader2111111111111111111111111111111111'));
+            idl.address, equals('BPFLoader2111111111111111111111111111111111'),);
       });
 
       test('should auto-discover IDL file by snake_case name', () {
@@ -273,7 +274,7 @@ myProgram = "BPFLoader2111111111111111111111111111111111"
         expect(idl, isNotNull);
         expect(idl!.name, equals('my_program'));
         expect(
-            idl.address, equals('BPFLoader2111111111111111111111111111111111'));
+            idl.address, equals('BPFLoader2111111111111111111111111111111111'),);
       });
 
       test('should return null for non-existent program', () {
@@ -335,9 +336,9 @@ program3 = "DevnetProgram111111111111111111111111111"
 
         expect(localnetPrograms, hasLength(2));
         expect(localnetPrograms['program1']?.address,
-            equals('BPFLoader2111111111111111111111111111111111'));
+            equals('BPFLoader2111111111111111111111111111111111'),);
         expect(localnetPrograms['program2']?.address,
-            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'));
+            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),);
       });
 
       test('should get programs for specific cluster', () {
@@ -361,7 +362,7 @@ program2 = "DevnetProgram111111111111111111111111111"
 
         expect(devnetPrograms, hasLength(1));
         expect(devnetPrograms['program2']?.address,
-            equals('DevnetProgram111111111111111111111111111'));
+            equals('DevnetProgram111111111111111111111111111'),);
       });
 
       test('should get specific program', () {
@@ -382,7 +383,7 @@ my_program = "BPFLoader2111111111111111111111111111111111"
 
         expect(program, isNotNull);
         expect(program!.address,
-            equals('BPFLoader2111111111111111111111111111111111'));
+            equals('BPFLoader2111111111111111111111111111111111'),);
       });
     });
 
@@ -456,7 +457,7 @@ my_program = { address = "BPFLoader2111111111111111111111111111111111", idl = "n
 
         expect(errors, isNotEmpty);
         expect(errors.any((error) => error.contains('IDL file not found')),
-            isTrue);
+            isTrue,);
       });
     });
 
@@ -511,7 +512,7 @@ wallet = "~/.config/solana/id.json"
 
           expect(config.provider.cluster, equals('localnet'));
           expect(path.canonicalize(config.workspaceRoot!),
-              equals(path.canonicalize(Directory.current.path)));
+              equals(path.canonicalize(Directory.current.path)),);
         } finally {
           Directory.current = originalDir;
         }
@@ -531,7 +532,7 @@ wallet = "~/.config/solana/id.json"
 
         expect(config.provider.cluster, equals('devnet'));
         expect(path.canonicalize(config.workspaceRoot!),
-            equals(path.canonicalize(tempPath)));
+            equals(path.canonicalize(tempPath)),);
       });
     });
 
@@ -557,9 +558,9 @@ seeds = false
 
         expect(generatedToml['provider']['cluster'], equals('localnet'));
         expect(generatedToml['provider']['wallet'],
-            equals('~/.config/solana/id.json'));
+            equals('~/.config/solana/id.json'),);
         expect(generatedToml['programs']['localnet']['my_program'],
-            equals('BPFLoader2111111111111111111111111111111111'));
+            equals('BPFLoader2111111111111111111111111111111111'),);
         expect(generatedToml['features']['seeds'], equals(false));
       });
     });

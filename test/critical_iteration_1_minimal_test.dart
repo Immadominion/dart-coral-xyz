@@ -1,6 +1,7 @@
 /// Minimal test for Critical Iteration 1: Event System API Compatibility
 ///
 /// This test focuses purely on API contracts without real network connections
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -16,13 +17,13 @@ void main() {
       try {
         // Create dummy objects for testing
         final programId = PublicKey.fromBase58(
-            '11111111111111111111111111111112'); // System program ID
+            '11111111111111111111111111111112',); // System program ID
 
         // This will fail with network errors, but that's okay - we just want to test the API
         final provider = AnchorProvider.defaultProvider();
 
         // Create minimal IDL for coder
-        final idl = Idl(
+        final idl = const Idl(
           version: '0.1.0',
           name: 'test',
           instructions: [],
@@ -50,7 +51,7 @@ void main() {
         final programId =
             PublicKey.fromBase58('11111111111111111111111111111112');
         final provider = AnchorProvider.defaultProvider();
-        final idl = Idl(
+        final idl = const Idl(
           version: '0.1.0',
           name: 'test',
           instructions: [],
@@ -83,7 +84,7 @@ void main() {
         final programId =
             PublicKey.fromBase58('11111111111111111111111111111112');
         final provider = AnchorProvider.defaultProvider();
-        final idl = Idl(
+        final idl = const Idl(
           version: '0.1.0',
           name: 'test',
           instructions: [],

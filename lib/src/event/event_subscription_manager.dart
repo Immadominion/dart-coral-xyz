@@ -1,14 +1,26 @@
 import 'dart:async';
 
-import '../provider/connection.dart' show Connection, LogsNotification;
-import '../types/public_key.dart';
-import 'event_definition.dart';
-import 'event_log_parser.dart' show EventLogParser, ParsedEvent;
-import 'types.dart' show EventSubscriptionConfig;
+import 'package:coral_xyz_anchor/src/provider/connection.dart' show Connection, LogsNotification;
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/event/event_definition.dart';
+import 'package:coral_xyz_anchor/src/event/event_log_parser.dart' show EventLogParser, ParsedEvent;
+import 'package:coral_xyz_anchor/src/event/types.dart' show EventSubscriptionConfig;
 
 /// Event subscription manager for real-time event monitoring
 /// Uses Connection.onLogs for TypeScript-compatible event subscription
 class EventSubscriptionManager {
+
+  EventSubscriptionManager({
+    required Connection connection,
+    required PublicKey programId,
+    required List<EventDefinition> eventDefinitions,
+    EventSubscriptionConfig? config,
+  })  : _connection = connection,
+        _programId = programId,
+        _eventDefinitions = eventDefinitions,
+        _config = config ?? const EventSubscriptionConfig() {
+    _parser = EventLogParser.fromEvents(_programId, _eventDefinitions);
+  }
   /// Connection for RPC calls and subscriptions
   final Connection _connection;
 
@@ -45,18 +57,6 @@ class EventSubscriptionManager {
 
   /// Subscription counter for unique IDs
   int _subscriptionCounter = 0;
-
-  EventSubscriptionManager({
-    required Connection connection,
-    required PublicKey programId,
-    required List<EventDefinition> eventDefinitions,
-    EventSubscriptionConfig? config,
-  })  : _connection = connection,
-        _programId = programId,
-        _eventDefinitions = eventDefinitions,
-        _config = config ?? const EventSubscriptionConfig() {
-    _parser = EventLogParser.fromEvents(_programId, _eventDefinitions);
-  }
 
   /// Current connection state
   ConnectionState get connectionState => _connectionState;
@@ -252,19 +252,13 @@ class EventSubscriptionManager {
   }
 
   /// Get active subscriptions
-  List<EventSubscription> getActiveSubscriptions() {
-    return _subscriptions.values.toList();
-  }
+  List<EventSubscription> getActiveSubscriptions() => _subscriptions.values.toList();
 
   /// Get subscription by ID
-  EventSubscription? getSubscription(String id) {
-    return _subscriptions[id];
-  }
+  EventSubscription? getSubscription(String id) => _subscriptions[id];
 
   /// Get buffered events
-  List<ParsedEvent> getBufferedEvents() {
-    return List.from(_eventBuffer);
-  }
+  List<ParsedEvent> getBufferedEvents() => List.from(_eventBuffer);
 
   /// Clear event buffer
   void clearEventBuffer() {
@@ -280,23 +274,6 @@ class EventSubscriptionManager {
 
 /// Event subscription configuration compatible with both old and new APIs
 class LegacyEventSubscriptionConfig {
-  /// Whether to automatically reconnect on connection loss
-  final bool autoReconnect;
-
-  /// Maximum reconnection attempts
-  final int maxReconnectionAttempts;
-
-  /// Reconnection delay in milliseconds
-  final int reconnectionDelay;
-
-  /// Whether to buffer events during disconnection
-  final bool bufferEvents;
-
-  /// Maximum event buffer size
-  final int maxBufferSize;
-
-  /// Connection timeout in milliseconds
-  final int connectionTimeout;
 
   const LegacyEventSubscriptionConfig({
     this.autoReconnect = true,
@@ -335,10 +312,36 @@ class LegacyEventSubscriptionConfig {
       connectionTimeout: 10000,
     );
   }
+  /// Whether to automatically reconnect on connection loss
+  final bool autoReconnect;
+
+  /// Maximum reconnection attempts
+  final int maxReconnectionAttempts;
+
+  /// Reconnection delay in milliseconds
+  final int reconnectionDelay;
+
+  /// Whether to buffer events during disconnection
+  final bool bufferEvents;
+
+  /// Maximum event buffer size
+  final int maxBufferSize;
+
+  /// Connection timeout in milliseconds
+  final int connectionTimeout;
 }
 
 /// Event subscription
 class EventSubscription {
+
+  const EventSubscription({
+    required this.id,
+    this.eventName,
+    this.filter,
+    this.onEvent,
+    this.onError,
+    required this.createdAt,
+  });
   /// Unique subscription ID
   final String id;
 
@@ -357,21 +360,18 @@ class EventSubscription {
   /// Creation timestamp
   final DateTime createdAt;
 
-  const EventSubscription({
-    required this.id,
-    this.eventName,
-    this.filter,
-    this.onEvent,
-    this.onError,
-    required this.createdAt,
-  });
-
   @override
   String toString() => 'EventSubscription(id: $id, eventName: $eventName)';
 }
 
 /// Event filter for complex event filtering
 class EventFilter {
+
+  const EventFilter({
+    this.eventNames,
+    this.dataFilters,
+    this.customFilter,
+  });
   /// Event names to include
   final Set<String>? eventNames;
 
@@ -380,12 +380,6 @@ class EventFilter {
 
   /// Custom filter function
   final bool Function(ParsedEvent)? customFilter;
-
-  const EventFilter({
-    this.eventNames,
-    this.dataFilters,
-    this.customFilter,
-  });
 
   /// Check if event matches filter
   bool matches(ParsedEvent event) {
@@ -437,6 +431,12 @@ enum EventSubscriptionErrorType {
 
 /// Event subscription error
 class EventSubscriptionError {
+
+  EventSubscriptionError({
+    required this.type,
+    required this.message,
+    this.data,
+  }) : timestamp = DateTime.now();
   /// Error type
   final EventSubscriptionErrorType type;
 
@@ -449,20 +449,12 @@ class EventSubscriptionError {
   /// Error timestamp
   final DateTime timestamp;
 
-  EventSubscriptionError({
-    required this.type,
-    required this.message,
-    this.data,
-  }) : timestamp = DateTime.now();
-
   @override
-  String toString() {
-    return 'EventSubscriptionError('
+  String toString() => 'EventSubscriptionError('
         'type: $type, '
         'message: $message, '
         'timestamp: $timestamp'
         ')';
-  }
 }
 
 /// Event subscription metrics
@@ -496,8 +488,7 @@ class EventSubscriptionMetrics {
   }
 
   @override
-  String toString() {
-    return 'EventSubscriptionMetrics('
+  String toString() => 'EventSubscriptionMetrics('
         'connections: $connectionCount, '
         'messages: $messagesReceived, '
         'events: $eventsProcessed, '
@@ -505,5 +496,4 @@ class EventSubscriptionMetrics {
         'errors: $errorCount, '
         'subscriptions: $subscriptionCount'
         ')';
-  }
 }

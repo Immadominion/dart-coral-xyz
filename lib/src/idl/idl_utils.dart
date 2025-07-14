@@ -2,25 +2,26 @@
 ///
 /// This module provides utilities for fetching IDLs from the blockchain
 /// and processing them to match TypeScript Anchor client functionality.
+library;
 
 import 'dart:convert';
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../provider/provider.dart';
-import 'idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/provider.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// IDL Program Account structure for on-chain IDL storage
 class IdlProgramAccount {
-  /// Authority that can update the IDL
-  final PublicKey authority;
-
-  /// Compressed IDL data
-  final Uint8List data;
 
   const IdlProgramAccount({
     required this.authority,
     required this.data,
   });
+  /// Authority that can update the IDL
+  final PublicKey authority;
+
+  /// Compressed IDL data
+  final Uint8List data;
 
   /// Decode IDL program account from raw bytes
   static IdlProgramAccount decode(Uint8List data) {
@@ -50,12 +51,10 @@ class IdlProgramAccount {
   }
 
   /// Read a 32-bit unsigned integer in little-endian format
-  static int _readU32LE(Uint8List data, int offset) {
-    return data[offset] |
+  static int _readU32LE(Uint8List data, int offset) => data[offset] |
         (data[offset + 1] << 8) |
         (data[offset + 2] << 16) |
         (data[offset + 3] << 24);
-  }
 }
 
 /// Utilities for fetching and processing IDLs from the blockchain
@@ -132,9 +131,7 @@ class IdlUtils {
     const keysToConvert = ['name', 'path', 'account', 'relations', 'generic'];
 
     // Convert a single string to camelCase, handling dot notation
-    String toCamelCase(String s) {
-      return s.split('.').map((part) => _toCamelCase(part)).join('.');
-    }
+    String toCamelCase(String s) => s.split('.').map((part) => _toCamelCase(part)).join('.');
 
     // Recursively convert field names in objects
     dynamic convertObject(dynamic obj) {
@@ -150,7 +147,7 @@ class IdlUtils {
             if (value is List) {
               convertedValue = value
                   .map((item) =>
-                      item is String ? toCamelCase(item) : convertObject(item))
+                      item is String ? toCamelCase(item) : convertObject(item),)
                   .toList();
             } else if (value is String) {
               convertedValue = toCamelCase(value);
@@ -191,7 +188,7 @@ class IdlUtils {
     final first = parts.first.toLowerCase();
     final rest = parts.skip(1).map((part) => part.isEmpty
         ? ''
-        : part[0].toUpperCase() + part.substring(1).toLowerCase());
+        : part[0].toUpperCase() + part.substring(1).toLowerCase(),);
 
     return first + rest.join();
   }

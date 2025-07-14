@@ -3,20 +3,16 @@
 library;
 
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../external/encoding_wrapper.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/external/encoding_wrapper.dart';
 
 /// Anchor utility functions similar to TypeScript @coral-xyz/anchor utils
 class AnchorUtils {
   /// Convert a string to bytes (similar to TypeScript Buffer.from)
-  static Uint8List stringToBytes(String input) {
-    return Uint8List.fromList(input.codeUnits);
-  }
+  static Uint8List stringToBytes(String input) => Uint8List.fromList(input.codeUnits);
 
   /// Convert bytes to string (similar to TypeScript Buffer.toString)
-  static String bytesToString(Uint8List bytes) {
-    return String.fromCharCodes(bytes);
-  }
+  static String bytesToString(Uint8List bytes) => String.fromCharCodes(bytes);
 
   /// Convert hex string to bytes
   static Uint8List hexToBytes(String hex) {
@@ -30,24 +26,16 @@ class AnchorUtils {
   }
 
   /// Convert bytes to hex string
-  static String bytesToHex(Uint8List bytes) {
-    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
-  }
+  static String bytesToHex(Uint8List bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Convert base58 string to bytes
-  static Uint8List base58ToBytes(String base58) {
-    return EncodingWrapper.decodeBase58(base58);
-  }
+  static Uint8List base58ToBytes(String base58) => EncodingWrapper.decodeBase58(base58);
 
   /// Convert bytes to base58 string
-  static String bytesToBase58(Uint8List bytes) {
-    return EncodingWrapper.encodeBase58(bytes);
-  }
+  static String bytesToBase58(Uint8List bytes) => EncodingWrapper.encodeBase58(bytes);
 
   /// TypeScript-like sleep function
-  static Future<void> sleep(int milliseconds) {
-    return Future.delayed(Duration(milliseconds: milliseconds));
-  }
+  static Future<void> sleep(int milliseconds) => Future.delayed(Duration(milliseconds: milliseconds));
 
   /// Generate a random keypair (for testing)
   static Future<PublicKey> generateRandomPublicKey() async {
@@ -90,22 +78,16 @@ class AnchorUtils {
   }
 
   /// TypeScript-like array utility functions
-  static List<T> arrayUnique<T>(List<T> array) {
-    return array.toSet().toList();
-  }
+  static List<T> arrayUnique<T>(List<T> array) => array.toSet().toList();
 
   /// TypeScript-like array flatten
-  static List<T> arrayFlatten<T>(List<List<T>> arrays) {
-    return arrays.expand((array) => array).toList();
-  }
+  static List<T> arrayFlatten<T>(List<List<T>> arrays) => arrays.expand((array) => array).toList();
 
   /// TypeScript-like object merge
   static Map<String, dynamic> mergeObjects(
     Map<String, dynamic> obj1,
     Map<String, dynamic> obj2,
-  ) {
-    return {...obj1, ...obj2};
-  }
+  ) => {...obj1, ...obj2};
 
   /// Deep clone an object (simplified version)
   static Map<String, dynamic> deepClone(Map<String, dynamic> original) {
@@ -123,9 +105,7 @@ class AnchorUtils {
   }
 
   /// Check if value is null or undefined (TypeScript-like)
-  static bool isNullOrUndefined(dynamic value) {
-    return value == null;
-  }
+  static bool isNullOrUndefined(dynamic value) => value == null;
 
   /// TypeScript-like typeof operator
   static String typeOf(dynamic value) {
@@ -144,9 +124,7 @@ class AnchorUtils {
   }
 
   /// Format SOL to lamports
-  static int solToLamports(double sol) {
-    return (sol * 1000000000).round();
-  }
+  static int solToLamports(double sol) => (sol * 1000000000).round();
 
   /// Create a delay (TypeScript-like)
   static Future<T> delay<T>(T value, int milliseconds) async {
@@ -182,13 +160,10 @@ class AnchorUtils {
   }
 
   /// TypeScript-like Promise.all
-  static Future<List<T>> promiseAll<T>(List<Future<T>> futures) {
-    return Future.wait(futures);
-  }
+  static Future<List<T>> promiseAll<T>(List<Future<T>> futures) => Future.wait(futures);
 
   /// TypeScript-like Promise.allSettled
-  static Future<List<dynamic>> promiseAllSettled<T>(List<Future<T>> futures) {
-    return Future.wait(
+  static Future<List<dynamic>> promiseAllSettled<T>(List<Future<T>> futures) => Future.wait(
       futures.map((future) async {
         try {
           final result = await future;
@@ -198,7 +173,6 @@ class AnchorUtils {
         }
       }),
     );
-  }
 
   /// Chunk array into smaller arrays
   static List<List<T>> chunk<T>(List<T> array, int size) {
@@ -210,9 +184,7 @@ class AnchorUtils {
   }
 
   /// Get current timestamp in milliseconds (TypeScript-like Date.now())
-  static int now() {
-    return DateTime.now().millisecondsSinceEpoch;
-  }
+  static int now() => DateTime.now().millisecondsSinceEpoch;
 
   /// Format duration in human-readable format
   static String formatDuration(Duration duration) {

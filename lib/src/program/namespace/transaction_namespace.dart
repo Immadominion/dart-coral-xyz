@@ -1,6 +1,6 @@
-import '../../idl/idl.dart';
-import 'instruction_namespace.dart';
-import 'types.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
 
 /// The transaction namespace provides functions to build Transaction objects
 /// for each method of a program.
@@ -11,9 +11,9 @@ import 'types.dart';
 /// final transaction = program.transaction.methodName(...args, ctx);
 /// ```
 class TransactionNamespace {
-  final Map<String, TransactionBuilder> _builders = {};
 
   TransactionNamespace._();
+  final Map<String, TransactionBuilder> _builders = {};
 
   /// Build transaction namespace from IDL
   static TransactionNamespace build({
@@ -43,25 +43,23 @@ class TransactionNamespace {
   bool contains(String name) => _builders.containsKey(name);
 
   @override
-  String toString() {
-    return 'TransactionNamespace(instructions: ${_builders.keys.toList()})';
-  }
+  String toString() => 'TransactionNamespace(instructions: ${_builders.keys.toList()})';
 }
 
 /// Builder for creating transactions with specific instructions
 class TransactionBuilder {
-  final IdlInstruction _instruction;
-  final InstructionNamespace _instructionNamespace;
 
   TransactionBuilder({
     required IdlInstruction instruction,
     required InstructionNamespace instructionNamespace,
   })  : _instruction = instruction,
         _instructionNamespace = instructionNamespace;
+  final IdlInstruction _instruction;
+  final InstructionNamespace _instructionNamespace;
 
   /// Build a transaction with the given arguments and context (async for PDA resolution)
   Future<AnchorTransaction> callAsync(
-      List<dynamic> args, Context<Accounts> context) async {
+      List<dynamic> args, Context<Accounts> context,) async {
     // Get the instruction builder
     final instructionBuilder = _instructionNamespace[_instruction.name];
     if (instructionBuilder == null) {
@@ -101,7 +99,5 @@ class TransactionBuilder {
   String get name => _instruction.name;
 
   @override
-  String toString() {
-    return 'TransactionBuilder(name: ${_instruction.name})';
-  }
+  String toString() => 'TransactionBuilder(name: ${_instruction.name})';
 }

@@ -172,11 +172,10 @@ void main() {
     });
 
     test('Can create EventFilter through public API', () {
-      final filter = EventFilter(
+      final filter = const EventFilter(
         eventNames: {'TestEvent'},
         minSlot: 1000,
         maxSlot: 2000,
-        includeFailed: false,
       );
 
       expect(filter, isNotNull);
@@ -187,7 +186,7 @@ void main() {
     });
 
     test('Can create basic IDL through public API', () {
-      final idl = Idl(
+      final idl = const Idl(
         instructions: [],
         events: [
           IdlEvent(
@@ -215,7 +214,7 @@ void main() {
           PublicKey.fromBase58('11111111111111111111111111111111');
 
       // Test seed creation
-      final stringSeed = StringSeed('test');
+      final stringSeed = const StringSeed('test');
       final bytesSeed = BytesSeed(Uint8List.fromList([1, 2, 3]));
 
       expect(stringSeed, isNotNull);
@@ -232,20 +231,20 @@ void main() {
 
       // Test PDA creation with known bump
       final address = PdaDerivationEngine.createProgramAddress(
-          [stringSeed, NumberSeed(result.bump, byteLength: 1)], programId);
+          [stringSeed, NumberSeed(result.bump, byteLength: 1)], programId,);
       expect(address, equals(result.address));
     });
 
     test('Can create workspace configuration objects through public API', () {
       // Test that we can create workspace configuration objects
-      final providerConfig = ProviderConfig(
+      final providerConfig = const ProviderConfig(
         cluster: 'localnet',
         wallet: '~/.config/solana/id.json',
       );
       expect(providerConfig, isNotNull);
       expect(providerConfig.cluster, equals('localnet'));
 
-      final programEntry = ProgramEntry(
+      final programEntry = const ProgramEntry(
         address: '11111111111111111111111111111111',
         idl: 'target/idl/test.json',
       );
@@ -255,13 +254,13 @@ void main() {
       final workspaceConfig = WorkspaceConfig(
         provider: providerConfig,
         programs: {
-          'localnet': {'test_program': programEntry}
+          'localnet': {'test_program': programEntry},
         },
       );
       expect(workspaceConfig, isNotNull);
       expect(workspaceConfig.provider, equals(providerConfig));
       expect(workspaceConfig.programs['localnet']?['test_program'],
-          equals(programEntry));
+          equals(programEntry),);
     });
   });
 
@@ -300,7 +299,7 @@ class MockWallet extends Wallet {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions) async {
+      List<Transaction> transactions,) async {
     return transactions; // Mock implementation - return unsigned transactions
   }
 

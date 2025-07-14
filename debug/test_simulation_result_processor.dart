@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:test/test.dart';
-import '../lib/src/transaction/simulation_result_processor.dart';
-import '../lib/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/transaction/simulation_result_processor.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 
 void main() {
   group('SimulationResultProcessor Tests', () {
@@ -14,7 +14,7 @@ void main() {
 
     group('Basic Result Processing', () {
       test('should process successful simulation result', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: [
             'Program log: Hello World',
@@ -34,14 +34,14 @@ void main() {
       });
 
       test('should process failed simulation result', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: false,
           logs: [
             'Program log: Processing instruction',
             'Program log: Error: Insufficient funds',
             'Program failed to complete',
           ],
-          error: const TransactionSimulationError(
+          error: TransactionSimulationError(
             type: 'InstructionError',
             instructionIndex: 0,
             customErrorCode: 3001,
@@ -61,7 +61,7 @@ void main() {
 
     group('Event Extraction', () {
       test('should extract program log events', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: [
             'Program log: Initialize account',
@@ -108,7 +108,7 @@ void main() {
       });
 
       test('should extract CPI events', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: [
             'Program 11111111111111111111111111111112 invoke [1]',
@@ -128,10 +128,10 @@ void main() {
         final invokeEvents = result.getEventsByType(EventType.cpiInvoke);
         expect(invokeEvents.length, equals(2));
         expect(invokeEvents[0].cpiInfo!.programId,
-            equals('11111111111111111111111111111112'));
+            equals('11111111111111111111111111111112'),);
         expect(invokeEvents[0].cpiInfo!.depth, equals(1));
         expect(invokeEvents[1].cpiInfo!.programId,
-            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'));
+            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),);
         expect(invokeEvents[1].cpiInfo!.depth, equals(2));
 
         // Check success events
@@ -144,7 +144,7 @@ void main() {
 
     group('Account Change Analysis', () {
       test('should analyze account changes', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Account updated'],
           accounts: {
@@ -183,7 +183,7 @@ void main() {
       });
 
       test('should handle no account changes', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Read-only operation'],
         );
@@ -214,15 +214,15 @@ void main() {
 
         expect(result.returnDataAnalysis.hasReturnData, true);
         expect(result.returnDataAnalysis.programId,
-            equals('11111111111111111111111111111112'));
+            equals('11111111111111111111111111111112'),);
         expect(result.returnDataAnalysis.rawData, equals(encodedData));
         expect(result.returnDataAnalysis.decodedData, isNotNull);
         expect(utf8.decode(result.returnDataAnalysis.decodedData!),
-            equals(returnData));
+            equals(returnData),);
         expect(
-            result.returnDataAnalysis.dataLength, equals(encodedData.length));
+            result.returnDataAnalysis.dataLength, equals(encodedData.length),);
         expect(result.returnDataAnalysis.analysis,
-            contains('Return Data Analysis'));
+            contains('Return Data Analysis'),);
       });
 
       test('should handle non-base64 return data', () async {
@@ -243,13 +243,13 @@ void main() {
         expect(result.returnDataAnalysis.rawData, equals(returnData));
         expect(result.returnDataAnalysis.decodedData, isNull);
         expect(result.returnDataAnalysis.analysis,
-            contains('Data type: String/Text'));
+            contains('Data type: String/Text'),);
       });
     });
 
     group('Debug Information Extraction', () {
       test('should extract debug information', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: [
             'Program log: Starting execution',
@@ -270,7 +270,7 @@ void main() {
         expect(result.debugInfo.warnings!.length, equals(1));
         expect(result.debugInfo.performanceMetrics, isNotNull);
         expect(result.debugInfo.performanceMetrics!['computeUnitsConsumed'],
-            equals(250000));
+            equals(250000),);
         expect(result.debugInfo.recommendations, isNotNull);
       });
 
@@ -290,25 +290,25 @@ void main() {
         expect(
             result.debugInfo.recommendations!
                 .any((r) => r.contains('compute unit')),
-            true);
+            true,);
         expect(result.debugInfo.recommendations!.any((r) => r.contains('logs')),
-            true);
+            true,);
         expect(
             result.debugInfo.recommendations!.any((r) => r.contains('failed')),
-            true);
+            true,);
       });
     });
 
     group('Error Analysis', () {
       test('should analyze instruction errors', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: false,
           logs: [
             'Program log: Processing instruction 0',
             'Program log: Error: Insufficient funds for rent',
             'Program failed: Instruction error',
           ],
-          error: const TransactionSimulationError(
+          error: TransactionSimulationError(
             type: 'InstructionError',
             instructionIndex: 0,
             customErrorCode: 3001,
@@ -323,7 +323,7 @@ void main() {
         expect(result.errorAnalysis.errorCode, equals(3001));
         expect(result.errorAnalysis.errorSummary, contains('InstructionError'));
         expect(result.errorAnalysis.errorContext,
-            contains('Failed at instruction: 0'));
+            contains('Failed at instruction: 0'),);
         expect(result.errorAnalysis.suggestions, isNotEmpty);
         expect(result.errorAnalysis.relatedLogs, isNotEmpty);
       });
@@ -361,7 +361,7 @@ void main() {
 
     group('Caching', () {
       test('should cache processed results', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Test'],
         );
@@ -386,21 +386,21 @@ void main() {
       });
 
       test('should respect cache size limits', () async {
-        final config = SimulationProcessingConfig(maxCacheSize: 2);
+        final config = const SimulationProcessingConfig(maxCacheSize: 2);
         final limitedProcessor = SimulationResultProcessor(config: config);
 
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Test'],
         );
 
         // Fill cache beyond limit
         await limitedProcessor.processResult(simulationResult,
-            cacheKey: 'key1');
+            cacheKey: 'key1',);
         await limitedProcessor.processResult(simulationResult,
-            cacheKey: 'key2');
+            cacheKey: 'key2',);
         await limitedProcessor.processResult(simulationResult,
-            cacheKey: 'key3');
+            cacheKey: 'key3',);
 
         final stats = limitedProcessor.getCacheStats();
         expect(stats['cacheSize'], equals(2));
@@ -409,7 +409,7 @@ void main() {
 
     group('Result Comparison', () {
       test('should compare identical results', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Test'],
           unitsConsumed: 100000,
@@ -428,18 +428,18 @@ void main() {
 
       test('should compare different results', () async {
         final result1 =
-            await processor.processResult(TransactionSimulationResult(
+            await processor.processResult(const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Test 1'],
           unitsConsumed: 100000,
-        ));
+        ),);
 
         final result2 =
-            await processor.processResult(TransactionSimulationResult(
+            await processor.processResult(const TransactionSimulationResult(
           success: false,
           logs: ['Program log: Test 2', 'Program log: Error'],
           unitsConsumed: 200000,
-        ));
+        ),);
 
         final comparison = processor.compareResults(result1, result2);
 
@@ -447,15 +447,15 @@ void main() {
         expect(comparison.overallSimilarity, lessThan(1.0));
         expect(comparison.differences, isNotEmpty);
         expect(comparison.differences.any((d) => d.contains('Success status')),
-            true);
+            true,);
         expect(comparison.differences.any((d) => d.contains('Compute units')),
-            true);
+            true,);
       });
     });
 
     group('Processing Options', () {
       test('should respect minimal processing options', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Test'],
           unitsConsumed: 100000,
@@ -485,7 +485,7 @@ void main() {
       });
 
       test('should respect custom processing options', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Test'],
           accounts: {
@@ -500,7 +500,6 @@ void main() {
         final result = await processor.processResult(
           simulationResult,
           options: const ProcessingOptions(
-            extractEvents: true,
             analyzeAccountChanges: false,
             processReturnData: false,
             extractDebugInfo: false,
@@ -517,7 +516,7 @@ void main() {
 
     group('Summary Generation', () {
       test('should generate comprehensive summary', () async {
-        final simulationResult = TransactionSimulationResult(
+        final simulationResult = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Test operation'],
           unitsConsumed: 125000,

@@ -28,7 +28,7 @@ void main() {
     });
 
     test('should create connection with custom config', () {
-      final customConfig = ConnectionConfig(
+      final customConfig = const ConnectionConfig(
         rpcUrl: 'https://api.mainnet-beta.solana.com',
         commitment: CommitmentConfigs.confirmed,
         timeoutMs: 60000,
@@ -38,7 +38,7 @@ void main() {
       final customConnection = Connection.fromConfig(customConfig);
 
       expect(customConnection.rpcUrl,
-          equals('https://api.mainnet-beta.solana.com'));
+          equals('https://api.mainnet-beta.solana.com'),);
       expect(customConnection.commitment, equals('confirmed'));
 
       customConnection.close();
@@ -159,14 +159,14 @@ void main() {
 
   group('Connection Error Handling', () {
     test('should handle RpcException creation', () {
-      final exception = rpc_errors.RpcException('Test error');
+      final exception = const rpc_errors.RpcException('Test error');
       expect(exception.message, equals('Test error'));
       expect(exception.code, isNull);
       expect(exception.toString(), equals('RpcException: Test error'));
     });
 
     test('should handle RpcException with code', () {
-      final exception = rpc_errors.RpcException('Test error', code: -32600);
+      final exception = const rpc_errors.RpcException('Test error', code: -32600);
       expect(exception.message, equals('Test error'));
       expect(exception.code, equals(-32600));
       expect(exception.toString(), equals('RpcException(-32600): Test error'));
@@ -174,11 +174,11 @@ void main() {
 
     test('should handle specialized exceptions', () {
       final connectionException =
-          rpc_errors.ConnectionException('Connection failed');
+          const rpc_errors.ConnectionException('Connection failed');
       final transactionException =
-          rpc_errors.TransactionException('Transaction failed');
-      final accountException = rpc_errors.AccountException('Account not found');
-      final timeoutException = rpc_errors.TimeoutException('Request timed out');
+          const rpc_errors.TransactionException('Transaction failed');
+      final accountException = const rpc_errors.AccountException('Account not found');
+      final timeoutException = const rpc_errors.TimeoutException('Request timed out');
 
       expect(connectionException, isA<rpc_errors.RpcException>());
       expect(transactionException, isA<rpc_errors.RpcException>());
@@ -188,7 +188,7 @@ void main() {
 
     test('should handle RetryExhaustedException', () {
       final exception =
-          rpc_errors.RetryExhaustedException('Failed after retries', 3);
+          const rpc_errors.RetryExhaustedException('Failed after retries', 3);
       expect(exception.attempts, equals(3));
       expect(exception.toString(), contains('after 3 attempts'));
     });

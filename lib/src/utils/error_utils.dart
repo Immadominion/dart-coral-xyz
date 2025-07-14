@@ -4,10 +4,6 @@ library;
 
 /// Base error class for all Anchor-related errors
 class AnchorError implements Exception {
-  final String message;
-  final String code;
-  final int? programId;
-  final Map<String, dynamic>? context;
 
   AnchorError(
     this.message, {
@@ -15,6 +11,10 @@ class AnchorError implements Exception {
     this.programId,
     this.context,
   });
+  final String message;
+  final String code;
+  final int? programId;
+  final Map<String, dynamic>? context;
 
   @override
   String toString() {
@@ -32,8 +32,6 @@ class AnchorError implements Exception {
 
 /// Program error from Solana program execution
 class ProgramError extends AnchorError {
-  final int errorCode;
-  final String? programName;
 
   ProgramError(
     String message, {
@@ -48,6 +46,8 @@ class ProgramError extends AnchorError {
           programId: programId,
           context: context,
         );
+  final int errorCode;
+  final String? programName;
 
   @override
   String toString() {
@@ -62,7 +62,6 @@ class ProgramError extends AnchorError {
 
 /// IDL parsing or validation error
 class IdlError extends AnchorError {
-  final String? idlField;
 
   IdlError(
     String message, {
@@ -73,6 +72,7 @@ class IdlError extends AnchorError {
           code: 'IDL_ERROR',
           context: context,
         );
+  final String? idlField;
 
   @override
   String toString() {
@@ -87,8 +87,6 @@ class IdlError extends AnchorError {
 
 /// Network or RPC related error
 class NetworkError extends AnchorError {
-  final int? statusCode;
-  final String? endpoint;
 
   NetworkError(
     String message, {
@@ -100,6 +98,8 @@ class NetworkError extends AnchorError {
           code: 'NETWORK_ERROR',
           context: context,
         );
+  final int? statusCode;
+  final String? endpoint;
 
   @override
   String toString() {
@@ -117,8 +117,6 @@ class NetworkError extends AnchorError {
 
 /// Account not found error
 class AccountNotFoundError extends AnchorError {
-  final String? accountType;
-  final String? publicKey;
 
   AccountNotFoundError(
     String message, {
@@ -130,6 +128,8 @@ class AccountNotFoundError extends AnchorError {
           code: 'ACCOUNT_NOT_FOUND',
           context: context,
         );
+  final String? accountType;
+  final String? publicKey;
 
   @override
   String toString() {
@@ -147,8 +147,6 @@ class AccountNotFoundError extends AnchorError {
 
 /// Instruction building or execution error
 class InstructionError extends AnchorError {
-  final String? instructionName;
-  final int? instructionIndex;
 
   InstructionError(
     String message, {
@@ -160,6 +158,8 @@ class InstructionError extends AnchorError {
           code: 'INSTRUCTION_ERROR',
           context: context,
         );
+  final String? instructionName;
+  final int? instructionIndex;
 
   @override
   String toString() {
@@ -177,8 +177,6 @@ class InstructionError extends AnchorError {
 
 /// Simulation error
 class SimulationError extends AnchorError {
-  final List<String>? logs;
-  final String? transactionSignature;
 
   SimulationError(
     String message, {
@@ -190,6 +188,8 @@ class SimulationError extends AnchorError {
           code: 'SIMULATION_ERROR',
           context: context,
         );
+  final List<String>? logs;
+  final String? transactionSignature;
 
   @override
   String toString() {
@@ -208,9 +208,7 @@ class SimulationError extends AnchorError {
 /// Error utility functions
 class ErrorUtils {
   /// Check if error is of specific type
-  static bool isErrorOfType<T extends AnchorError>(dynamic error) {
-    return error is T;
-  }
+  static bool isErrorOfType<T extends AnchorError>(dynamic error) => error is T;
 
   /// Get error code from any error
   static String? getErrorCode(dynamic error) {
@@ -238,7 +236,7 @@ class ErrorUtils {
     final patterns = [
       RegExp(r'Program failed: Custom program error: (\d+)'),
       RegExp(r'Error Code: (\d+)'),
-      RegExp(r'custom program error: 0x([0-9a-fA-F]+)'),
+      RegExp('custom program error: 0x([0-9a-fA-F]+)'),
     ];
 
     for (final pattern in patterns) {

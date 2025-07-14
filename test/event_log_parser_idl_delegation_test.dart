@@ -11,7 +11,7 @@ void main() {
       testProgramId = PublicKey.fromBase58('11111111111111111111111111111111');
 
       // Create IDL with events
-      testIdl = Idl(
+      testIdl = const Idl(
         instructions: [],
         events: [
           IdlEvent(
@@ -52,7 +52,7 @@ void main() {
       });
 
       test('handles IDL with no events gracefully', () {
-        final emptyIdl = Idl(instructions: []);
+        final emptyIdl = const Idl(instructions: []);
         final parser = EventLogParser.fromIdl(testProgramId, emptyIdl);
 
         expect(parser.eventsByName.isEmpty, isTrue);

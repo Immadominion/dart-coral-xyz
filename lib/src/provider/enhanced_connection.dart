@@ -12,36 +12,13 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 
-import '../types/commitment.dart';
-import '../types/public_key.dart';
-import '../utils/rpc_errors.dart';
-import 'connection.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
 
 /// Configuration for retry strategies
 class RetryConfig {
-  /// Maximum number of retry attempts
-  final int maxRetries;
-
-  /// Base delay in milliseconds
-  final int baseDelayMs;
-
-  /// Maximum delay in milliseconds
-  final int maxDelayMs;
-
-  /// Exponential backoff multiplier
-  final double backoffMultiplier;
-
-  /// Whether to add jitter to delays
-  final bool enableJitter;
-
-  /// Jitter factor (0.0 to 1.0)
-  final double jitterFactor;
-
-  /// Methods that should be retried
-  final Set<String> retryableMethods;
-
-  /// HTTP status codes that should trigger retries
-  final Set<int> retryableStatusCodes;
 
   const RetryConfig({
     this.maxRetries = 3,
@@ -66,6 +43,29 @@ class RetryConfig {
     },
     this.retryableStatusCodes = const {429, 500, 502, 503, 504},
   });
+  /// Maximum number of retry attempts
+  final int maxRetries;
+
+  /// Base delay in milliseconds
+  final int baseDelayMs;
+
+  /// Maximum delay in milliseconds
+  final int maxDelayMs;
+
+  /// Exponential backoff multiplier
+  final double backoffMultiplier;
+
+  /// Whether to add jitter to delays
+  final bool enableJitter;
+
+  /// Jitter factor (0.0 to 1.0)
+  final double jitterFactor;
+
+  /// Methods that should be retried
+  final Set<String> retryableMethods;
+
+  /// HTTP status codes that should trigger retries
+  final Set<int> retryableStatusCodes;
 }
 
 /// Circuit breaker states
@@ -77,6 +77,13 @@ enum CircuitBreakerState {
 
 /// Circuit breaker configuration
 class CircuitBreakerConfig {
+
+  const CircuitBreakerConfig({
+    this.failureThreshold = 5,
+    this.recoveryTimeoutMs = 60000,
+    this.successThreshold = 3,
+    this.timeWindowMs = 60000,
+  });
   /// Failure threshold to open circuit
   final int failureThreshold;
 
@@ -88,25 +95,18 @@ class CircuitBreakerConfig {
 
   /// Time window for failure tracking in milliseconds
   final int timeWindowMs;
-
-  const CircuitBreakerConfig({
-    this.failureThreshold = 5,
-    this.recoveryTimeoutMs = 60000,
-    this.successThreshold = 3,
-    this.timeWindowMs = 60000,
-  });
 }
 
 /// Circuit breaker for preventing cascading failures
 class CircuitBreaker {
+
+  CircuitBreaker(this._config);
   final CircuitBreakerConfig _config;
   CircuitBreakerState _state = CircuitBreakerState.closed;
   DateTime? _lastFailureTime;
   int _failureCount = 0;
   int _successCount = 0;
   final List<DateTime> _recentFailures = [];
-
-  CircuitBreaker(this._config);
 
   /// Current circuit breaker state
   CircuitBreakerState get state => _state;
@@ -193,12 +193,12 @@ class RequestDeduplicator {
     _pendingRequests[key] = completer;
 
     // Set timeout to clean up stale requests
-    _timeouts[key] = Timer(Duration(milliseconds: _dedupTimeoutMs), () {
+    _timeouts[key] = Timer(const Duration(milliseconds: _dedupTimeoutMs), () {
       _pendingRequests.remove(key);
       _timeouts.remove(key);
       if (!completer.isCompleted) {
         completer
-            .completeError(TimeoutException('Request deduplication timeout'));
+            .completeError(const TimeoutException('Request deduplication timeout'));
       }
     });
 
@@ -225,13 +225,22 @@ class RequestDeduplicator {
   }
 
   /// Generate deduplication key for request
-  static String generateKey(String method, List<dynamic> params) {
-    return '$method:${jsonEncode(params)}';
-  }
+  static String generateKey(String method, List<dynamic> params) => '$method:${jsonEncode(params)}';
 }
 
 /// Enhanced Connection with retry, recovery, and health monitoring
 class EnhancedConnection extends Connection {
+
+  /// Create enhanced connection
+  EnhancedConnection(
+    super.endpoint, {
+    super.config,
+    RetryConfig? retryConfig,
+    CircuitBreakerConfig? circuitBreakerConfig,
+  })  : _retryConfig = retryConfig ?? const RetryConfig(),
+        _circuitBreaker = CircuitBreaker(
+            circuitBreakerConfig ?? const CircuitBreakerConfig()),
+        _deduplicator = RequestDeduplicator();
   final RetryConfig _retryConfig;
   final CircuitBreaker _circuitBreaker;
   final RequestDeduplicator _deduplicator;
@@ -243,18 +252,6 @@ class EnhancedConnection extends Connection {
   int _failedRequests = 0;
   int _retriedRequests = 0;
   Duration _totalResponseTime = Duration.zero;
-
-  /// Create enhanced connection
-  EnhancedConnection(
-    super.endpoint, {
-    super.config,
-    super.httpClient,
-    RetryConfig? retryConfig,
-    CircuitBreakerConfig? circuitBreakerConfig,
-  })  : _retryConfig = retryConfig ?? const RetryConfig(),
-        _circuitBreaker = CircuitBreaker(
-            circuitBreakerConfig ?? const CircuitBreakerConfig()),
-        _deduplicator = RequestDeduplicator();
 
   /// Connection metrics
   Map<String, dynamic> get metrics => {
@@ -275,39 +272,31 @@ class EnhancedConnection extends Connection {
   Future<int> getBalance(
     PublicKey publicKey, {
     CommitmentConfig? commitment,
-  }) async {
-    return _executeWithRetry(
+  }) async => _executeWithRetry(
         () => super.getBalance(publicKey, commitment: commitment));
-  }
 
   /// Enhanced account info fetching with retry
   @override
   Future<AccountInfo?> getAccountInfo(
     PublicKey publicKey, {
     CommitmentConfig? commitment,
-  }) async {
-    return _executeWithRetry(
+  }) async => _executeWithRetry(
         () => super.getAccountInfo(publicKey, commitment: commitment));
-  }
 
   /// Enhanced latest blockhash fetching with retry
   @override
   Future<LatestBlockhash> getLatestBlockhash({
     CommitmentConfig? commitment,
-  }) async {
-    return _executeWithRetry(
+  }) async => _executeWithRetry(
         () => super.getLatestBlockhash(commitment: commitment));
-  }
 
   /// Enhanced multiple accounts fetching with retry
   @override
   Future<List<AccountInfo?>> getMultipleAccountsInfo(
     List<PublicKey> publicKeys, {
     CommitmentConfig? commitment,
-  }) async {
-    return _executeWithRetry(() =>
+  }) async => _executeWithRetry(() =>
         super.getMultipleAccountsInfo(publicKeys, commitment: commitment));
-  }
 
   /// Enhanced program accounts fetching with retry
   @override
@@ -315,26 +304,20 @@ class EnhancedConnection extends Connection {
     PublicKey programId, {
     List<AccountFilter>? filters,
     CommitmentConfig? commitment,
-  }) async {
-    return _executeWithRetry(() => super.getProgramAccounts(programId,
+  }) async => _executeWithRetry(() => super.getProgramAccounts(programId,
         filters: filters, commitment: commitment));
-  }
 
   /// Enhanced minimum balance fetching with retry
   @override
   Future<int> getMinimumBalanceForRentExemption(
     int dataLength, {
     CommitmentConfig? commitment,
-  }) async {
-    return _executeWithRetry(() => super
+  }) async => _executeWithRetry(() => super
         .getMinimumBalanceForRentExemption(dataLength, commitment: commitment));
-  }
 
   /// Enhanced health check with retry
   @override
-  Future<String> checkHealth() async {
-    return _executeWithRetry(() => super.checkHealth());
-  }
+  Future<String> checkHealth() async => _executeWithRetry(() => super.checkHealth());
 
   /// Execute operation with retry logic
   Future<T> _executeWithRetry<T>(Future<T> Function() operation) async {
@@ -346,7 +329,7 @@ class EnhancedConnection extends Connection {
     for (int attempt = 0; attempt <= _retryConfig.maxRetries; attempt++) {
       // Check circuit breaker
       if (!_circuitBreaker.shouldAllowRequest()) {
-        throw RpcException('Circuit breaker is open - service unavailable');
+        throw const RpcException('Circuit breaker is open - service unavailable');
       }
 
       try {
@@ -377,7 +360,7 @@ class EnhancedConnection extends Connection {
 
         // Calculate delay with exponential backoff and jitter
         final delay = _calculateDelay(attempt);
-        await Future.delayed(Duration(milliseconds: delay));
+        await Future<void>.delayed(Duration(milliseconds: delay));
       }
     }
 

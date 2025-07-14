@@ -1,13 +1,13 @@
 // Instruction Builder for Dart Coral XYZ Anchor Client
 // Phase 7.1: Implements fluent API for instruction building, account meta generation, data serialization, and validation.
 
-import '../idl/idl.dart';
-import '../coder/instruction_coder.dart';
-import 'accounts_resolver.dart';
-import 'context.dart';
-import '../types/public_key.dart';
-import '../error/anchor_error.dart';
-import '../types/transaction.dart' as tx;
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/coder/instruction_coder.dart';
+import 'package:coral_xyz_anchor/src/program/accounts_resolver.dart';
+import 'package:coral_xyz_anchor/src/program/context.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
 import 'dart:typed_data';
 
 /// Builds instructions for Anchor programs with a fluent API
@@ -19,6 +19,14 @@ import 'dart:typed_data';
 /// - Instruction data serialization
 /// - Comprehensive validation
 class InstructionBuilder {
+
+  /// Create a new instruction builder
+  InstructionBuilder({
+    required this.idl,
+    required this.methodName,
+    required this.instructionCoder,
+    required this.accountsResolver,
+  });
   final Idl idl;
   final String methodName;
   final InstructionCoder instructionCoder;
@@ -29,14 +37,6 @@ class InstructionBuilder {
   final List<tx.AccountMeta> _remainingAccounts = [];
   Context? _context;
   bool _validated = false;
-
-  /// Create a new instruction builder
-  InstructionBuilder({
-    required this.idl,
-    required this.methodName,
-    required this.instructionCoder,
-    required this.accountsResolver,
-  });
 
   /// Set instruction arguments
   ///
@@ -91,12 +91,10 @@ class InstructionBuilder {
   }
 
   /// Get the IDL instruction for this builder
-  IdlInstruction get _instruction {
-    return idl.instructions.firstWhere(
+  IdlInstruction get _instruction => idl.instructions.firstWhere(
       (ix) => ix.name == methodName,
       orElse: () => throw IdlError('Instruction $methodName not found in IDL'),
     );
-  }
 
   /// Validate the instruction arguments and accounts
   ///
@@ -165,7 +163,7 @@ class InstructionBuilder {
             pubkey: pubkey,
             isSigner: acct.isSigner || _signers.contains(pubkey),
             isWritable: acct.writable,
-          ));
+          ),);
         } else if (acct is IdlInstructionAccounts) {
           addMetas(acct.accounts);
         }
@@ -210,11 +208,6 @@ class InstructionBuilder {
 
 /// Result of building an instruction
 class InstructionBuildResult {
-  final Uint8List data;
-  final List<tx.AccountMeta> metas;
-  final Map<String, dynamic> resolvedAccounts;
-  final List<PublicKey> signers;
-  final Context? context;
 
   const InstructionBuildResult({
     required this.data,
@@ -223,9 +216,12 @@ class InstructionBuildResult {
     required this.signers,
     this.context,
   });
+  final Uint8List data;
+  final List<tx.AccountMeta> metas;
+  final Map<String, dynamic> resolvedAccounts;
+  final List<PublicKey> signers;
+  final Context? context;
 
   @override
-  String toString() {
-    return 'InstructionBuildResult(metas: ${metas.length}, signers: ${signers.length})';
-  }
+  String toString() => 'InstructionBuildResult(metas: ${metas.length}, signers: ${signers.length})';
 }

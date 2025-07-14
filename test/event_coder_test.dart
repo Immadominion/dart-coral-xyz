@@ -10,7 +10,7 @@ void main() {
 
     setUp(() {
       // Create a test IDL with event definitions
-      testIdl = Idl(
+      testIdl = const Idl(
         address: 'EVENT123456789012345678901234567890ABCDEF',
         metadata: IdlMetadata(
           name: 'test_events',
@@ -43,11 +43,11 @@ void main() {
               kind: 'struct',
               fields: [
                 IdlField(
-                    name: 'from', type: const IdlType(kind: 'pubkey')), // Fixed
+                    name: 'from', type: IdlType(kind: 'pubkey'),), // Fixed
                 IdlField(
-                    name: 'to', type: const IdlType(kind: 'pubkey')), // Fixed
+                    name: 'to', type: IdlType(kind: 'pubkey'),), // Fixed
                 IdlField(
-                    name: 'amount', type: const IdlType(kind: 'u64')), // Fixed
+                    name: 'amount', type: IdlType(kind: 'u64'),), // Fixed
               ],
             ),
           ),
@@ -58,12 +58,12 @@ void main() {
               kind: 'struct',
               fields: [
                 IdlField(
-                    name: 'user', type: const IdlType(kind: 'pubkey')), // Fixed
+                    name: 'user', type: IdlType(kind: 'pubkey'),), // Fixed
                 IdlField(
-                    name: 'amount', type: const IdlType(kind: 'u64')), // Fixed
+                    name: 'amount', type: IdlType(kind: 'u64'),), // Fixed
                 IdlField(
                     name: 'timestamp',
-                    type: const IdlType(kind: 'i64')), // Fixed
+                    type: IdlType(kind: 'i64'),), // Fixed
               ],
             ),
           ),
@@ -75,22 +75,22 @@ void main() {
               fields: [
                 IdlField(
                   name: 'data',
-                  type: const IdlType(
+                  type: IdlType(
                       kind: 'vec',
-                      inner: IdlType(kind: 'u32')), // Fixed complex type
+                      inner: IdlType(kind: 'u32'),), // Fixed complex type
                 ),
                 IdlField(
                   name: 'optionalMessage',
-                  type: const IdlType(
+                  type: IdlType(
                       kind: 'option',
-                      inner: IdlType(kind: 'string')), // Fixed complex type
+                      inner: IdlType(kind: 'string'),), // Fixed complex type
                 ),
                 IdlField(
                   name: 'flags',
-                  type: const IdlType(
+                  type: IdlType(
                       kind: 'array',
                       inner: IdlType(kind: 'bool'),
-                      size: 3), // Fixed complex type
+                      size: 3,), // Fixed complex type
                 ),
               ],
             ),
@@ -109,7 +109,7 @@ void main() {
         // Manually create borsh-encoded event data
         final serializer = BorshSerializer();
         serializer.writeString(
-            'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'); // from
+            'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',); // from
         serializer
             .writeString('So11111111111111111111111111111111111111112'); // to
         serializer.writeU64(1000000); // amount
@@ -123,9 +123,9 @@ void main() {
         expect(event, isNotNull);
         expect(event!.name, equals('transferEvent'));
         expect(event.data['from'],
-            equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'));
+            equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),);
         expect(event.data['to'],
-            equals('So11111111111111111111111111111111111111112'));
+            equals('So11111111111111111111111111111111111111112'),);
         expect(event.data['amount'], equals(1000000));
       });
 
@@ -265,7 +265,7 @@ void main() {
 
     group('Event Coder Edge Cases', () {
       test('should handle IDL with no events', () {
-        final emptyEventsIdl = Idl(
+        final emptyEventsIdl = const Idl(
           address: 'EMPTY123456789012345678901234567890ABCDEF',
           metadata: IdlMetadata(
             name: 'empty_events',
@@ -273,8 +273,6 @@ void main() {
             spec: '0.1.0',
           ),
           instructions: [],
-          events: null,
-          types: null,
         );
 
         final emptyCoder = BorshEventCoder(emptyEventsIdl);
@@ -287,7 +285,7 @@ void main() {
       });
 
       test('should throw on IDL with events but no types', () {
-        final invalidIdl = Idl(
+        final invalidIdl = const Idl(
           address: 'INVALID123456789012345678901234567890ABCDEF',
           metadata: IdlMetadata(
             name: 'invalid_events',
@@ -302,7 +300,6 @@ void main() {
               fields: [],
             ),
           ],
-          types: null, // Missing types
         );
 
         expect(
@@ -312,7 +309,7 @@ void main() {
       });
 
       test('should throw on event with missing type definition', () {
-        final invalidIdl = Idl(
+        final invalidIdl = const Idl(
           address: 'INVALID123456789012345678901234567890ABCDEF',
           metadata: IdlMetadata(
             name: 'missing_type_events',
@@ -335,7 +332,7 @@ void main() {
                 kind: 'struct',
                 fields: [
                   IdlField(
-                      name: 'data', type: const IdlType(kind: 'u32')), // Fixed
+                      name: 'data', type: IdlType(kind: 'u32'),), // Fixed
                 ],
               ),
             ),
@@ -443,7 +440,7 @@ void main() {
         transferSerializer.writeString('To1');
         transferSerializer.writeU64(100);
         final transferData = Uint8List.fromList(
-            [...transferDiscriminator, ...transferSerializer.toBytes()]);
+            [...transferDiscriminator, ...transferSerializer.toBytes()],);
         logs.add(base64.encode(transferData));
 
         // Create deposit event
@@ -453,12 +450,12 @@ void main() {
         depositSerializer.writeU64(200);
         depositSerializer.writeI64(1640995200);
         final depositData = Uint8List.fromList(
-            [...depositDiscriminator, ...depositSerializer.toBytes()]);
+            [...depositDiscriminator, ...depositSerializer.toBytes()],);
         logs.add(base64.encode(depositData));
 
         // Create unknown event
         final unknownData = Uint8List.fromList(
-            [255, 254, 253, 252, 251, 250, 249, 248, 1, 2, 3]);
+            [255, 254, 253, 252, 251, 250, 249, 248, 1, 2, 3],);
         logs.add(base64.encode(unknownData));
 
         final decodedEvents = logs

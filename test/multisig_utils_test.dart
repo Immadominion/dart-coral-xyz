@@ -44,11 +44,11 @@ void main() {
 
     test('hasThresholdSignatures should check signatures correctly', () {
       expect(
-          MultisigUtils.hasThresholdSignatures([true, true, false], 2), isTrue);
+          MultisigUtils.hasThresholdSignatures([true, true, false], 2), isTrue,);
       expect(MultisigUtils.hasThresholdSignatures([true, false, false], 2),
-          isFalse);
+          isFalse,);
       expect(MultisigUtils.hasThresholdSignatures([false, false, false], 1),
-          isFalse);
+          isFalse,);
     });
 
     test('createTransaction should create proper transaction', () {
@@ -104,9 +104,9 @@ void main() {
       );
 
       expect(() => MultisigUtils.signTransaction(transaction, -1),
-          throwsA(isA<ArgumentError>()));
+          throwsA(isA<ArgumentError>()),);
       expect(() => MultisigUtils.signTransaction(transaction, 3),
-          throwsA(isA<ArgumentError>()));
+          throwsA(isA<ArgumentError>()),);
     });
 
     test('canExecuteTransaction should check execution readiness', () {
@@ -178,12 +178,12 @@ void main() {
       ];
 
       final metas = MultisigUtils.createExecutionAccountMetas(
-          accounts, signerPda.address);
+          accounts, signerPda.address,);
 
       expect(metas, hasLength(2));
       expect(metas[0].isSigner, isFalse);
       expect(metas[1].isSigner,
-          isFalse); // Multisig signer should not be client-signed
+          isFalse,); // Multisig signer should not be client-signed
     });
 
     test('createTransactionSeeds should create proper seeds', () {
@@ -231,7 +231,7 @@ void main() {
       final account2 =
           TransactionAccount(pubkey: pubkey, isSigner: true, isWritable: false);
       final account3 = TransactionAccount(
-          pubkey: pubkey, isSigner: false, isWritable: false);
+          pubkey: pubkey, isSigner: false, isWritable: false,);
 
       expect(account1, equals(account2));
       expect(account1, isNot(equals(account3)));
@@ -329,7 +329,7 @@ void main() {
       programId =
           PublicKey.fromBase58('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
       builder = MultisigAccountBuilder(
-          multisigKey: multisigKey, programId: programId);
+          multisigKey: multisigKey, programId: programId,);
     });
 
     test('createMultisigAccounts should build correct accounts', () {

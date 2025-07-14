@@ -4,14 +4,14 @@
 /// the TypeScript Anchor SDK error handling capabilities.
 library;
 
-import 'types/public_key.dart';
-import 'idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Base exception class for IDL-related errors
 class IdlError extends Error {
-  final String message;
 
   IdlError(this.message);
+  final String message;
 
   @override
   String toString() => 'IdlError: $message';
@@ -19,13 +19,13 @@ class IdlError extends Error {
 
 /// Represents an error code with both string and numeric representations
 class ErrorCode {
-  final String code;
-  final int number;
 
   const ErrorCode({
     required this.code,
     required this.number,
   });
+  final String code;
+  final int number;
 
   @override
   String toString() => '$code ($number)';
@@ -42,13 +42,13 @@ class ErrorCode {
 
 /// Represents a file and line location for error reporting
 class FileLine {
-  final String file;
-  final int line;
 
   const FileLine({
     required this.file,
     required this.line,
   });
+  final String file;
+  final int line;
 
   @override
   String toString() => '$file:$line';
@@ -65,11 +65,11 @@ class FileLine {
 
 /// Union type for error origin (either string account name or file location)
 class ErrorOrigin {
-  final String? accountName;
-  final FileLine? fileLine;
 
   const ErrorOrigin.accountName(String this.accountName) : fileLine = null;
   const ErrorOrigin.fileLine(FileLine this.fileLine) : accountName = null;
+  final String? accountName;
+  final FileLine? fileLine;
 
   @override
   String toString() {
@@ -81,13 +81,13 @@ class ErrorOrigin {
 
 /// Union type for compared values in error messages
 class ComparedValues {
-  final List<PublicKey>? publicKeys;
-  final List<String>? accountNames;
 
   const ComparedValues.publicKeys(List<PublicKey> this.publicKeys)
       : accountNames = null;
   const ComparedValues.accountNames(List<String> this.accountNames)
       : publicKeys = null;
+  final List<PublicKey>? publicKeys;
+  final List<String>? accountNames;
 
   @override
   String toString() {
@@ -103,9 +103,9 @@ class ComparedValues {
 
 /// Stack of programs being executed, used for tracking CPI calls
 class ProgramErrorStack {
-  final List<PublicKey> stack;
 
   const ProgramErrorStack(this.stack);
+  final List<PublicKey> stack;
 
   /// Parse program execution stack from transaction logs
   static ProgramErrorStack parse(List<String> logs) {
@@ -146,13 +146,6 @@ class ProgramErrorStack {
 
 /// Detailed Anchor error with full context
 class AnchorError extends Error {
-  final ErrorCode errorCode;
-  final String errorMessage;
-  final List<String> errorLogs;
-  final List<String> logs;
-  final ErrorOrigin? origin;
-  final ComparedValues? comparedValues;
-  final ProgramErrorStack _programErrorStack;
 
   AnchorError({
     required this.errorCode,
@@ -162,6 +155,13 @@ class AnchorError extends Error {
     this.origin,
     this.comparedValues,
   }) : _programErrorStack = ProgramErrorStack.parse(logs);
+  final ErrorCode errorCode;
+  final String errorMessage;
+  final List<String> errorLogs;
+  final List<String> logs;
+  final ErrorOrigin? origin;
+  final ComparedValues? comparedValues;
+  final ProgramErrorStack _programErrorStack;
 
   /// Parse AnchorError from transaction logs
   static AnchorError? parse(List<String>? logs) {
@@ -195,7 +195,7 @@ class AnchorError extends Error {
             errorLogs.addAll(logs.sublist(
               anchorErrorLogIndex + 1,
               anchorErrorLogIndex + 5,
-            ));
+            ),);
           } catch (e) {
             // Not valid pubkeys, ignore
           }
@@ -214,7 +214,7 @@ class AnchorError extends Error {
           errorLogs.addAll(logs.sublist(
             anchorErrorLogIndex + 1,
             anchorErrorLogIndex + 3,
-          ));
+          ),);
         }
       }
     }
@@ -307,16 +307,16 @@ class AnchorError extends Error {
 
 /// User-defined or framework program error
 class ProgramError extends Error {
-  final int code;
-  final String message;
-  final List<String>? logs;
-  final ProgramErrorStack? _programErrorStack;
 
   ProgramError({
     required this.code,
     required this.message,
     this.logs,
   }) : _programErrorStack = logs != null ? ProgramErrorStack.parse(logs) : null;
+  final int code;
+  final String message;
+  final List<String>? logs;
+  final ProgramErrorStack? _programErrorStack;
 
   /// Parse ProgramError from exception and IDL error definitions
   static ProgramError? parse(

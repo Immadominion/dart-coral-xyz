@@ -2,6 +2,7 @@
 ///
 /// This test suite verifies that the Context class and address resolution
 /// utilities work correctly for Anchor program interactions.
+library;
 
 import 'package:test/test.dart';
 import 'dart:typed_data';
@@ -49,7 +50,7 @@ void main() {
       final preInstructions = [TransactionInstruction.empty()];
       final postInstructions = [TransactionInstruction.empty()];
       const commitment = CommitmentConfigs.confirmed;
-      final options = ConfirmOptions(skipPreflight: true);
+      final options = const ConfirmOptions(skipPreflight: true);
 
       final context = Context<DynamicAccounts>(
         accounts: accounts,
@@ -194,7 +195,7 @@ void main() {
       final instruction = _createTestInstruction(['arg1']);
       final args = [
         'value1',
-        {'unknownProperty': 'value'}
+        {'unknownProperty': 'value'},
       ];
 
       final result = splitArgsAndContext(instruction, args);
@@ -229,7 +230,7 @@ void main() {
       final seeds = [
         'hello',
         42,
-        PublicKey.fromBase58('11111111111111111111111111111111')
+        PublicKey.fromBase58('11111111111111111111111111111111'),
       ];
       final seedBytes = PdaUtils.seedsToBytes(seeds);
 
@@ -266,9 +267,9 @@ void main() {
       };
       final specs = [
         const IdlInstructionAccount(
-            name: 'account1', writable: false, signer: false),
+            name: 'account1',),
         const IdlInstructionAccount(
-            name: 'account2', writable: false, signer: false),
+            name: 'account2',),
       ];
 
       final resolved = await AddressResolver.resolveAccounts(
@@ -299,14 +300,12 @@ void main() {
       final accounts = <String, dynamic>{'account1': 'value'};
       final specs = [
         const IdlInstructionAccount(
-            name: 'account1', writable: false, signer: false),
+            name: 'account1',),
         const IdlInstructionAccount(
-            name: 'account2', writable: false, signer: false), // Missing
+            name: 'account2',), // Missing
         const IdlInstructionAccount(
             name: 'account3',
-            writable: false,
-            signer: false,
-            optional: true), // Optional
+            optional: true,), // Optional
       ];
 
       final missing =
@@ -317,8 +316,7 @@ void main() {
 }
 
 /// Helper function to create test IDL instruction
-IdlInstruction _createTestInstruction(List<String> argNames) {
-  return IdlInstruction(
+IdlInstruction _createTestInstruction(List<String> argNames) => IdlInstruction(
     name: 'testInstruction',
     discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
     accounts: [
@@ -330,4 +328,3 @@ IdlInstruction _createTestInstruction(List<String> argNames) {
             (name) => IdlField(name: name, type: const IdlType(kind: 'string')))
         .toList(),
   );
-}

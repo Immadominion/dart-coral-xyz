@@ -2,12 +2,13 @@
 ///
 /// This test verifies the core transaction functionality without dependencies
 /// on other parts of the coral_xyz_anchor package.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:solana/solana.dart' as solana;
-import '../lib/src/transaction/transaction.dart';
-import '../lib/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 void main() {
   group('Core Transaction Tests', () {
@@ -22,11 +23,11 @@ void main() {
       // Create a simple instruction
       final fromPubkey = PublicKey.fromBase58(signer.publicKey.toBase58());
       final toPubkey = PublicKey.fromBase58(
-          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58());
+          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58(),);
 
       final instruction = TransactionInstruction(
         programId: PublicKey.fromBase58(
-            '11111111111111111111111111111111'), // System Program
+            '11111111111111111111111111111111',), // System Program
         accounts: [
           AccountMeta(
             publicKey: fromPubkey,
@@ -62,17 +63,17 @@ void main() {
       expect(serializedTx.length, greaterThan(0));
 
       print(
-          '✅ Transaction serialized successfully: ${serializedTx.length} bytes');
+          '✅ Transaction serialized successfully: ${serializedTx.length} bytes',);
       print(
-          '   First 32 bytes: ${serializedTx.take(32).map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+          '   First 32 bytes: ${serializedTx.take(32).map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',);
     });
 
     test('should create transaction with multiple instructions', () async {
       final fromPubkey = PublicKey.fromBase58(signer.publicKey.toBase58());
       final toPubkey1 = PublicKey.fromBase58(
-          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58());
+          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58(),);
       final toPubkey2 = PublicKey.fromBase58(
-          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58());
+          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58(),);
 
       // Create multiple instructions
       final instructions = [
@@ -80,9 +81,9 @@ void main() {
           programId: PublicKey.fromBase58('11111111111111111111111111111111'),
           accounts: [
             AccountMeta(
-                publicKey: fromPubkey, isSigner: true, isWritable: true),
+                publicKey: fromPubkey, isSigner: true, isWritable: true,),
             AccountMeta(
-                publicKey: toPubkey1, isSigner: false, isWritable: true),
+                publicKey: toPubkey1, isSigner: false, isWritable: true,),
           ],
           data: _createTransferData(500000),
         ),
@@ -90,9 +91,9 @@ void main() {
           programId: PublicKey.fromBase58('11111111111111111111111111111111'),
           accounts: [
             AccountMeta(
-                publicKey: fromPubkey, isSigner: true, isWritable: true),
+                publicKey: fromPubkey, isSigner: true, isWritable: true,),
             AccountMeta(
-                publicKey: toPubkey2, isSigner: false, isWritable: true),
+                publicKey: toPubkey2, isSigner: false, isWritable: true,),
           ],
           data: _createTransferData(500000),
         ),
@@ -115,7 +116,7 @@ void main() {
       expect(serializedTx.length, greaterThan(0));
 
       print(
-          '✅ Multi-instruction transaction serialized: ${serializedTx.length} bytes');
+          '✅ Multi-instruction transaction serialized: ${serializedTx.length} bytes',);
     });
 
     test('should handle different account metadata types', () {
@@ -126,19 +127,19 @@ void main() {
         AccountMeta(
             publicKey: pubkey,
             isSigner: true,
-            isWritable: true), // Writable signer
+            isWritable: true,), // Writable signer
         AccountMeta(
             publicKey: pubkey,
             isSigner: true,
-            isWritable: false), // Readonly signer
+            isWritable: false,), // Readonly signer
         AccountMeta(
             publicKey: pubkey,
             isSigner: false,
-            isWritable: true), // Writable non-signer
+            isWritable: true,), // Writable non-signer
         AccountMeta(
             publicKey: pubkey,
             isSigner: false,
-            isWritable: false), // Readonly non-signer
+            isWritable: false,), // Readonly non-signer
       ];
 
       for (final accountMeta in testCases) {

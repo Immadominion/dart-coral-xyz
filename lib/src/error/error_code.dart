@@ -1,5 +1,5 @@
 /// Error codes that can be returned by internal framework code
-/// 
+///
 /// - >= 100 Instruction error codes
 /// - >= 1000 IDL error codes
 /// - >= 2000 constraint error codes
@@ -13,9 +13,14 @@ class AnchorErrorCode {
   static const instructionDidNotDeserialize = 102;
   static const instructionDidNotSerialize = 103;
 
-  // IDL Errors (1000-1999)
-  static const idlInstructionStub = 1000;
-  static const idlInstructionInvalidProgram = 1001;
+  // IDL Errors (1000-1999) - Real Anchor Error Codes
+  static const idlInstructionMissing = 1000;
+  static const idlInstructionFallbackNotFound = 1001;
+  static const idlInstructionDidNotDeserialize = 1002;
+  static const idlInstructionDidNotSerialize = 1003;
+  static const idlInstructionInvalidProgram = 1004;
+  static const idlParseError = 1005;
+  static const idlMissingTypes = 1006;
 
   // Constraint Errors (2000-2999)
   static const constraintMut = 2000;
@@ -72,10 +77,6 @@ class AnchorErrorCode {
 
 /// Represents a custom program error with message
 class ProgramError {
-  final int code;
-  final String message;
-  final String? programId;
-  final String? fileLine;
 
   const ProgramError({
     required this.code,
@@ -83,6 +84,10 @@ class ProgramError {
     this.programId,
     this.fileLine,
   });
+  final int code;
+  final String message;
+  final String? programId;
+  final String? fileLine;
 
   @override
   String toString() {
@@ -98,10 +103,50 @@ class ProgramError {
 /// Map of common error codes to their messages
 const defaultErrorMap = {
   AnchorErrorCode.instructionMissing: 'Instruction missing from data',
-  AnchorErrorCode.instructionFallbackNotFound: 'Fallback functions are not supported',
-  AnchorErrorCode.instructionDidNotDeserialize: 'Failed to deserialize instruction',
+  AnchorErrorCode.instructionFallbackNotFound:
+      'Fallback functions are not supported',
+  AnchorErrorCode.instructionDidNotDeserialize:
+      'Failed to deserialize instruction',
   AnchorErrorCode.instructionDidNotSerialize: 'Failed to serialize instruction',
-  AnchorErrorCode.idlInstructionStub: 'IDL instruction stub',
-  AnchorErrorCode.idlInstructionInvalidProgram: 'IDL instruction invalid program',
-  // ... Add more default error messages
+  AnchorErrorCode.idlInstructionMissing: 'IDL instruction missing',
+  AnchorErrorCode.idlInstructionFallbackNotFound:
+      'IDL instruction fallback not found',
+  AnchorErrorCode.idlInstructionDidNotDeserialize:
+      'IDL instruction did not deserialize',
+  AnchorErrorCode.idlInstructionDidNotSerialize:
+      'IDL instruction did not serialize',
+  AnchorErrorCode.idlInstructionInvalidProgram:
+      'IDL instruction invalid program',
+  AnchorErrorCode.idlParseError: 'IDL parse error',
+  AnchorErrorCode.idlMissingTypes: 'IDL missing types',
+  // Constraint errors
+  AnchorErrorCode.constraintMut: 'A mut constraint was violated',
+  AnchorErrorCode.constraintHasOne: 'A has_one constraint was violated',
+  AnchorErrorCode.constraintSigner: 'A signer constraint was violated',
+  AnchorErrorCode.constraintRaw: 'A raw constraint was violated',
+  AnchorErrorCode.constraintOwner: 'An owner constraint was violated',
+  AnchorErrorCode.constraintRentExempt: 'A rent exempt constraint was violated',
+  AnchorErrorCode.constraintSeeds: 'A seeds constraint was violated',
+  AnchorErrorCode.constraintExecutable: 'An executable constraint was violated',
+  AnchorErrorCode.constraintState: 'A state constraint was violated',
+  AnchorErrorCode.constraintAssociated: 'An associated constraint was violated',
+  AnchorErrorCode.constraintAssociatedInit:
+      'An associated init constraint was violated',
+  AnchorErrorCode.constraintClose: 'A close constraint was violated',
+  AnchorErrorCode.constraintAddress: 'An address constraint was violated',
+  AnchorErrorCode.constraintZero: 'A zero constraint was violated',
+  AnchorErrorCode.constraintTokenMint: 'A token mint constraint was violated',
+  AnchorErrorCode.constraintTokenOwner: 'A token owner constraint was violated',
+  // Account errors
+  AnchorErrorCode.accountNotEnoughKeys:
+      'Not enough account keys given to the instruction',
+  AnchorErrorCode.accountDiscriminatorMismatch:
+      'The given account discriminator does not match',
+  AnchorErrorCode.accountDidNotDeserialize: 'Failed to deserialize the account',
+  AnchorErrorCode.accountDidNotSerialize: 'Failed to serialize the account',
+  AnchorErrorCode.accountNotMutable:
+      'Not enough account keys given to the instruction',
+  AnchorErrorCode.accountOwnedByWrongProgram:
+      'The given account is owned by a different program than expected',
+  AnchorErrorCode.invalidProgramId: 'Program ID was not as expected',
 };

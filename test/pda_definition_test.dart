@@ -14,7 +14,7 @@ void main() {
 
     group('PdaSeedRequirement', () {
       test('should validate string seeds correctly', () {
-        final requirement = PdaSeedRequirement(
+        final requirement = const PdaSeedRequirement(
           name: 'username',
           type: PdaSeedType.string,
           minLength: 3,
@@ -29,7 +29,7 @@ void main() {
       });
 
       test('should validate bytes seeds correctly', () {
-        final requirement = PdaSeedRequirement(
+        final requirement = const PdaSeedRequirement(
           name: 'data',
           type: PdaSeedType.bytes,
           fixedLength: 32,
@@ -44,7 +44,7 @@ void main() {
       });
 
       test('should validate PublicKey seeds correctly', () {
-        final requirement = PdaSeedRequirement(
+        final requirement = const PdaSeedRequirement(
           name: 'authority',
           type: PdaSeedType.publicKey,
         );
@@ -58,7 +58,7 @@ void main() {
       });
 
       test('should validate number seeds correctly', () {
-        final requirement = PdaSeedRequirement(
+        final requirement = const PdaSeedRequirement(
           name: 'id',
           type: PdaSeedType.number,
           allowedValues: [1, 2, 3, 5, 8, 13],
@@ -70,7 +70,7 @@ void main() {
       });
 
       test('should handle optional seeds correctly', () {
-        final requirement = PdaSeedRequirement(
+        final requirement = const PdaSeedRequirement(
           name: 'optional_id',
           type: PdaSeedType.number,
           optional: true,
@@ -82,7 +82,7 @@ void main() {
       });
 
       test('should handle default values correctly', () {
-        final requirement = PdaSeedRequirement(
+        final requirement = const PdaSeedRequirement(
           name: 'version',
           type: PdaSeedType.number,
           defaultValue: 1,
@@ -93,28 +93,28 @@ void main() {
       });
 
       test('should convert values to PdaSeeds correctly', () {
-        final stringReq = PdaSeedRequirement(
+        final stringReq = const PdaSeedRequirement(
           name: 'test',
           type: PdaSeedType.string,
         );
         final stringSeed = stringReq.toPdaSeed('hello');
         expect(stringSeed, isA<StringSeed>());
 
-        final bytesReq = PdaSeedRequirement(
+        final bytesReq = const PdaSeedRequirement(
           name: 'data',
           type: PdaSeedType.bytes,
         );
         final bytesSeed = bytesReq.toPdaSeed(Uint8List.fromList([1, 2, 3]));
         expect(bytesSeed, isA<BytesSeed>());
 
-        final publicKeyReq = PdaSeedRequirement(
+        final publicKeyReq = const PdaSeedRequirement(
           name: 'authority',
           type: PdaSeedType.publicKey,
         );
         final publicKeySeed = publicKeyReq.toPdaSeed(testProgramId);
         expect(publicKeySeed, isA<PublicKeySeed>());
 
-        final numberReq = PdaSeedRequirement(
+        final numberReq = const PdaSeedRequirement(
           name: 'id',
           type: PdaSeedType.number,
           fixedLength: 8,
@@ -130,11 +130,11 @@ void main() {
           name: 'user_account',
           description: 'User account PDA',
           seedRequirements: [
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'user',
               type: PdaSeedType.publicKey,
             ),
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'seed_string',
               type: PdaSeedType.string,
               defaultValue: 'user',
@@ -153,11 +153,11 @@ void main() {
         final definition = PdaDefinition(
           name: 'test_account',
           seedRequirements: [
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'authority',
               type: PdaSeedType.publicKey,
             ),
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'id',
               type: PdaSeedType.number,
             ),
@@ -180,11 +180,11 @@ void main() {
         final definition = PdaDefinition(
           name: 'test_account',
           seedRequirements: [
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'authority',
               type: PdaSeedType.publicKey,
             ),
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'id',
               type: PdaSeedType.number,
             ),
@@ -206,12 +206,12 @@ void main() {
         final definition = PdaDefinition(
           name: 'test_account',
           seedRequirements: [
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'prefix',
               type: PdaSeedType.string,
               defaultValue: 'test',
             ),
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'id',
               type: PdaSeedType.number,
             ),
@@ -231,7 +231,7 @@ void main() {
         final baseDefinition = PdaDefinition(
           name: 'base',
           seedRequirements: [
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'base_seed',
               type: PdaSeedType.string,
             ),
@@ -242,7 +242,7 @@ void main() {
         final derivedDefinition = PdaDefinition(
           name: 'derived',
           seedRequirements: [
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'derived_seed',
               type: PdaSeedType.number,
             ),
@@ -260,7 +260,7 @@ void main() {
       });
 
       test('should create definition from IDL account', () {
-        final account = IdlAccount(
+        final account = const IdlAccount(
           name: 'UserAccount',
           type: IdlTypeDefType(
             kind: 'struct',
@@ -279,7 +279,7 @@ void main() {
       });
 
       test('should handle accounts without meaningful patterns', () {
-        final account = IdlAccount(
+        final account = const IdlAccount(
           name: 'GenericAccount',
           type: IdlTypeDefType(
             kind: 'struct',
@@ -296,7 +296,7 @@ void main() {
 
     group('PdaValidationResult', () {
       test('should create validation result correctly', () {
-        final result = PdaValidationResult(
+        final result = const PdaValidationResult(
           isValid: false,
           errors: ['Error 1', 'Error 2'],
           warnings: ['Warning 1'],
@@ -312,7 +312,7 @@ void main() {
 
     group('PdaValidationException', () {
       test('should create exception correctly', () {
-        final exception = PdaValidationException('Test error');
+        final exception = const PdaValidationException('Test error');
 
         expect(exception.message, equals('Test error'));
         expect(exception.toString(), contains('Test error'));
@@ -362,11 +362,11 @@ void main() {
         final programDefs = registry.getDefinitionsForProgram(testProgramId);
         expect(programDefs.length, equals(2));
         expect(programDefs.map((d) => d.name),
-            containsAll(['account1', 'account2']));
+            containsAll(['account1', 'account2']),);
       });
 
       test('should register from IDL', () {
-        final idl = Idl(
+        final idl = const Idl(
           instructions: [],
           accounts: [
             IdlAccount(
@@ -398,19 +398,19 @@ void main() {
       });
 
       test('should find definitions by tag', () {
-        final def1 = PdaDefinition(
+        final def1 = const PdaDefinition(
           name: 'account1',
           seedRequirements: [],
           tags: ['user', 'primary'],
         );
 
-        final def2 = PdaDefinition(
+        final def2 = const PdaDefinition(
           name: 'account2',
           seedRequirements: [],
           tags: ['user', 'secondary'],
         );
 
-        final def3 = PdaDefinition(
+        final def3 = const PdaDefinition(
           name: 'account3',
           seedRequirements: [],
           tags: ['admin'],
@@ -423,7 +423,7 @@ void main() {
         final userDefs = registry.findDefinitionsByTag('user');
         expect(userDefs.length, equals(2));
         expect(
-            userDefs.map((d) => d.name), containsAll(['account1', 'account2']));
+            userDefs.map((d) => d.name), containsAll(['account1', 'account2']),);
 
         final primaryDefs = registry.findDefinitionsByTag('primary');
         expect(primaryDefs.length, equals(1));
@@ -431,19 +431,19 @@ void main() {
       });
 
       test('should find definitions by account type', () {
-        final def1 = PdaDefinition(
+        final def1 = const PdaDefinition(
           name: 'user1',
           seedRequirements: [],
           accountType: 'UserAccount',
         );
 
-        final def2 = PdaDefinition(
+        final def2 = const PdaDefinition(
           name: 'user2',
           seedRequirements: [],
           accountType: 'UserAccount',
         );
 
-        final def3 = PdaDefinition(
+        final def3 = const PdaDefinition(
           name: 'mint1',
           seedRequirements: [],
           accountType: 'MintAccount',
@@ -459,7 +459,7 @@ void main() {
       });
 
       test('should clear all definitions', () {
-        final definition = PdaDefinition(
+        final definition = const PdaDefinition(
           name: 'test',
           seedRequirements: [],
         );
@@ -491,7 +491,7 @@ void main() {
       test('should clear global registry', () {
         final globalRegistry = getGlobalPdaDefinitionRegistry();
 
-        final definition = PdaDefinition(
+        final definition = const PdaDefinition(
           name: 'test',
           seedRequirements: [],
         );
@@ -511,17 +511,17 @@ void main() {
           name: 'user_token_account',
           description: 'User token account PDA',
           seedRequirements: [
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'prefix',
               type: PdaSeedType.string,
               defaultValue: 'token',
             ),
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'user',
               type: PdaSeedType.publicKey,
               description: 'User authority',
             ),
-            PdaSeedRequirement(
+            const PdaSeedRequirement(
               name: 'id',
               type: PdaSeedType.number,
               description: 'Token ID',

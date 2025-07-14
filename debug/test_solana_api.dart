@@ -32,7 +32,7 @@ void main() async {
   // Test creating a public key
   try {
     final pubkey = solana.Ed25519HDPublicKey.fromBase58(
-        '11111111111111111111111111111111');
+        '11111111111111111111111111111111',);
     print('Public key created: ${pubkey.runtimeType}');
     print('Public key: $pubkey');
   } catch (e) {

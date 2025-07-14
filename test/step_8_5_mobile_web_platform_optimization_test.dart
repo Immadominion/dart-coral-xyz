@@ -2,6 +2,7 @@
 ///
 /// This test suite validates all platform-specific optimizations including
 /// mobile features, web integrations, Flutter widgets, and platform detection.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -36,7 +37,7 @@ void main() {
         final retryDelay = PlatformOptimization.retryDelay;
         expect(retryDelay.inMilliseconds, greaterThan(0));
         expect(retryDelay.inSeconds,
-            lessThanOrEqualTo(5)); // Reasonable retry delay
+            lessThanOrEqualTo(5),); // Reasonable retry delay
       });
 
       test('should provide platform-specific connection limits', () {
@@ -118,9 +119,9 @@ void main() {
 
         // Register multiple tasks
         BackgroundTaskManager.registerTask(
-            'task1', const Duration(milliseconds: 10), testCallback);
+            'task1', const Duration(milliseconds: 10), testCallback,);
         BackgroundTaskManager.registerTask(
-            'task2', const Duration(milliseconds: 10), testCallback);
+            'task2', const Duration(milliseconds: 10), testCallback,);
 
         expect(BackgroundTaskManager.activeTaskIds.length, equals(2));
 
@@ -245,12 +246,12 @@ void main() {
 
         // Record some requests
         WebPerformanceMonitor.recordRequest(
-            endpoint, const Duration(milliseconds: 100));
+            endpoint, const Duration(milliseconds: 100),);
         WebPerformanceMonitor.recordRequest(
-            endpoint, const Duration(milliseconds: 200));
+            endpoint, const Duration(milliseconds: 200),);
         WebPerformanceMonitor.recordRequest(
             endpoint, const Duration(milliseconds: 150),
-            success: false);
+            success: false,);
 
         // Check stats
         final avgTime = WebPerformanceMonitor.getAverageRequestTime(endpoint);
@@ -319,7 +320,7 @@ void main() {
           action: 'sign',
           parameters: {
             'transaction': 'abc123',
-            'return_url': 'myapp://callback'
+            'return_url': 'myapp://callback',
           },
         );
 
@@ -396,7 +397,7 @@ void main() {
         final widget = SolanaWalletWidget();
 
         expect(
-            widget.connectionState, equals(WalletConnectionState.disconnected));
+            widget.connectionState, equals(WalletConnectionState.disconnected),);
         expect(widget.wallet, isNull);
         expect(widget.provider, isNull);
         expect(widget.publicKey, isNull);
@@ -516,15 +517,15 @@ void main() {
       test('should provide platform utilities', () {
         // Test feature support detection
         expect(PlatformUtils.isFeatureSupported(PlatformFeature.localStorage),
-            isA<bool>());
+            isA<bool>(),);
         expect(
             PlatformUtils.isFeatureSupported(
-                PlatformFeature.backgroundProcessing),
-            isA<bool>());
+                PlatformFeature.backgroundProcessing,),
+            isA<bool>(),);
         expect(PlatformUtils.isFeatureSupported(PlatformFeature.deepLinks),
-            isA<bool>());
+            isA<bool>(),);
         expect(PlatformUtils.isFeatureSupported(PlatformFeature.webWallets),
-            isA<bool>());
+            isA<bool>(),);
 
         // Test configuration recommendations
         final recommendations = PlatformUtils.getConfigurationRecommendations();
@@ -553,9 +554,9 @@ void main() {
 
 /// Test implementation of BackgroundSyncTask
 class TestBackgroundSyncTask implements BackgroundSyncTask {
-  final VoidCallback onExecute;
 
   const TestBackgroundSyncTask(this.onExecute);
+  final VoidCallback onExecute;
 
   @override
   String get id => 'test_task';

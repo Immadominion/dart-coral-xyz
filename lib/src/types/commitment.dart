@@ -75,20 +75,18 @@ enum Commitment {
 
 /// Configuration for commitment in RPC requests
 class CommitmentConfig {
-  final Commitment commitment;
 
   const CommitmentConfig(this.commitment);
-
-  /// Convert to JSON representation for RPC calls
-  Map<String, dynamic> toJson() {
-    return {'commitment': commitment.value};
-  }
 
   /// Create from JSON
   factory CommitmentConfig.fromJson(Map<String, dynamic> json) {
     final commitmentStr = json['commitment'] as String? ?? 'finalized';
     return CommitmentConfig(Commitment.fromString(commitmentStr));
   }
+  final Commitment commitment;
+
+  /// Convert to JSON representation for RPC calls
+  Map<String, dynamic> toJson() => {'commitment': commitment.value};
 
   @override
   String toString() => 'CommitmentConfig(${commitment.value})';

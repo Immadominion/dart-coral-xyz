@@ -2,6 +2,7 @@
 ///
 /// This file defines the exception hierarchy used throughout the Anchor library
 /// for consistent error handling.
+library;
 
 /// Base exception class for all Anchor-related exceptions
 class AnchorException implements Exception {

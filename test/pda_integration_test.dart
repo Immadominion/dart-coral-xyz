@@ -18,7 +18,7 @@ void main() {
       expect(counterResult.bump, greaterThan(0));
 
       print(
-          'Counter PDA: ${counterResult.address.toBase58()}, bump: ${counterResult.bump}');
+          'Counter PDA: ${counterResult.address.toBase58()}, bump: ${counterResult.bump}',);
 
       // Test with user-specific PDA
       final userPubkey =
@@ -32,7 +32,7 @@ void main() {
 
       expect(userResult.address.isDefault, isFalse);
       print(
-          'User counter PDA: ${userResult.address.toBase58()}, bump: ${userResult.bump}');
+          'User counter PDA: ${userResult.address.toBase58()}, bump: ${userResult.bump}',);
     });
 
     test('should handle edge cases correctly', () async {
@@ -72,7 +72,7 @@ void main() {
       final recreatedAddress = await PublicKey.createProgramAddress([
         ...seeds,
         Uint8List.fromList([result.bump]),
-      ], programId);
+      ], programId,);
 
       expect(recreatedAddress.toBase58(), equals(result.address.toBase58()));
       print('Validation successful: ${result.address.toBase58()}');

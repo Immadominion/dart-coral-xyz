@@ -3,6 +3,7 @@
 /// This test suite validates the type conversion utilities between
 /// IDL types and Dart native types, ensuring consistent handling
 /// across all serialization paths.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -47,21 +48,21 @@ void main() {
     group('Value Conversion', () {
       test('converts primitive types correctly', () {
         expect(TypeConverter.convertValueForIdlType(IdlType.bool(), true),
-            equals(true));
+            equals(true),);
         expect(TypeConverter.convertValueForIdlType(IdlType.bool(), 1),
-            equals(true));
+            equals(true),);
         expect(TypeConverter.convertValueForIdlType(IdlType.bool(), 0),
-            equals(false));
+            equals(false),);
 
         expect(TypeConverter.convertValueForIdlType(IdlType.u32(), 42),
-            equals(42));
+            equals(42),);
         expect(TypeConverter.convertValueForIdlType(IdlType.u32(), '42'),
-            equals(42));
+            equals(42),);
 
         expect(TypeConverter.convertValueForIdlType(IdlType.string(), 'hello'),
-            equals('hello'));
+            equals('hello'),);
         expect(TypeConverter.convertValueForIdlType(IdlType.string(), 123),
-            equals('123'));
+            equals('123'),);
       });
 
       test('converts PublicKey types correctly', () {
@@ -70,11 +71,11 @@ void main() {
 
         expect(
             TypeConverter.convertValueForIdlType(
-                IdlType.publicKey(), publicKey),
-            equals(publicKey));
+                IdlType.publicKey(), publicKey,),
+            equals(publicKey),);
         expect(
             TypeConverter.convertValueForIdlType(IdlType.publicKey(), keyBytes),
-            isA<PublicKey>());
+            isA<PublicKey>(),);
 
         final base58Key = publicKey.toBase58();
         final convertedKey =
@@ -92,7 +93,7 @@ void main() {
         final optionType = IdlType.option(IdlType.string());
         expect(TypeConverter.convertValueForIdlType(optionType, null), isNull);
         expect(TypeConverter.convertValueForIdlType(optionType, 'test'),
-            equals('test'));
+            equals('test'),);
 
         final arrayType = IdlType.array(IdlType.bool(), 3);
         final boolArray = [true, false, true];
@@ -103,29 +104,29 @@ void main() {
 
       test('validates type compatibility', () {
         expect(TypeConverter.isValueCompatibleWithIdlType(IdlType.bool(), true),
-            isTrue);
+            isTrue,);
         expect(TypeConverter.isValueCompatibleWithIdlType(IdlType.bool(), 1),
-            isTrue);
+            isTrue,);
         expect(
             TypeConverter.isValueCompatibleWithIdlType(
-                IdlType.bool(), 'invalid'),
-            isFalse);
+                IdlType.bool(), 'invalid',),
+            isFalse,);
 
         expect(TypeConverter.isValueCompatibleWithIdlType(IdlType.u32(), 42),
-            isTrue);
+            isTrue,);
         expect(TypeConverter.isValueCompatibleWithIdlType(IdlType.u32(), '42'),
-            isTrue);
+            isTrue,);
         expect(
             TypeConverter.isValueCompatibleWithIdlType(
-                IdlType.u32(), 'invalid'),
-            isFalse);
+                IdlType.u32(), 'invalid',),
+            isFalse,);
 
         final vecType = IdlType.vec(IdlType.u32());
         expect(TypeConverter.isValueCompatibleWithIdlType(vecType, [1, 2, 3]),
-            isTrue);
+            isTrue,);
         expect(
             TypeConverter.isValueCompatibleWithIdlType(vecType, 'not a list'),
-            isFalse);
+            isFalse,);
       });
     });
 
@@ -134,17 +135,17 @@ void main() {
         final boolData =
             TypeConverter.serializeWithIdlType(IdlType.bool(), true);
         expect(TypeConverter.deserializeWithIdlType(IdlType.bool(), boolData),
-            equals(true));
+            equals(true),);
 
         final u32Data = TypeConverter.serializeWithIdlType(IdlType.u32(), 42);
         expect(TypeConverter.deserializeWithIdlType(IdlType.u32(), u32Data),
-            equals(42));
+            equals(42),);
 
         final stringData =
             TypeConverter.serializeWithIdlType(IdlType.string(), 'hello');
         expect(
             TypeConverter.deserializeWithIdlType(IdlType.string(), stringData),
-            equals('hello'));
+            equals('hello'),);
       });
 
       test('serializes and deserializes PublicKey', () {
@@ -154,7 +155,7 @@ void main() {
         final serialized =
             TypeConverter.serializeWithIdlType(IdlType.publicKey(), publicKey);
         final deserialized = TypeConverter.deserializeWithIdlType(
-            IdlType.publicKey(), serialized) as PublicKey;
+            IdlType.publicKey(), serialized,) as PublicKey;
 
         expect(deserialized.bytes, equals(publicKey.bytes));
         expect(deserialized.toBase58(), equals(publicKey.toBase58()));
@@ -223,13 +224,13 @@ void main() {
         final arrayType = IdlType.array(IdlType.bool(), 3);
         expect(
           () => TypeConverter.convertValueForIdlType(
-              arrayType, [true, false]), // Wrong length
+              arrayType, [true, false],), // Wrong length
           throwsA(isA<ArgumentError>()),
         );
       });
 
       test('throws errors for incomplete type definitions', () {
-        final incompleteVec = IdlType(kind: 'vec'); // Missing inner type
+        final incompleteVec = const IdlType(kind: 'vec'); // Missing inner type
         expect(
           () => TypeConverter.convertValueForIdlType(incompleteVec, [1, 2, 3]),
           throwsA(isA<ArgumentError>()),

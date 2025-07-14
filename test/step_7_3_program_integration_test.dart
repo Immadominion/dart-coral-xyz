@@ -14,6 +14,6 @@ void main() {
       expect(true, isTrue);
     },
         skip:
-            'Event system needs refactoring - there are duplicate method declarations in the Program class');
+            'Event system needs refactoring - there are duplicate method declarations in the Program class',);
   });
 }

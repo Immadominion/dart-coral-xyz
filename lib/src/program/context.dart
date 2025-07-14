@@ -6,15 +6,25 @@
 
 library;
 
-import '../idl/idl.dart';
-import '../types/transaction.dart';
-import '../types/keypair.dart';
-import '../types/commitment.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
 
 /// Context provides all non-argument inputs for generating Anchor transactions
 ///
 /// This includes accounts, signers, additional instructions, and transaction options.
 class Context<T extends Accounts> {
+
+  const Context({
+    this.accounts,
+    this.remainingAccounts,
+    this.signers,
+    this.preInstructions,
+    this.postInstructions,
+    this.commitment,
+    this.options,
+  });
   /// Accounts used in the instruction context
   final T? accounts;
 
@@ -39,16 +49,6 @@ class Context<T extends Accounts> {
   /// Options for transaction confirmation
   final ConfirmOptions? options;
 
-  const Context({
-    this.accounts,
-    this.remainingAccounts,
-    this.signers,
-    this.preInstructions,
-    this.postInstructions,
-    this.commitment,
-    this.options,
-  });
-
   /// Create a copy of this context with updated values
   Context<T> copyWith({
     T? accounts,
@@ -58,8 +58,7 @@ class Context<T extends Accounts> {
     List<TransactionInstruction>? postInstructions,
     CommitmentConfig? commitment,
     ConfirmOptions? options,
-  }) {
-    return Context<T>(
+  }) => Context<T>(
       accounts: accounts ?? this.accounts,
       remainingAccounts: remainingAccounts ?? this.remainingAccounts,
       signers: signers ?? this.signers,
@@ -68,7 +67,6 @@ class Context<T extends Accounts> {
       commitment: commitment ?? this.commitment,
       options: options ?? this.options,
     );
-  }
 }
 
 /// Base class for account structures
@@ -91,7 +89,6 @@ abstract class Accounts {
 
 /// Implementation of Accounts that uses a dynamic map structure
 class DynamicAccounts extends Accounts {
-  final Map<String, dynamic> _accounts = {};
 
   /// Create dynamic accounts from a map
   DynamicAccounts([Map<String, dynamic>? accounts]) {
@@ -99,6 +96,7 @@ class DynamicAccounts extends Accounts {
       _accounts.addAll(accounts);
     }
   }
+  final Map<String, dynamic> _accounts = {};
 
   @override
   Map<String, dynamic> toMap() => Map.from(_accounts);
@@ -130,6 +128,12 @@ class DynamicAccounts extends Accounts {
 
 /// Options for transaction confirmation
 class ConfirmOptions {
+
+  const ConfirmOptions({
+    this.skipPreflight,
+    this.commitment,
+    this.maxRetries,
+  });
   /// Skip preflight checks
   final bool? skipPreflight;
 
@@ -138,12 +142,6 @@ class ConfirmOptions {
 
   /// Maximum number of retries
   final int? maxRetries;
-
-  const ConfirmOptions({
-    this.skipPreflight,
-    this.commitment,
-    this.maxRetries,
-  });
 
   /// Convert to map for RPC calls
   Map<String, dynamic> toMap() {
@@ -225,8 +223,8 @@ CommitmentConfig? _parseCommitment(dynamic commitment) {
 
 /// Result of splitting arguments and context
 class ContextSplitResult {
-  final List<dynamic> args;
-  final Context context;
 
   const ContextSplitResult(this.args, this.context);
+  final List<dynamic> args;
+  final Context context;
 }

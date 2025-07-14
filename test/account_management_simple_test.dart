@@ -5,10 +5,10 @@ import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 // Mock classes for testing
 class MockConnection extends Connection {
-  final Map<String, dynamic> _accounts = {};
-  bool _shouldReturnNull = false;
 
   MockConnection() : super('http://localhost:8899');
+  final Map<String, dynamic> _accounts = {};
+  bool _shouldReturnNull = false;
 
   void setReturnNull(bool value) => _shouldReturnNull = value;
 
@@ -31,12 +31,12 @@ class MockConnection extends Connection {
           ? data['lamports'] as int
           : int.tryParse(data['lamports']?.toString() ?? '') ?? 1000000,
       owner: PublicKey.fromBase58(
-          data['owner']?.toString() ?? '11111111111111111111111111111111'),
+          data['owner']?.toString() ?? '11111111111111111111111111111111',),
       data: Uint8List.fromList((data['data'] is List<int>)
           ? data['data'] as List<int>
           : (data['data'] is List)
               ? List<int>.from(data['data'] as List)
-              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],),
       executable: (data['executable'] is bool)
           ? data['executable'] as bool
           : (data['executable']?.toString() == 'true'),
@@ -50,9 +50,7 @@ class MockConnection extends Connection {
     PublicKey address,
     void Function(AccountInfo?) callback, {
     CommitmentConfig? commitment,
-  }) async {
-    return 'subscription_id_${DateTime.now().millisecondsSinceEpoch}';
-  }
+  }) async => 'subscription_id_${DateTime.now().millisecondsSinceEpoch}';
 
   Future<void> removeAccountChangeListener(String subscriptionId) async {
     // Mock implementation

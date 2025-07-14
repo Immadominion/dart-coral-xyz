@@ -3,6 +3,7 @@
 /// This test suite validates that the Dart Coral XYZ Anchor SDK provides
 /// complete functional parity with the TypeScript @coral-xyz/anchor package.
 /// It verifies API compatibility, behavior consistency, and feature completeness.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -64,7 +65,7 @@ void main() {
         final provider = AnchorProvider(connection, wallet);
 
         // Create proper Idl instance
-        final idl = Idl(
+        final idl = const Idl(
           name: 'test_program',
           version: '0.1.0',
           instructions: [],
@@ -88,7 +89,7 @@ void main() {
         final provider = AnchorProvider(connection, wallet);
 
         // Create proper Idl instance with one instruction
-        final idl = Idl(
+        final idl = const Idl(
           name: 'test_program',
           version: '0.1.0',
           instructions: [
@@ -96,7 +97,7 @@ void main() {
               name: 'initialize',
               accounts: [],
               args: [],
-            )
+            ),
           ],
         );
 
@@ -123,7 +124,7 @@ void main() {
     group('Coder System Availability', () {
       test('Coder classes are available', () {
         // Create proper Idl instance
-        final idl = Idl(
+        final idl = const Idl(
           name: 'test_program',
           version: '0.1.0',
           instructions: [
@@ -131,7 +132,7 @@ void main() {
               name: 'test',
               accounts: [],
               args: [],
-            )
+            ),
           ],
           accounts: [
             IdlAccount(
@@ -140,13 +141,13 @@ void main() {
                 kind: 'struct',
                 fields: [],
               ),
-            )
+            ),
           ],
           events: [
             IdlEvent(
               name: 'TestEvent',
               fields: [],
-            )
+            ),
           ],
         );
 
@@ -200,14 +201,14 @@ void main() {
       test('PDA utilities work correctly', () {
         final seeds = [
           Uint8List.fromList('test'.codeUnits),
-          Uint8List.fromList('seed'.codeUnits)
+          Uint8List.fromList('seed'.codeUnits),
         ];
         final programId =
             PublicKey.fromBase58('BPFLoaderUpgradeab1e11111111111111111111111');
 
         // Since findProgramAddress returns a Future
         expect(PdaUtils.findProgramAddress(seeds, programId),
-            isA<Future<PdaResult>>());
+            isA<Future<PdaResult>>(),);
       });
 
       test('PublicKey utilities are available', () {
@@ -225,7 +226,7 @@ void main() {
     group('Platform Features', () {
       test('Core platform components are available', () {
         // Skip platform-specific tests
-      }, skip: 'Platform-specific features are not fully implemented yet');
+      }, skip: 'Platform-specific features are not fully implemented yet',);
     });
 
     // Skip performance features for now as they're not fully implemented
@@ -246,7 +247,7 @@ void main() {
       final provider = AnchorProvider(connection, wallet);
 
       // Create proper Idl instance
-      final idl = Idl(
+      final idl = const Idl(
         name: 'integration_test',
         version: '0.1.0',
         instructions: [
@@ -254,7 +255,7 @@ void main() {
             name: 'initialize',
             accounts: [],
             args: [],
-          )
+          ),
         ],
       );
 

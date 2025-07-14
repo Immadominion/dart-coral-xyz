@@ -1,14 +1,14 @@
-import '../../types/public_key.dart';
-import '../../coder/main_coder.dart';
-import '../../idl/idl.dart';
-import '../../provider/anchor_provider.dart';
-import 'account_namespace.dart';
-import 'instruction_namespace.dart';
-import 'methods_namespace.dart';
-import 'rpc_namespace.dart';
-import 'simulate_namespace.dart';
-import 'transaction_namespace.dart';
-import 'views_namespace.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/methods_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/views_namespace.dart';
 
 /// Factory for creating namespace instances for a program
 ///
@@ -103,6 +103,16 @@ class NamespaceFactory {
 
 /// Container for all namespace types
 class NamespaceSet {
+
+  const NamespaceSet({
+    required this.rpc,
+    required this.instruction,
+    required this.transaction,
+    required this.account,
+    required this.simulate,
+    required this.methods,
+    required this.views,
+  });
   /// RPC namespace for sending signed transactions
   final RpcNamespace rpc;
 
@@ -124,20 +134,8 @@ class NamespaceSet {
   /// Views namespace for read-only function calls
   final ViewsNamespace views;
 
-  const NamespaceSet({
-    required this.rpc,
-    required this.instruction,
-    required this.transaction,
-    required this.account,
-    required this.simulate,
-    required this.methods,
-    required this.views,
-  });
-
   @override
-  String toString() {
-    return 'NamespaceSet(rpc: $rpc, instruction: $instruction, '
+  String toString() => 'NamespaceSet(rpc: $rpc, instruction: $instruction, '
         'transaction: $transaction, account: $account, '
         'simulate: $simulate, methods: $methods, views: $views)';
-  }
 }

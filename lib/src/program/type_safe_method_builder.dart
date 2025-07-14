@@ -5,42 +5,23 @@
 
 library;
 
-import '../idl/idl.dart';
-import '../types/public_key.dart';
-import '../provider/anchor_provider.dart' hide SimulationResult;
-import '../coder/main_coder.dart';
-import 'namespace/account_namespace.dart';
-import 'namespace/instruction_namespace.dart';
-import 'namespace/transaction_namespace.dart';
-import 'namespace/rpc_namespace.dart';
-import 'namespace/simulate_namespace.dart';
-import 'namespace/types.dart' as ns;
-import 'method_validator.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart' hide SimulationResult;
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/types.dart' as ns;
+import 'package:coral_xyz_anchor/src/program/method_validator.dart';
 
 /// Type-safe method builder with fluent API and validation
 ///
 /// This class provides a fluent interface for building and executing
 /// program methods with compile-time type safety and runtime validation.
 class TypeSafeMethodBuilder {
-  final IdlInstruction _instruction;
-  final AnchorProvider _provider;
-  final PublicKey _programId;
-  final InstructionNamespace _instructionNamespace;
-  final TransactionNamespace _transactionNamespace;
-  final RpcNamespace _rpcNamespace;
-  final SimulateNamespace _simulateNamespace;
-  final AccountNamespace _accountNamespace;
-  final Coder _coder;
-  final MethodValidator _validator;
-
-  // Builder state
-  List<dynamic> _args = [];
-  ns.Accounts _accounts = {};
-  List<ns.Signer>? _signers;
-  List<ns.AccountMeta>? _remainingAccounts;
-  List<ns.TransactionInstruction>? _preInstructions;
-  List<ns.TransactionInstruction>? _postInstructions;
-  bool _validated = false;
 
   TypeSafeMethodBuilder({
     required IdlInstruction instruction,
@@ -63,6 +44,25 @@ class TypeSafeMethodBuilder {
         _accountNamespace = accountNamespace,
         _coder = coder,
         _validator = validator;
+  final IdlInstruction _instruction;
+  final AnchorProvider _provider;
+  final PublicKey _programId;
+  final InstructionNamespace _instructionNamespace;
+  final TransactionNamespace _transactionNamespace;
+  final RpcNamespace _rpcNamespace;
+  final SimulateNamespace _simulateNamespace;
+  final AccountNamespace _accountNamespace;
+  final Coder _coder;
+  final MethodValidator _validator;
+
+  // Builder state
+  List<dynamic> _args = [];
+  ns.Accounts _accounts = {};
+  List<ns.Signer>? _signers;
+  List<ns.AccountMeta>? _remainingAccounts;
+  List<ns.TransactionInstruction>? _preInstructions;
+  List<ns.TransactionInstruction>? _postInstructions;
+  bool _validated = false;
 
   /// Initialize the method with typed arguments
   ///
@@ -79,8 +79,7 @@ class TypeSafeMethodBuilder {
   /// This method creates a fresh builder instance with the same configuration
   /// but new arguments, matching TypeScript's behavior where each method call
   /// returns a new MethodsBuilder instance.
-  TypeSafeMethodBuilder withArgs(List<dynamic> args) {
-    return TypeSafeMethodBuilder(
+  TypeSafeMethodBuilder withArgs(List<dynamic> args) => TypeSafeMethodBuilder(
       instruction: _instruction,
       provider: _provider,
       programId: _programId,
@@ -92,7 +91,6 @@ class TypeSafeMethodBuilder {
       coder: _coder,
       validator: _validator,
     ).call(args);
-  }
 
   /// Set instruction accounts with type checking
   ///
@@ -143,7 +141,7 @@ class TypeSafeMethodBuilder {
   ///
   /// Note: This method appends instructions to existing ones (like TypeScript)
   TypeSafeMethodBuilder postInstructions(
-      List<ns.TransactionInstruction> instructions) {
+      List<ns.TransactionInstruction> instructions,) {
     _postInstructions = (_postInstructions ?? [])..addAll(instructions);
     return this;
   }
@@ -177,7 +175,7 @@ class TypeSafeMethodBuilder {
     if (builder == null) {
       throw ArgumentError('Instruction not found: ${_instruction.name}');
     }
-    return await builder.callAsync(_args, context);
+    return builder.callAsync(_args, context);
   }
 
   /// Create a type-safe transaction
@@ -190,9 +188,9 @@ class TypeSafeMethodBuilder {
     final builder = _transactionNamespace[_instruction.name];
     if (builder == null) {
       throw ArgumentError(
-          'Transaction builder not found: ${_instruction.name}');
+          'Transaction builder not found: ${_instruction.name}',);
     }
-    return await builder.callAsync(_args, context);
+    return builder.callAsync(_args, context);
   }
 
   /// Send and confirm the transaction with validation
@@ -308,15 +306,13 @@ class TypeSafeMethodBuilder {
   }
 
   /// Build the context for the instruction with validation
-  ns.Context<ns.Accounts> _buildContext() {
-    return ns.Context(
+  ns.Context<ns.Accounts> _buildContext() => ns.Context(
       accounts: _accounts,
       remainingAccounts: _remainingAccounts,
       signers: _signers,
       preInstructions: _preInstructions,
       postInstructions: _postInstructions,
     );
-  }
 
   /// Get the instruction name for debugging and logging
   String get name => _instruction.name;
@@ -341,9 +337,7 @@ class TypeSafeMethodBuilder {
   List<String>? get documentation => _instruction.docs;
 
   @override
-  String toString() {
-    return 'TypeSafeMethodBuilder(name: ${_instruction.name}, '
+  String toString() => 'TypeSafeMethodBuilder(name: ${_instruction.name}, '
         'validated: $_validated, args: ${_args.length}, '
         'accounts: ${_accounts.length})';
-  }
 }

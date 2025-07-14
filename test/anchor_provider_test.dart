@@ -40,7 +40,6 @@ void main() {
 
     test('should support copyWith', () {
       const original = ConfirmOptions(
-        commitment: CommitmentConfigs.processed,
         skipPreflight: false,
       );
 
@@ -66,7 +65,6 @@ void main() {
       );
 
       const options3 = ConfirmOptions(
-        commitment: CommitmentConfigs.processed,
         maxRetries: 3,
       );
 
@@ -150,7 +148,6 @@ void main() {
       const result = SimulationResult(
         success: true,
         logs: ['log1', 'log2'],
-        error: null,
         unitsConsumed: 1000,
       );
 

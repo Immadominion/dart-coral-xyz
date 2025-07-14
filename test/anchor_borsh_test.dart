@@ -4,15 +4,15 @@ import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 // Test account data structure
 class TestAccount implements BorshSerializable {
-  final int value;
-  final String name;
-  final PublicKey owner;
 
   const TestAccount({
     required this.value,
     required this.name,
     required this.owner,
   });
+  final int value;
+  final String name;
+  final PublicKey owner;
 
   @override
   Uint8List serialize() {
@@ -129,7 +129,7 @@ void main() {
         expect(
             serialized.length,
             equals(
-                8 + 4 + 4 + 4)); // discriminator + u32 + string length + string
+                8 + 4 + 4 + 4,),); // discriminator + u32 + string length + string
 
         // Verify discriminator
         final expectedDiscriminator =
@@ -238,7 +238,7 @@ void main() {
         expect(
             disc1,
             isNot(equals(
-                disc3))); // Different input should produce different output
+                disc3,),),); // Different input should produce different output
       });
     });
 
@@ -252,7 +252,7 @@ void main() {
 
         final result = serializer.toBytes();
         expect(result.length,
-            equals(8 + 32 + 8)); // account disc + pubkey + instruction disc
+            equals(8 + 32 + 8),); // account disc + pubkey + instruction disc
       });
 
       test('should use deserializer extension methods', () {
@@ -271,7 +271,7 @@ void main() {
         // Test incorrect discriminator verification with fresh deserializer
         final deserializer2 = BorshDeserializer(data);
         expect(
-            deserializer2.verifyAccountDiscriminator('WrongAccount'), isFalse);
+            deserializer2.verifyAccountDiscriminator('WrongAccount'), isFalse,);
       });
     });
 

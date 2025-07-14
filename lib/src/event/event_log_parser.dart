@@ -2,41 +2,20 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
-import '../idl/idl.dart';
-import '../types/public_key.dart';
-import 'event_definition.dart';
-import '../coder/event_coder.dart'; // Use canonical BorshEventCoder
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/event/event_definition.dart';
+import 'package:coral_xyz_anchor/src/coder/event_coder.dart'; // Use canonical BorshEventCoder
 
 /// Constants for log parsing matching TypeScript implementation
-const String programLog = "Program log: ";
-const String programData = "Program data: ";
+const String programLog = 'Program log: ';
+const String programData = 'Program data: ';
 const int programLogStartIndex = programLog.length;
 const int programDataStartIndex = programData.length;
 
 /// Event log parser for extracting events from transaction logs
 /// Matches TypeScript's EventParser functionality with discriminator validation
 class EventLogParser {
-  /// Program ID for filtering events
-  final PublicKey programId;
-
-  /// Event definitions mapped by discriminator
-  final Map<List<int>, EventDefinition> eventsByDiscriminator;
-
-  /// Event definitions mapped by name
-  final Map<String, EventDefinition> eventsByName;
-
-  /// Parser configuration
-  final EventLogParserConfig config;
-
-  /// BorshEventCoder for IDL-based event decoding (preferred method)
-  final BorshEventCoder? _eventCoder;
-
-  /// Regular expression for parsing program invocation logs
-  static final RegExp invokeRegex =
-      RegExp(r'^Program ([1-9A-HJ-NP-Za-km-z]+) invoke \[(\d+)\]$');
-
-  /// Root execution depth
-  static const String rootDepth = "1";
 
   const EventLogParser({
     required this.programId,
@@ -123,6 +102,27 @@ class EventLogParser {
       eventCoder: null, // No IDL-based coder available
     );
   }
+  /// Program ID for filtering events
+  final PublicKey programId;
+
+  /// Event definitions mapped by discriminator
+  final Map<List<int>, EventDefinition> eventsByDiscriminator;
+
+  /// Event definitions mapped by name
+  final Map<String, EventDefinition> eventsByName;
+
+  /// Parser configuration
+  final EventLogParserConfig config;
+
+  /// BorshEventCoder for IDL-based event decoding (preferred method)
+  final BorshEventCoder? _eventCoder;
+
+  /// Regular expression for parsing program invocation logs
+  static final RegExp invokeRegex =
+      RegExp(r'^Program ([1-9A-HJ-NP-Za-km-z]+) invoke \[(\d+)\]$');
+
+  /// Root execution depth
+  static const String rootDepth = '1';
 
   /// Parse events from transaction logs
   /// Returns generator-like iterable of parsed events
@@ -160,7 +160,7 @@ class EventLogParser {
       if (didPop) {
         execution.pop();
         final nextLog = scanner.peek();
-        if (nextLog != null && nextLog.endsWith("invoke [1]")) {
+        if (nextLog != null && nextLog.endsWith('invoke [1]')) {
           final match = invokeRegex.firstMatch(nextLog);
           if (match != null) execution.push(match.group(1)!);
         }
@@ -184,7 +184,7 @@ class EventLogParser {
             rawData = base64.decode(logData);
             definition = eventsByName[decodedEvent.name];
             if (definition?.discriminator != null) {
-              discriminator = definition!.discriminator!;
+              discriminator = definition!.discriminator;
             }
           } catch (e) {
             // Non-critical failure, continue with limited context
@@ -300,7 +300,6 @@ class EventLogParser {
     } else {
       final systemResult = _handleSystemLog(log);
       return LogHandleResult(
-        event: null,
         newProgram: systemResult.newProgram,
         didPop: systemResult.didPop,
       );
@@ -323,14 +322,12 @@ class EventLogParser {
 
       return LogHandleResult(
         event: event,
-        newProgram: null,
         didPop: false,
       );
     } else {
       // System log
       final systemResult = _handleSystemLog(log);
       return LogHandleResult(
-        event: null,
         newProgram: systemResult.newProgram,
         didPop: systemResult.didPop,
       );
@@ -344,21 +341,19 @@ class EventLogParser {
         newProgram: programId.toString(),
         didPop: false,
       );
-    } else if (log.contains("invoke") && !log.endsWith("[1]")) {
-      return SystemLogResult(
-        newProgram: "cpi",
+    } else if (log.contains('invoke') && !log.endsWith('[1]')) {
+      return const SystemLogResult(
+        newProgram: 'cpi',
         didPop: false,
       );
     } else {
       final successRegex = RegExp(r'^Program ([1-9A-HJ-NP-Za-km-z]+) success$');
       if (successRegex.hasMatch(log)) {
-        return SystemLogResult(
-          newProgram: null,
+        return const SystemLogResult(
           didPop: true,
         );
       } else {
-        return SystemLogResult(
-          newProgram: null,
+        return const SystemLogResult(
           didPop: false,
         );
       }
@@ -453,14 +448,16 @@ class EventLogParser {
           );
 
         case 'string':
-          if (offset + 4 > data.length)
+          if (offset + 4 > data.length) {
             throw 'Insufficient data for string length';
+          }
           final lengthBytes = data.sublist(offset, offset + 4);
           final length =
               ByteData.sublistView(lengthBytes).getUint32(0, Endian.little);
 
-          if (offset + 4 + length > data.length)
+          if (offset + 4 + length > data.length) {
             throw 'Insufficient data for string content';
+          }
           final stringBytes = data.sublist(offset + 4, offset + 4 + length);
           final value = utf8.decode(stringBytes);
 
@@ -470,8 +467,9 @@ class EventLogParser {
           );
 
         case 'publicKey':
-          if (offset + 32 > data.length)
+          if (offset + 32 > data.length) {
             throw 'Insufficient data for publicKey';
+          }
           final keyBytes = data.sublist(offset, offset + 32);
           final value = PublicKey.fromBytes(keyBytes);
           return FieldParseResult(
@@ -497,7 +495,7 @@ class EventLogParser {
       }
 
       // Return null value on error
-      return FieldParseResult(
+      return const FieldParseResult(
         value: null,
         bytesConsumed: 0,
       );
@@ -517,32 +515,17 @@ class EventLogParser {
   Iterable<ParsedEvent> filterEventsByName(
     Iterable<ParsedEvent> events,
     Set<String> eventNames,
-  ) {
-    return events.where((event) => eventNames.contains(event.name));
-  }
+  ) => events.where((event) => eventNames.contains(event.name));
 
   /// Filter events by custom criteria
   Iterable<ParsedEvent> filterEvents(
     Iterable<ParsedEvent> events,
     bool Function(ParsedEvent) predicate,
-  ) {
-    return events.where(predicate);
-  }
+  ) => events.where(predicate);
 }
 
 /// Configuration for event log parsing
 class EventLogParserConfig {
-  /// Whether to use strict parsing (throw errors on malformed data)
-  final bool strictParsing;
-
-  /// Whether to use strict validation (throw errors on validation failures)
-  final bool strictValidation;
-
-  /// Whether to allow unknown events to be parsed
-  final bool allowUnknownEvents;
-
-  /// Whether to recover from partial parsing errors
-  final bool recoverFromErrors;
 
   const EventLogParserConfig({
     this.strictParsing = false,
@@ -575,27 +558,21 @@ class EventLogParserConfig {
       recoverFromErrors: true,
     );
   }
+  /// Whether to use strict parsing (throw errors on malformed data)
+  final bool strictParsing;
+
+  /// Whether to use strict validation (throw errors on validation failures)
+  final bool strictValidation;
+
+  /// Whether to allow unknown events to be parsed
+  final bool allowUnknownEvents;
+
+  /// Whether to recover from partial parsing errors
+  final bool recoverFromErrors;
 }
 
 /// Result of parsing a single event
 class ParsedEvent {
-  /// Event name
-  final String name;
-
-  /// Parsed event data
-  final Map<String, dynamic> data;
-
-  /// Event definition (null for unknown events)
-  final EventDefinition? definition;
-
-  /// Raw log data
-  final Uint8List rawData;
-
-  /// Event discriminator
-  final List<int> discriminator;
-
-  /// Whether the event is valid
-  final bool isValid;
 
   const ParsedEvent({
     required this.name,
@@ -632,6 +609,23 @@ class ParsedEvent {
       isValid: validate, // Assume valid if decoded successfully
     );
   }
+  /// Event name
+  final String name;
+
+  /// Parsed event data
+  final Map<String, dynamic> data;
+
+  /// Event definition (null for unknown events)
+  final EventDefinition? definition;
+
+  /// Raw log data
+  final Uint8List rawData;
+
+  /// Event discriminator
+  final List<int> discriminator;
+
+  /// Whether the event is valid
+  final bool isValid;
 
   @override
   String toString() => 'ParsedEvent(name: $name, isValid: $isValid)';
@@ -639,6 +633,12 @@ class ParsedEvent {
 
 /// Result of handling a log line
 class LogHandleResult {
+
+  const LogHandleResult({
+    this.event,
+    this.newProgram,
+    required this.didPop,
+  });
   /// Parsed event (if any)
   final ParsedEvent? event;
 
@@ -647,50 +647,44 @@ class LogHandleResult {
 
   /// Whether a program completed execution
   final bool didPop;
-
-  const LogHandleResult({
-    this.event,
-    this.newProgram,
-    required this.didPop,
-  });
 }
 
 /// Result of handling a system log
 class SystemLogResult {
-  /// New program to push to execution stack
-  final String? newProgram;
-
-  /// Whether a program completed execution
-  final bool didPop;
 
   const SystemLogResult({
     this.newProgram,
     required this.didPop,
   });
+  /// New program to push to execution stack
+  final String? newProgram;
+
+  /// Whether a program completed execution
+  final bool didPop;
 }
 
 /// Result of parsing a field value
 class FieldParseResult {
-  /// Parsed value
-  final dynamic value;
-
-  /// Number of bytes consumed
-  final int bytesConsumed;
 
   const FieldParseResult({
     required this.value,
     required this.bytesConsumed,
   });
+  /// Parsed value
+  final dynamic value;
+
+  /// Number of bytes consumed
+  final int bytesConsumed;
 }
 
 /// Log scanner for iterating through log lines
 class LogScanner {
-  List<String> logs;
 
   LogScanner(this.logs) {
     // Filter out logs that don't start with "Program" to match TypeScript behavior
     logs = logs.where((log) => log.startsWith("Program ")).toList();
   }
+  List<String> logs;
 
   String? next() {
     if (logs.isEmpty) return null;
@@ -699,9 +693,7 @@ class LogScanner {
     return log;
   }
 
-  String? peek() {
-    return logs.isEmpty ? null : logs.first;
-  }
+  String? peek() => logs.isEmpty ? null : logs.first;
 }
 
 /// Execution context for tracking program execution stack
@@ -710,7 +702,7 @@ class ExecutionContext {
 
   String program() {
     if (stack.isEmpty) {
-      throw EventParsingException('Expected the stack to have elements');
+      throw const EventParsingException('Expected the stack to have elements');
     }
     return stack.last;
   }
@@ -721,7 +713,7 @@ class ExecutionContext {
 
   void pop() {
     if (stack.isEmpty) {
-      throw EventParsingException('Expected the stack to have elements');
+      throw const EventParsingException('Expected the stack to have elements');
     }
     stack.removeLast();
   }
@@ -729,20 +721,18 @@ class ExecutionContext {
 
 /// Exception thrown during event parsing
 class EventParsingException implements Exception {
-  final String message;
-  final String? eventName;
-  final String? logData;
 
   const EventParsingException(
     this.message, {
     this.eventName,
     this.logData,
   });
+  final String message;
+  final String? eventName;
+  final String? logData;
 
   @override
-  String toString() {
-    return eventName != null
+  String toString() => eventName != null
         ? 'EventParsingException ($eventName): $message'
         : 'EventParsingException: $message';
-  }
 }

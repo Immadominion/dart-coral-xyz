@@ -11,23 +11,23 @@ library;
 
 import 'dart:typed_data';
 
-import '../types/transaction.dart' as transaction_types;
-import '../types/public_key.dart';
-import '../provider/anchor_provider.dart';
-import 'namespace/types.dart';
-import '../error/rpc_error_parser.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
+import 'package:coral_xyz_anchor/src/error/rpc_error_parser.dart';
 
 /// Builds and manages Solana transactions
 class TransactionBuilder {
-  final AnchorProvider _provider;
-  final List<TransactionInstruction> _instructions = [];
-  final List<PublicKey> _signers = [];
-  String? _recentBlockhash;
 
   /// Create a new transaction builder
   TransactionBuilder({
     required AnchorProvider provider,
   }) : _provider = provider;
+  final AnchorProvider _provider;
+  final List<TransactionInstruction> _instructions = [];
+  final List<PublicKey> _signers = [];
+  String? _recentBlockhash;
 
   /// Add an instruction to the transaction
   TransactionBuilder add(TransactionInstruction instruction) {
@@ -64,7 +64,7 @@ class TransactionBuilder {
 
   /// Ensure accounts are ordered correctly
   List<transaction_types.AccountMeta> _orderAccounts(
-      List<transaction_types.AccountMeta> accounts) {
+      List<transaction_types.AccountMeta> accounts,) {
     final writableSigners =
         accounts.where((acc) => acc.isSigner && acc.isWritable).toList();
     final readonlySigners =
@@ -78,7 +78,7 @@ class TransactionBuilder {
       ...writableSigners,
       ...readonlySigners,
       ...writableNonSigners,
-      ...readonlyNonSigners
+      ...readonlyNonSigners,
     ];
   }
 
@@ -106,10 +106,10 @@ class TransactionBuilder {
                           pubkey: acc.publicKey,
                           isSigner: acc.isSigner,
                           isWritable: acc.isWritable,
-                        ))
-                    .toList()),
+                        ),)
+                    .toList(),),
                 data: Uint8List.fromList(ix.data),
-              ))
+              ),)
           .toList(),
     );
 

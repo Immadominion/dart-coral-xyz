@@ -3,11 +3,13 @@
 /// This module provides a unified error handling system that matches TypeScript
 /// Anchor's error handling patterns and provides consistent error types across
 /// all Program operations.
+library;
 
-import '../error/anchor_error.dart';
-import '../error/program_error.dart';
-import '../error/account_errors.dart';
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
+import 'package:coral_xyz_anchor/src/error/program_error.dart' as programErrorLib;
+import 'package:coral_xyz_anchor/src/error/account_errors.dart' hide AccountDiscriminatorMismatchError;
+import 'package:coral_xyz_anchor/src/error/anchor_error.dart' show AccountDiscriminatorMismatchError;
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Unified Program error for all Program operations
 ///
@@ -15,14 +17,6 @@ import '../types/public_key.dart';
 /// errors that occur during Program operations, matching TypeScript's
 /// error handling patterns.
 class ProgramOperationError extends AnchorError {
-  /// The operation that caused the error
-  final String operation;
-
-  /// Additional context about the error
-  final Map<String, dynamic>? context;
-
-  /// The underlying cause of the error
-  final dynamic cause;
 
   ProgramOperationError({
     required this.operation,
@@ -162,6 +156,14 @@ class ProgramOperationError extends AnchorError {
       logs: logs,
     );
   }
+  /// The operation that caused the error
+  final String operation;
+
+  /// Additional context about the error
+  final Map<String, dynamic>? context;
+
+  /// The underlying cause of the error
+  final dynamic cause;
 
   /// Get the error code for this operation error
   int get code => error.errorCode.number;
@@ -285,14 +287,14 @@ class ProgramErrorHandler {
   }
 
   /// Parse transaction logs for program errors
-  static List<ProgramError> parseTransactionLogs(
+  static List<programErrorLib.ProgramError> parseTransactionLogs(
     List<String> logs,
     Map<int, String> idlErrors,
   ) {
-    final errors = <ProgramError>[];
+    final errors = <programErrorLib.ProgramError>[];
 
     for (final log in logs) {
-      final programError = ProgramError.parse(log, idlErrors);
+      final programError = programErrorLib.ProgramError.parse(log, idlErrors);
       if (programError != null) {
         errors.add(programError);
       }

@@ -10,20 +10,6 @@ import 'dart:typed_data';
 
 /// Result of discriminator validation operation.
 class DiscriminatorValidationResult {
-  /// Whether validation passed
-  final bool isValid;
-
-  /// Error message if validation failed
-  final String? errorMessage;
-
-  /// Expected discriminator bytes
-  final Uint8List? expectedDiscriminator;
-
-  /// Actual discriminator bytes found
-  final Uint8List? actualDiscriminator;
-
-  /// Byte position where mismatch occurred (-1 if no mismatch)
-  final int mismatchIndex;
 
   /// Create validation result.
   const DiscriminatorValidationResult({
@@ -53,6 +39,20 @@ class DiscriminatorValidationResult {
         expectedDiscriminator = expected,
         actualDiscriminator = actual,
         mismatchIndex = mismatchIndex;
+  /// Whether validation passed
+  final bool isValid;
+
+  /// Error message if validation failed
+  final String? errorMessage;
+
+  /// Expected discriminator bytes
+  final Uint8List? expectedDiscriminator;
+
+  /// Actual discriminator bytes found
+  final Uint8List? actualDiscriminator;
+
+  /// Byte position where mismatch occurred (-1 if no mismatch)
+  final int mismatchIndex;
 }
 
 /// Robust discriminator validation system with detailed error reporting.
@@ -61,6 +61,15 @@ class DiscriminatorValidationResult {
 /// TypeScript Anchor's validation strictness, with detailed error context
 /// and debugging information for mismatch scenarios.
 class DiscriminatorValidator {
+
+  /// Create a new discriminator validator.
+  ///
+  /// [bypassValidation] If true, all validations will pass (default: false)
+  /// [cacheResults] If true, validation results will be cached (default: true)
+  DiscriminatorValidator({
+    this.bypassValidation = false,
+    this.cacheResults = true,
+  });
   /// Size of Anchor discriminators
   static const int discriminatorSize = 8;
 
@@ -72,15 +81,6 @@ class DiscriminatorValidator {
 
   /// Cache for validation results (when cacheResults is true)
   final Map<String, DiscriminatorValidationResult> _validationCache = {};
-
-  /// Create a new discriminator validator.
-  ///
-  /// [bypassValidation] If true, all validations will pass (default: false)
-  /// [cacheResults] If true, validation results will be cached (default: true)
-  DiscriminatorValidator({
-    this.bypassValidation = false,
-    this.cacheResults = true,
-  });
 
   /// Validate discriminator against expected value.
   ///
@@ -136,7 +136,7 @@ class DiscriminatorValidator {
             'Expected at least $discriminatorSize bytes for discriminator, '
             'got ${accountData.length} bytes',
         expected: expectedDiscriminator,
-        actual: accountData.length > 0
+        actual: accountData.isNotEmpty
             ? accountData.sublist(0, accountData.length)
             : Uint8List(0),
       );
@@ -159,11 +159,9 @@ class DiscriminatorValidator {
   /// Returns list of validation results in same order
   List<DiscriminatorValidationResult> validateBulk(
     List<({Uint8List expected, Uint8List actual, String? context})> validations,
-  ) {
-    return validations
+  ) => validations
         .map((v) => validate(v.expected, v.actual, context: v.context))
         .toList();
-  }
 
   /// Clear validation cache.
   void clearCache() {
@@ -231,7 +229,7 @@ class DiscriminatorValidator {
 
   /// Generate cache key for validation result.
   String _generateCacheKey(
-      Uint8List expected, Uint8List actual, String? context) {
+      Uint8List expected, Uint8List actual, String? context,) {
     final expectedHex = _formatBytes(expected);
     final actualHex = _formatBytes(actual);
     final contextStr = context ?? '';
@@ -252,40 +250,30 @@ class DiscriminatorValidator {
   }
 
   /// Format single byte as hex string.
-  String _formatByte(int byte) {
-    return '0x${byte.toRadixString(16).padLeft(2, '0').toUpperCase()}';
-  }
+  String _formatByte(int byte) => '0x${byte.toRadixString(16).padLeft(2, '0').toUpperCase()}';
 
   /// Format byte array as hex string.
-  String _formatBytes(Uint8List bytes) {
-    return bytes
+  String _formatBytes(Uint8List bytes) => bytes
         .map((b) => b.toRadixString(16).padLeft(2, '0'))
         .join('')
         .toUpperCase();
-  }
 
   /// Create validator with validation bypass enabled.
   ///
   /// Useful for development and testing scenarios where discriminator
   /// validation should be skipped.
-  static DiscriminatorValidator createBypass() {
-    return DiscriminatorValidator(bypassValidation: true);
-  }
+  static DiscriminatorValidator createBypass() => DiscriminatorValidator(bypassValidation: true);
 
   /// Create validator with validation caching disabled.
   ///
   /// Useful for scenarios where memory usage should be minimized
   /// or validation results should not be cached.
-  static DiscriminatorValidator createNonCaching() {
-    return DiscriminatorValidator(cacheResults: false);
-  }
+  static DiscriminatorValidator createNonCaching() => DiscriminatorValidator(cacheResults: false);
 
   /// Create validator with strict validation settings.
   ///
   /// Default settings with no bypass and caching enabled.
-  static DiscriminatorValidator createStrict() {
-    return DiscriminatorValidator();
-  }
+  static DiscriminatorValidator createStrict() => DiscriminatorValidator();
 }
 
 /// Discriminator validation exception.
@@ -293,16 +281,14 @@ class DiscriminatorValidator {
 /// Thrown when discriminator validation fails and exceptions are preferred
 /// over validation result objects.
 class DiscriminatorValidationException implements Exception {
-  /// The validation result that caused this exception
-  final DiscriminatorValidationResult result;
 
   /// Create validation exception from result.
   const DiscriminatorValidationException(this.result);
+  /// The validation result that caused this exception
+  final DiscriminatorValidationResult result;
 
   @override
-  String toString() {
-    return 'DiscriminatorValidationException: ${result.errorMessage}';
-  }
+  String toString() => 'DiscriminatorValidationException: ${result.errorMessage}';
 }
 
 /// Utility functions for discriminator validation.

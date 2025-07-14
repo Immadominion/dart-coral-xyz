@@ -67,28 +67,148 @@ class Connection {
     dynamic transaction, {
     CommitmentConfig? commitment,
   }) async {
-    // Handle both Map and Uint8List transaction formats
-    final txData = transaction is Uint8List
-        ? transaction
-        : transaction is Map<String, dynamic>
+    // Implement retry logic for blockhash-related errors
+    const maxRetries = 3;
+
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        print(
+            'DEBUG: Connection sendAndConfirmTransaction attempt ${attempt + 1}/$maxRetries');
+
+        // Handle both Map and Uint8List transaction formats
+        final txData = transaction is Uint8List
             ? transaction
-            : throw ArgumentError('Transaction must be a Map or Uint8List');
+            : transaction is Map<String, dynamic>
+                ? transaction
+                : throw ArgumentError('Transaction must be a Map or Uint8List');
 
-    // Convert Uint8List to base64 if needed
-    final params = txData is Uint8List ? [base64.encode(txData)] : [txData];
+        // Convert Uint8List to base64 if needed
+        print('DEBUG: txData type: ${txData.runtimeType}');
+        print('DEBUG: txData is Uint8List: ${txData is Uint8List}');
 
-    // Add options
-    params.add({
-      'encoding': 'base64',
-      'commitment': (commitment ?? _config.commitment).commitment.value,
-    });
+        final List<dynamic> params =
+            txData is Uint8List ? [base64.encode(txData)] : [txData];
+        print('DEBUG: params after base64 encode: $params');
 
-    final result = await _makeRpcRequest('sendTransaction', params);
-    final signature = result as String;
+        // Add options
+        final commitmentValue =
+            (commitment ?? _config.commitment).commitment.value;
+        print('DEBUG: commitment param: $commitment');
+        print('DEBUG: _config.commitment: ${_config.commitment}');
+        print('DEBUG: final commitment value: $commitmentValue');
 
-    // Confirm the transaction
-    await _confirmTransaction(signature, commitment);
-    return signature;
+        final options = <String, dynamic>{
+          'encoding': 'base64',
+          'commitment': commitmentValue,
+          'skipPreflight':
+              true, // Skip simulation to avoid blockhash timing issues
+        };
+        params.add(options);
+        print('DEBUG: Added options to params: $options');
+
+        String signature;
+        try {
+          print('DEBUG: About to call _makeRpcRequest for sendTransaction');
+          final result = await _makeRpcRequest('sendTransaction', params);
+          print('DEBUG: sendTransaction successful, result: $result');
+          print('DEBUG: sendTransaction result type: ${result.runtimeType}');
+
+          // Handle different response formats
+          if (result is String) {
+            // Direct string response (most common for sendTransaction)
+            signature = result;
+            print('DEBUG: Got direct string signature: $signature');
+          } else if (result is Map<String, dynamic>) {
+            // RPC response might have the signature in different fields
+            print('DEBUG: Got Map response, keys: ${result.keys.toList()}');
+            if (result.containsKey('value')) {
+              final value = result['value'];
+              print(
+                  'DEBUG: Found value field: $value (type: ${value.runtimeType})');
+
+              // Handle case where value might be a Map instead of String
+              if (value is String) {
+                signature = value;
+              } else if (value is Map<String, dynamic>) {
+                // Look for signature field in the nested map
+                if (value.containsKey('signature')) {
+                  signature = value['signature'] as String;
+                  print('DEBUG: Found signature in nested map: $signature');
+                } else {
+                  print('DEBUG: No signature field in nested map: $value');
+                  throw RpcException(
+                      'No signature field found in nested response map: $value');
+                }
+              } else {
+                throw RpcException(
+                    'Unexpected value type in response: ${value.runtimeType}');
+              }
+            } else if (result.containsKey('signature')) {
+              signature = result['signature'] as String;
+            } else {
+              // If it's a simple map, try to extract string value
+              final values = result.values.where((v) => v is String);
+              if (values.isNotEmpty) {
+                signature = values.first as String;
+              } else {
+                throw RpcException(
+                    'Unexpected sendTransaction response format: $result');
+              }
+            }
+          } else {
+            throw RpcException(
+                'Unexpected sendTransaction response type: ${result.runtimeType}');
+          }
+
+          print('DEBUG: Extracted signature: $signature');
+
+          // Confirm the transaction
+          print(
+              'DEBUG: About to confirm transaction with signature: $signature');
+          try {
+            await _confirmTransaction(signature, commitment);
+            print('DEBUG: Transaction confirmation completed successfully');
+          } catch (confirmError) {
+            print(
+                'DEBUG: Error during transaction confirmation: $confirmError');
+            print(
+                'DEBUG: Confirmation error type: ${confirmError.runtimeType}');
+            rethrow;
+          }
+        } catch (e) {
+          print('DEBUG: Exception in sendTransaction: $e');
+          print('DEBUG: Exception type: ${e.runtimeType}');
+          print('DEBUG: Exception stack trace: ${StackTrace.current}');
+          rethrow;
+        }
+
+        print(
+            'DEBUG: Connection sendAndConfirmTransaction success on attempt ${attempt + 1}');
+        return signature;
+      } catch (e) {
+        final errorString = e.toString();
+        final isBlockhashError = errorString.contains('Blockhash not found') ||
+            errorString.contains('BlockhashNotFound') ||
+            errorString.contains('Invalid blockhash');
+
+        if (isBlockhashError && attempt < maxRetries - 1) {
+          print(
+              'DEBUG: Blockhash error at connection level on attempt ${attempt + 1}, retrying...');
+          // Wait a bit before retry
+          await Future<void>.delayed(Duration(milliseconds: 500));
+          continue;
+        }
+
+        // If it's not a blockhash error or we've exhausted retries, rethrow
+        print(
+            'DEBUG: Connection sendAndConfirmTransaction failed on attempt ${attempt + 1}: $e');
+        rethrow;
+      }
+    }
+
+    // This should never be reached due to the loop structure, but just in case
+    throw Exception(
+        'Connection sendAndConfirmTransaction: Maximum retry attempts exceeded');
   }
 
   /// Internal method to confirm a transaction
@@ -96,34 +216,45 @@ class Connection {
     String signature,
     CommitmentConfig? commitment,
   ) async {
+    print('DEBUG: _confirmTransaction called with signature: $signature');
     final maxRetries = 30;
     final delayMs = 1000;
 
     for (int i = 0; i < maxRetries; i++) {
       try {
+        print('DEBUG: _confirmTransaction attempt ${i + 1}/$maxRetries');
         final result = await _makeRpcRequest('getSignatureStatuses', [
           [signature],
           {'searchTransactionHistory': true}
         ]);
 
-        final statuses = result['value'] as List<dynamic>;
+        print('DEBUG: getSignatureStatuses result: $result');
+        final resultMap = result as Map<String, dynamic>;
+        print('DEBUG: resultMap: $resultMap');
+        final statuses = resultMap['value'] as List<dynamic>;
+        print('DEBUG: statuses: $statuses');
         if (statuses.isNotEmpty && statuses[0] != null) {
           final status = statuses[0] as Map<String, dynamic>;
+          print('DEBUG: status: $status');
           if (status['confirmationStatus'] != null) {
             final confirmationStatus = status['confirmationStatus'] as String;
             final targetCommitment =
                 (commitment ?? _config.commitment).commitment.value;
 
+            print(
+                'DEBUG: confirmationStatus: $confirmationStatus, targetCommitment: $targetCommitment');
             if (_isCommitmentSatisfied(confirmationStatus, targetCommitment)) {
               if (status['err'] != null) {
                 throw RpcException(
                     'Transaction failed: ${status['err'].toString()}');
               }
+              print('DEBUG: Transaction confirmed successfully');
               return; // Transaction confirmed successfully
             }
           }
         }
       } catch (e) {
+        print('DEBUG: Exception in _confirmTransaction: $e');
         if (e is RpcException) rethrow;
         // Continue retrying on other errors
       }
@@ -159,8 +290,9 @@ class Connection {
       }
     ]);
 
-    if (result['value'] is int) {
-      return result['value'] as int;
+    final resultMap = result as Map<String, dynamic>;
+    if (resultMap['value'] is int) {
+      return resultMap['value'] as int;
     }
     throw RpcException('Invalid balance response: $result');
   }
@@ -183,11 +315,12 @@ class Connection {
       }
     ]);
 
-    if (result['value'] == null) {
+    final resultMap = result as Map<String, dynamic>;
+    if (resultMap['value'] == null) {
       return null;
     }
 
-    final accountData = result['value'] as Map<String, dynamic>;
+    final accountData = resultMap['value'] as Map<String, dynamic>;
     return AccountInfo.fromJson(accountData);
   }
 
@@ -205,7 +338,8 @@ class Connection {
       }
     ]);
 
-    final value = result['value'] as Map<String, dynamic>;
+    final resultMap = result as Map<String, dynamic>;
+    final value = resultMap['value'] as Map<String, dynamic>;
     return LatestBlockhash(
       blockhash: value['blockhash'] as String,
       lastValidBlockHeight: value['lastValidBlockHeight'] as int,
@@ -230,7 +364,8 @@ class Connection {
       }
     ]);
 
-    final value = result['value'] as List<dynamic>;
+    final resultMap = result as Map<String, dynamic>;
+    final value = resultMap['value'] as List<dynamic>;
     return value.map((accountData) {
       if (accountData == null) return null;
       return AccountInfo.fromJson(accountData as Map<String, dynamic>);
@@ -429,7 +564,7 @@ class Connection {
   }
 
   /// Internal helper to make RPC requests
-  Future<Map<String, dynamic>> _makeRpcRequest(
+  Future<dynamic> _makeRpcRequest(
     String method,
     List<dynamic> params,
   ) async {
@@ -440,12 +575,18 @@ class Connection {
       'params': params,
     };
 
+    print('DEBUG: _makeRpcRequest called with method: $method');
+    print('DEBUG: _makeRpcRequest params: $params');
+
     try {
       final response = await _httpClient.post(
         Uri.parse(_endpoint),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
+
+      print('DEBUG: HTTP response status: ${response.statusCode}');
+      print('DEBUG: HTTP response body: ${response.body}');
 
       if (response.statusCode != 200) {
         throw RpcException(
@@ -454,6 +595,7 @@ class Connection {
       }
 
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      print('DEBUG: Parsed response data: $responseData');
 
       if (responseData['error'] != null) {
         final error = responseData['error'] as Map<String, dynamic>;
@@ -462,8 +604,13 @@ class Connection {
         );
       }
 
-      return responseData['result'] as Map<String, dynamic>;
+      final result = responseData['result'];
+      print('DEBUG: Result from RPC: $result');
+      print('DEBUG: Result type: ${result.runtimeType}');
+
+      return result;
     } catch (e) {
+      print('DEBUG: Exception in _makeRpcRequest: $e');
       if (e is RpcException) rethrow;
       throw RpcException('Failed to make RPC request: $e');
     }

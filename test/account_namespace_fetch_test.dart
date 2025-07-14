@@ -5,14 +5,14 @@ import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 void main() {
   group('AccountNamespace', () {
     test('fetch single and multiple accounts', () async {
-      final idl = Idl(
+      final idl = const Idl(
         address: 'TestAddress',
         metadata: IdlMetadata(
-            name: 'TestProgram', version: '0.0.1', spec: 'anchor-idl/0.0.1'),
+            name: 'TestProgram', version: '0.0.1', spec: 'anchor-idl/0.0.1',),
         accounts: [
           IdlAccount(
               name: 'TestAccount',
-              type: IdlTypeDefType(kind: 'struct', fields: [])),
+              type: IdlTypeDefType(kind: 'struct', fields: []),),
         ],
         instructions: [],
       );
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('fetch with caching', () async {
-      final idl = Idl(
+      final idl = const Idl(
         address: 'TestAddress',
         metadata: IdlMetadata(
           name: 'TestProgram',
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('fetchAll with filters', () async {
-      final idl = Idl(
+      final idl = const Idl(
         address: 'TestAddress',
         metadata: IdlMetadata(
           name: 'TestProgram',
@@ -127,7 +127,7 @@ void main() {
     });
 
     test('subscription system', () async {
-      final idl = Idl(
+      final idl = const Idl(
         address: 'TestAddress',
         metadata: IdlMetadata(
           name: 'TestProgram',
@@ -166,7 +166,7 @@ void main() {
     });
 
     test('account client properties', () async {
-      final idl = Idl(
+      final idl = const Idl(
         address: 'TestAddress',
         metadata: IdlMetadata(
           name: 'TestProgram',
@@ -198,7 +198,7 @@ void main() {
       expect(client!.name, equals('TestAccount'));
       expect(client.size, equals(0)); // Mock implementation returns 0
       expect(client.discriminator,
-          equals([])); // Mock implementation returns empty list
+          equals([]),); // Mock implementation returns empty list
     });
   });
 }

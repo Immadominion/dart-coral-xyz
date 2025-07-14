@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 import 'dart:convert';
-import '../lib/src/ide/ide.dart';
-import '../lib/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/ide/ide.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 void main() {
   group('Step 8.4: IDE Integration and Developer Experience Tests', () {
@@ -10,7 +10,7 @@ void main() {
 
     setUp(() {
       // Create a simple test IDL
-      testIdl = Idl(
+      testIdl = const Idl(
         name: 'TestProgram',
         version: '1.0.0',
         instructions: [
@@ -20,13 +20,11 @@ void main() {
             accounts: [
               IdlInstructionAccount(
                 name: 'authority',
-                writable: false,
                 signer: true,
               ),
               IdlInstructionAccount(
                 name: 'account',
                 writable: true,
-                signer: false,
               ),
             ],
             args: [
@@ -41,13 +39,11 @@ void main() {
             accounts: [
               IdlInstructionAccount(
                 name: 'authority',
-                writable: false,
                 signer: true,
               ),
               IdlInstructionAccount(
                 name: 'account',
                 writable: true,
-                signer: false,
               ),
             ],
             args: [
@@ -108,13 +104,13 @@ void main() {
 
         // Check generated files
         expect(
-            result.generatedFiles.keys, contains('test_program_program.dart'));
+            result.generatedFiles.keys, contains('test_program_program.dart'),);
         expect(
-            result.generatedFiles.keys, contains('test_program_accounts.dart'));
+            result.generatedFiles.keys, contains('test_program_accounts.dart'),);
         expect(
-            result.generatedFiles.keys, contains('test_program_methods.dart'));
+            result.generatedFiles.keys, contains('test_program_methods.dart'),);
         expect(
-            result.generatedFiles.keys, contains('test_program_errors.dart'));
+            result.generatedFiles.keys, contains('test_program_errors.dart'),);
         expect(result.generatedFiles.keys, contains('test_program.dart'));
 
         // Check statistics
@@ -132,9 +128,9 @@ void main() {
         final programCode = result.generatedFiles['test_program_program.dart'];
 
         expect(programCode, isNotNull);
-        expect(programCode!, contains('abstract class ITestProgram'));
+        expect(programCode, contains('abstract class ITestProgram'));
         expect(
-            programCode, contains('class TestProgram implements ITestProgram'));
+            programCode, contains('class TestProgram implements ITestProgram'),);
         expect(programCode, contains('Future<String> initialize('));
         expect(programCode, contains('Future<String> update('));
         expect(programCode, contains('required BigInt value'));
@@ -147,7 +143,7 @@ void main() {
         final accountCode = result.generatedFiles['test_program_accounts.dart'];
 
         expect(accountCode, isNotNull);
-        expect(accountCode!, contains('class ProgramState {'));
+        expect(accountCode, contains('class ProgramState {'));
         expect(accountCode, contains('final PublicKey authority;'));
         expect(accountCode, contains('final BigInt value;'));
         expect(accountCode, contains('final String name;'));
@@ -162,7 +158,7 @@ void main() {
         final methodCode = result.generatedFiles['test_program_methods.dart'];
 
         expect(methodCode, isNotNull);
-        expect(methodCode!, contains('class TestProgramMethods {'));
+        expect(methodCode, contains('class TestProgramMethods {'));
         expect(methodCode, contains('TypeSafeMethodBuilder initialize('));
         expect(methodCode, contains('TypeSafeMethodBuilder update('));
         expect(methodCode, contains('required BigInt value'));
@@ -175,10 +171,10 @@ void main() {
         final errorCode = result.generatedFiles['test_program_errors.dart'];
 
         expect(errorCode, isNotNull);
-        expect(errorCode!,
-            contains('class InvalidAuthorityError extends AnchorError'));
         expect(errorCode,
-            contains('class AlreadyInitializedError extends AnchorError'));
+            contains('class InvalidAuthorityError extends AnchorError'),);
+        expect(errorCode,
+            contains('class AlreadyInitializedError extends AnchorError'),);
         expect(errorCode, contains('code: 6000'));
         expect(errorCode, contains('code: 6001'));
         expect(errorCode, contains('Invalid authority provided'));
@@ -191,7 +187,7 @@ void main() {
         final barrelCode = result.generatedFiles['test_program.dart'];
 
         expect(barrelCode, isNotNull);
-        expect(barrelCode!, contains('export \'test_program_program.dart\';'));
+        expect(barrelCode, contains('export \'test_program_program.dart\';'));
         expect(barrelCode, contains('export \'test_program_accounts.dart\';'));
         expect(barrelCode, contains('export \'test_program_methods.dart\';'));
         expect(barrelCode, contains('export \'test_program_errors.dart\';'));
@@ -209,7 +205,7 @@ void main() {
 
         final readme = result.generatedDocs['README.md'];
         expect(readme, isNotNull);
-        expect(readme!, contains('# Anchor Program Documentation'));
+        expect(readme, contains('# Anchor Program Documentation'));
         expect(readme, contains('TestProgram'));
         expect(readme, contains('## Instructions'));
         expect(readme, contains('### initialize'));
@@ -225,7 +221,7 @@ void main() {
 
         final apiRef = result.generatedDocs['API_REFERENCE.md'];
         expect(apiRef, isNotNull);
-        expect(apiRef!, contains('# API Reference'));
+        expect(apiRef, contains('# API Reference'));
         expect(apiRef, contains('## Methods'));
         expect(apiRef, contains('### `initialize()`'));
         expect(apiRef, contains('### `update()`'));
@@ -233,7 +229,7 @@ void main() {
       });
 
       test('should generate HTML documentation', () async {
-        final docGen = AnchorDocumentationGenerator(
+        final docGen = const AnchorDocumentationGenerator(
           DocumentationConfig(format: 'html'),
         );
 
@@ -242,13 +238,13 @@ void main() {
         expect(result.success, isTrue);
         final html = result.generatedDocs['index.html'];
         expect(html, isNotNull);
-        expect(html!, contains('<!DOCTYPE html>'));
+        expect(html, contains('<!DOCTYPE html>'));
         expect(html, contains('<title>Anchor Program Documentation</title>'));
         expect(html, contains('<h1>Anchor Program Documentation</h1>'));
       });
 
       test('should generate JSON documentation', () async {
-        final docGen = AnchorDocumentationGenerator(
+        final docGen = const AnchorDocumentationGenerator(
           DocumentationConfig(format: 'json'),
         );
 
@@ -356,13 +352,13 @@ void main() {
         final prodIntegration = AnchorIdeIntegration.production();
 
         expect(
-            prodIntegration.codeGenerator.config.generateInterfaces, isFalse);
+            prodIntegration.codeGenerator.config.generateInterfaces, isFalse,);
         expect(prodIntegration.debugger.config.verbose, isFalse);
         expect(prodIntegration.debugger.config.captureTransactionLogs, isFalse);
       });
 
       test('should handle empty IDL gracefully', () async {
-        final emptyIdl = Idl(
+        final emptyIdl = const Idl(
           name: 'Empty',
           instructions: [],
         );
@@ -398,7 +394,7 @@ void main() {
 
     group('Configuration Options', () {
       test('should support different naming conventions', () async {
-        final snakeCaseConfig = CodeGenerationConfig(
+        final snakeCaseConfig = const CodeGenerationConfig(
           namingConvention: 'snake_case',
           packageName: 'test_program',
         );
@@ -413,9 +409,8 @@ void main() {
       });
 
       test('should support selective generation', () async {
-        final minimalConfig = CodeGenerationConfig(
+        final minimalConfig = const CodeGenerationConfig(
           generateInterfaces: false,
-          generateMethodBuilders: true,
           generateAccountClasses: false,
           generateErrorClasses: false,
           packageName: 'test_program',
@@ -426,13 +421,13 @@ void main() {
 
         expect(result.success, isTrue);
         expect(
-            result.generatedFiles.keys, contains('test_program_methods.dart'));
+            result.generatedFiles.keys, contains('test_program_methods.dart'),);
         expect(result.generatedFiles.keys,
-            isNot(contains('test_program_program.dart')));
+            isNot(contains('test_program_program.dart')),);
         expect(result.generatedFiles.keys,
-            isNot(contains('test_program_accounts.dart')));
+            isNot(contains('test_program_accounts.dart')),);
         expect(result.generatedFiles.keys,
-            isNot(contains('test_program_errors.dart')));
+            isNot(contains('test_program_errors.dart')),);
       });
     });
   });

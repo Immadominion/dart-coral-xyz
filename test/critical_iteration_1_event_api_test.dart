@@ -2,6 +2,7 @@
 ///
 /// This test verifies that the new TypeScript-compatible EventManager
 /// matches TypeScript Anchor's exact API behavior.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -19,7 +20,7 @@ void main() {
       provider = await AnchorProvider.local();
 
       // Create a minimal IDL for testing
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '0.1.0',
         name: 'test_program',
         instructions: [],
@@ -79,14 +80,14 @@ void main() {
       );
 
       // TypeScript: removeEventListener takes numeric ID
-      expect(() async => await eventManager.removeEventListener(listenerId),
-          returnsNormally);
+      expect(() async => eventManager.removeEventListener(listenerId),
+          returnsNormally,);
     });
 
     test('removeEventListener throws for invalid ID like TypeScript', () async {
       // TypeScript: throws error for non-existent listener ID
       expect(
-        () async => await eventManager.removeEventListener(999),
+        () async => eventManager.removeEventListener(999),
         throwsA(isA<ArgumentError>()),
       );
     });

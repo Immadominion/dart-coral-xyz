@@ -2,27 +2,14 @@
 ///
 /// This module provides comprehensive debugging tools including
 /// transaction inspection, account analysis, and development utilities.
+library;
 
 import 'dart:convert';
-import '../idl/idl.dart';
-import '../program/program_class.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
 
 /// Configuration for debug utilities
 class DebugConfig {
-  /// Whether to enable verbose logging
-  final bool verbose;
-
-  /// Whether to capture transaction logs
-  final bool captureTransactionLogs;
-
-  /// Whether to analyze account changes
-  final bool analyzeAccountChanges;
-
-  /// Whether to track performance metrics
-  final bool trackPerformance;
-
-  /// Maximum number of logs to capture
-  final int maxLogEntries;
 
   const DebugConfig({
     this.verbose = true,
@@ -53,24 +40,24 @@ class DebugConfig {
       maxLogEntries: 100,
     );
   }
+  /// Whether to enable verbose logging
+  final bool verbose;
+
+  /// Whether to capture transaction logs
+  final bool captureTransactionLogs;
+
+  /// Whether to analyze account changes
+  final bool analyzeAccountChanges;
+
+  /// Whether to track performance metrics
+  final bool trackPerformance;
+
+  /// Maximum number of logs to capture
+  final int maxLogEntries;
 }
 
 /// Debug log entry
 class DebugLogEntry {
-  /// Timestamp of the log entry
-  final DateTime timestamp;
-
-  /// Log level (info, warning, error, debug)
-  final String level;
-
-  /// Log message
-  final String message;
-
-  /// Additional context data
-  final Map<String, dynamic>? context;
-
-  /// Source location (file, line, function)
-  final String? source;
 
   const DebugLogEntry({
     required this.timestamp,
@@ -128,17 +115,6 @@ class DebugLogEntry {
     );
   }
 
-  /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'timestamp': timestamp.toIso8601String(),
-      'level': level,
-      'message': message,
-      'context': context,
-      'source': source,
-    };
-  }
-
   /// Create from JSON
   factory DebugLogEntry.fromJson(Map<String, dynamic> json) {
     return DebugLogEntry(
@@ -149,6 +125,29 @@ class DebugLogEntry {
       source: json['source'] as String?,
     );
   }
+  /// Timestamp of the log entry
+  final DateTime timestamp;
+
+  /// Log level (info, warning, error, debug)
+  final String level;
+
+  /// Log message
+  final String message;
+
+  /// Additional context data
+  final Map<String, dynamic>? context;
+
+  /// Source location (file, line, function)
+  final String? source;
+
+  /// Convert to JSON
+  Map<String, dynamic> toJson() => {
+      'timestamp': timestamp.toIso8601String(),
+      'level': level,
+      'message': message,
+      'context': context,
+      'source': source,
+    };
 
   @override
   String toString() {
@@ -160,6 +159,16 @@ class DebugLogEntry {
 
 /// Transaction debug information
 class TransactionDebugInfo {
+
+  const TransactionDebugInfo({
+    required this.signature,
+    required this.status,
+    this.computeUnitsConsumed,
+    required this.logs,
+    required this.accountChanges,
+    this.error,
+    required this.metrics,
+  });
   /// Transaction signature
   final String signature;
 
@@ -181,19 +190,8 @@ class TransactionDebugInfo {
   /// Performance metrics
   final Map<String, dynamic> metrics;
 
-  const TransactionDebugInfo({
-    required this.signature,
-    required this.status,
-    this.computeUnitsConsumed,
-    required this.logs,
-    required this.accountChanges,
-    this.error,
-    required this.metrics,
-  });
-
   /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'signature': signature,
       'status': status,
       'computeUnitsConsumed': computeUnitsConsumed,
@@ -203,11 +201,33 @@ class TransactionDebugInfo {
       'error': error,
       'metrics': metrics,
     };
-  }
 }
 
 /// Account change information
 class AccountChange {
+
+  const AccountChange({
+    required this.address,
+    required this.owner,
+    this.dataBefore,
+    this.dataAfter,
+    this.lamportsBefore,
+    this.lamportsAfter,
+    required this.changeType,
+  });
+
+  /// Create from JSON
+  factory AccountChange.fromJson(Map<String, dynamic> json) {
+    return AccountChange(
+      address: json['address'] as String,
+      owner: json['owner'] as String,
+      dataBefore: json['dataBefore'] as String?,
+      dataAfter: json['dataAfter'] as String?,
+      lamportsBefore: json['lamportsBefore'] as int?,
+      lamportsAfter: json['lamportsAfter'] as int?,
+      changeType: json['changeType'] as String,
+    );
+  }
   /// Account address
   final String address;
 
@@ -229,19 +249,8 @@ class AccountChange {
   /// Type of change
   final String changeType;
 
-  const AccountChange({
-    required this.address,
-    required this.owner,
-    this.dataBefore,
-    this.dataAfter,
-    this.lamportsBefore,
-    this.lamportsAfter,
-    required this.changeType,
-  });
-
   /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'address': address,
       'owner': owner,
       'dataBefore': dataBefore,
@@ -250,24 +259,15 @@ class AccountChange {
       'lamportsAfter': lamportsAfter,
       'changeType': changeType,
     };
-  }
-
-  /// Create from JSON
-  factory AccountChange.fromJson(Map<String, dynamic> json) {
-    return AccountChange(
-      address: json['address'] as String,
-      owner: json['owner'] as String,
-      dataBefore: json['dataBefore'] as String?,
-      dataAfter: json['dataAfter'] as String?,
-      lamportsBefore: json['lamportsBefore'] as int?,
-      lamportsAfter: json['lamportsAfter'] as int?,
-      changeType: json['changeType'] as String,
-    );
-  }
 }
 
 /// Debug session for tracking development activities
 class DebugSession {
+
+  DebugSession({
+    required this.sessionId,
+    required this.config,
+  }) : startTime = DateTime.now();
   /// Session ID
   final String sessionId;
 
@@ -285,11 +285,6 @@ class DebugSession {
 
   /// Performance metrics
   final Map<String, dynamic> _metrics = {};
-
-  DebugSession({
-    required this.sessionId,
-    required this.config,
-  }) : startTime = DateTime.now();
 
   /// Add log entry
   void addLog(DebugLogEntry entry) {
@@ -324,8 +319,7 @@ class DebugSession {
   Map<String, dynamic> get metrics => Map.unmodifiable(_metrics);
 
   /// Export session data
-  Map<String, dynamic> export() {
-    return {
+  Map<String, dynamic> export() => {
       'sessionId': sessionId,
       'startTime': startTime.toIso8601String(),
       'config': {
@@ -339,7 +333,6 @@ class DebugSession {
       'transactions': _transactions.map((tx) => tx.toJson()).toList(),
       'metrics': _metrics,
     };
-  }
 
   /// Clear session data
   void clear() {
@@ -351,11 +344,11 @@ class DebugSession {
 
 /// Main debug utility class
 class AnchorDebugger {
+
+  AnchorDebugger(this.config);
   final DebugConfig config;
   final Map<String, DebugSession> _sessions = {};
   DebugSession? _currentSession;
-
-  AnchorDebugger(this.config);
 
   /// Create a new debug session
   DebugSession createSession({String? sessionId}) {
@@ -376,7 +369,7 @@ class AnchorDebugger {
 
   /// Log message to current session
   void log(String level, String message,
-      {Map<String, dynamic>? context, String? source}) {
+      {Map<String, dynamic>? context, String? source,}) {
     final entry = DebugLogEntry(
       timestamp: DateTime.now(),
       level: level,
@@ -399,7 +392,7 @@ class AnchorDebugger {
 
   /// Log warning message
   void warning(String message,
-      {Map<String, dynamic>? context, String? source}) {
+      {Map<String, dynamic>? context, String? source,}) {
     log('warning', message, context: context, source: source);
   }
 
@@ -431,7 +424,7 @@ class AnchorDebugger {
       // Check for potentially expensive operations
       if (instruction.accounts.length > 10) {
         issues.add(
-            'Instruction "${instruction.name}" has ${instruction.accounts.length} accounts - consider optimization');
+            'Instruction "${instruction.name}" has ${instruction.accounts.length} accounts - consider optimization',);
       }
     }
 
@@ -441,7 +434,7 @@ class AnchorDebugger {
       final fields = account.type.fields ?? [];
       if (fields.length > 20) {
         issues.add(
-            'Account "${account.name}" has ${fields.length} fields - consider optimization');
+            'Account "${account.name}" has ${fields.length} fields - consider optimization',);
       }
     }
 
@@ -501,16 +494,16 @@ class AnchorDebugger {
     final buffer = StringBuffer();
 
     buffer.writeln('# Debug Report');
-    buffer.writeln('');
+    buffer.writeln();
     buffer.writeln('**Session ID:** ${session.sessionId}');
     buffer.writeln('**Start Time:** ${session.startTime.toIso8601String()}');
     buffer.writeln(
-        '**Duration:** ${DateTime.now().difference(session.startTime).inSeconds}s');
-    buffer.writeln('');
+        '**Duration:** ${DateTime.now().difference(session.startTime).inSeconds}s',);
+    buffer.writeln();
 
     // Logs summary
     buffer.writeln('## Logs Summary');
-    buffer.writeln('');
+    buffer.writeln();
     buffer.writeln('Total logs: ${session.logs.length}');
 
     final logsByLevel = <String, int>{};
@@ -521,23 +514,23 @@ class AnchorDebugger {
     for (final entry in logsByLevel.entries) {
       buffer.writeln('- ${entry.key}: ${entry.value}');
     }
-    buffer.writeln('');
+    buffer.writeln();
 
     // Recent logs
     if (session.logs.isNotEmpty) {
       buffer.writeln('## Recent Logs');
-      buffer.writeln('');
+      buffer.writeln();
       final recentLogs = session.logs.take(10);
       for (final log in recentLogs) {
         buffer.writeln('- ${log.toString()}');
       }
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     // Transactions
     if (session.transactions.isNotEmpty) {
       buffer.writeln('## Transactions');
-      buffer.writeln('');
+      buffer.writeln();
       for (final tx in session.transactions) {
         buffer.writeln('### ${tx.signature}');
         buffer.writeln('- Status: ${tx.status}');
@@ -547,31 +540,29 @@ class AnchorDebugger {
         if (tx.error != null) {
           buffer.writeln('- Error: ${tx.error}');
         }
-        buffer.writeln('');
+        buffer.writeln();
       }
     }
 
     // Metrics
     if (session.metrics.isNotEmpty) {
       buffer.writeln('## Metrics');
-      buffer.writeln('');
+      buffer.writeln();
       for (final entry in session.metrics.entries) {
         buffer.writeln('- ${entry.key}: ${entry.value}');
       }
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     return buffer.toString();
   }
 
   /// Export all session data
-  Map<String, dynamic> exportAllSessions() {
-    return {
+  Map<String, dynamic> exportAllSessions() => {
       'sessions':
           _sessions.map((id, session) => MapEntry(id, session.export())),
       'currentSessionId': _currentSession?.sessionId,
     };
-  }
 
   /// Clear all sessions
   void clearAllSessions() {
@@ -580,9 +571,7 @@ class AnchorDebugger {
   }
 
   /// Get session by ID
-  DebugSession? getSession(String sessionId) {
-    return _sessions[sessionId];
-  }
+  DebugSession? getSession(String sessionId) => _sessions[sessionId];
 
   /// List all session IDs
   List<String> get sessionIds => _sessions.keys.toList();

@@ -1,10 +1,10 @@
-import '../../types/public_key.dart';
-import '../../types/commitment.dart';
-import '../../coder/main_coder.dart';
-import '../../idl/idl.dart';
-import '../../provider/anchor_provider.dart';
-import '../../provider/connection.dart';
-import 'account_fetcher.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_fetcher.dart';
 
 /// The account namespace provides handles to AccountClient objects for each
 /// account type in a program.
@@ -15,9 +15,9 @@ import 'account_fetcher.dart';
 /// final account = await program.account.accountType.fetch(address);
 /// ```
 class AccountNamespace {
-  final Map<String, AccountClient> _clients = {};
 
   AccountNamespace._();
+  final Map<String, AccountClient> _clients = {};
 
   /// Build account namespace from IDL
   static AccountNamespace build({
@@ -53,9 +53,7 @@ class AccountNamespace {
   bool contains(String name) => _clients.containsKey(name);
 
   @override
-  String toString() {
-    return 'AccountNamespace(accounts: ${_clients.keys.toList()})';
-  }
+  String toString() => 'AccountNamespace(accounts: ${_clients.keys.toList()})';
 
   /// Dispose of all account clients and clean up subscriptions
   void dispose() {
@@ -67,8 +65,6 @@ class AccountNamespace {
 
 /// Client for fetching and managing accounts of a specific type
 class AccountClient<T> {
-  final AccountFetcher<T> _fetcher;
-  final IdlAccount _idlAccount;
 
   AccountClient({
     required IdlAccount account,
@@ -84,29 +80,25 @@ class AccountClient<T> {
           config: config,
         ),
         _idlAccount = account;
+  final AccountFetcher<T> _fetcher;
+  final IdlAccount _idlAccount;
 
   /// Fetch an account by its public key
   Future<T?> fetch(
     PublicKey address, {
     Commitment? commitment,
     bool useCache = true,
-  }) async {
-    return _fetcher.fetchNullable(
+  }) async => _fetcher.fetchNullable(
       address,
       commitment: commitment,
       useCache: useCache,
     );
-  }
 
   /// Fetch multiple accounts by their public keys
-  Future<List<T?>> fetchMultiple(List<PublicKey> addresses) async {
-    return _fetcher.fetchMultiple(addresses);
-  }
+  Future<List<T?>> fetchMultiple(List<PublicKey> addresses) async => _fetcher.fetchMultiple(addresses);
 
   /// Fetch all accounts of this type based on filters
-  Future<List<ProgramAccount<T>>> all() async {
-    return _fetcher.all();
-  }
+  Future<List<ProgramAccount<T>>> all() async => _fetcher.all();
 
   /// Fetch all accounts of this type based on filters (alias for all)
   Future<List<ProgramAccount<T>>> fetchAll({
@@ -114,12 +106,10 @@ class AccountClient<T> {
     Commitment? commitment,
     int?
         limit, // Note: limit parameter is accepted but ignored (for API compatibility)
-  }) async {
-    return _fetcher.all(
+  }) async => _fetcher.all(
       filters: filters,
       commitment: commitment,
     );
-  }
 
   /// Get the size of this account type in bytes
   int get size => _fetcher.size;
@@ -128,9 +118,7 @@ class AccountClient<T> {
   PublicKey get programId => _fetcher.programId;
 
   /// Create a subscription to account changes
-  Stream<T?> subscribe(PublicKey address) {
-    return _fetcher.subscribe(address);
-  }
+  Stream<T?> subscribe(PublicKey address) => _fetcher.subscribe(address);
 
   /// Unsubscribe from account changes
   void unsubscribe(PublicKey address) {

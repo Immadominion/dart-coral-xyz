@@ -67,7 +67,7 @@ void main() {
 
     test('isValidBase58 should validate addresses correctly', () {
       expect(PublicKeyUtils.isValidBase58('11111111111111111111111111111112'),
-          isTrue);
+          isTrue,);
       expect(PublicKeyUtils.isValidBase58('invalid-address'), isFalse);
       expect(PublicKeyUtils.isValidBase58(''), isFalse);
     });
@@ -77,17 +77,17 @@ void main() {
       final invalidBytes = Uint8List(31);
 
       expect(() => PublicKeyUtils.fromBytes(validBytes),
-          isNot(throwsA(isA<ArgumentError>())));
+          isNot(throwsA(isA<ArgumentError>())),);
       expect(() => PublicKeyUtils.fromBytes(invalidBytes),
-          throwsA(isA<ArgumentError>()));
+          throwsA(isA<ArgumentError>()),);
     });
 
     test('fromBase58 should validate base58 format', () {
       expect(
           () => PublicKeyUtils.fromBase58('11111111111111111111111111111112'),
-          isNot(throwsException));
+          isNot(throwsException),);
       expect(() => PublicKeyUtils.fromBase58('invalid'),
-          throwsA(isA<ArgumentError>()));
+          throwsA(isA<ArgumentError>()),);
     });
 
     test('toBase58 should convert to string', () {

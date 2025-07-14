@@ -3,6 +3,7 @@
 /// This test suite validates that all essential types, classes, and functions
 /// are properly exported through the public API and accessible without
 /// direct src/ imports.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -21,9 +22,9 @@ void main() {
 
         // Test creation works
         expect(() => PublicKey.fromBase58('11111111111111111111111111111112'),
-            returnsNormally);
+            returnsNormally,);
         expect(
-            () => Connection('https://api.devnet.solana.com'), returnsNormally);
+            () => Connection('https://api.devnet.solana.com'), returnsNormally,);
       });
 
       test('anchor-specific types are exported and accessible', () {
@@ -94,7 +95,7 @@ void main() {
         expect(connection, isA<Connection>());
 
         // Test basic IDL structure
-        final idl = Idl(
+        final idl = const Idl(
           instructions: [],
           accounts: [],
           events: [],
@@ -107,7 +108,7 @@ void main() {
       });
 
       test('can create coders through public API', () {
-        final idl = Idl(
+        final idl = const Idl(
           instructions: [],
           events: [],
           types: [],
@@ -139,13 +140,13 @@ void main() {
         final filter = EventFilter(
           eventNames: {'TestEvent'},
           programIds: {
-            PublicKey.fromBase58('11111111111111111111111111111112')
+            PublicKey.fromBase58('11111111111111111111111111111112'),
           },
         );
         expect(filter.eventNames?.contains('TestEvent'), isTrue);
 
         // Test event subscription config
-        final config = EventSubscriptionConfig();
+        final config = const EventSubscriptionConfig();
         expect(config, isA<EventSubscriptionConfig>());
       });
 
@@ -232,7 +233,7 @@ void main() {
         expect(context.toString(), contains('test_sig'));
         expect(context.toString(), contains('12345'));
 
-        final idl = Idl(instructions: []);
+        final idl = const Idl(instructions: []);
         expect(idl.toString(), contains('Idl'));
       });
 
@@ -253,20 +254,20 @@ void main() {
         // Test that specific exceptions can be caught
         expect(() {
           throw Exception('Test error'); // Use generic exception instead
-        }, throwsA(isA<Exception>()));
+        }, throwsA(isA<Exception>()),);
       });
 
       test('error handling works correctly with public API', () {
         // Test invalid public key handling (throws ArgumentError, not Exception)
         expect(() => PublicKey.fromBase58('invalid'),
-            throwsA(isA<ArgumentError>()));
+            throwsA(isA<ArgumentError>()),);
 
         // Test invalid connection
         expect(() => Connection('invalid_url'),
-            returnsNormally); // Constructor should not throw
+            returnsNormally,); // Constructor should not throw
 
         // Test invalid IDL handling
-        expect(() => BorshCoder(Idl(instructions: [])), returnsNormally);
+        expect(() => BorshCoder(const Idl(instructions: [])), returnsNormally);
       });
     });
 

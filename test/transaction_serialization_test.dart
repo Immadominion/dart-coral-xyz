@@ -20,7 +20,7 @@ void main() {
             programId: programId,
             accounts: [
               AccountMeta(
-                  pubkey: wallet.publicKey, isSigner: true, isWritable: true),
+                  pubkey: wallet.publicKey, isSigner: true, isWritable: true,),
             ],
             data: Uint8List.fromList([1, 2, 3]),
           ),
@@ -48,8 +48,8 @@ void main() {
         instructions: tx.instructions,
         feePayer: wallet.publicKey,
       );
-      expect(() => txNoBlockhash.compileMessage(), throwsA(isA<Exception>()));
-      expect(() => txNoBlockhash.serialize(), throwsA(isA<Exception>()));
+      expect(txNoBlockhash.compileMessage, throwsA(isA<Exception>()));
+      expect(txNoBlockhash.serialize, throwsA(isA<Exception>()));
     });
   });
 
@@ -72,9 +72,9 @@ void main() {
             programId: programId,
             accounts: [
               AccountMeta(
-                  pubkey: wallet1.publicKey, isSigner: true, isWritable: true),
+                  pubkey: wallet1.publicKey, isSigner: true, isWritable: true,),
               AccountMeta(
-                  pubkey: wallet2.publicKey, isSigner: true, isWritable: false),
+                  pubkey: wallet2.publicKey, isSigner: true, isWritable: false,),
             ],
             data: Uint8List.fromList([4, 5, 6]),
           ),

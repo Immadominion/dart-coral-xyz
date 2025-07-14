@@ -9,38 +9,6 @@ library;
 
 /// The main IDL structure that defines an Anchor program interface
 class Idl {
-  /// Program address (optional - can be provided separately)
-  final String? address;
-
-  /// Program name (for compatibility with traditional IDL format)
-  final String? name;
-
-  /// Program version (for compatibility with traditional IDL format)
-  final String? version;
-
-  /// Program metadata (optional for compatibility)
-  final IdlMetadata? metadata;
-
-  /// Optional documentation
-  final List<String>? docs;
-
-  /// List of program instructions
-  final List<IdlInstruction> instructions;
-
-  /// Optional account definitions
-  final List<IdlAccount>? accounts;
-
-  /// Optional event definitions
-  final List<IdlEvent>? events;
-
-  /// Optional error code definitions
-  final List<IdlErrorCode>? errors;
-
-  /// Optional custom type definitions
-  final List<IdlTypeDef>? types;
-
-  /// Optional program constants
-  final List<IdlConst>? constants;
 
   const Idl({
     this.address,
@@ -86,10 +54,41 @@ class Idl {
           .toList(),
     );
   }
+  /// Program address (optional - can be provided separately)
+  final String? address;
+
+  /// Program name (for compatibility with traditional IDL format)
+  final String? name;
+
+  /// Program version (for compatibility with traditional IDL format)
+  final String? version;
+
+  /// Program metadata (optional for compatibility)
+  final IdlMetadata? metadata;
+
+  /// Optional documentation
+  final List<String>? docs;
+
+  /// List of program instructions
+  final List<IdlInstruction> instructions;
+
+  /// Optional account definitions
+  final List<IdlAccount>? accounts;
+
+  /// Optional event definitions
+  final List<IdlEvent>? events;
+
+  /// Optional error code definitions
+  final List<IdlErrorCode>? errors;
+
+  /// Optional custom type definitions
+  final List<IdlTypeDef>? types;
+
+  /// Optional program constants
+  final List<IdlConst>? constants;
 
   /// Convert IDL to JSON
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       if (address != null) 'address': address,
       if (name != null) 'name': name,
       if (version != null) 'version': version,
@@ -104,7 +103,6 @@ class Idl {
       if (constants != null)
         'constants': constants!.map((e) => e.toJson()).toList(),
     };
-  }
 
   /// Find instruction by name
   IdlInstruction? findInstruction(String name) {
@@ -140,14 +138,6 @@ class Idl {
 
 /// IDL metadata containing program information
 class IdlMetadata {
-  final String name;
-  final String version;
-  final String spec;
-  final String? description;
-  final String? repository;
-  final List<IdlDependency>? dependencies;
-  final String? contact;
-  final IdlDeployments? deployments;
 
   const IdlMetadata({
     required this.name,
@@ -176,9 +166,16 @@ class IdlMetadata {
           : null,
     );
   }
+  final String name;
+  final String version;
+  final String spec;
+  final String? description;
+  final String? repository;
+  final List<IdlDependency>? dependencies;
+  final String? contact;
+  final IdlDeployments? deployments;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       'version': version,
       'spec': spec,
@@ -189,7 +186,6 @@ class IdlMetadata {
       if (contact != null) 'contact': contact,
       if (deployments != null) 'deployments': deployments!.toJson(),
     };
-  }
 
   @override
   String toString() => 'IdlMetadata(name: $name, version: $version)';
@@ -197,8 +193,6 @@ class IdlMetadata {
 
 /// Program dependency information
 class IdlDependency {
-  final String name;
-  final String version;
 
   const IdlDependency({required this.name, required this.version});
 
@@ -208,13 +202,13 @@ class IdlDependency {
       version: json['version'] as String,
     );
   }
+  final String name;
+  final String version;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       'version': version,
     };
-  }
 
   @override
   String toString() => 'IdlDependency(name: $name, version: $version)';
@@ -222,10 +216,6 @@ class IdlDependency {
 
 /// Program deployment addresses for different networks
 class IdlDeployments {
-  final String? mainnet;
-  final String? testnet;
-  final String? devnet;
-  final String? localnet;
 
   const IdlDeployments({
     this.mainnet,
@@ -242,15 +232,17 @@ class IdlDeployments {
       localnet: json['localnet'] as String?,
     );
   }
+  final String? mainnet;
+  final String? testnet;
+  final String? devnet;
+  final String? localnet;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       if (mainnet != null) 'mainnet': mainnet,
       if (testnet != null) 'testnet': testnet,
       if (devnet != null) 'devnet': devnet,
       if (localnet != null) 'localnet': localnet,
     };
-  }
 
   @override
   String toString() => 'IdlDeployments(mainnet: $mainnet, devnet: $devnet)';
@@ -258,12 +250,6 @@ class IdlDeployments {
 
 /// Program instruction definition
 class IdlInstruction {
-  final String name;
-  final List<String>? docs;
-  final List<IdlField> args;
-  final List<IdlInstructionAccountItem> accounts;
-  final IdlDiscriminator? discriminator;
-  final String? returns;
 
   const IdlInstruction({
     required this.name,
@@ -291,9 +277,14 @@ class IdlInstruction {
       returns: json['returns'] as String?,
     );
   }
+  final String name;
+  final List<String>? docs;
+  final List<IdlField> args;
+  final List<IdlInstructionAccountItem> accounts;
+  final IdlDiscriminator? discriminator;
+  final String? returns;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (docs != null) 'docs': docs,
       'args': args.map((e) => e.toJson()).toList(),
@@ -301,7 +292,6 @@ class IdlInstruction {
       if (discriminator != null) 'discriminator': discriminator,
       if (returns != null) 'returns': returns,
     };
-  }
 
   @override
   String toString() => 'IdlInstruction(name: $name)';
@@ -309,10 +299,6 @@ class IdlInstruction {
 
 /// Program account definition
 class IdlAccount {
-  final String name;
-  final List<String>? docs;
-  final IdlTypeDefType type;
-  final IdlDiscriminator? discriminator;
 
   const IdlAccount({
     required this.name,
@@ -329,15 +315,17 @@ class IdlAccount {
       discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
     );
   }
+  final String name;
+  final List<String>? docs;
+  final IdlTypeDefType type;
+  final IdlDiscriminator? discriminator;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (docs != null) 'docs': docs,
       'type': type.toJson(),
       if (discriminator != null) 'discriminator': discriminator,
     };
-  }
 
   @override
   String toString() => 'IdlAccount(name: $name)';
@@ -345,10 +333,6 @@ class IdlAccount {
 
 /// Program event definition
 class IdlEvent {
-  final String name;
-  final List<String>? docs;
-  final List<IdlField> fields;
-  final IdlDiscriminator? discriminator;
 
   const IdlEvent({
     required this.name,
@@ -367,15 +351,17 @@ class IdlEvent {
       discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
     );
   }
+  final String name;
+  final List<String>? docs;
+  final List<IdlField> fields;
+  final IdlDiscriminator? discriminator;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (docs != null) 'docs': docs,
       'fields': fields.map((e) => e.toJson()).toList(),
       if (discriminator != null) 'discriminator': discriminator,
     };
-  }
 
   @override
   String toString() => 'IdlEvent(name: $name)';
@@ -383,9 +369,6 @@ class IdlEvent {
 
 /// Program error code definition
 class IdlErrorCode {
-  final int code;
-  final String name;
-  final String? msg;
 
   const IdlErrorCode({
     required this.code,
@@ -400,14 +383,15 @@ class IdlErrorCode {
       msg: json['msg'] as String?,
     );
   }
+  final int code;
+  final String name;
+  final String? msg;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'code': code,
       'name': name,
       if (msg != null) 'msg': msg,
     };
-  }
 
   @override
   String toString() => 'IdlErrorCode(code: $code, name: $name)';
@@ -418,9 +402,6 @@ typedef IdlDiscriminator = List<int>;
 
 /// Field definition for structs, enums, and instruction arguments
 class IdlField {
-  final String name;
-  final List<String>? docs;
-  final IdlType type;
 
   const IdlField({required this.name, this.docs, required this.type});
 
@@ -431,14 +412,15 @@ class IdlField {
       type: IdlType.fromJson(json['type']), // type can be string or map
     );
   }
+  final String name;
+  final List<String>? docs;
+  final IdlType type;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (docs != null) 'docs': docs,
       'type': type.toJson(),
     };
-  }
 
   @override
   String toString() => 'IdlField(name: $name, type: ${type.kind})';
@@ -446,7 +428,6 @@ class IdlField {
 
 /// Base class for PDA seeds
 abstract class IdlSeed {
-  final String kind;
 
   const IdlSeed({required this.kind});
 
@@ -463,14 +444,13 @@ abstract class IdlSeed {
         throw ArgumentError('Unknown seed kind: $kind');
     }
   }
+  final String kind;
 
   Map<String, dynamic> toJson();
 }
 
 /// Constant seed for PDA derivation
 class IdlSeedConst extends IdlSeed {
-  final String type = 'bytes';
-  final List<int> value;
 
   const IdlSeedConst({required this.value}) : super(kind: 'const');
 
@@ -479,15 +459,15 @@ class IdlSeedConst extends IdlSeed {
       value: (json['value'] as List<dynamic>).cast<int>(),
     );
   }
+  final String type = 'bytes';
+  final List<int> value;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'kind': kind,
       'type': type,
       'value': value,
     };
-  }
 
   @override
   String toString() => 'IdlSeedConst(value: $value)';
@@ -495,8 +475,6 @@ class IdlSeedConst extends IdlSeed {
 
 /// Argument-based seed for PDA derivation
 class IdlSeedArg extends IdlSeed {
-  final IdlType type;
-  final String path;
 
   const IdlSeedArg({required this.type, required this.path})
       : super(kind: 'arg');
@@ -507,15 +485,15 @@ class IdlSeedArg extends IdlSeed {
       path: json['path'] as String,
     );
   }
+  final IdlType type;
+  final String path;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'kind': kind,
       'type': type.toJson(),
       'path': path,
     };
-  }
 
   @override
   String toString() => 'IdlSeedArg(path: $path)';
@@ -523,8 +501,6 @@ class IdlSeedArg extends IdlSeed {
 
 /// Account-based seed for PDA derivation
 class IdlSeedAccount extends IdlSeed {
-  final IdlType type;
-  final String path;
 
   const IdlSeedAccount({required this.type, required this.path})
       : super(kind: 'account');
@@ -535,15 +511,15 @@ class IdlSeedAccount extends IdlSeed {
       path: json['path'] as String,
     );
   }
+  final IdlType type;
+  final String path;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'kind': kind,
       'type': type.toJson(),
       'path': path,
     };
-  }
 
   @override
   String toString() => 'IdlSeedAccount(path: $path)';
@@ -551,8 +527,6 @@ class IdlSeedAccount extends IdlSeed {
 
 /// PDA (Program Derived Address) specification
 class IdlPda {
-  final List<IdlSeed> seeds;
-  final IdlSeedAccount? programId;
 
   const IdlPda({required this.seeds, this.programId});
 
@@ -566,13 +540,13 @@ class IdlPda {
           : null,
     );
   }
+  final List<IdlSeed> seeds;
+  final IdlSeedAccount? programId;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'seeds': seeds.map((e) => e.toJson()).toList(),
       if (programId != null) 'programId': programId!.toJson(),
     };
-  }
 
   @override
   String toString() => 'IdlPda(seeds: ${seeds.length})';
@@ -580,8 +554,6 @@ class IdlPda {
 
 /// Base class for instruction account items (supports both single accounts and account groups)
 abstract class IdlInstructionAccountItem {
-  final String name;
-  final List<String>? docs;
 
   const IdlInstructionAccountItem({required this.name, this.docs});
 
@@ -592,18 +564,14 @@ abstract class IdlInstructionAccountItem {
       return IdlInstructionAccount.fromJson(json);
     }
   }
+  final String name;
+  final List<String>? docs;
 
   Map<String, dynamic> toJson();
 }
 
 /// Single instruction account with PDA support
 class IdlInstructionAccount extends IdlInstructionAccountItem {
-  final bool writable;
-  final bool signer;
-  final bool optional;
-  final String? address;
-  final IdlPda? pda;
-  final List<String>? relations;
 
   const IdlInstructionAccount({
     required super.name,
@@ -630,10 +598,15 @@ class IdlInstructionAccount extends IdlInstructionAccountItem {
       relations: (json['relations'] as List<dynamic>?)?.cast<String>(),
     );
   }
+  final bool writable;
+  final bool signer;
+  final bool optional;
+  final String? address;
+  final IdlPda? pda;
+  final List<String>? relations;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (docs != null) 'docs': docs,
       'writable': writable,
@@ -643,7 +616,6 @@ class IdlInstructionAccount extends IdlInstructionAccountItem {
       if (pda != null) 'pda': pda!.toJson(),
       if (relations != null) 'relations': relations,
     };
-  }
 
   bool get isMut => writable;
   bool get isSigner => signer;
@@ -655,7 +627,6 @@ class IdlInstructionAccount extends IdlInstructionAccountItem {
 
 /// Group of instruction accounts (composite accounts)
 class IdlInstructionAccounts extends IdlInstructionAccountItem {
-  final List<IdlInstructionAccountItem> accounts;
 
   const IdlInstructionAccounts({
     required super.name,
@@ -673,15 +644,14 @@ class IdlInstructionAccounts extends IdlInstructionAccountItem {
           .toList(),
     );
   }
+  final List<IdlInstructionAccountItem> accounts;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (docs != null) 'docs': docs,
       'accounts': accounts.map((e) => e.toJson()).toList(),
     };
-  }
 
   @override
   String toString() =>
@@ -690,9 +660,6 @@ class IdlInstructionAccounts extends IdlInstructionAccountItem {
 
 /// Constant definition
 class IdlConst {
-  final String name;
-  final dynamic type;
-  final String value;
 
   const IdlConst({required this.name, required this.type, required this.value});
 
@@ -703,14 +670,15 @@ class IdlConst {
       value: json['value'] as String,
     );
   }
+  final String name;
+  final dynamic type;
+  final String value;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       'type': type,
       'value': value,
     };
-  }
 
   @override
   String toString() => 'IdlConst(name: $name, value: $value)';
@@ -718,9 +686,6 @@ class IdlConst {
 
 /// Type definition
 class IdlTypeDef {
-  final String name;
-  final List<String>? docs;
-  final IdlTypeDefType type;
 
   const IdlTypeDef({required this.name, this.docs, required this.type});
 
@@ -731,14 +696,15 @@ class IdlTypeDef {
       type: IdlTypeDefType.fromJson(json['type'] as Map<String, dynamic>),
     );
   }
+  final String name;
+  final List<String>? docs;
+  final IdlTypeDefType type;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (docs != null) 'docs': docs,
       'type': type.toJson(),
     };
-  }
 
   @override
   String toString() => 'IdlTypeDef(name: $name)';
@@ -746,9 +712,6 @@ class IdlTypeDef {
 
 /// Type definition type (struct, enum, etc.)
 class IdlTypeDefType {
-  final String kind;
-  final List<IdlField>? fields;
-  final List<IdlEnumVariant>? variants;
 
   const IdlTypeDefType({
     required this.kind,
@@ -771,21 +734,20 @@ class IdlTypeDefType {
           : null,
     );
   }
+  final String kind;
+  final List<IdlField>? fields;
+  final List<IdlEnumVariant>? variants;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'kind': kind,
       if (fields != null) 'fields': fields!.map((e) => e.toJson()).toList(),
       if (variants != null)
         'variants': variants!.map((e) => e.toJson()).toList(),
     };
-  }
 }
 
 /// Enum variant definition
 class IdlEnumVariant {
-  final String name;
-  final List<IdlField>? fields;
 
   const IdlEnumVariant({required this.name, this.fields});
 
@@ -799,21 +761,17 @@ class IdlEnumVariant {
           : null,
     );
   }
+  final String name;
+  final List<IdlField>? fields;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (fields != null) 'fields': fields!.map((e) => e.toJson()).toList(),
     };
-  }
 }
 
 /// Type specification for fields and arguments
 class IdlType {
-  final String kind;
-  final IdlType? inner;
-  final int? size;
-  final String? defined;
 
   const IdlType({
     required this.kind,
@@ -821,25 +779,6 @@ class IdlType {
     this.size,
     this.defined,
   });
-
-  // Static factory methods for better API compatibility
-  static IdlType bool() => const IdlType(kind: 'bool');
-  static IdlType u8() => const IdlType(kind: 'u8');
-  static IdlType i8() => const IdlType(kind: 'i8');
-  static IdlType u16() => const IdlType(kind: 'u16');
-  static IdlType i16() => const IdlType(kind: 'i16');
-  static IdlType u32() => const IdlType(kind: 'u32');
-  static IdlType i32() => const IdlType(kind: 'i32');
-  static IdlType u64() => const IdlType(kind: 'u64');
-  static IdlType i64() => const IdlType(kind: 'i64');
-  static IdlType string() => const IdlType(kind: 'string');
-  static IdlType publicKey() => const IdlType(kind: 'pubkey');
-  static IdlType vec(IdlType inner) => IdlType(kind: 'vec', inner: inner);
-  static IdlType option(IdlType inner) => IdlType(kind: 'option', inner: inner);
-  static IdlType array(IdlType inner, int size) =>
-      IdlType(kind: 'array', inner: inner, size: size);
-  static IdlType definedType(String name) =>
-      IdlType(kind: 'defined', defined: name);
 
   factory IdlType.fromJson(dynamic json) {
     if (json is String) {
@@ -905,6 +844,29 @@ class IdlType {
       throw ArgumentError('Invalid type definition format: $json');
     }
   }
+  final String kind;
+  final IdlType? inner;
+  final int? size;
+  final String? defined;
+
+  // Static factory methods for better API compatibility
+  static IdlType bool() => const IdlType(kind: 'bool');
+  static IdlType u8() => const IdlType(kind: 'u8');
+  static IdlType i8() => const IdlType(kind: 'i8');
+  static IdlType u16() => const IdlType(kind: 'u16');
+  static IdlType i16() => const IdlType(kind: 'i16');
+  static IdlType u32() => const IdlType(kind: 'u32');
+  static IdlType i32() => const IdlType(kind: 'i32');
+  static IdlType u64() => const IdlType(kind: 'u64');
+  static IdlType i64() => const IdlType(kind: 'i64');
+  static IdlType string() => const IdlType(kind: 'string');
+  static IdlType publicKey() => const IdlType(kind: 'pubkey');
+  static IdlType vec(IdlType inner) => IdlType(kind: 'vec', inner: inner);
+  static IdlType option(IdlType inner) => IdlType(kind: 'option', inner: inner);
+  static IdlType array(IdlType inner, int size) =>
+      IdlType(kind: 'array', inner: inner, size: size);
+  static IdlType definedType(String name) =>
+      IdlType(kind: 'defined', defined: name);
 
   dynamic toJson() {
     // Standard Anchor IDL JSON representation
@@ -915,7 +877,7 @@ class IdlType {
         return {'option': inner?.toJson()};
       case 'array':
         return {
-          'array': [inner?.toJson(), size]
+          'array': [inner?.toJson(), size],
         };
       case 'defined':
         return {'defined': defined};
@@ -947,6 +909,4 @@ IdlType idlTypeArray(IdlType inner, int size) =>
 IdlType idlTypeDefined(String name) => IdlType(kind: 'defined', defined: name);
 
 /// Utility function to check if an account item is a composite accounts group
-bool isCompositeAccounts(IdlInstructionAccountItem accountItem) {
-  return accountItem is IdlInstructionAccounts;
-}
+bool isCompositeAccounts(IdlInstructionAccountItem accountItem) => accountItem is IdlInstructionAccounts;

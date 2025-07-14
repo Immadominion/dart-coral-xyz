@@ -3,11 +3,12 @@
 /// This module provides Borsh serialization support for common types
 /// used in Solana and Anchor programs, including PublicKeys, signatures,
 /// and Anchor-specific data structures.
+library;
 
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'borsh_types.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
 
 /// Borsh utilities for Anchor-specific serialization
 class BorshUtils {
@@ -44,9 +45,7 @@ class BorshUtils {
   }
 
   /// Deserialize a Solana PublicKey (32 bytes)
-  static Uint8List readPublicKey(BorshDeserializer deserializer) {
-    return deserializer.readFixedArray(publicKeySize);
-  }
+  static Uint8List readPublicKey(BorshDeserializer deserializer) => deserializer.readFixedArray(publicKeySize);
 
   /// Calculate the size needed for a Vec<T> where each T has a known size
   static int vecSize(int itemSize, int itemCount) {
@@ -110,7 +109,7 @@ extension BorshSerializerExtensions on BorshSerializer {
   /// Write a discriminator (for Anchor accounts/instructions)
   void writeDiscriminator(Uint8List discriminator) {
     if (discriminator.length != BorshUtils.discriminatorSize) {
-      throw BorshException(
+      throw const BorshException(
         'Discriminator must be exactly ${BorshUtils.discriminatorSize} bytes',
       );
     }
@@ -120,12 +119,8 @@ extension BorshSerializerExtensions on BorshSerializer {
 
 extension BorshDeserializerExtensions on BorshDeserializer {
   /// Read a PublicKey
-  Uint8List readPublicKey() {
-    return BorshUtils.readPublicKey(this);
-  }
+  Uint8List readPublicKey() => BorshUtils.readPublicKey(this);
 
   /// Read a discriminator (for Anchor accounts/instructions)
-  Uint8List readDiscriminator() {
-    return readFixedArray(BorshUtils.discriminatorSize);
-  }
+  Uint8List readDiscriminator() => readFixedArray(BorshUtils.discriminatorSize);
 }

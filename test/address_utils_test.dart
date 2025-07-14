@@ -37,7 +37,7 @@ void main() {
 
       test('should convert big integer to seed bytes', () {
         final value = BigInt.from(987654321);
-        final bytes = AddressUtils.bigIntToSeedBytes(value, size: 8);
+        final bytes = AddressUtils.bigIntToSeedBytes(value);
 
         expect(bytes, isA<Uint8List>());
         expect(bytes.length, equals(8));
@@ -120,14 +120,14 @@ void main() {
       // Valid hex address (32 bytes = 64 hex chars)
       expect(
         AddressValidator.isValidHex(
-            '0000000000000000000000000000000000000000000000000000000000000000'),
+            '0000000000000000000000000000000000000000000000000000000000000000',),
         isTrue,
       );
 
       // Valid hex address with 0x prefix
       expect(
         AddressValidator.isValidHex(
-            '0x0000000000000000000000000000000000000000000000000000000000000000'),
+            '0x0000000000000000000000000000000000000000000000000000000000000000',),
         isTrue,
       );
 
@@ -146,7 +146,7 @@ void main() {
 
       expect(
         AddressValidator.isSystemProgram(
-            PublicKey.fromBase58('11111111111111111111111111111113')),
+            PublicKey.fromBase58('11111111111111111111111111111113'),),
         isFalse,
       );
     });
@@ -170,7 +170,7 @@ void main() {
 
     setUp(() {
       testAddress = PublicKey.fromBase58(
-          '11111111111111111111111111111114'); // Different from system program
+          '11111111111111111111111111111114',); // Different from system program
     });
 
     test('should shorten long addresses', () {
@@ -209,7 +209,6 @@ void main() {
       // Base58 format
       final base58 = AddressFormatter.formatAddress(
         testAddress,
-        format: AddressFormat.base58,
       );
       expect(base58, equals(testAddress.toBase58()));
 
@@ -231,7 +230,6 @@ void main() {
     test('should format addresses with shortening', () {
       final formatted = AddressFormatter.formatAddress(
         testAddress,
-        format: AddressFormat.base58,
         shorten: true,
       );
 

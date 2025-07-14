@@ -2,12 +2,13 @@
 ///
 /// This test file specifically validates the newly added methods for handling
 /// complex IDL types including structs, enums, arrays, vectors, and options.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
-import '../lib/src/coder/borsh_types.dart';
-import '../lib/src/idl/idl.dart';
-import '../lib/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 void main() {
   group('BorshDeserializer Complex Types', () {
@@ -132,7 +133,7 @@ void main() {
         // Create test PublicKey with different pattern
         final testKeyBytes = Uint8List(32);
         testKeyBytes.fillRange(
-            0, 32, 42); // Fill with 42s instead of incrementing pattern
+            0, 32, 42,); // Fill with 42s instead of incrementing pattern
         for (int i = 0; i < 32; i++) {
           serializer.writeU8(testKeyBytes[i]);
         }
@@ -140,25 +141,25 @@ void main() {
         deserializer = BorshDeserializer(serializer.toBytes());
 
         expect(deserializer.readIdlType(const IdlType(kind: 'bool')),
-            equals(true));
+            equals(true),);
         expect(
-            deserializer.readIdlType(const IdlType(kind: 'u8')), equals(255));
+            deserializer.readIdlType(const IdlType(kind: 'u8')), equals(255),);
         expect(deserializer.readIdlType(const IdlType(kind: 'u16')),
-            equals(65535));
+            equals(65535),);
         expect(deserializer.readIdlType(const IdlType(kind: 'u32')),
-            equals(4294967295));
+            equals(4294967295),);
         expect(deserializer.readIdlType(const IdlType(kind: 'u64')),
-            equals(9223372036854775807));
+            equals(9223372036854775807),);
         expect(
-            deserializer.readIdlType(const IdlType(kind: 'i8')), equals(-128));
+            deserializer.readIdlType(const IdlType(kind: 'i8')), equals(-128),);
         expect(deserializer.readIdlType(const IdlType(kind: 'i16')),
-            equals(-32768));
+            equals(-32768),);
         expect(deserializer.readIdlType(const IdlType(kind: 'i32')),
-            equals(-2147483648));
+            equals(-2147483648),);
         expect(deserializer.readIdlType(const IdlType(kind: 'i64')),
-            equals(-9223372036854775808));
+            equals(-9223372036854775808),);
         expect(deserializer.readIdlType(const IdlType(kind: 'string')),
-            equals('test string'));
+            equals('test string'),);
 
         final publicKey =
             deserializer.readIdlType(const IdlType(kind: 'publicKey'));
@@ -175,9 +176,9 @@ void main() {
 
         deserializer = BorshDeserializer(serializer.toBytes());
 
-        final vecType = IdlType(
+        final vecType = const IdlType(
           kind: 'vec',
-          inner: const IdlType(kind: 'u32'),
+          inner: IdlType(kind: 'u32'),
         );
 
         final result = deserializer.readIdlType(vecType);
@@ -192,9 +193,9 @@ void main() {
 
         deserializer = BorshDeserializer(serializer.toBytes());
 
-        final arrayType = IdlType(
+        final arrayType = const IdlType(
           kind: 'array',
-          inner: const IdlType(kind: 'u16'),
+          inner: IdlType(kind: 'u16'),
           size: 3,
         );
 
@@ -210,9 +211,9 @@ void main() {
 
         deserializer = BorshDeserializer(serializer.toBytes());
 
-        final optionType = IdlType(
+        final optionType = const IdlType(
           kind: 'option',
-          inner: const IdlType(kind: 'u32'),
+          inner: IdlType(kind: 'u32'),
         );
 
         final result = deserializer.readIdlType(optionType);
@@ -225,9 +226,9 @@ void main() {
 
         deserializer = BorshDeserializer(serializer.toBytes());
 
-        final optionType = IdlType(
+        final optionType = const IdlType(
           kind: 'option',
-          inner: const IdlType(kind: 'u32'),
+          inner: IdlType(kind: 'u32'),
         );
 
         final result = deserializer.readIdlType(optionType);
@@ -262,11 +263,11 @@ void main() {
 
         deserializer = BorshDeserializer(serializer.toBytes());
 
-        final complexType = IdlType(
+        final complexType = const IdlType(
           kind: 'vec',
           inner: IdlType(
             kind: 'option',
-            inner: const IdlType(kind: 'u16'),
+            inner: IdlType(kind: 'u16'),
           ),
         );
 
@@ -277,7 +278,7 @@ void main() {
       test('should throw error for unsupported type', () {
         deserializer = BorshDeserializer(Uint8List(0));
 
-        final unsupportedType = IdlType(kind: 'unsupported');
+        final unsupportedType = const IdlType(kind: 'unsupported');
 
         expect(
           () => deserializer.readIdlType(unsupportedType),
@@ -288,7 +289,7 @@ void main() {
       test('should throw error for defined type without IDL context', () {
         deserializer = BorshDeserializer(Uint8List(0));
 
-        final definedType = IdlType(kind: 'defined', defined: 'CustomStruct');
+        final definedType = const IdlType(kind: 'defined', defined: 'CustomStruct');
 
         expect(
           () => deserializer.readIdlType(definedType),
@@ -299,7 +300,7 @@ void main() {
       test('should throw error for vec type missing inner type', () {
         deserializer = BorshDeserializer(Uint8List(0));
 
-        final invalidVecType = IdlType(kind: 'vec');
+        final invalidVecType = const IdlType(kind: 'vec');
 
         expect(
           () => deserializer.readIdlType(invalidVecType),
@@ -310,9 +311,9 @@ void main() {
       test('should throw error for array type missing size', () {
         deserializer = BorshDeserializer(Uint8List(0));
 
-        final invalidArrayType = IdlType(
+        final invalidArrayType = const IdlType(
           kind: 'array',
-          inner: const IdlType(kind: 'u32'),
+          inner: IdlType(kind: 'u32'),
         );
 
         expect(
@@ -324,7 +325,7 @@ void main() {
       test('should throw error for option type missing inner type', () {
         deserializer = BorshDeserializer(Uint8List(0));
 
-        final invalidOptionType = IdlType(kind: 'option');
+        final invalidOptionType = const IdlType(kind: 'option');
 
         expect(
           () => deserializer.readIdlType(invalidOptionType),
@@ -351,14 +352,14 @@ void main() {
         // Simulate reading complex event fields
         final simpleField =
             deserializer.readIdlType(const IdlType(kind: 'u32'));
-        final vecField = deserializer.readIdlType(IdlType(
+        final vecField = deserializer.readIdlType(const IdlType(
           kind: 'vec',
-          inner: const IdlType(kind: 'u32'),
-        ));
-        final optionField = deserializer.readIdlType(IdlType(
+          inner: IdlType(kind: 'u32'),
+        ),);
+        final optionField = deserializer.readIdlType(const IdlType(
           kind: 'option',
-          inner: const IdlType(kind: 'string'),
-        ));
+          inner: IdlType(kind: 'string'),
+        ),);
 
         expect(simpleField, equals(42));
         expect(vecField, equals([100, 200]));

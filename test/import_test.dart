@@ -1,4 +1,5 @@
 /// Super simple test to verify EventManager is accessible
+library;
 import 'package:test/test.dart';
 
 void main() {

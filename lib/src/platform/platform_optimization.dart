@@ -69,7 +69,7 @@ class PlatformOptimization {
     switch (currentPlatform) {
       case PlatformType.mobile:
         return const Duration(
-            seconds: 15); // Longer timeout for mobile networks
+            seconds: 15,); // Longer timeout for mobile networks
       case PlatformType.web:
         return const Duration(seconds: 10); // Standard web timeout
       case PlatformType.desktop:
@@ -84,7 +84,7 @@ class PlatformOptimization {
     switch (currentPlatform) {
       case PlatformType.mobile:
         return const Duration(
-            seconds: 2); // Account for mobile network variability
+            seconds: 2,); // Account for mobile network variability
       case PlatformType.web:
         return const Duration(milliseconds: 1500);
       case PlatformType.desktop:
@@ -153,29 +153,6 @@ class PlatformOptimization {
 
 /// Platform-specific performance optimization configuration
 class PlatformPerformanceConfig {
-  /// Connection pool size
-  final int connectionPoolSize;
-
-  /// Request timeout duration
-  final Duration requestTimeout;
-
-  /// Retry configuration
-  final Duration retryDelay;
-  final int maxRetries;
-
-  /// Caching configuration
-  final bool enableCaching;
-  final int cacheSizeLimitMB;
-  final Duration cacheExpiration;
-
-  /// Background processing configuration
-  final bool enableBackgroundSync;
-  final Duration backgroundSyncInterval;
-
-  /// Memory optimization settings
-  final bool enableMemoryOptimization;
-  final int maxCachedAccounts;
-  final int maxCachedTransactions;
 
   const PlatformPerformanceConfig({
     required this.connectionPoolSize,
@@ -260,11 +237,34 @@ class PlatformPerformanceConfig {
         );
     }
   }
+  /// Connection pool size
+  final int connectionPoolSize;
+
+  /// Request timeout duration
+  final Duration requestTimeout;
+
+  /// Retry configuration
+  final Duration retryDelay;
+  final int maxRetries;
+
+  /// Caching configuration
+  final bool enableCaching;
+  final int cacheSizeLimitMB;
+  final Duration cacheExpiration;
+
+  /// Background processing configuration
+  final bool enableBackgroundSync;
+  final Duration backgroundSyncInterval;
+
+  /// Memory optimization settings
+  final bool enableMemoryOptimization;
+  final int maxCachedAccounts;
+  final int maxCachedTransactions;
 
   /// Get current platform configuration
   static PlatformPerformanceConfig get current =>
       PlatformPerformanceConfig.forPlatform(
-          PlatformOptimization.currentPlatform);
+          PlatformOptimization.currentPlatform,);
 }
 
 /// Platform-specific error handling utilities
@@ -321,9 +321,7 @@ class PlatformErrorHandler {
     }
   }
 
-  static String _getGenericErrorMessage(String baseMessage) {
-    return 'Operation failed. Please try again';
-  }
+  static String _getGenericErrorMessage(String baseMessage) => 'Operation failed. Please try again';
 }
 
 /// Background task management for mobile platforms
@@ -406,9 +404,7 @@ class MemoryStorage implements PlatformStorage {
   }
 
   @override
-  Future<String?> retrieve(String key) async {
-    return _storage[key];
-  }
+  Future<String?> retrieve(String key) async => _storage[key];
 
   @override
   Future<void> remove(String key) async {

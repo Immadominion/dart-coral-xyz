@@ -2,13 +2,15 @@
 ///
 /// This module provides the core account coder matching TypeScript's BorshAccountsCoder
 /// with comprehensive encoding/decoding capabilities.
+library;
 
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:convert/convert.dart';
-import '../idl/idl.dart';
-import '../error/error.dart';
-import 'discriminator_computer.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/error/account_errors.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
 
 /// Interface for encoding and decoding program accounts matching TypeScript AccountsCoder
 abstract class AccountsCoder<A extends String> {
@@ -36,25 +38,20 @@ abstract class AccountsCoder<A extends String> {
 
 /// Account layout with discriminator and type definition
 class AccountLayout {
-  /// The 8-byte discriminator for this account type
-  final Uint8List discriminator;
-
-  /// The IDL type definition for this account
-  final IdlTypeDef typeDef;
 
   const AccountLayout({
     required this.discriminator,
     required this.typeDef,
   });
+  /// The 8-byte discriminator for this account type
+  final Uint8List discriminator;
+
+  /// The IDL type definition for this account
+  final IdlTypeDef typeDef;
 }
 
 /// Enhanced Borsh-based implementation of AccountsCoder
 class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
-  /// The IDL containing account definitions
-  final Idl idl;
-
-  /// Cached account layouts with discriminators and type definitions
-  late final Map<A, AccountLayout> _accountLayouts;
 
   /// Create a new BorshAccountsCoder matching TypeScript implementation
   BorshAccountsCoder(this.idl) {
@@ -75,13 +72,18 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       _buildAccountLayouts();
     }
   }
+  /// The IDL containing account definitions
+  final Idl idl;
+
+  /// Cached account layouts with discriminators and type definitions
+  late final Map<A, AccountLayout> _accountLayouts;
 
   /// Check if accounts have inline type definitions
   bool _hasInlineAccountTypes() {
     if (idl.accounts == null) return false;
 
     return idl.accounts!.any((account) =>
-        account.type.kind == 'struct' || account.type.kind == 'enum');
+        account.type.kind == 'struct' || account.type.kind == 'enum',);
   }
 
   /// Build account layouts from inline account type definitions
@@ -165,24 +167,32 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     final discriminator = accountDiscriminator(accountName);
 
     if (data.length < discriminator.length) {
-      throw AccountDiscriminatorMismatchError.fromComparison(
-        expected: discriminator.toList(),
-        actual: data.toList(),
-        errorLogs: ['Account data too short for discriminator'],
+      throw AccountDiscriminatorMismatchError(
+        expectedDiscriminator: discriminator.toList(),
+        actualDiscriminator: data.toList(),
+        accountAddress: PublicKey.fromBase58(
+            '11111111111111111111111111111112',), // Placeholder
+        errorLogs: [
+          'Account data too short for discriminator',
+        ],
         logs: [
-          'Data length: ${data.length}, Required: ${discriminator.length}'
+          'Data length: ${data.length}, Required: ${discriminator.length}',
         ],
       );
     }
 
     final dataDiscriminator = data.sublist(0, discriminator.length);
     if (!_compareDiscriminators(discriminator, dataDiscriminator)) {
-      throw AccountDiscriminatorMismatchError.fromComparison(
-        expected: discriminator.toList(),
-        actual: dataDiscriminator.toList(),
-        errorLogs: ['Invalid account discriminator'],
+      throw AccountDiscriminatorMismatchError(
+        expectedDiscriminator: discriminator.toList(),
+        actualDiscriminator: dataDiscriminator.toList(),
+        accountAddress: PublicKey.fromBase58(
+            '11111111111111111111111111111112',), // Placeholder
+        errorLogs: [
+          'Invalid account discriminator',
+        ],
         logs: [
-          'Expected: ${hex.encode(discriminator)}, Got: ${hex.encode(dataDiscriminator)}'
+          'Expected: ${hex.encode(discriminator)}, Got: ${hex.encode(dataDiscriminator)}',
         ],
       );
     }
@@ -221,7 +231,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     try {
       // Decode the account data using simple deserialization
       final result = <String, dynamic>{};
-      var offset = 0;
+      final offset = 0;
       _decodeAccountData(accountData, layout.typeDef, result, offset);
       return result as T;
     } catch (e) {
@@ -285,7 +295,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
 
   /// Simple account data encoding
   void _encodeAccountData(
-      dynamic account, IdlTypeDef typeDef, List<int> buffer) {
+      dynamic account, IdlTypeDef typeDef, List<int> buffer,) {
     if (account is Map<String, dynamic>) {
       // Handle Counter account specifically with proper Borsh encoding
       if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
@@ -307,7 +317,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       buffer.addAll(bytes);
     } else {
       throw AccountCoderError(
-          'Expected Map for account encoding, got ${account.runtimeType}');
+          'Expected Map for account encoding, got ${account.runtimeType}',);
     }
   }
 
@@ -320,7 +330,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
 
   /// Simple account data decoding
   void _decodeAccountData(Uint8List data, IdlTypeDef typeDef,
-      Map<String, dynamic> result, int offset) {
+      Map<String, dynamic> result, int offset,) {
     try {
       // Handle Counter account specifically with proper Borsh decoding
       if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
@@ -365,7 +375,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
 
     int result = 0;
     for (int i = 0; i < 8; i++) {
-      result |= (bytes[i] << (i * 8));
+      result |= bytes[i] << (i * 8);
     }
     return result;
   }
@@ -373,9 +383,9 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
 
 /// Error thrown when account coder operations fail
 class AccountCoderError extends Error {
-  final String message;
 
   AccountCoderError(this.message);
+  final String message;
 
   @override
   String toString() => 'AccountCoderError: $message';

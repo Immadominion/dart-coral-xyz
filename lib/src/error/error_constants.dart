@@ -2,6 +2,7 @@
 ///
 /// This module provides error code constants with exact numeric values matching
 /// the TypeScript Anchor client's error system for full compatibility.
+library;
 
 /// Instruction error codes (100-999)
 class InstructionErrorCode {
@@ -21,19 +22,55 @@ class InstructionErrorCode {
 /// IDL instruction error codes (1000-1999)
 class IdlInstructionErrorCode {
   /// The program was compiled without idl instructions
-  static const int idlInstructionStub = 1000;
+  static const int idlInstructionMissing = 1000;
 
   /// The transaction was given an invalid program for the IDL instruction
   static const int idlInstructionInvalidProgram = 1001;
 
   /// IDL account must be empty in order to resize, try closing first
   static const int idlAccountNotEmpty = 1002;
+
+  /// IDL instruction parsing failed
+  static const int idlInstructionParseError = 1003;
+
+  /// IDL instruction serialization failed
+  static const int idlInstructionSerializeError = 1004;
+
+  /// IDL instruction deserialization failed
+  static const int idlInstructionDeserializeError = 1005;
+
+  /// IDL instruction execution failed
+  static const int idlInstructionExecutionError = 1006;
+
+  /// IDL instruction fallback not found
+  static const int idlInstructionFallbackNotFound = 1007;
+
+  /// IDL instruction data is invalid
+  static const int idlInstructionInvalidData = 1008;
 }
 
 /// Event instruction error codes (1500-1999)
 class EventInstructionErrorCode {
   /// The program was compiled without `event-cpi` feature
-  static const int eventInstructionStub = 1500;
+  static const int eventInstructionMissing = 1500;
+
+  /// Event instruction parsing failed
+  static const int eventInstructionParseError = 1501;
+
+  /// Event instruction serialization failed
+  static const int eventInstructionSerializeError = 1502;
+
+  /// Event instruction deserialization failed
+  static const int eventInstructionDeserializeError = 1503;
+
+  /// Event instruction execution failed
+  static const int eventInstructionExecutionError = 1504;
+
+  /// Event instruction fallback not found
+  static const int eventInstructionFallbackNotFound = 1505;
+
+  /// Event instruction data is invalid
+  static const int eventInstructionInvalidData = 1506;
 }
 
 /// Constraint error codes (2000-2499)
@@ -271,16 +308,40 @@ class LangErrorCode {
       InstructionErrorCode.instructionDidNotSerialize;
 
   // IDL instructions
-  static const int idlInstructionStub =
-      IdlInstructionErrorCode.idlInstructionStub;
+  static const int idlInstructionMissing =
+      IdlInstructionErrorCode.idlInstructionMissing;
   static const int idlInstructionInvalidProgram =
       IdlInstructionErrorCode.idlInstructionInvalidProgram;
   static const int idlAccountNotEmpty =
       IdlInstructionErrorCode.idlAccountNotEmpty;
+  static const int idlInstructionParseError =
+      IdlInstructionErrorCode.idlInstructionParseError;
+  static const int idlInstructionSerializeError =
+      IdlInstructionErrorCode.idlInstructionSerializeError;
+  static const int idlInstructionDeserializeError =
+      IdlInstructionErrorCode.idlInstructionDeserializeError;
+  static const int idlInstructionExecutionError =
+      IdlInstructionErrorCode.idlInstructionExecutionError;
+  static const int idlInstructionFallbackNotFound =
+      IdlInstructionErrorCode.idlInstructionFallbackNotFound;
+  static const int idlInstructionInvalidData =
+      IdlInstructionErrorCode.idlInstructionInvalidData;
 
   // Event instructions
-  static const int eventInstructionStub =
-      EventInstructionErrorCode.eventInstructionStub;
+  static const int eventInstructionMissing =
+      EventInstructionErrorCode.eventInstructionMissing;
+  static const int eventInstructionParseError =
+      EventInstructionErrorCode.eventInstructionParseError;
+  static const int eventInstructionSerializeError =
+      EventInstructionErrorCode.eventInstructionSerializeError;
+  static const int eventInstructionDeserializeError =
+      EventInstructionErrorCode.eventInstructionDeserializeError;
+  static const int eventInstructionExecutionError =
+      EventInstructionErrorCode.eventInstructionExecutionError;
+  static const int eventInstructionFallbackNotFound =
+      EventInstructionErrorCode.eventInstructionFallbackNotFound;
+  static const int eventInstructionInvalidData =
+      EventInstructionErrorCode.eventInstructionInvalidData;
 
   // Constraints
   static const int constraintMut = ConstraintErrorCode.constraintMut;
@@ -423,16 +484,37 @@ const Map<int, String> langErrorMessage = {
       'The program could not serialize the given instruction',
 
   // IDL instructions
-  LangErrorCode.idlInstructionStub:
+  LangErrorCode.idlInstructionMissing:
       'The program was compiled without idl instructions',
   LangErrorCode.idlInstructionInvalidProgram:
       'The transaction was given an invalid program for the IDL instruction',
   LangErrorCode.idlAccountNotEmpty:
       'IDL account must be empty in order to resize, try closing first',
+  LangErrorCode.idlInstructionParseError: 'IDL instruction parsing failed',
+  LangErrorCode.idlInstructionSerializeError:
+      'IDL instruction serialization failed',
+  LangErrorCode.idlInstructionDeserializeError:
+      'IDL instruction deserialization failed',
+  LangErrorCode.idlInstructionExecutionError:
+      'IDL instruction execution failed',
+  LangErrorCode.idlInstructionFallbackNotFound:
+      'IDL instruction fallback not found',
+  LangErrorCode.idlInstructionInvalidData: 'IDL instruction data is invalid',
 
   // Event instructions
-  LangErrorCode.eventInstructionStub:
+  LangErrorCode.eventInstructionMissing:
       'The program was compiled without `event-cpi` feature',
+  LangErrorCode.eventInstructionParseError: 'Event instruction parsing failed',
+  LangErrorCode.eventInstructionSerializeError:
+      'Event instruction serialization failed',
+  LangErrorCode.eventInstructionDeserializeError:
+      'Event instruction deserialization failed',
+  LangErrorCode.eventInstructionExecutionError:
+      'Event instruction execution failed',
+  LangErrorCode.eventInstructionFallbackNotFound:
+      'Event instruction fallback not found',
+  LangErrorCode.eventInstructionInvalidData:
+      'Event instruction data is invalid',
 
   // Constraints
   LangErrorCode.constraintMut: 'A mut constraint was violated',
@@ -559,6 +641,5 @@ const Map<int, String> langErrorMessage = {
 };
 
 /// Helper function to get error message for a given error code
-String getErrorMessage(int errorCode) {
-  return langErrorMessage[errorCode] ?? 'Unknown error code: $errorCode';
-}
+String getErrorMessage(int errorCode) =>
+    langErrorMessage[errorCode] ?? 'Unknown error code: $errorCode';

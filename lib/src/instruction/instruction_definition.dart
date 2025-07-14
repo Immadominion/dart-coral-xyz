@@ -3,17 +3,13 @@
 /// This module provides comprehensive instruction metadata handling matching
 /// TypeScript Anchor's sophisticated instruction definition system with
 /// complete argument validation, account metadata, and constraint checking.
+library;
 
-import '../idl/idl.dart';
-import '../types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Enhanced instruction definition with comprehensive metadata and validation
 class InstructionDefinition {
-  final IdlInstruction _idlInstruction;
-  final List<ArgumentDefinition> _arguments;
-  final List<InstructionAccountDefinition> _accounts;
-  final InstructionConstraints _constraints;
-  final InstructionMetadata _metadata;
 
   InstructionDefinition._({
     required IdlInstruction idlInstruction,
@@ -58,6 +54,11 @@ class InstructionDefinition {
       metadata: metadata,
     );
   }
+  final IdlInstruction _idlInstruction;
+  final List<ArgumentDefinition> _arguments;
+  final List<InstructionAccountDefinition> _accounts;
+  final InstructionConstraints _constraints;
+  final InstructionMetadata _metadata;
 
   /// Get instruction name
   String get name => _metadata.name;
@@ -192,18 +193,11 @@ class InstructionDefinition {
   }
 
   @override
-  String toString() {
-    return 'InstructionDefinition(name: $name, args: ${_arguments.length}, accounts: ${_accounts.length})';
-  }
+  String toString() => 'InstructionDefinition(name: $name, args: ${_arguments.length}, accounts: ${_accounts.length})';
 }
 
 /// Argument definition with type validation
 class ArgumentDefinition {
-  final String name;
-  final IdlType type;
-  final List<String>? docs;
-  final bool isRequired;
-  final TypeValidator validator;
 
   ArgumentDefinition({
     required this.name,
@@ -223,28 +217,21 @@ class ArgumentDefinition {
       validator: TypeValidator.fromIdlType(field.type),
     );
   }
+  final String name;
+  final IdlType type;
+  final List<String>? docs;
+  final bool isRequired;
+  final TypeValidator validator;
 
   /// Validate argument value against type definition
-  TypeValidationResult validateType(dynamic value) {
-    return validator.validate(value);
-  }
+  TypeValidationResult validateType(dynamic value) => validator.validate(value);
 
   @override
-  String toString() {
-    return 'ArgumentDefinition(name: $name, type: $type, required: $isRequired)';
-  }
+  String toString() => 'ArgumentDefinition(name: $name, type: $type, required: $isRequired)';
 }
 
 /// Instruction account definition with metadata and validation
 class InstructionAccountDefinition {
-  final String name;
-  final List<String>? docs;
-  final bool isWritable;
-  final bool isSigner;
-  final bool isOptional;
-  final String? address;
-  final IdlPda? pda;
-  final List<String>? relations;
 
   InstructionAccountDefinition({
     required this.name,
@@ -284,6 +271,14 @@ class InstructionAccountDefinition {
       throw ArgumentError('Unknown account type: ${account.runtimeType}');
     }
   }
+  final String name;
+  final List<String>? docs;
+  final bool isWritable;
+  final bool isSigner;
+  final bool isOptional;
+  final String? address;
+  final IdlPda? pda;
+  final List<String>? relations;
 
   /// Get if account is required
   bool get isRequired => !isOptional;
@@ -291,35 +286,28 @@ class InstructionAccountDefinition {
   /// Validate account value
   SimpleValidationResult validateAccount(dynamic account) {
     if (account == null && isRequired) {
-      return SimpleValidationResult(
+      return const SimpleValidationResult(
         isValid: false,
         error: 'Account is required but null was provided',
       );
     }
 
     if (account != null && account is! PublicKey && account is! String) {
-      return SimpleValidationResult(
+      return const SimpleValidationResult(
         isValid: false,
         error: 'Account must be PublicKey or string address',
       );
     }
 
-    return SimpleValidationResult(isValid: true);
+    return const SimpleValidationResult(isValid: true);
   }
 
   @override
-  String toString() {
-    return 'InstructionAccountDefinition(name: $name, writable: $isWritable, signer: $isSigner, optional: $isOptional)';
-  }
+  String toString() => 'InstructionAccountDefinition(name: $name, writable: $isWritable, signer: $isSigner, optional: $isOptional)';
 }
 
 /// Instruction constraints and validation rules
 class InstructionConstraints {
-  final int maxArguments;
-  final int maxAccounts;
-  final bool requiresSignature;
-  final List<String> mutuallyExclusiveArgs;
-  final List<String> dependentArgs;
 
   const InstructionConstraints({
     this.maxArguments = 100,
@@ -346,6 +334,11 @@ class InstructionConstraints {
       dependentArgs: const [],
     );
   }
+  final int maxArguments;
+  final int maxAccounts;
+  final bool requiresSignature;
+  final List<String> mutuallyExclusiveArgs;
+  final List<String> dependentArgs;
 
   /// Validate constraints
   bool validateConstraints({
@@ -362,10 +355,6 @@ class InstructionConstraints {
 
 /// Instruction metadata
 class InstructionMetadata {
-  final String name;
-  final List<String>? docs;
-  final List<int>? discriminator;
-  final String? returnsType;
 
   const InstructionMetadata({
     required this.name,
@@ -373,12 +362,14 @@ class InstructionMetadata {
     this.discriminator,
     this.returnsType,
   });
+  final String name;
+  final List<String>? docs;
+  final List<int>? discriminator;
+  final String? returnsType;
 }
 
 /// Type validator for instruction arguments
 class TypeValidator {
-  final IdlType type;
-  final Function(dynamic) validator;
 
   TypeValidator({
     required this.type,
@@ -392,6 +383,8 @@ class TypeValidator {
       validator: _createValidator(type),
     );
   }
+  final IdlType type;
+  final Function(dynamic) validator;
 
   /// Validate value against type
   TypeValidationResult validate(dynamic value) {
@@ -403,7 +396,7 @@ class TypeValidator {
           error: isValid ? null : 'Type validation failed for $type',
         );
       } else {
-        return TypeValidationResult(
+        return const TypeValidationResult(
           isValid: false,
           error: 'Invalid validator response',
         );
@@ -456,15 +449,15 @@ class TypeValidator {
 
 /// Validation result for instructions
 class InstructionValidationResult {
-  final bool isValid;
-  final List<String> errors;
-  final List<String> warnings;
 
   const InstructionValidationResult({
     required this.isValid,
     this.errors = const [],
     this.warnings = const [],
   });
+  final bool isValid;
+  final List<String> errors;
+  final List<String> warnings;
 
   /// Check if validation passed without errors
   bool get hasErrors => errors.isNotEmpty;
@@ -473,17 +466,11 @@ class InstructionValidationResult {
   bool get hasWarnings => warnings.isNotEmpty;
 
   @override
-  String toString() {
-    return 'InstructionValidationResult(valid: $isValid, errors: ${errors.length}, warnings: ${warnings.length})';
-  }
+  String toString() => 'InstructionValidationResult(valid: $isValid, errors: ${errors.length}, warnings: ${warnings.length})';
 }
 
 /// Result of argument validation
 class ArgumentValidationResult {
-  final bool isValid;
-  final String? error;
-  final String? expectedType;
-  final String? actualType;
 
   const ArgumentValidationResult({
     required this.isValid,
@@ -508,6 +495,10 @@ class ArgumentValidationResult {
       actualType: actualType,
     );
   }
+  final bool isValid;
+  final String? error;
+  final String? expectedType;
+  final String? actualType;
 
   @override
   String toString() {
@@ -518,10 +509,6 @@ class ArgumentValidationResult {
 
 /// Result of instruction account validation
 class InstructionAccountValidationResult {
-  final bool isValid;
-  final String? error;
-  final String? expectedConstraint;
-  final String? actualValue;
 
   const InstructionAccountValidationResult({
     required this.isValid,
@@ -546,6 +533,10 @@ class InstructionAccountValidationResult {
       actualValue: actualValue,
     );
   }
+  final bool isValid;
+  final String? error;
+  final String? expectedConstraint;
+  final String? actualValue;
 
   @override
   String toString() {
@@ -556,32 +547,28 @@ class InstructionAccountValidationResult {
 
 /// Type validation result
 class TypeValidationResult {
-  final bool isValid;
-  final String? error;
 
   const TypeValidationResult({
     required this.isValid,
     this.error,
   });
+  final bool isValid;
+  final String? error;
 
   @override
-  String toString() {
-    return 'TypeValidationResult(valid: $isValid, error: $error)';
-  }
+  String toString() => 'TypeValidationResult(valid: $isValid, error: $error)';
 }
 
 /// Simple validation result for basic validations
 class SimpleValidationResult {
-  final bool isValid;
-  final String? error;
 
   const SimpleValidationResult({
     required this.isValid,
     this.error,
   });
+  final bool isValid;
+  final String? error;
 
   @override
-  String toString() {
-    return 'SimpleValidationResult(valid: $isValid, error: $error)';
-  }
+  String toString() => 'SimpleValidationResult(valid: $isValid, error: $error)';
 }

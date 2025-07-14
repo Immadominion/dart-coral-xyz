@@ -1,12 +1,13 @@
 /// Test file for transaction simulation functionality
 /// This file demonstrates and tests the new TransactionSimulator capabilities
+library;
 
 import 'dart:typed_data';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/types/transaction.dart';
-import '../lib/src/provider/connection.dart';
-import '../lib/src/provider/anchor_provider.dart';
-import '../lib/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 
 void main() async {
   print('Testing Transaction Simulation Core Engine...\n');
@@ -43,7 +44,7 @@ void main() async {
 
     print('   - Success: ${accountValidationResult.success}');
     print(
-        '   - Has accounts data: ${accountValidationResult.accounts != null}');
+        '   - Has accounts data: ${accountValidationResult.accounts != null}',);
 
     print('\n3. Testing simulation with signature verification...');
     final sigVerifyResult =
@@ -53,17 +54,16 @@ void main() async {
     print('   - Error type: ${sigVerifyResult.error?.type ?? 'None'}');
 
     print('\n4. Testing simulation configuration...');
-    final config = TransactionSimulationConfig(
+    final config = const TransactionSimulationConfig(
       commitment: 'confirmed',
       includeAccounts: true,
-      sigVerify: false,
       replaceRecentBlockhash: true,
     );
 
     final configResult =
         await simulator.simulate(testTransaction, config: config);
     print(
-        '   - Config applied successfully: ${configResult.success || configResult.error != null}');
+        '   - Config applied successfully: ${configResult.success || configResult.error != null}',);
 
     print('\n5. Testing cache functionality...');
     final cacheStats1 = simulator.getCacheStats();
@@ -73,14 +73,14 @@ void main() async {
     print('   - Cache size before: ${cacheStats1['size']}');
     print('   - Cache size after: ${cacheStats2['size']}');
     print(
-        '   - Cache working: ${cacheStats2['size']! >= cacheStats1['size']!}');
+        '   - Cache working: ${cacheStats2['size']! >= cacheStats1['size']!}',);
 
     simulator.clearCache();
     final cacheStats3 = simulator.getCacheStats();
     print('   - Cache cleared: ${cacheStats3['size'] == 0}');
 
     print(
-        '\n✅ Transaction Simulation Core Engine tests completed successfully!');
+        '\n✅ Transaction Simulation Core Engine tests completed successfully!',);
     print('🚀 Phase 3, Step 3.1 is fully implemented and working.');
   } catch (e, stackTrace) {
     print('❌ Test failed with error: $e');

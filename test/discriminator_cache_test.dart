@@ -2,6 +2,7 @@
 ///
 /// Comprehensive test suite validating cache functionality, performance,
 /// and thread safety for discriminator caching.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -289,21 +290,21 @@ void main() {
     group('Cache Key Utilities', () {
       test('generates correct account cache keys', () {
         expect(DiscriminatorCache.accountKey('MyAccount'),
-            equals('account:MyAccount'));
+            equals('account:MyAccount'),);
         expect(DiscriminatorCache.accountKey('Data'), equals('account:Data'));
       });
 
       test('generates correct instruction cache keys', () {
         expect(DiscriminatorCache.instructionKey('initialize'),
-            equals('global:initialize'));
+            equals('global:initialize'),);
         expect(DiscriminatorCache.instructionKey('transfer'),
-            equals('global:transfer'));
+            equals('global:transfer'),);
       });
 
       test('generates correct event cache keys', () {
         expect(DiscriminatorCache.eventKey('MyEvent'), equals('event:MyEvent'));
         expect(
-            DiscriminatorCache.eventKey('Transfer'), equals('event:Transfer'));
+            DiscriminatorCache.eventKey('Transfer'), equals('event:Transfer'),);
       });
     });
 

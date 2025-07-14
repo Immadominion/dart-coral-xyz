@@ -9,13 +9,13 @@ void main() {
 
     setUp(() {
       programId = PublicKey.fromBase58('11111111111111111111111111111112');
-      cache = PdaCache(maxSize: 10, maxAge: Duration(seconds: 30));
+      cache = PdaCache(maxSize: 10, maxAge: const Duration(seconds: 30));
     });
 
     group('Cache Key Generation', () {
       test('should generate consistent keys for same seeds', () {
-        final seeds1 = [StringSeed('test'), NumberSeed(42, byteLength: 8)];
-        final seeds2 = [StringSeed('test'), NumberSeed(42, byteLength: 8)];
+        final seeds1 = [const StringSeed('test'), const NumberSeed(42, byteLength: 8)];
+        final seeds2 = [const StringSeed('test'), const NumberSeed(42, byteLength: 8)];
 
         final key1 = PdaCacheKey.fromSeeds(seeds1, programId);
         final key2 = PdaCacheKey.fromSeeds(seeds2, programId);
@@ -25,8 +25,8 @@ void main() {
       });
 
       test('should generate different keys for different seeds', () {
-        final seeds1 = [StringSeed('test1')];
-        final seeds2 = [StringSeed('test2')];
+        final seeds1 = [const StringSeed('test1')];
+        final seeds2 = [const StringSeed('test2')];
 
         final key1 = PdaCacheKey.fromSeeds(seeds1, programId);
         final key2 = PdaCacheKey.fromSeeds(seeds2, programId);
@@ -39,9 +39,9 @@ void main() {
         final publicKey =
             PublicKey.fromBase58('11111111111111111111111111111113');
         final seeds = [
-          StringSeed('metadata'),
+          const StringSeed('metadata'),
           PublicKeySeed(publicKey),
-          NumberSeed(1, byteLength: 4),
+          const NumberSeed(1),
           BytesSeed(Uint8List.fromList([1, 2, 3, 4])),
         ];
 
@@ -53,7 +53,7 @@ void main() {
 
     group('Basic Cache Operations', () {
       test('should store and retrieve PDA results', () {
-        final seeds = [StringSeed('test')];
+        final seeds = [const StringSeed('test')];
         final key = PdaCacheKey.fromSeeds(seeds, programId);
         final result = PdaDerivationEngine.findProgramAddress(seeds, programId);
 
@@ -71,14 +71,14 @@ void main() {
       });
 
       test('should return null for non-existent keys', () {
-        final seeds = [StringSeed('nonexistent')];
+        final seeds = [const StringSeed('nonexistent')];
         final key = PdaCacheKey.fromSeeds(seeds, programId);
 
         expect(cache.get(key), isNull);
       });
 
       test('should update access time on cache hits', () async {
-        final seeds = [StringSeed('test')];
+        final seeds = [const StringSeed('test')];
         final key = PdaCacheKey.fromSeeds(seeds, programId);
         final result = PdaDerivationEngine.findProgramAddress(seeds, programId);
 
@@ -89,7 +89,7 @@ void main() {
         cache.get(key);
 
         // Wait a bit
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
 
         // Second access
         cache.get(key);
@@ -117,7 +117,7 @@ void main() {
         expect(cache.size, equals(3));
 
         // Add one more - should evict oldest
-        final newSeeds = [StringSeed('test_new')];
+        final newSeeds = [const StringSeed('test_new')];
         final newKey = PdaCacheKey.fromSeeds(newSeeds, programId);
         final newResult =
             PdaDerivationEngine.findProgramAddress(newSeeds, programId);
@@ -126,7 +126,7 @@ void main() {
         expect(cache.size, equals(3));
 
         // First entry should be evicted
-        final oldKey = PdaCacheKey.fromSeeds([StringSeed('test_0')], programId);
+        final oldKey = PdaCacheKey.fromSeeds([const StringSeed('test_0')], programId);
         expect(cache.get(oldKey), isNull);
 
         // New entry should be present
@@ -151,7 +151,7 @@ void main() {
         cache.get(keys[0]);
 
         // Add new entry - should evict second entry, not first
-        final newSeeds = [StringSeed('test_new')];
+        final newSeeds = [const StringSeed('test_new')];
         final newKey = PdaCacheKey.fromSeeds(newSeeds, programId);
         final newResult =
             PdaDerivationEngine.findProgramAddress(newSeeds, programId);
@@ -171,9 +171,9 @@ void main() {
 
     group('Cache Expiration', () {
       test('should expire entries after max age', () async {
-        final cache = PdaCache(maxAge: Duration(milliseconds: 50));
+        final cache = PdaCache(maxAge: const Duration(milliseconds: 50));
 
-        final seeds = [StringSeed('test')];
+        final seeds = [const StringSeed('test')];
         final key = PdaCacheKey.fromSeeds(seeds, programId);
         final result = PdaDerivationEngine.findProgramAddress(seeds, programId);
 
@@ -181,14 +181,14 @@ void main() {
         expect(cache.get(key), isNotNull);
 
         // Wait for expiration
-        await Future.delayed(Duration(milliseconds: 60));
+        await Future.delayed(const Duration(milliseconds: 60));
 
         // Should be expired
         expect(cache.get(key), isNull);
       });
 
       test('should cleanup expired entries manually', () async {
-        final cache = PdaCache(maxAge: Duration(milliseconds: 50));
+        final cache = PdaCache(maxAge: const Duration(milliseconds: 50));
 
         // Add multiple entries
         for (int i = 0; i < 3; i++) {
@@ -202,7 +202,7 @@ void main() {
         expect(cache.size, equals(3));
 
         // Wait for expiration
-        await Future.delayed(Duration(milliseconds: 60));
+        await Future.delayed(const Duration(milliseconds: 60));
 
         // Manual cleanup
         final expiredCount = cache.cleanupExpired();
@@ -213,8 +213,8 @@ void main() {
 
     group('Cache Statistics', () {
       test('should track hits and misses', () {
-        final cache = PdaCache(enableStats: true);
-        final seeds = [StringSeed('test')];
+        final cache = PdaCache();
+        final seeds = [const StringSeed('test')];
         final key = PdaCacheKey.fromSeeds(seeds, programId);
         final result = PdaDerivationEngine.findProgramAddress(seeds, programId);
 
@@ -242,7 +242,7 @@ void main() {
       });
 
       test('should track evictions', () {
-        final cache = PdaCache(maxSize: 2, enableStats: true);
+        final cache = PdaCache(maxSize: 2);
 
         // Fill beyond capacity
         for (int i = 0; i < 3; i++) {
@@ -257,7 +257,7 @@ void main() {
       });
 
       test('should provide efficiency report', () {
-        final cache = PdaCache(enableStats: true);
+        final cache = PdaCache();
         final report = cache.efficiencyReport;
 
         expect(report, contains('PDA Cache Efficiency Report'));
@@ -305,18 +305,18 @@ void main() {
         final cache = PdaCache();
 
         // Add first entry
-        final seeds1 = [StringSeed('test1')];
+        final seeds1 = [const StringSeed('test1')];
         final key1 = PdaCacheKey.fromSeeds(seeds1, programId);
         final result1 =
             PdaDerivationEngine.findProgramAddress(seeds1, programId);
         cache.put(key1, result1);
 
         // Wait a bit
-        await Future.delayed(Duration(milliseconds: 20));
+        await Future.delayed(const Duration(milliseconds: 20));
         final cutoff = DateTime.now();
 
         // Add second entry
-        final seeds2 = [StringSeed('test2')];
+        final seeds2 = [const StringSeed('test2')];
         final key2 = PdaCacheKey.fromSeeds(seeds2, programId);
         final result2 =
             PdaDerivationEngine.findProgramAddress(seeds2, programId);
@@ -355,7 +355,7 @@ void main() {
         final globalCache = getGlobalPdaCache();
 
         // Add entry to global cache
-        final seeds = [StringSeed('global_test')];
+        final seeds = [const StringSeed('global_test')];
         final key = PdaCacheKey.fromSeeds(seeds, programId);
         final result = PdaDerivationEngine.findProgramAddress(seeds, programId);
         globalCache.put(key, result);
@@ -369,7 +369,7 @@ void main() {
 
     group('Cache Performance', () {
       test('should handle large number of entries efficiently', () {
-        final cache = PdaCache(maxSize: 1000);
+        final cache = PdaCache();
         final stopwatch = Stopwatch()..start();
 
         // Add many entries
@@ -389,7 +389,7 @@ void main() {
       });
 
       test('should maintain O(1) access performance', () {
-        final cache = PdaCache(maxSize: 1000);
+        final cache = PdaCache();
 
         // Fill cache with many entries
         final keys = <PdaCacheKey>[];

@@ -6,8 +6,8 @@
 library;
 
 import 'dart:typed_data';
-import '../external/encoding_wrapper.dart';
-import '../crypto/solana_crypto.dart';
+import 'package:coral_xyz_anchor/src/external/encoding_wrapper.dart';
+import 'package:coral_xyz_anchor/src/crypto/solana_crypto.dart';
 
 export '../crypto/solana_crypto.dart' show PdaResult;
 
@@ -17,9 +17,6 @@ export '../crypto/solana_crypto.dart' show PdaResult;
 /// including validation, serialization, and utility functions for
 /// common operations like PDA derivation.
 class PublicKey {
-  static const int publicKeyLength = 32;
-
-  final Uint8List _bytes;
 
   /// Creates a PublicKey from a 32-byte array
   PublicKey._(this._bytes) {
@@ -46,9 +43,6 @@ class PublicKey {
     return PublicKey._(Uint8List.fromList(bytes));
   }
 
-  /// Get the raw bytes of the public key
-  Uint8List toBytes() => _bytes;
-
   /// Creates a PublicKey from a hex string
   factory PublicKey.fromHex(String hex) {
     // Remove 0x prefix if present
@@ -68,6 +62,12 @@ class PublicKey {
 
     return PublicKey._(bytes);
   }
+  static const int publicKeyLength = 32;
+
+  final Uint8List _bytes;
+
+  /// Get the raw bytes of the public key
+  Uint8List toBytes() => _bytes;
 
   /// The default public key (all zeros)
   static final PublicKey defaultPubkey = PublicKey._(
@@ -83,14 +83,10 @@ class PublicKey {
   Uint8List get bytes => Uint8List.fromList(_bytes);
 
   /// Convert to base58 string representation
-  String toBase58() {
-    return EncodingWrapper.encodeBase58(_bytes);
-  }
+  String toBase58() => EncodingWrapper.encodeBase58(_bytes);
 
   /// Convert to hex string representation
-  String toHex() {
-    return _bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
-  }
+  String toHex() => _bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Check if this public key equals another
   @override
@@ -119,9 +115,7 @@ class PublicKey {
   String toString() => toBase58();
 
   /// Check if this is the default public key (all zeros)
-  bool get isDefault {
-    return _bytes.every((byte) => byte == 0);
-  }
+  bool get isDefault => _bytes.every((byte) => byte == 0);
 
   /// Validate that a string is a valid base58 public key
   static bool isValidBase58(String address) {
@@ -191,10 +185,10 @@ class PublicKey {
 
 /// Result of a PDA (Program Derived Address) operation
 class PdaResult {
-  final PublicKey address;
-  final int bump;
 
   const PdaResult(this.address, this.bump);
+  final PublicKey address;
+  final int bump;
 
   @override
   String toString() => 'PdaResult(address: $address, bump: $bump)';

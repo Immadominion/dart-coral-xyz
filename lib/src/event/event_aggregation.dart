@@ -2,6 +2,7 @@
 ///
 /// This module provides advanced event aggregation capabilities,
 /// processing pipelines, and event-driven programming patterns.
+library;
 
 import 'dart:async';
 import 'dart:collection';
@@ -9,6 +10,10 @@ import 'dart:math' as math;
 
 /// Event aggregation service
 class EventAggregationService {
+
+  EventAggregationService({this.config = const EventAggregationConfig()}) {
+    _startProcessing();
+  }
   final EventAggregationConfig config;
   final Map<String, EventAggregator> _aggregators = {};
   final Map<String, StreamController<AggregatedEvent>> _aggregationStreams = {};
@@ -16,10 +21,6 @@ class EventAggregationService {
 
   Timer? _processingTimer;
   Timer? _flushTimer;
-
-  EventAggregationService({this.config = const EventAggregationConfig()}) {
-    _startProcessing();
-  }
 
   /// Register an aggregator for specific event types
   void registerAggregator(String eventPattern, EventAggregator aggregator) {
@@ -32,7 +33,7 @@ class EventAggregationService {
     final controller = _aggregationStreams[eventPattern];
     if (controller == null) {
       throw ArgumentError(
-          'No aggregator registered for pattern: $eventPattern');
+          'No aggregator registered for pattern: $eventPattern',);
     }
     return controller.stream;
   }
@@ -55,19 +56,17 @@ class EventAggregationService {
 
   /// Create a time-based aggregation window
   StreamTransformer<ProcessedEvent, List<ProcessedEvent>> timeWindow(
-      Duration window) {
-    return StreamTransformer.fromHandlers(
+      Duration window,) => StreamTransformer.fromHandlers(
       handleData: (event, sink) {
         // Implementation of time-based windowing
         // This would collect events over the specified time window
       },
     );
-  }
 
   /// Create a count-based aggregation window
   StreamTransformer<ProcessedEvent, List<ProcessedEvent>> countWindow(
-      int count) {
-    var buffer = <ProcessedEvent>[];
+      int count,) {
+    final buffer = <ProcessedEvent>[];
 
     return StreamTransformer.fromHandlers(
       handleData: (event, sink) {
@@ -157,15 +156,15 @@ class EventAggregationService {
 
 /// Event processing pipeline
 class EventProcessingPipeline {
+
+  EventProcessingPipeline() {
+    _subscription = _inputController.stream.listen(_processEvent);
+  }
   final List<EventPipelineProcessor> _processors = [];
   final StreamController<ProcessedEvent> _inputController = StreamController();
   final StreamController<ProcessedEvent> _outputController =
       StreamController.broadcast();
   late final StreamSubscription _subscription;
-
-  EventProcessingPipeline() {
-    _subscription = _inputController.stream.listen(_processEvent);
-  }
 
   /// Add a processor to the pipeline
   void addProcessor(EventPipelineProcessor processor) {
@@ -268,10 +267,10 @@ class CountAggregator extends EventAggregator {
 
 /// Sum-based event aggregator
 class SumAggregator extends EventAggregator {
-  final String fieldName;
-  double _sum = 0.0;
 
   SumAggregator({required this.fieldName});
+  final String fieldName;
+  double _sum = 0;
 
   @override
   AggregatedEvent? aggregate(List<ProcessedEvent> events) {
@@ -315,10 +314,10 @@ class SumAggregator extends EventAggregator {
 
 /// Average-based event aggregator
 class AverageAggregator extends EventAggregator {
-  final String fieldName;
-  final List<double> _values = [];
 
   AverageAggregator({required this.fieldName});
+  final String fieldName;
+  final List<double> _values = [];
 
   @override
   AggregatedEvent? aggregate(List<ProcessedEvent> events) {
@@ -374,33 +373,29 @@ abstract class EventPipelineProcessor {
 
 /// Filter processor that removes events based on criteria
 class FilterProcessor extends EventPipelineProcessor {
-  final bool Function(ProcessedEvent) predicate;
 
   FilterProcessor(this.predicate);
+  final bool Function(ProcessedEvent) predicate;
 
   @override
-  Future<ProcessedEvent?> process(ProcessedEvent event) async {
-    return predicate(event) ? event : null;
-  }
+  Future<ProcessedEvent?> process(ProcessedEvent event) async => predicate(event) ? event : null;
 }
 
 /// Transform processor that modifies event data
 class TransformProcessor extends EventPipelineProcessor {
-  final ProcessedEvent Function(ProcessedEvent) transformer;
 
   TransformProcessor(this.transformer);
+  final ProcessedEvent Function(ProcessedEvent) transformer;
 
   @override
-  Future<ProcessedEvent?> process(ProcessedEvent event) async {
-    return transformer(event);
-  }
+  Future<ProcessedEvent?> process(ProcessedEvent event) async => transformer(event);
 }
 
 /// Enrichment processor that adds metadata to events
 class EnrichmentProcessor extends EventPipelineProcessor {
-  final Map<String, dynamic> Function(ProcessedEvent) enricher;
 
   EnrichmentProcessor(this.enricher);
+  final Map<String, dynamic> Function(ProcessedEvent) enricher;
 
   @override
   Future<ProcessedEvent?> process(ProcessedEvent event) async {
@@ -416,10 +411,6 @@ class EnrichmentProcessor extends EventPipelineProcessor {
 
 /// Processed event with metadata
 class ProcessedEvent {
-  final String eventName;
-  final dynamic data;
-  final DateTime timestamp;
-  final Map<String, dynamic> metadata;
 
   const ProcessedEvent({
     required this.eventName,
@@ -427,29 +418,26 @@ class ProcessedEvent {
     required this.timestamp,
     this.metadata = const {},
   });
+  final String eventName;
+  final dynamic data;
+  final DateTime timestamp;
+  final Map<String, dynamic> metadata;
 
   ProcessedEvent copyWith({
     String? eventName,
     dynamic data,
     DateTime? timestamp,
     Map<String, dynamic>? metadata,
-  }) {
-    return ProcessedEvent(
+  }) => ProcessedEvent(
       eventName: eventName ?? this.eventName,
       data: data ?? this.data,
       timestamp: timestamp ?? this.timestamp,
       metadata: metadata ?? this.metadata,
     );
-  }
 }
 
 /// Aggregated event result
 class AggregatedEvent {
-  final AggregationType type;
-  final Map<String, dynamic> data;
-  final int eventCount;
-  final Duration timeWindow;
-  final DateTime timestamp;
 
   const AggregatedEvent({
     required this.type,
@@ -458,15 +446,15 @@ class AggregatedEvent {
     required this.timeWindow,
     required this.timestamp,
   });
+  final AggregationType type;
+  final Map<String, dynamic> data;
+  final int eventCount;
+  final Duration timeWindow;
+  final DateTime timestamp;
 }
 
 /// Event aggregation configuration
 class EventAggregationConfig {
-  final Duration processingInterval;
-  final Duration flushInterval;
-  final int maxBufferSize;
-  final bool enableTimeWindows;
-  final bool enableCountWindows;
 
   const EventAggregationConfig({
     this.processingInterval = const Duration(seconds: 1),
@@ -487,6 +475,11 @@ class EventAggregationConfig {
         flushInterval: Duration(minutes: 1),
         maxBufferSize: 10000,
       );
+  final Duration processingInterval;
+  final Duration flushInterval;
+  final int maxBufferSize;
+  final bool enableTimeWindows;
+  final bool enableCountWindows;
 }
 
 /// Aggregation types

@@ -24,7 +24,7 @@ void main() {
       // Create mock IDL for testing
       final mockIdl = Idl(
         address: programAccount.publicKey.toBase58(),
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'test_program',
           version: '0.1.0',
           spec: '0.1.0',
@@ -35,15 +35,13 @@ void main() {
             docs: ['Initialize the program'],
             discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
             accounts: [
-              IdlInstructionAccount(
+              const IdlInstructionAccount(
                 name: 'user',
                 writable: true,
                 signer: true,
               ),
-              IdlInstructionAccount(
+              const IdlInstructionAccount(
                 name: 'program',
-                writable: false,
-                signer: false,
               ),
             ],
             args: [
@@ -74,7 +72,7 @@ void main() {
 
       // Test basic program properties
       expect(program.programId.toBase58(),
-          equals(programAccount.publicKey.toBase58()));
+          equals(programAccount.publicKey.toBase58()),);
       expect(program.provider, equals(env.provider));
 
       // Test namespace access
@@ -98,7 +96,7 @@ void main() {
 
       // Test account assertion helpers
       expectAnchorAccount(createdData,
-          expectedName: 'test_account', expectedLamports: 1000);
+          expectedName: 'test_account', expectedLamports: 1000,);
     });
 
     test('instruction building and transaction flow', () async {
@@ -137,7 +135,7 @@ void main() {
       // Create mock IDL
       final mockIdl = Idl(
         address: 'TestProgram111111111111111111111111111111',
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'test_coder_program',
           version: '0.1.0',
           spec: '0.1.0',
@@ -179,7 +177,7 @@ void main() {
 
       expect(instructionData, isNotNull);
       expect(instructionData.length,
-          greaterThan(8)); // Should include discriminator
+          greaterThan(8),); // Should include discriminator
 
       // Test account encoding
       final accountData = await coder.accounts.encode('TestAccount', {
@@ -188,7 +186,7 @@ void main() {
 
       expect(accountData, isNotNull);
       expect(
-          accountData.length, greaterThan(8)); // Should include discriminator
+          accountData.length, greaterThan(8),); // Should include discriminator
 
       // Test decoding
       final decodedAccount = coder.accounts.decode('TestAccount', accountData);
@@ -216,13 +214,11 @@ void main() {
 Map<String, dynamic> createTestAccountData({
   required String name,
   required int lamports,
-}) {
-  return {
+}) => {
     'name': name,
     'lamports': lamports,
     'timestamp': DateTime.now().millisecondsSinceEpoch,
   };
-}
 
 /// Helper assertion for account data
 void expectAnchorAccount(

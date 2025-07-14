@@ -5,11 +5,11 @@
 
 library;
 
-import '../lib/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 void demonstrateTypescriptCompatibility() {
   // Create a sample IDL (like you'd load from a JSON file)
-  final idl = Idl(
+  final idl = const Idl(
     address: 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS',
     metadata: IdlMetadata(
       name: 'demo_program',
@@ -23,10 +23,10 @@ void demonstrateTypescriptCompatibility() {
         accounts: [
           IdlInstructionAccount(name: 'user', writable: true, signer: true),
           IdlInstructionAccount(
-              name: 'systemProgram', writable: false, signer: false),
+              name: 'systemProgram',),
         ],
         args: [
-          IdlField(name: 'value', type: const IdlType(kind: 'u64')),
+          IdlField(name: 'value', type: IdlType(kind: 'u64')),
         ],
       ),
       IdlInstruction(
@@ -34,12 +34,12 @@ void demonstrateTypescriptCompatibility() {
         discriminator: [129, 25, 88, 69, 104, 200, 15, 164],
         accounts: [
           IdlInstructionAccount(
-              name: 'dataAccount', writable: true, signer: false),
+              name: 'dataAccount', writable: true,),
           IdlInstructionAccount(
-              name: 'authority', writable: false, signer: true),
+              name: 'authority', signer: true,),
         ],
         args: [
-          IdlField(name: 'newValue', type: const IdlType(kind: 'string')),
+          IdlField(name: 'newValue', type: IdlType(kind: 'string')),
         ],
       ),
     ],
@@ -95,9 +95,9 @@ void demonstrateTypescriptCompatibility() {
   // Example 3: Complete fluent chain
   print('3. Complete Fluent Chain (TypeScript-compatible):');
   print(
-      '   TypeScript: program.methods.initialize(42).accounts({...}).signers([])');
+      '   TypeScript: program.methods.initialize(42).accounts({...}).signers([])',);
   print(
-      '   Dart:       program.methods.initialize([42]).accounts({...}).signers([])');
+      '   Dart:       program.methods.initialize([42]).accounts({...}).signers([])',);
   print('');
 
   try {
@@ -125,7 +125,7 @@ void demonstrateTypescriptCompatibility() {
   print('   Contains "initialize": ${program.methods.contains("initialize")}');
   print('   Contains "updateData": ${program.methods.contains("updateData")}');
   print(
-      '   Contains "nonExistent": ${program.methods.contains("nonExistent")}');
+      '   Contains "nonExistent": ${program.methods.contains("nonExistent")}',);
   print('');
 
   // Example 5: Error handling
@@ -145,7 +145,7 @@ void demonstrateTypescriptCompatibility() {
   final builder1 = methods.initialize([100]);
   final builder2 = methods.initialize([200]);
   print(
-      '   Builder 1 and Builder 2 are different instances: ${!identical(builder1, builder2)}');
+      '   Builder 1 and Builder 2 are different instances: ${!identical(builder1, builder2)}',);
   print('   ✅ Each method call creates a fresh builder (TypeScript behavior)');
   print('');
 
@@ -159,7 +159,7 @@ void demonstrateTypescriptCompatibility() {
   print('   ✅ Method introspection and validation');
   print('');
   print(
-      '🎯 The Dart SDK now provides the same developer experience as TypeScript!');
+      '🎯 The Dart SDK now provides the same developer experience as TypeScript!',);
 }
 
 void main() {

@@ -5,31 +5,11 @@
 /// support for complex ownership patterns, edge cases, and detailed error context.
 library;
 
-import '../types/public_key.dart';
-import '../provider/connection.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
 
 /// Result of account ownership validation
 class AccountOwnershipValidationResult {
-  /// Whether the account passes ownership validation
-  final bool isValid;
-
-  /// Detailed error message if validation fails
-  final String? errorMessage;
-
-  /// The expected program ID that should own the account
-  final PublicKey? expectedOwner;
-
-  /// The actual owner of the account
-  final PublicKey? actualOwner;
-
-  /// The account address being validated
-  final PublicKey accountAddress;
-
-  /// Whether the account exists on-chain
-  final bool accountExists;
-
-  /// Additional validation context
-  final Map<String, dynamic>? context;
 
   const AccountOwnershipValidationResult({
     required this.isValid,
@@ -75,6 +55,26 @@ class AccountOwnershipValidationResult {
       context: context,
     );
   }
+  /// Whether the account passes ownership validation
+  final bool isValid;
+
+  /// Detailed error message if validation fails
+  final String? errorMessage;
+
+  /// The expected program ID that should own the account
+  final PublicKey? expectedOwner;
+
+  /// The actual owner of the account
+  final PublicKey? actualOwner;
+
+  /// The account address being validated
+  final PublicKey accountAddress;
+
+  /// Whether the account exists on-chain
+  final bool accountExists;
+
+  /// Additional validation context
+  final Map<String, dynamic>? context;
 
   @override
   String toString() {
@@ -92,18 +92,25 @@ class AccountOwnershipValidationResult {
 
 /// Exception thrown when account ownership validation fails
 class AccountOwnershipValidationException implements Exception {
-  final AccountOwnershipValidationResult result;
 
   const AccountOwnershipValidationException(this.result);
+  final AccountOwnershipValidationResult result;
 
   @override
-  String toString() {
-    return 'AccountOwnershipValidationException: ${result.errorMessage}';
-  }
+  String toString() => 'AccountOwnershipValidationException: ${result.errorMessage}';
 }
 
 /// Configuration for account ownership validation
 class AccountOwnershipValidationConfig {
+
+  const AccountOwnershipValidationConfig({
+    this.allowSystemOwned = false,
+    this.allowTokenProgramOwned = false,
+    this.customAllowedOwners = const {},
+    this.strictValidation = true,
+    this.bypassValidation = false,
+    this.includeContext = true,
+  });
   /// Whether to allow system-owned accounts (rare edge case)
   final bool allowSystemOwned;
 
@@ -122,19 +129,9 @@ class AccountOwnershipValidationConfig {
   /// Whether to include detailed validation context
   final bool includeContext;
 
-  const AccountOwnershipValidationConfig({
-    this.allowSystemOwned = false,
-    this.allowTokenProgramOwned = false,
-    this.customAllowedOwners = const {},
-    this.strictValidation = true,
-    this.bypassValidation = false,
-    this.includeContext = true,
-  });
-
   /// Default configuration for strict validation
   static const AccountOwnershipValidationConfig strict =
       AccountOwnershipValidationConfig(
-    strictValidation: true,
     bypassValidation: false,
   );
 
@@ -507,11 +504,9 @@ class AccountOwnershipValidator {
   }
 
   /// Check if a program ID represents a well-known system program
-  static bool isWellKnownProgram(PublicKey programId) {
-    return programId == systemProgramId ||
+  static bool isWellKnownProgram(PublicKey programId) => programId == systemProgramId ||
         programId == tokenProgramId ||
         programId == token2022ProgramId;
-  }
 
   /// Get a human-readable name for well-known programs
   static String? getWellKnownProgramName(PublicKey programId) {

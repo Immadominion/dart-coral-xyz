@@ -2,9 +2,17 @@
 ///
 /// This file provides additional types needed for the event system integration
 /// in the Program class.
+library;
 
 /// Event statistics data
 class EventStats {
+
+  const EventStats({
+    required this.totalEvents,
+    required this.parseErrors,
+    required this.lastEventSlot,
+    this.lastEventTime,
+  });
   /// Total number of events received
   final int totalEvents;
 
@@ -16,13 +24,6 @@ class EventStats {
 
   /// Time of the last event received
   final DateTime? lastEventTime;
-
-  const EventStats({
-    required this.totalEvents,
-    required this.parseErrors,
-    required this.lastEventSlot,
-    this.lastEventTime,
-  });
 }
 
 /// WebSocket connection state
@@ -42,6 +43,12 @@ enum WebSocketState {
 
 /// Configuration for event persistence
 class EventPersistenceConfig {
+
+  const EventPersistenceConfig({
+    this.storageDirectory,
+    this.enableCompression = true,
+    this.maxFileSize = 10 * 1024 * 1024, // 10MB default
+  });
   /// Directory to store events
   final String? storageDirectory;
 
@@ -50,44 +57,44 @@ class EventPersistenceConfig {
 
   /// Maximum file size in bytes before rotation
   final int maxFileSize;
-
-  const EventPersistenceConfig({
-    this.storageDirectory,
-    this.enableCompression = true,
-    this.maxFileSize = 10 * 1024 * 1024, // 10MB default
-  });
 }
 
 /// Configuration for event monitoring
 class EventMonitorConfig {
-  /// Log level for event monitoring
-  final String logLevel;
-
-  /// Whether to capture event history
-  final bool captureHistory;
 
   const EventMonitorConfig({
     this.logLevel = 'info',
     this.captureHistory = true,
   });
+  /// Log level for event monitoring
+  final String logLevel;
+
+  /// Whether to capture event history
+  final bool captureHistory;
 }
 
 /// Configuration for event aggregation
 class EventAggregationConfig {
-  /// Maximum number of events to aggregate
-  final int maxEvents;
-
-  /// Whether to enable automatic pruning
-  final bool enablePruning;
 
   const EventAggregationConfig({
     this.maxEvents = 1000,
     this.enablePruning = true,
   });
+  /// Maximum number of events to aggregate
+  final int maxEvents;
+
+  /// Whether to enable automatic pruning
+  final bool enablePruning;
 }
 
 /// Statistics from event persistence
 class EventPersistenceStats {
+
+  const EventPersistenceStats({
+    required this.eventsStored,
+    required this.eventsRetrieved,
+    required this.storageSizeBytes,
+  });
   /// Number of events stored
   final int eventsStored;
 
@@ -96,16 +103,16 @@ class EventPersistenceStats {
 
   /// Total storage size in bytes
   final int storageSizeBytes;
-
-  const EventPersistenceStats({
-    required this.eventsStored,
-    required this.eventsRetrieved,
-    required this.storageSizeBytes,
-  });
 }
 
 /// Statistics from event monitoring
 class EventMonitoringStats {
+
+  const EventMonitoringStats({
+    required this.eventsMonitored,
+    required this.alertsTriggered,
+    this.mostCommonEvent,
+  });
   /// Number of events monitored
   final int eventsMonitored;
 
@@ -114,16 +121,16 @@ class EventMonitoringStats {
 
   /// Most common event type
   final String? mostCommonEvent;
-
-  const EventMonitoringStats({
-    required this.eventsMonitored,
-    required this.alertsTriggered,
-    this.mostCommonEvent,
-  });
 }
 
 /// Aggregated event data
 class AggregatedEvent {
+
+  const AggregatedEvent({
+    required this.name,
+    required this.count,
+    required this.data,
+  });
   /// Event name
   final String name;
 
@@ -132,16 +139,16 @@ class AggregatedEvent {
 
   /// Aggregated data
   final Map<String, dynamic> data;
-
-  const AggregatedEvent({
-    required this.name,
-    required this.count,
-    required this.data,
-  });
 }
 
 /// Event processing pipeline
 class EventProcessingPipeline {
+
+  const EventProcessingPipeline({
+    required this.id,
+    required this.processors,
+    required this.isActive,
+  });
   /// Pipeline ID
   final String id;
 
@@ -150,10 +157,4 @@ class EventProcessingPipeline {
 
   /// Whether the pipeline is active
   final bool isActive;
-
-  const EventProcessingPipeline({
-    required this.id,
-    required this.processors,
-    required this.isActive,
-  });
 }

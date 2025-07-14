@@ -2,18 +2,13 @@
 ///
 /// This test verifies that MethodBuilder correctly generates type-safe
 /// method interfaces from IDL definitions.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 /// Mock AccountsResolver for testing
 class MockAccountsResolver {
-  final List<dynamic> args;
-  final Map<String, dynamic> accounts;
-  final AnchorProvider provider;
-  final PublicKey programId;
-  final IdlInstruction idlInstruction;
-  final List<IdlTypeDef> idlTypes;
 
   MockAccountsResolver({
     required this.args,
@@ -23,10 +18,14 @@ class MockAccountsResolver {
     required this.idlInstruction,
     required this.idlTypes,
   });
+  final List<dynamic> args;
+  final Map<String, dynamic> accounts;
+  final AnchorProvider provider;
+  final PublicKey programId;
+  final IdlInstruction idlInstruction;
+  final List<IdlTypeDef> idlTypes;
 
-  Future<Map<String, PublicKey>> resolve() async {
-    return accounts.map((key, value) => MapEntry(key, value as PublicKey));
-  }
+  Future<Map<String, PublicKey>> resolve() async => accounts.map((key, value) => MapEntry(key, value as PublicKey));
 }
 
 void main() {
@@ -107,7 +106,7 @@ void main() {
         61,
         62,
         63,
-        64
+        64,
       ]);
       provider = AnchorProvider(connection, wallet);
 
@@ -116,10 +115,9 @@ void main() {
         name: 'testMethod',
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
         accounts: [
-          IdlInstructionAccount(
+          const IdlInstructionAccount(
             name: 'testAccount',
             writable: true,
-            signer: false,
           ),
         ],
         args: [
@@ -137,7 +135,7 @@ void main() {
       // Create test IDL
       final idl = Idl(
         address: programId.toBase58(),
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'test-program',
           version: '0.1.0',
           spec: '0.1.0',
@@ -208,7 +206,7 @@ void main() {
     test('supports method generation from IDL structures', () {
       // Test that IDL instruction structures can be dynamically created
       final instructions = [
-        IdlInstruction(
+        const IdlInstruction(
           name: 'initialize',
           discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
           accounts: [],
@@ -225,7 +223,7 @@ void main() {
             ),
           ],
         ),
-        IdlInstruction(
+        const IdlInstruction(
           name: 'close',
           discriminator: [3, 4, 5, 6, 7, 8, 9, 10],
           accounts: [],

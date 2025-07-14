@@ -6,34 +6,23 @@
 
 library;
 
-import '../idl/idl.dart';
-import '../types/public_key.dart';
-import '../provider/anchor_provider.dart';
-import '../coder/main_coder.dart';
-import 'namespace/account_namespace.dart';
-import 'namespace/instruction_namespace.dart';
-import 'namespace/transaction_namespace.dart';
-import 'namespace/rpc_namespace.dart';
-import 'namespace/simulate_namespace.dart';
-import 'type_safe_method_builder.dart';
-import 'method_validator.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/type_safe_method_builder.dart';
+import 'package:coral_xyz_anchor/src/program/method_validator.dart';
 
 /// Generates type-safe method interfaces from IDL instructions
 ///
 /// This class automatically creates method builders and validators for each
 /// instruction in an IDL, providing TypeScript-like method access patterns.
 class MethodInterfaceGenerator {
-  final Idl _idl;
-  final AnchorProvider _provider;
-  final PublicKey _programId;
-  final Coder _coder;
-
-  // Namespace dependencies
-  final InstructionNamespace _instructionNamespace;
-  final TransactionNamespace _transactionNamespace;
-  final RpcNamespace _rpcNamespace;
-  final SimulateNamespace _simulateNamespace;
-  final AccountNamespace _accountNamespace;
 
   MethodInterfaceGenerator({
     required Idl idl,
@@ -54,6 +43,17 @@ class MethodInterfaceGenerator {
         _rpcNamespace = rpcNamespace,
         _simulateNamespace = simulateNamespace,
         _accountNamespace = accountNamespace;
+  final Idl _idl;
+  final AnchorProvider _provider;
+  final PublicKey _programId;
+  final Coder _coder;
+
+  // Namespace dependencies
+  final InstructionNamespace _instructionNamespace;
+  final TransactionNamespace _transactionNamespace;
+  final RpcNamespace _rpcNamespace;
+  final SimulateNamespace _simulateNamespace;
+  final AccountNamespace _accountNamespace;
 
   /// Generate all method interfaces for the IDL
   ///
@@ -157,10 +157,10 @@ class MethodInterfaceGenerator {
           .map((arg) => _generateExampleValue(arg.type))
           .join(', ');
       buffer.writeln(
-          '/// final result = await program.methods.${instruction.name}([$argsList])');
+          '/// final result = await program.methods.${instruction.name}([$argsList])',);
     } else {
       buffer.writeln(
-          '/// final result = await program.methods.${instruction.name}()');
+          '/// final result = await program.methods.${instruction.name}()',);
     }
     buffer.writeln('///     .accounts({...})');
     buffer.writeln('///     .rpc();');
@@ -269,19 +269,19 @@ class MethodInterfaceGenerator {
       // Validate instruction name follows Dart naming conventions
       if (!_isValidDartMethodName(instruction.name)) {
         warnings.add(
-            'Instruction name "${instruction.name}" may not follow Dart naming conventions');
+            'Instruction name "${instruction.name}" may not follow Dart naming conventions',);
       }
 
       // Validate arguments
       for (final arg in instruction.args) {
         if (arg.name.isEmpty) {
           errors.add(
-              'Argument in instruction "${instruction.name}" has empty name');
+              'Argument in instruction "${instruction.name}" has empty name',);
         }
 
         if (!_isValidDartParameterName(arg.name)) {
           warnings.add(
-              'Argument name "${arg.name}" in "${instruction.name}" may not follow Dart naming conventions');
+              'Argument name "${arg.name}" in "${instruction.name}" may not follow Dart naming conventions',);
         }
       }
 
@@ -289,12 +289,12 @@ class MethodInterfaceGenerator {
       for (final account in instruction.accounts) {
         if (account.name.isEmpty) {
           errors.add(
-              'Account in instruction "${instruction.name}" has empty name');
+              'Account in instruction "${instruction.name}" has empty name',);
         }
 
         if (!_isValidDartParameterName(account.name)) {
           warnings.add(
-              'Account name "${account.name}" in "${instruction.name}" may not follow Dart naming conventions');
+              'Account name "${account.name}" in "${instruction.name}" may not follow Dart naming conventions',);
         }
       }
     }
@@ -327,7 +327,7 @@ class MethodInterfaceGenerator {
     if (name.isEmpty) return false;
 
     // Check if starts with letter or underscore
-    if (!RegExp(r'^[a-zA-Z_]').hasMatch(name)) return false;
+    if (!RegExp('^[a-zA-Z_]').hasMatch(name)) return false;
 
     // Check if contains only valid characters
     if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(name)) return false;
@@ -392,7 +392,7 @@ class MethodInterfaceGenerator {
       'void',
       'while',
       'with',
-      'yield'
+      'yield',
     };
 
     return !dartKeywords.contains(name);
@@ -406,15 +406,15 @@ class MethodInterfaceGenerator {
 
 /// Result of method interface validation
 class ValidationResult {
-  final bool isValid;
-  final List<String> errors;
-  final List<String> warnings;
 
   const ValidationResult({
     required this.isValid,
     required this.errors,
     required this.warnings,
   });
+  final bool isValid;
+  final List<String> errors;
+  final List<String> warnings;
 
   @override
   String toString() {

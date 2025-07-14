@@ -8,8 +8,8 @@ library;
 
 import 'dart:typed_data';
 import 'dart:convert';
-import '../types/public_key.dart';
-import '../idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Address utilities for Solana and Anchor programs
 class AddressUtils {
@@ -19,9 +19,7 @@ class AddressUtils {
   /// Convert a string to bytes for use as a PDA seed
   ///
   /// This converts a string to UTF-8 bytes for use in PDA derivation.
-  static Uint8List stringToSeedBytes(String seed) {
-    return Uint8List.fromList(utf8.encode(seed));
-  }
+  static Uint8List stringToSeedBytes(String seed) => Uint8List.fromList(utf8.encode(seed));
 
   /// Convert an integer to bytes for use as a PDA seed
   ///
@@ -88,9 +86,7 @@ class AddressUtils {
   }
 
   /// Convert multiple seeds to byte arrays
-  static List<Uint8List> toSeedBytesList(List<dynamic> seeds) {
-    return seeds.map(toSeedBytes).toList();
-  }
+  static List<Uint8List> toSeedBytesList(List<dynamic> seeds) => seeds.map(toSeedBytes).toList();
 
   /// Derive a PDA from seeds and program ID
   ///
@@ -144,7 +140,7 @@ class AddressUtils {
         return PublicKey.fromBase58(account).bytes;
       } else {
         throw ArgumentError(
-            'Invalid account type for seed: ${account.runtimeType}');
+            'Invalid account type for seed: ${account.runtimeType}',);
       }
     } else {
       throw ArgumentError('Unknown seed type: ${seed.runtimeType}');
@@ -179,14 +175,10 @@ class AddressValidator {
   }
 
   /// Check if an address is the system program
-  static bool isSystemProgram(PublicKey address) {
-    return address == PublicKey.systemProgram;
-  }
+  static bool isSystemProgram(PublicKey address) => address == PublicKey.systemProgram;
 
   /// Check if an address is the default (all zeros) address
-  static bool isDefaultAddress(PublicKey address) {
-    return address == PublicKey.defaultPubkey;
-  }
+  static bool isDefaultAddress(PublicKey address) => address == PublicKey.defaultPubkey;
 
   /// Validate that an address matches expected PDA derivation
   ///
@@ -214,7 +206,7 @@ class AddressValidator {
   }) async {
     try {
       final result = await AddressUtils.derivePdaFromIdl(pdaSpec, programId,
-          context: context);
+          context: context,);
       return result.address == address;
     } catch (e) {
       return false;
@@ -248,13 +240,11 @@ class AddressFormatter {
     PublicKey address, {
     int prefixLength = 4,
     int suffixLength = 4,
-  }) {
-    return shortenAddress(
+  }) => shortenAddress(
       address.toBase58(),
       prefixLength: prefixLength,
       suffixLength: suffixLength,
     );
-  }
 
   /// Format an address for display with optional shortening
   static String formatAddress(
@@ -353,42 +343,30 @@ class SeedGenerator {
   /// Generate seeds for a user account PDA
   ///
   /// Common pattern: `["user", user_pubkey]`
-  static List<dynamic> userSeeds(PublicKey userPubkey) {
-    return ['user', userPubkey];
-  }
+  static List<dynamic> userSeeds(PublicKey userPubkey) => ['user', userPubkey];
 
   /// Generate seeds for a token account PDA
   ///
   /// Common pattern: `["token", mint_pubkey, owner_pubkey]`
-  static List<dynamic> tokenAccountSeeds(PublicKey mint, PublicKey owner) {
-    return ['token', mint, owner];
-  }
+  static List<dynamic> tokenAccountSeeds(PublicKey mint, PublicKey owner) => ['token', mint, owner];
 
   /// Generate seeds for a metadata account
   ///
   /// Common pattern: `["metadata", program_id, mint_pubkey]`
-  static List<dynamic> metadataSeeds(PublicKey programId, PublicKey mint) {
-    return ['metadata', programId, mint];
-  }
+  static List<dynamic> metadataSeeds(PublicKey programId, PublicKey mint) => ['metadata', programId, mint];
 
   /// Generate seeds for a vault account
   ///
   /// Common pattern: `["vault", authority_pubkey]`
-  static List<dynamic> vaultSeeds(PublicKey authority) {
-    return ['vault', authority];
-  }
+  static List<dynamic> vaultSeeds(PublicKey authority) => ['vault', authority];
 
   /// Generate seeds for a numbered account
   ///
   /// Common pattern: `["account", number]`
-  static List<dynamic> numberedSeeds(String prefix, int number) {
-    return [prefix, number];
-  }
+  static List<dynamic> numberedSeeds(String prefix, int number) => [prefix, number];
 
   /// Generate seeds with custom prefix and dynamic components
-  static List<dynamic> customSeeds(String prefix, List<dynamic> components) {
-    return [prefix, ...components];
-  }
+  static List<dynamic> customSeeds(String prefix, List<dynamic> components) => [prefix, ...components];
 }
 
 /// Address format options

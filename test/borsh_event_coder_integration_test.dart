@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
-import '../lib/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 void main() {
   group('BorshEventCoder Integration', () {
     test('should integrate with IDL event definitions', () {
       // Create a simple IDL with events
-      final idl = Idl(
+      final idl = const Idl(
         address: '11111111111111111111111111111111',
         metadata: IdlMetadata(
           name: 'test_program',
@@ -56,7 +56,7 @@ void main() {
     });
 
     test('should decode simple event correctly', () {
-      final idl = Idl(
+      final idl = const Idl(
         instructions: [], // Required but empty
         events: [
           IdlEvent(

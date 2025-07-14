@@ -69,7 +69,7 @@ void main() {
 
       test('should serialize array correctly', () {
         final serializer = BorshSerializer();
-        serializer.writeArray([1, 2, 3], (item) => serializer.writeU8(item));
+        serializer.writeArray([1, 2, 3], serializer.writeU8);
 
         final result = serializer.toBytes();
         // Length (3) as u32 little endian + items
@@ -80,9 +80,9 @@ void main() {
         final serializer = BorshSerializer();
 
         // Some(42)
-        serializer.writeOption(42, (value) => serializer.writeU8(value));
+        serializer.writeOption(42, serializer.writeU8);
         // None
-        serializer.writeOption<int>(null, (value) => serializer.writeU8(value));
+        serializer.writeOption<int>(null, serializer.writeU8);
 
         final result = serializer.toBytes();
         expect(result, equals([1, 42, 0])); // Some tag + value, None tag
@@ -126,7 +126,7 @@ void main() {
         final data = Uint8List.fromList([2]);
         final deserializer = BorshDeserializer(data);
 
-        expect(() => deserializer.readBool(), throwsA(isA<BorshException>()));
+        expect(deserializer.readBool, throwsA(isA<BorshException>()));
       });
 
       test('should deserialize string correctly', () {
@@ -148,7 +148,7 @@ void main() {
         final data = Uint8List.fromList([3, 0, 0, 0, 1, 2, 3]);
         final deserializer = BorshDeserializer(data);
 
-        final result = deserializer.readArray(() => deserializer.readU8());
+        final result = deserializer.readArray(deserializer.readU8);
         expect(result, equals([1, 2, 3]));
       });
 
@@ -156,10 +156,10 @@ void main() {
         final data = Uint8List.fromList([1, 42, 0]);
         final deserializer = BorshDeserializer(data);
 
-        final some = deserializer.readOption(() => deserializer.readU8());
+        final some = deserializer.readOption(deserializer.readU8);
         expect(some, equals(42));
 
-        final none = deserializer.readOption(() => deserializer.readU8());
+        final none = deserializer.readOption(deserializer.readU8);
         expect(none, isNull);
       });
 
@@ -167,10 +167,10 @@ void main() {
         final data = Uint8List.fromList([1]);
         final deserializer = BorshDeserializer(data);
 
-        expect(() => deserializer.readU16(), throwsA(isA<BorshException>()));
-        expect(() => deserializer.readU32(), throwsA(isA<BorshException>()));
+        expect(deserializer.readU16, throwsA(isA<BorshException>()));
+        expect(deserializer.readU32, throwsA(isA<BorshException>()));
         expect(() => deserializer.readFixedArray(5),
-            throwsA(isA<BorshException>()));
+            throwsA(isA<BorshException>()),);
       });
     });
 
@@ -266,10 +266,10 @@ void main() {
         // Create a complex structure
         serializer.writeString('test');
         serializer.writeU32(12345);
-        serializer.writeArray([1, 2, 3], (item) => serializer.writeU8(item));
+        serializer.writeArray([1, 2, 3], serializer.writeU8);
         serializer.writeBool(true);
         serializer.writeOption(
-            'optional', (value) => serializer.writeString(value));
+            'optional', serializer.writeString,);
 
         final serialized = serializer.toBytes();
 
@@ -278,11 +278,11 @@ void main() {
 
         expect(deserializer.readString(), equals('test'));
         expect(deserializer.readU32(), equals(12345));
-        expect(deserializer.readArray(() => deserializer.readU8()),
-            equals([1, 2, 3]));
+        expect(deserializer.readArray(deserializer.readU8),
+            equals([1, 2, 3]),);
         expect(deserializer.readBool(), equals(true));
         expect(
-          deserializer.readOption(() => deserializer.readString()),
+          deserializer.readOption(deserializer.readString),
           equals('optional'),
         );
       });

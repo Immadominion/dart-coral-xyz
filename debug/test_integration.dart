@@ -5,7 +5,7 @@ void main() {
   print('Testing BorshAccountsCoder import and basic usage...');
 
   try {
-    final idl = Idl(
+    final idl = const Idl(
       address: 'TestAddress',
       metadata: IdlMetadata(name: 'test', version: '1.0.0', spec: '0.1.0'),
       instructions: [],
@@ -14,7 +14,7 @@ void main() {
           name: 'TestAccount',
           type: IdlTypeDefType(kind: 'struct', fields: [
             IdlField(name: 'value', type: IdlType(kind: 'u64')),
-          ]),
+          ],),
         ),
       ],
     );

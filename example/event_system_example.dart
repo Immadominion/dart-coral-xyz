@@ -12,7 +12,7 @@ void main() async {
   final programId = PublicKey.fromBase58('11111111111111111111111111111112');
 
   // Create a sample IDL event definition
-  final transferEvent = IdlEvent(
+  final transferEvent = const IdlEvent(
     name: 'Transfer',
     fields: [
       IdlField(name: 'from', type: IdlType(kind: 'publicKey')),
@@ -22,7 +22,7 @@ void main() async {
   );
 
   // Create type definition for the event
-  final transferTypeDef = IdlTypeDef(
+  final transferTypeDef = const IdlTypeDef(
     name: 'Transfer',
     type: IdlTypeDefType(
       kind: 'struct',
@@ -37,7 +37,7 @@ void main() async {
   // Create a mock IDL with our event
   final idl = Idl(
     address: programId.toBase58(),
-    metadata: IdlMetadata(
+    metadata: const IdlMetadata(
       name: 'token_program',
       version: '0.1.0',
       spec: '0.1.0',
@@ -69,7 +69,7 @@ void main() async {
   final events = parser.parseLogs(sampleLogs);
   print('Parsed ${events.length} events from logs');
 
-  print('\\n=== Event Filtering ===');
+  print(r'\n=== Event Filtering ===');
 
   // Create event filters
   final transferFilter = EventFilter(
@@ -78,12 +78,12 @@ void main() async {
   );
 
   // Create a slot range filter (for demonstration)
-  final recentFilter = EventFilter(
+  final recentFilter = const EventFilter(
     minSlot: 1000,
     maxSlot: 2000,
   );
   print(
-      'Created slot range filter: ${recentFilter.minSlot} - ${recentFilter.maxSlot}');
+      'Created slot range filter: ${recentFilter.minSlot} - ${recentFilter.maxSlot}',);
 
   // Example usage of filtered listener
   print('Setting up filtered event listener...');
@@ -120,7 +120,7 @@ void main() async {
     ),
   ];
 
-  print('\\n=== Event Listener Examples ===');
+  print(r'\n=== Event Listener Examples ===');
 
   // Example 1: Simple event handler
   print('1. Simple event processing:');
@@ -131,7 +131,7 @@ void main() async {
   }
 
   // Example 2: Batched event processing
-  print('\\n2. Batched event processing:');
+  print(r'\n2. Batched event processing:');
   final batchedEvents = <ParsedEvent>[];
   for (final event in mockEvents) {
     batchedEvents.add(event);
@@ -144,15 +144,13 @@ void main() async {
     }
   }
 
-  print('\\n=== Event Configuration ===');
+  print(r'\n=== Event Configuration ===');
 
   // Example subscription configuration
-  final config = EventSubscriptionConfig(
-    commitment: CommitmentConfigs.confirmed,
+  final config = const EventSubscriptionConfig(
     includeFailed: false,
     maxBufferSize: 1000,
     reconnectTimeout: Duration(seconds: 30),
-    maxReconnectAttempts: 5,
   );
 
   print('Subscription config:');
@@ -161,7 +159,7 @@ void main() async {
   print('  Max buffer size: ${config.maxBufferSize}');
   print('  Reconnect timeout: ${config.reconnectTimeout}');
 
-  print('\\n=== Event Replay ===');
+  print(r'\n=== Event Replay ===');
 
   // Example replay configuration
   final replayConfig = EventReplayConfig(
@@ -169,7 +167,6 @@ void main() async {
     toSlot: 2000,
     maxEvents: 100,
     filter: transferFilter,
-    includeFailed: false,
   );
 
   print('Replay config:');
@@ -178,7 +175,7 @@ void main() async {
   print('  Max events: ${replayConfig.maxEvents}');
   print('  Include failed: ${replayConfig.includeFailed}');
 
-  print('\\n=== Event Stats ===');
+  print(r'\n=== Event Stats ===');
 
   // Example event statistics
   final stats = EventStats(
@@ -197,9 +194,9 @@ void main() async {
   print('  Filtered events: ${stats.filteredEvents}');
   print('  Events per second: ${stats.eventsPerSecond}');
 
-  print('\\n=== Event System Ready! ===');
+  print(r'\n=== Event System Ready! ===');
   print(
-      'The Dart Anchor event system is now fully implemented and ready to use.');
+      'The Dart Anchor event system is now fully implemented and ready to use.',);
   print(
-      'Connect to a real Solana RPC WebSocket endpoint to start listening for live events.');
+      'Connect to a real Solana RPC WebSocket endpoint to start listening for live events.',);
 }

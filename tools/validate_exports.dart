@@ -34,7 +34,7 @@ void main() async {
         directImports.add(file.path);
         break;
       } else if (line.trim().startsWith(
-          "import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'")) {
+          "import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'",)) {
         hasPublicImport = true;
       }
     }
@@ -69,7 +69,7 @@ void main() async {
     print('🎉 All test files are using the public API correctly!');
   } else {
     print(
-        '📝 ${directImports.length} files need to be updated to use public API.');
+        '📝 ${directImports.length} files need to be updated to use public API.',);
   }
 
   // Check main export file for any obvious issues
@@ -95,7 +95,7 @@ void main() async {
     print('   - With explicit "show": $showExports');
     print('   - With explicit "hide": $hideExports');
     print(
-        '   - Unrestricted exports: ${exportLines.length - showExports - hideExports}');
+        '   - Unrestricted exports: ${exportLines.length - showExports - hideExports}',);
 
     print('\n✅ Export system appears to be properly configured.');
   }

@@ -3,15 +3,16 @@
 /// This test suite validates the wallet adapter interface, mobile wallet
 /// implementations, and the wallet discovery service to ensure they
 /// match TypeScript Anchor client functionality (mobile and PC only).
+library;
 
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:test/test.dart';
-import '../lib/src/wallet/wallet_adapter.dart';
-import '../lib/src/wallet/mobile_wallet_adapter.dart';
-import '../lib/src/wallet/wallet_discovery.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/wallet/wallet_adapter.dart';
+import 'package:coral_xyz_anchor/src/wallet/mobile_wallet_adapter.dart';
+import 'package:coral_xyz_anchor/src/wallet/wallet_discovery.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
 
 void main() {
   group('WalletAdapter Interface', () {
@@ -131,7 +132,7 @@ void main() {
       expect(disconnectEvents, hasLength(1));
       expect(accountChangeEvents, equals([publicKey, null]));
       expect(readyStateEvents,
-          equals([WalletReadyState.loading, WalletReadyState.installed]));
+          equals([WalletReadyState.loading, WalletReadyState.installed]),);
       expect(errorEvents, hasLength(1));
       expect(errorEvents.first, isA<WalletConnectionException>());
     });
@@ -147,7 +148,7 @@ void main() {
 
       // Properties should be read-only from external interface
       expect(() => adapter.properties['external_key'] = 'external_value',
-          throwsUnsupportedError);
+          throwsUnsupportedError,);
     });
   });
 
@@ -173,7 +174,7 @@ void main() {
     });
 
     test('should create mobile wallet configuration correctly', () {
-      final config = MobileWalletAdapterConfig(
+      final config = const MobileWalletAdapterConfig(
         appName: 'Test App',
         appIcon: 'https://example.com/icon.png',
         cluster: 'devnet',
@@ -251,7 +252,7 @@ void main() {
         expect(e, isA<WalletTimeoutException>());
         final timeoutException = e as WalletTimeoutException;
         expect(timeoutException.timeout,
-            equals(const Duration(milliseconds: 100)));
+            equals(const Duration(milliseconds: 100)),);
       } finally {
         shortTimeoutAdapter.dispose();
       }
@@ -263,7 +264,7 @@ void main() {
 
     setUp(() {
       discoveryService = WalletDiscoveryService(
-        config: WalletDiscoveryConfig(
+        config: const WalletDiscoveryConfig(
           autoRegisterWallets: false, // Disable auto-registration for tests
           autoDiscovery: false, // Disable auto-discovery for tests
         ),
@@ -373,11 +374,11 @@ void main() {
       expect(
           events
               .any((e) => e.type == WalletDiscoveryEventType.walletRegistered),
-          isTrue);
+          isTrue,);
       expect(
           events.any(
-              (e) => e.type == WalletDiscoveryEventType.activeWalletChanged),
-          isTrue);
+              (e) => e.type == WalletDiscoveryEventType.activeWalletChanged,),
+          isTrue,);
 
       testAdapter.dispose();
     });
@@ -395,7 +396,7 @@ void main() {
       final desktopConfig = WalletDiscoveryConfig.desktop();
       expect(desktopConfig.walletPriority, contains('Mobile Wallet Adapter'));
       expect(
-          desktopConfig.operationTimeout, equals(const Duration(minutes: 2)));
+          desktopConfig.operationTimeout, equals(const Duration(minutes: 2)),);
     });
   });
 
@@ -404,7 +405,7 @@ void main() {
 
     setUp(() {
       universalWallet = UniversalWallet(
-        config: WalletDiscoveryConfig(
+        config: const WalletDiscoveryConfig(
           autoRegisterWallets: false,
           autoDiscovery: false,
         ),
@@ -445,16 +446,16 @@ void main() {
     test('should provide event streams correctly', () {
       expect(universalWallet.onConnectionChanged, isA<Stream<bool>>());
       expect(
-          universalWallet.onActiveWalletChanged, isA<Stream<WalletAdapter?>>());
+          universalWallet.onActiveWalletChanged, isA<Stream<WalletAdapter?>>(),);
       expect(universalWallet.onDiscoveryEvent,
-          isA<Stream<WalletDiscoveryEvent>>());
+          isA<Stream<WalletDiscoveryEvent>>(),);
     });
   });
 
   group('Wallet Integration End-to-End', () {
     test('should integrate all wallet components correctly', () async {
       final discoveryService = WalletDiscoveryService(
-        config: WalletDiscoveryConfig(
+        config: const WalletDiscoveryConfig(
           autoRegisterWallets: false,
           autoDiscovery: false,
         ),
@@ -474,9 +475,9 @@ void main() {
       final availableWallets = discoveryService.getAvailableWallets();
       expect(availableWallets, hasLength(2));
       expect(
-          availableWallets.map((w) => w.name), contains('Mobile Test Wallet'));
+          availableWallets.map((w) => w.name), contains('Mobile Test Wallet'),);
       expect(
-          availableWallets.map((w) => w.name), contains('Desktop Test Wallet'));
+          availableWallets.map((w) => w.name), contains('Desktop Test Wallet'),);
 
       // Test wallet connection through discovery service
       final foundWallet =
@@ -492,7 +493,7 @@ void main() {
 
     test('should handle error scenarios correctly', () async {
       final discoveryService = WalletDiscoveryService(
-        config: WalletDiscoveryConfig(
+        config: const WalletDiscoveryConfig(
           autoRegisterWallets: false,
           autoDiscovery: false,
         ),
@@ -525,8 +526,6 @@ void main() {
 
 /// Test implementation of WalletAdapter for testing purposes
 class TestWalletAdapter extends BaseWalletAdapter {
-  final String _name;
-  final bool _supported;
 
   TestWalletAdapter({
     String? name,
@@ -535,6 +534,8 @@ class TestWalletAdapter extends BaseWalletAdapter {
         _supported = supported {
     setReadyState(WalletReadyState.notDetected);
   }
+  final String _name;
+  final bool _supported;
 
   @override
   String get name => _name;

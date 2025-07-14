@@ -14,6 +14,14 @@ import 'dart:typed_data';
 
 /// Configuration for integration test environment
 class IntegrationTestConfig {
+
+  const IntegrationTestConfig({
+    this.rpcUrl = 'http://127.0.0.1:8899',
+    this.wsUrl = 'ws://127.0.0.1:8900',
+    this.autoManageValidator = true,
+    this.validatorTimeout = const Duration(seconds: 30),
+    this.fundingAmount = 1000000000, // 1 SOL
+  });
   /// RPC URL for the test validator
   final String rpcUrl;
 
@@ -28,23 +36,15 @@ class IntegrationTestConfig {
 
   /// Test account funding amount in lamports
   final int fundingAmount;
-
-  const IntegrationTestConfig({
-    this.rpcUrl = 'http://127.0.0.1:8899',
-    this.wsUrl = 'ws://127.0.0.1:8900',
-    this.autoManageValidator = true,
-    this.validatorTimeout = const Duration(seconds: 30),
-    this.fundingAmount = 1000000000, // 1 SOL
-  });
 }
 
 /// Manager for local Solana test validator
 class SolanaTestValidator {
+
+  SolanaTestValidator(this.config);
   Process? _validatorProcess;
   final IntegrationTestConfig config;
   bool _isRunning = false;
-
-  SolanaTestValidator(this.config);
 
   /// Check if validator is running
   bool get isRunning => _isRunning;
@@ -118,17 +118,17 @@ class SolanaTestValidator {
 
 /// Integration test environment setup
 class IntegrationTestEnvironment {
+
+  IntegrationTestEnvironment([IntegrationTestConfig? config])
+      : config = config ?? const IntegrationTestConfig(),
+        validator =
+            SolanaTestValidator(config ?? const IntegrationTestConfig());
   final IntegrationTestConfig config;
   final SolanaTestValidator validator;
   late final Connection connection;
   late final AnchorProvider provider;
 
   final List<Keypair> _testAccounts = [];
-
-  IntegrationTestEnvironment([IntegrationTestConfig? config])
-      : config = config ?? const IntegrationTestConfig(),
-        validator =
-            SolanaTestValidator(config ?? const IntegrationTestConfig());
 
   /// Initialize the test environment
   Future<void> setUp() async {
@@ -167,17 +167,17 @@ class IntegrationTestEnvironment {
       // Mock implementation - in real integration tests, this would use test validator's airdrop
       // For now, we'll skip actual funding and assume accounts are funded
       print(
-          'Mock funding account ${publicKey.toBase58()} with $lamports lamports');
+          'Mock funding account ${publicKey.toBase58()} with $lamports lamports',);
 
       // In a real implementation, this would call:
       // final signature = await connection.requestAirdrop(publicKey, lamports);
       // await connection.confirmTransaction(signature);
 
       await Future.delayed(
-          const Duration(milliseconds: 100)); // Simulate network delay
+          const Duration(milliseconds: 100),); // Simulate network delay
     } catch (e) {
       print(
-          'Mock funding completed (real airdrop would be implemented here): $e');
+          'Mock funding completed (real airdrop would be implemented here): $e',);
     }
   }
 
@@ -186,7 +186,7 @@ class IntegrationTestEnvironment {
 
   /// Deploy a test program (mock implementation)
   Future<PublicKey> deployTestProgram(
-      String programName, List<int> programData) async {
+      String programName, List<int> programData,) async {
     // In a real implementation, this would deploy the program to the test validator
     // For now, return a mock program ID
     final keypair = await Keypair.generate();
@@ -196,11 +196,11 @@ class IntegrationTestEnvironment {
 
 /// Performance benchmarking utilities
 class PerformanceBenchmark {
+
+  PerformanceBenchmark(this.name);
   final String name;
   final List<Duration> _measurements = [];
   DateTime? _startTime;
-
-  PerformanceBenchmark(this.name);
 
   /// Start timing
   void start() {
@@ -220,7 +220,7 @@ class PerformanceBenchmark {
   BenchmarkStats get stats {
     if (_measurements.isEmpty) {
       return BenchmarkStats(
-          name, Duration.zero, Duration.zero, Duration.zero, 0);
+          name, Duration.zero, Duration.zero, Duration.zero, 0,);
     }
 
     final sortedMeasurements = List<Duration>.from(_measurements)..sort();
@@ -244,29 +244,27 @@ class PerformanceBenchmark {
 
 /// Benchmark statistics
 class BenchmarkStats {
+
+  const BenchmarkStats(
+      this.name, this.min, this.max, this.average, this.sampleCount);
   final String name;
   final Duration min;
   final Duration max;
   final Duration average;
   final int sampleCount;
 
-  const BenchmarkStats(
-      this.name, this.min, this.max, this.average, this.sampleCount);
-
   @override
-  String toString() {
-    return 'BenchmarkStats($name: avg=${average.inMilliseconds}ms, '
+  String toString() => 'BenchmarkStats($name: avg=${average.inMilliseconds}ms, '
         'min=${min.inMilliseconds}ms, max=${max.inMilliseconds}ms, '
         'samples=$sampleCount)';
-  }
 }
 
 /// Cross-program testing utilities
 class CrossProgramTester {
-  final IntegrationTestEnvironment environment;
-  final Map<String, Program> _programs = {};
 
   CrossProgramTester(this.environment);
+  final IntegrationTestEnvironment environment;
+  final Map<String, Program> _programs = {};
 
   /// Register a program for cross-program testing
   void registerProgram(String name, Program program) {
@@ -283,10 +281,12 @@ class CrossProgramTester {
     final caller = _programs[callerProgram];
     final target = _programs[targetProgram];
 
-    if (caller == null)
+    if (caller == null) {
       throw ArgumentError('Caller program not found: $callerProgram');
-    if (target == null)
+    }
+    if (target == null) {
       throw ArgumentError('Target program not found: $targetProgram');
+    }
 
     // Build and execute cross-program instruction
     // This is a simplified mock implementation
@@ -300,15 +300,15 @@ class CrossProgramTester {
       instructions: [instruction],
     );
 
-    return await environment.provider.sendAndConfirm(transaction);
+    return environment.provider.sendAndConfirm(transaction);
   }
 }
 
 /// Compatibility testing with TypeScript implementation
 class TypeScriptCompatibilityTester {
-  final IntegrationTestEnvironment environment;
 
   TypeScriptCompatibilityTester(this.environment);
+  final IntegrationTestEnvironment environment;
 
   /// Test IDL parsing compatibility
   Future<bool> testIdlCompatibility(Map<String, dynamic> tsIdl) async {

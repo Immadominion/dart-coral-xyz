@@ -3,38 +3,13 @@
 /// This module provides comprehensive account definition system matching TypeScript's
 /// IDL-based account metadata handling with complete type information, field metadata,
 /// and validation requirements.
+library;
 
-import '../idl/idl.dart';
-import '../error/error.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/error/error.dart';
 
 /// Comprehensive account definition with metadata handling
 class AccountDefinition {
-  /// Account name from IDL
-  final String name;
-
-  /// Optional documentation
-  final List<String>? docs;
-
-  /// Account discriminator for identification
-  final List<int>? discriminator;
-
-  /// Account type definition containing fields
-  final IdlTypeDefType type;
-
-  /// Field definitions with metadata
-  final List<FieldDefinition> fields;
-
-  /// Account validation rules
-  final AccountValidationRules validationRules;
-
-  /// Account structure metadata
-  final AccountStructureMetadata structureMetadata;
-
-  /// Optional account inheritance information
-  final AccountInheritanceInfo? inheritanceInfo;
-
-  /// Account versioning information
-  final AccountVersionInfo? versionInfo;
 
   const AccountDefinition({
     required this.name,
@@ -84,6 +59,32 @@ class AccountDefinition {
       versionInfo: _extractVersionInfo(typeDef),
     );
   }
+  /// Account name from IDL
+  final String name;
+
+  /// Optional documentation
+  final List<String>? docs;
+
+  /// Account discriminator for identification
+  final List<int>? discriminator;
+
+  /// Account type definition containing fields
+  final IdlTypeDefType type;
+
+  /// Field definitions with metadata
+  final List<FieldDefinition> fields;
+
+  /// Account validation rules
+  final AccountValidationRules validationRules;
+
+  /// Account structure metadata
+  final AccountStructureMetadata structureMetadata;
+
+  /// Optional account inheritance information
+  final AccountInheritanceInfo? inheritanceInfo;
+
+  /// Account versioning information
+  final AccountVersionInfo? versionInfo;
 
   /// Extract field definitions from type definition
   static List<FieldDefinition> _extractFieldDefinitions(
@@ -129,7 +130,7 @@ class AccountDefinition {
 
   /// Create field constraints
   static Map<String, FieldConstraint> _createFieldConstraints(
-      List<FieldDefinition> fields) {
+      List<FieldDefinition> fields,) {
     final constraints = <String, FieldConstraint>{};
 
     for (final field in fields) {
@@ -138,7 +139,7 @@ class AccountDefinition {
         isRequired: field.isRequired,
         typeConstraint: field.typeInfo.constraint,
         sizeConstraint: field.typeInfo.minimumSize != null
-            ? SizeConstraint(min: field.typeInfo.minimumSize!)
+            ? SizeConstraint(min: field.typeInfo.minimumSize)
             : null,
       );
     }
@@ -170,7 +171,6 @@ class AccountDefinition {
       fixedSize: fixedSize,
       hasNestedStructures: fields.any((f) => f.typeInfo.isNested),
       serialization: 'borsh', // Default serialization for Anchor
-      repr: null, // No repr information in current IDL
     );
   }
 
@@ -181,7 +181,7 @@ class AccountDefinition {
     if (docs != null) {
       for (final doc in docs) {
         if (doc.toLowerCase().contains('version')) {
-          return AccountVersionInfo(
+          return const AccountVersionInfo(
             version: '1.0.0', // Default version
             compatibleVersions: ['1.0.0'],
             migrationRequired: false,
@@ -203,7 +203,7 @@ class AccountDefinition {
         errors.add('Account data too short for discriminator');
       } else if (discriminator != null) {
         final actualDiscriminator = accountData.take(8).toList();
-        if (!_listEquals(actualDiscriminator, discriminator!)) {
+        if (!_listEquals(actualDiscriminator, discriminator)) {
           errors.add('Discriminator mismatch');
         }
       }
@@ -212,7 +212,7 @@ class AccountDefinition {
     // Check minimum size
     if (accountData.length < validationRules.minimumSize) {
       errors.add(
-          'Account data below minimum size: ${accountData.length} < ${validationRules.minimumSize}');
+          'Account data below minimum size: ${accountData.length} < ${validationRules.minimumSize}',);
     }
 
     // Validate field constraints
@@ -299,20 +299,6 @@ class AccountDefinition {
 
 /// Field definition with comprehensive type information
 class FieldDefinition {
-  /// Field name
-  final String name;
-
-  /// Optional documentation
-  final List<String>? docs;
-
-  /// Field type information
-  final FieldTypeInfo typeInfo;
-
-  /// Whether field is required
-  final bool isRequired;
-
-  /// Field validation metadata
-  final FieldValidationMetadata? validationMetadata;
 
   const FieldDefinition({
     required this.name,
@@ -335,19 +321,31 @@ class FieldDefinition {
       validationMetadata: _createValidationMetadata(field, typeInfo),
     );
   }
+  /// Field name
+  final String name;
+
+  /// Optional documentation
+  final List<String>? docs;
+
+  /// Field type information
+  final FieldTypeInfo typeInfo;
+
+  /// Whether field is required
+  final bool isRequired;
+
+  /// Field validation metadata
+  final FieldValidationMetadata? validationMetadata;
 
   /// Create validation metadata for field
   static FieldValidationMetadata? _createValidationMetadata(
     IdlField field,
     FieldTypeInfo typeInfo,
-  ) {
-    return FieldValidationMetadata(
+  ) => FieldValidationMetadata(
       allowNull: typeInfo.isOptional,
       sizeValidation: typeInfo.isFixedSize,
       typeValidation: true,
       customValidators: [],
     );
-  }
 
   @override
   String toString() =>
@@ -368,29 +366,6 @@ class FieldDefinition {
 
 /// Field type information with size and constraint details
 class FieldTypeInfo {
-  /// Type name (e.g., 'u64', 'string', 'vec', 'option')
-  final String typeName;
-
-  /// Whether type has fixed size
-  final bool isFixedSize;
-
-  /// Whether type is optional
-  final bool isOptional;
-
-  /// Whether type contains nested structures
-  final bool isNested;
-
-  /// Minimum size in bytes (null for variable size)
-  final int? minimumSize;
-
-  /// Maximum size in bytes (null for unlimited)
-  final int? maximumSize;
-
-  /// Type constraint for validation
-  final TypeConstraint? constraint;
-
-  /// Inner type for collections/options
-  final FieldTypeInfo? innerType;
 
   const FieldTypeInfo({
     required this.typeName,
@@ -564,6 +539,29 @@ class FieldTypeInfo {
         );
     }
   }
+  /// Type name (e.g., 'u64', 'string', 'vec', 'option')
+  final String typeName;
+
+  /// Whether type has fixed size
+  final bool isFixedSize;
+
+  /// Whether type is optional
+  final bool isOptional;
+
+  /// Whether type contains nested structures
+  final bool isNested;
+
+  /// Minimum size in bytes (null for variable size)
+  final int? minimumSize;
+
+  /// Maximum size in bytes (null for unlimited)
+  final int? maximumSize;
+
+  /// Type constraint for validation
+  final TypeConstraint? constraint;
+
+  /// Inner type for collections/options
+  final FieldTypeInfo? innerType;
 
   /// Calculate size for a given value
   int calculateSize(dynamic value) {
@@ -613,6 +611,15 @@ class FieldTypeInfo {
 
 /// Account validation rules
 class AccountValidationRules {
+
+  const AccountValidationRules({
+    required this.requireDiscriminator,
+    required this.requiredFields,
+    required this.optionalFields,
+    required this.minimumSize,
+    required this.allowPartialData,
+    required this.fieldConstraints,
+  });
   /// Whether discriminator is required
   final bool requireDiscriminator;
 
@@ -631,15 +638,6 @@ class AccountValidationRules {
   /// Field-specific constraints
   final Map<String, FieldConstraint> fieldConstraints;
 
-  const AccountValidationRules({
-    required this.requireDiscriminator,
-    required this.requiredFields,
-    required this.optionalFields,
-    required this.minimumSize,
-    required this.allowPartialData,
-    required this.fieldConstraints,
-  });
-
   @override
   String toString() =>
       'AccountValidationRules(requiredFields: ${requiredFields.length})';
@@ -647,6 +645,13 @@ class AccountValidationRules {
 
 /// Field constraint for validation
 class FieldConstraint {
+
+  const FieldConstraint({
+    required this.fieldName,
+    required this.isRequired,
+    this.typeConstraint,
+    this.sizeConstraint,
+  });
   /// Field name
   final String fieldName;
 
@@ -658,13 +663,6 @@ class FieldConstraint {
 
   /// Size constraint
   final SizeConstraint? sizeConstraint;
-
-  const FieldConstraint({
-    required this.fieldName,
-    required this.isRequired,
-    this.typeConstraint,
-    this.sizeConstraint,
-  });
 
   /// Validate field against account data
   FieldValidationResult validate(List<int> accountData) {
@@ -684,31 +682,41 @@ class FieldConstraint {
 
 /// Type constraint for field validation
 class TypeConstraint {
-  /// Expected type name
-  final String expectedType;
-
-  /// Whether nulls are allowed
-  final bool allowNull;
 
   const TypeConstraint({
     required this.expectedType,
     required this.allowNull,
   });
+  /// Expected type name
+  final String expectedType;
+
+  /// Whether nulls are allowed
+  final bool allowNull;
 }
 
 /// Size constraint for field validation
 class SizeConstraint {
+
+  const SizeConstraint({this.min, this.max});
   /// Minimum size
   final int? min;
 
   /// Maximum size
   final int? max;
-
-  const SizeConstraint({this.min, this.max});
 }
 
 /// Account structure metadata
 class AccountStructureMetadata {
+
+  const AccountStructureMetadata({
+    required this.totalFields,
+    required this.fixedSizeFields,
+    required this.variableSizeFields,
+    this.fixedSize,
+    required this.hasNestedStructures,
+    this.serialization,
+    this.repr,
+  });
   /// Total number of fields
   final int totalFields;
 
@@ -730,16 +738,6 @@ class AccountStructureMetadata {
   /// Memory representation
   final String? repr;
 
-  const AccountStructureMetadata({
-    required this.totalFields,
-    required this.fixedSizeFields,
-    required this.variableSizeFields,
-    this.fixedSize,
-    required this.hasNestedStructures,
-    this.serialization,
-    this.repr,
-  });
-
   @override
   String toString() =>
       'AccountStructureMetadata(fields: $totalFields, fixed: $fixedSize)';
@@ -747,6 +745,12 @@ class AccountStructureMetadata {
 
 /// Account inheritance information
 class AccountInheritanceInfo {
+
+  const AccountInheritanceInfo({
+    this.parentAccount,
+    required this.inheritedFields,
+    required this.overrideFields,
+  });
   /// Parent account name
   final String? parentAccount;
 
@@ -755,16 +759,16 @@ class AccountInheritanceInfo {
 
   /// Override fields
   final List<String> overrideFields;
-
-  const AccountInheritanceInfo({
-    this.parentAccount,
-    required this.inheritedFields,
-    required this.overrideFields,
-  });
 }
 
 /// Account version information
 class AccountVersionInfo {
+
+  const AccountVersionInfo({
+    required this.version,
+    required this.compatibleVersions,
+    required this.migrationRequired,
+  });
   /// Current version
   final String version;
 
@@ -773,16 +777,17 @@ class AccountVersionInfo {
 
   /// Whether migration is required
   final bool migrationRequired;
-
-  const AccountVersionInfo({
-    required this.version,
-    required this.compatibleVersions,
-    required this.migrationRequired,
-  });
 }
 
 /// Field validation metadata
 class FieldValidationMetadata {
+
+  const FieldValidationMetadata({
+    required this.allowNull,
+    required this.sizeValidation,
+    required this.typeValidation,
+    required this.customValidators,
+  });
   /// Whether null values are allowed
   final bool allowNull;
 
@@ -794,17 +799,18 @@ class FieldValidationMetadata {
 
   /// Custom validators
   final List<String> customValidators;
-
-  const FieldValidationMetadata({
-    required this.allowNull,
-    required this.sizeValidation,
-    required this.typeValidation,
-    required this.customValidators,
-  });
 }
 
 /// Account validation result
 class AccountValidationResult {
+
+  const AccountValidationResult({
+    required this.isValid,
+    required this.errors,
+    required this.warnings,
+    required this.accountName,
+    required this.validatedSize,
+  });
   /// Whether validation passed
   final bool isValid;
 
@@ -820,14 +826,6 @@ class AccountValidationResult {
   /// Size that was validated
   final int validatedSize;
 
-  const AccountValidationResult({
-    required this.isValid,
-    required this.errors,
-    required this.warnings,
-    required this.accountName,
-    required this.validatedSize,
-  });
-
   @override
   String toString() =>
       'AccountValidationResult(valid: $isValid, errors: ${errors.length})';
@@ -835,6 +833,12 @@ class AccountValidationResult {
 
 /// Field validation result
 class FieldValidationResult {
+
+  const FieldValidationResult({
+    required this.isValid,
+    required this.errors,
+    required this.warnings,
+  });
   /// Whether validation passed
   final bool isValid;
 
@@ -843,12 +847,6 @@ class FieldValidationResult {
 
   /// Validation warnings
   final List<String> warnings;
-
-  const FieldValidationResult({
-    required this.isValid,
-    required this.errors,
-    required this.warnings,
-  });
 }
 
 /// IDL parsing utilities for account structure extraction
@@ -857,9 +855,7 @@ class IdlAccountParser {
   static List<AccountDefinition> parseAccounts(Idl idl) {
     if (idl.accounts == null) return [];
 
-    return idl.accounts!.map((account) {
-      return AccountDefinition.fromIdlAccount(account, idl.types);
-    }).toList();
+    return idl.accounts!.map((account) => AccountDefinition.fromIdlAccount(account, idl.types)).toList();
   }
 
   /// Parse single account definition by name

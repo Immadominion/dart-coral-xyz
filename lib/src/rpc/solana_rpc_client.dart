@@ -2,19 +2,20 @@
 ///
 /// This wrapper provides RPC functionality using the espresso-cash solana package
 /// with working transaction serialization, replacing all broken stubs.
+library;
 
 import 'package:solana/solana.dart' as solana;
-import '../transaction/transaction.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
 
 /// Clean RPC wrapper using espresso-cash solana package
 class SolanaRpcClient {
-  final solana.SolanaClient _client;
 
   SolanaRpcClient(String rpcUrl)
       : _client = solana.SolanaClient(
           rpcUrl: Uri.parse(rpcUrl),
           websocketUrl: Uri.parse(rpcUrl.replaceFirst('http', 'ws')),
         );
+  final solana.SolanaClient _client;
 
   /// Get the underlying Solana client for direct access when needed
   solana.SolanaClient get client => _client;
@@ -68,7 +69,7 @@ class SolanaRpcClient {
 
   /// Get balance
   Future<int> getBalance(String address,
-      [solana.Commitment? commitment]) async {
+      [solana.Commitment? commitment,]) async {
     try {
       final result = await _client.rpcClient.getBalance(
         address,

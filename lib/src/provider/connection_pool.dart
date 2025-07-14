@@ -10,11 +10,23 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:math' as math;
 
-import '../utils/rpc_errors.dart';
-import 'enhanced_connection.dart';
+import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
+import 'package:coral_xyz_anchor/src/provider/enhanced_connection.dart';
 
 /// Connection pool configuration
 class ConnectionPoolConfig {
+
+  const ConnectionPoolConfig({
+    this.minConnections = 2,
+    this.maxConnections = 10,
+    this.maxIdleTime = const Duration(minutes: 5),
+    this.healthCheckInterval = const Duration(seconds: 30),
+    this.connectionTimeout = const Duration(seconds: 10),
+    this.requestTimeout = const Duration(seconds: 30),
+    this.loadBalancingStrategy = LoadBalancingStrategy.roundRobin,
+    this.validateOnBorrow = true,
+    this.validateOnReturn = false,
+  });
   /// Minimum number of connections to maintain
   final int minConnections;
 
@@ -41,18 +53,6 @@ class ConnectionPoolConfig {
 
   /// Whether to validate connections on return
   final bool validateOnReturn;
-
-  const ConnectionPoolConfig({
-    this.minConnections = 2,
-    this.maxConnections = 10,
-    this.maxIdleTime = const Duration(minutes: 5),
-    this.healthCheckInterval = const Duration(seconds: 30),
-    this.connectionTimeout = const Duration(seconds: 10),
-    this.requestTimeout = const Duration(seconds: 30),
-    this.loadBalancingStrategy = LoadBalancingStrategy.roundRobin,
-    this.validateOnBorrow = true,
-    this.validateOnReturn = false,
-  });
 }
 
 /// Load balancing strategies
@@ -65,12 +65,6 @@ enum LoadBalancingStrategy {
 
 /// Connection wrapper with metadata
 class PooledConnection {
-  final EnhancedConnection connection;
-  final DateTime createdAt;
-  DateTime lastUsedAt;
-  int usageCount;
-  bool isHealthy;
-  bool isInUse;
 
   PooledConnection(this.connection)
       : createdAt = DateTime.now(),
@@ -78,6 +72,12 @@ class PooledConnection {
         usageCount = 0,
         isHealthy = true,
         isInUse = false;
+  final EnhancedConnection connection;
+  final DateTime createdAt;
+  DateTime lastUsedAt;
+  int usageCount;
+  bool isHealthy;
+  bool isInUse;
 
   /// Mark connection as used
   void markUsed() {
@@ -92,9 +92,7 @@ class PooledConnection {
   }
 
   /// Check if connection is idle
-  bool isIdle(Duration maxIdleTime) {
-    return !isInUse && DateTime.now().difference(lastUsedAt) > maxIdleTime;
-  }
+  bool isIdle(Duration maxIdleTime) => !isInUse && DateTime.now().difference(lastUsedAt) > maxIdleTime;
 
   /// Get connection age
   Duration get age => DateTime.now().difference(createdAt);
@@ -102,15 +100,6 @@ class PooledConnection {
 
 /// Connection pool metrics
 class ConnectionPoolMetrics {
-  final int totalConnections;
-  final int availableConnections;
-  final int activeConnections;
-  final int healthyConnections;
-  final int totalRequests;
-  final int successfulRequests;
-  final int failedRequests;
-  final Duration averageRequestTime;
-  final double hitRate;
 
   const ConnectionPoolMetrics({
     required this.totalConnections,
@@ -123,6 +112,15 @@ class ConnectionPoolMetrics {
     required this.averageRequestTime,
     required this.hitRate,
   });
+  final int totalConnections;
+  final int availableConnections;
+  final int activeConnections;
+  final int healthyConnections;
+  final int totalRequests;
+  final int successfulRequests;
+  final int failedRequests;
+  final Duration averageRequestTime;
+  final double hitRate;
 
   Map<String, dynamic> toJson() => {
         'totalConnections': totalConnections,
@@ -139,6 +137,20 @@ class ConnectionPoolMetrics {
 
 /// Connection pool for managing multiple connections efficiently
 class ConnectionPool {
+
+  /// Create connection pool
+  ConnectionPool(
+    this._endpoints, {
+    ConnectionPoolConfig? config,
+    RetryConfig? retryConfig,
+    CircuitBreakerConfig? circuitBreakerConfig,
+  })  : _config = config ?? const ConnectionPoolConfig(),
+        _retryConfig = retryConfig,
+        _circuitBreakerConfig = circuitBreakerConfig {
+    _initializePool();
+    _startHealthChecks();
+    _startCleanupTimer();
+  }
   final List<String> _endpoints;
   final ConnectionPoolConfig _config;
   final RetryConfig? _retryConfig;
@@ -160,20 +172,6 @@ class ConnectionPool {
 
   bool _isDisposed = false;
 
-  /// Create connection pool
-  ConnectionPool(
-    this._endpoints, {
-    ConnectionPoolConfig? config,
-    RetryConfig? retryConfig,
-    CircuitBreakerConfig? circuitBreakerConfig,
-  })  : _config = config ?? const ConnectionPoolConfig(),
-        _retryConfig = retryConfig,
-        _circuitBreakerConfig = circuitBreakerConfig {
-    _initializePool();
-    _startHealthChecks();
-    _startCleanupTimer();
-  }
-
   /// Get connection pool metrics
   ConnectionPoolMetrics get metrics {
     final availableCount = _availableConnections.length;
@@ -190,7 +188,7 @@ class ConnectionPool {
       failedRequests: _failedRequests,
       averageRequestTime: _totalRequests > 0
           ? Duration(
-              milliseconds: _totalRequestTime.inMilliseconds ~/ _totalRequests)
+              milliseconds: _totalRequestTime.inMilliseconds ~/ _totalRequests,)
           : Duration.zero,
       hitRate: _totalRequests > 0 ? _successfulRequests / _totalRequests : 0.0,
     );
@@ -198,7 +196,7 @@ class ConnectionPool {
 
   /// Execute operation with pooled connection
   Future<T> execute<T>(
-      Future<T> Function(EnhancedConnection connection) operation) async {
+      Future<T> Function(EnhancedConnection connection) operation,) async {
     if (_isDisposed) {
       throw StateError('Connection pool has been disposed');
     }

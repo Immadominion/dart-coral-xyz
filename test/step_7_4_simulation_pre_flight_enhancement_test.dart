@@ -18,7 +18,7 @@ void main() {
     group('Enhanced Simulation Analysis', () {
       test('should analyze simulation with comprehensive results', () async {
         // Create a mock simulation result with high compute usage
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: true,
           logs: [
             'Program 11111111111111111111111111111111 invoke [1]',
@@ -58,7 +58,7 @@ void main() {
           'should generate optimization recommendations for high compute usage',
           () async {
         // Create simulation with high compute usage
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Heavy computation'],
           unitsConsumed: 1200000, // High usage
@@ -75,10 +75,10 @@ void main() {
       test('should detect issues and warnings for failed simulations',
           () async {
         // Create simulation with error
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: false,
           logs: ['Program error: Something went wrong'],
-          error: const TransactionSimulationError(
+          error: TransactionSimulationError(
             type: 'InstructionError',
             instructionIndex: 0,
             details: 'Custom error',
@@ -89,17 +89,17 @@ void main() {
 
         expect(analysis.issueAnalysis.issues, isNotEmpty);
         expect(
-            analysis.issueAnalysis.overallRisk, isNot(equals(RiskLevel.low)));
+            analysis.issueAnalysis.overallRisk, isNot(equals(RiskLevel.low)),);
       });
 
       test('should compare multiple simulations', () async {
-        final simulation1 = TransactionSimulationResult(
+        final simulation1 = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: First'],
           unitsConsumed: 5000,
         );
 
-        final simulation2 = TransactionSimulationResult(
+        final simulation2 = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Second'],
           unitsConsumed: 7000,
@@ -111,12 +111,12 @@ void main() {
         expect(comparison.baseline, isNotNull);
         expect(comparison.comparisons, hasLength(1));
         expect(
-            comparison.comparisons.first.computeUnitsDifference, equals(2000));
+            comparison.comparisons.first.computeUnitsDifference, equals(2000),);
         expect(comparison.summary.bestPerforming, isA<int>());
       });
 
       test('should export analysis results in different formats', () async {
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Export test'],
           unitsConsumed: 5000,
@@ -145,7 +145,7 @@ void main() {
 
     group('Simulation Caching and Replay', () {
       test('should cache and retrieve simulation results', () {
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Cache test'],
           unitsConsumed: 5000,
@@ -169,7 +169,7 @@ void main() {
                   success: true,
                   logs: ['Program log: Replay $i'],
                   unitsConsumed: 5000 + i * 1000,
-                ));
+                ),);
 
         final keys =
             simulations.map((s) => cacheManager.cacheSimulation(s)).toList();
@@ -194,7 +194,7 @@ void main() {
       });
 
       test('should provide cache performance metrics', () {
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Metrics test'],
           unitsConsumed: 5000,
@@ -228,7 +228,7 @@ void main() {
       test('should add simulation steps to debug session', () async {
         final session = debugger.startDebugSession(name: 'Step Test');
 
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Debug step'],
           unitsConsumed: 5000,
@@ -276,7 +276,7 @@ void main() {
       test('should export debug session data', () async {
         final session = debugger.startDebugSession(name: 'Export Test');
 
-        final simulation = TransactionSimulationResult(
+        final simulation = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Export step'],
           unitsConsumed: 5000,
@@ -307,17 +307,17 @@ void main() {
 
         // Create test simulations with varying characteristics
         final simulations = [
-          TransactionSimulationResult(
+          const TransactionSimulationResult(
             success: true,
             logs: ['Program log: Baseline'],
             unitsConsumed: 700000, // High usage to trigger recommendations
           ),
-          TransactionSimulationResult(
+          const TransactionSimulationResult(
             success: true,
             logs: ['Program log: Optimized'],
             unitsConsumed: 600000, // High usage to trigger recommendations
           ),
-          TransactionSimulationResult(
+          const TransactionSimulationResult(
             success: true, // Changed to successful to get analysis
             logs: ['Program log: Another test'],
             unitsConsumed: 400000, // Still high enough
@@ -338,7 +338,7 @@ void main() {
 
         expect(report.session.steps, hasLength(3));
         expect(
-            report.flowAnalysis.successRate, closeTo(1.0, 0.01)); // 3/3 success
+            report.flowAnalysis.successRate, closeTo(1.0, 0.01),); // 3/3 success
         expect(report.optimizations, isNotEmpty);
 
         // Test batch analysis
@@ -353,9 +353,9 @@ void main() {
             await analyzer.compareSimulations(successfulSimulations);
 
         expect(comparison.comparisons,
-            hasLength(2)); // 3 simulations = 2 comparisons
+            hasLength(2),); // 3 simulations = 2 comparisons
         expect(comparison.comparisons.first.computeUnitsDifference,
-            equals(-100000)); // 700000 - 600000
+            equals(-100000),); // 700000 - 600000
       });
 
       test('should handle error conditions gracefully', () async {
@@ -375,7 +375,7 @@ void main() {
         expect(nonExistent, isNull);
 
         // Test comparison with single simulation
-        final singleSim = TransactionSimulationResult(
+        final singleSim = const TransactionSimulationResult(
           success: true,
           logs: ['Program log: Single'],
           unitsConsumed: 5000,

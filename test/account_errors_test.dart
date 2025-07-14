@@ -36,7 +36,7 @@ void main() {
         expect(error.accountAddress, equals(testAccountAddress));
         expect(error.accountName, equals('TestAccount'));
         expect(error.errorCode.number,
-            equals(LangErrorCode.accountDiscriminatorMismatch));
+            equals(LangErrorCode.accountDiscriminatorMismatch),);
         expect(error.expectedHex, equals('FF00FF0011223344'));
         expect(error.actualHex, equals('FE01FE0111223344'));
       });
@@ -89,7 +89,7 @@ void main() {
         expect(error.expectedOwner, equals(expectedOwner));
         expect(error.actualOwner, equals(actualOwner));
         expect(error.errorCode.number,
-            equals(LangErrorCode.accountOwnedByWrongProgram));
+            equals(LangErrorCode.accountOwnedByWrongProgram),);
         expect(error.error.comparedValues, isA<ComparedPublicKeys>());
       });
 
@@ -118,7 +118,7 @@ void main() {
         expect(error.accountAddress, equals(testAccountAddress));
         expect(error.accountName, equals('UninitializedAccount'));
         expect(error.errorCode.number,
-            equals(LangErrorCode.accountNotInitialized));
+            equals(LangErrorCode.accountNotInitialized),);
       });
 
       test('creates error from factory method', () {
@@ -146,7 +146,7 @@ void main() {
         expect(error.accountDataSize, equals(100));
         expect(error.expectedStructure, equals('TestStruct'));
         expect(error.errorCode.number,
-            equals(LangErrorCode.accountDidNotDeserialize));
+            equals(LangErrorCode.accountDidNotDeserialize),);
       });
 
       test('creates error from factory method', () {
@@ -172,7 +172,7 @@ void main() {
         expect(error.actualOwner, equals(actualOwner));
         expect(error.accountAddress, equals(testAccountAddress));
         expect(error.errorCode.number,
-            equals(LangErrorCode.accountNotSystemOwned));
+            equals(LangErrorCode.accountNotSystemOwned),);
       });
 
       test('creates error from factory method', () {
@@ -347,9 +347,9 @@ void main() {
           logs: testLogs,
         );
         expect(
-            discriminatorError.error.errorMessage, contains('discriminator'));
+            discriminatorError.error.errorMessage, contains('discriminator'),);
         expect(
-            discriminatorError.error.errorMessage, contains('did not match'));
+            discriminatorError.error.errorMessage, contains('did not match'),);
 
         final wrongOwnerError = AccountOwnedByWrongProgramError(
           expectedOwner: expectedOwner,
@@ -359,7 +359,7 @@ void main() {
         );
         expect(wrongOwnerError.error.errorMessage, contains('owned by'));
         expect(
-            wrongOwnerError.error.errorMessage, contains('different program'));
+            wrongOwnerError.error.errorMessage, contains('different program'),);
       });
     });
 
@@ -401,7 +401,7 @@ void main() {
 
         expect(errorWithNameOnly.accountContext, contains('TestAccount'));
         expect(errorWithNameOnly.accountContext,
-            isNot(contains(testAccountAddress.toBase58())));
+            isNot(contains(testAccountAddress.toBase58())),);
       });
     });
   });

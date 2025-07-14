@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import '../lib/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 void main() {
   test('SimulationResultProcessor integration test', () {
@@ -16,7 +16,7 @@ void main() {
     expect(minimalOptions.analyzeErrors, true);
 
     // Test configuration
-    final config = SimulationProcessingConfig(maxCacheSize: 50);
+    final config = const SimulationProcessingConfig(maxCacheSize: 50);
     expect(config.maxCacheSize, equals(50));
   });
 }

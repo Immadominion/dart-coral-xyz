@@ -88,13 +88,13 @@ class SolanaWalletState {
 
 /// Example mobile-optimized program interaction class
 class MobileProgramManager {
-  final AnchorProvider provider;
-  final Program program;
 
   MobileProgramManager({
     required this.provider,
     required this.program,
   });
+  final AnchorProvider provider;
+  final Program program;
 
   /// Factory method for creating manager from IDL
   static Future<MobileProgramManager> create({
@@ -182,7 +182,7 @@ class SolanaWalletWidget {
   Future<void> initializeForApp() async {
     try {
       await _walletState.initializeWallet(
-        network: 'devnet', // Use appropriate network for your app
+        
       );
       print('Wallet initialized: ${_walletState.publicKey}');
     } catch (e) {
@@ -240,9 +240,9 @@ class SolanaWalletWidget {
 
 /// Custom exception for Solana wallet operations
 class SolanaWalletException implements Exception {
-  final String message;
 
   const SolanaWalletException(this.message);
+  final String message;
 
   @override
   String toString() => 'SolanaWalletException: $message';

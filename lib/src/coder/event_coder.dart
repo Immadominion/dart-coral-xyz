@@ -2,10 +2,11 @@
 ///
 /// This module provides the EventCoder interface and implementations
 /// for parsing and decoding program events from transaction logs.
+library;
 
-import '../idl/idl.dart';
-import '../coder/borsh_types.dart';
-import '../types/common.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
+import 'package:coral_xyz_anchor/src/types/common.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 
@@ -20,6 +21,12 @@ abstract class EventCoder {
 
 /// Represents a decoded program event
 class Event<E extends IdlEvent, T> {
+
+  const Event({
+    required this.name,
+    required this.data,
+    required this.eventDef,
+  });
   /// The event name
   final String name;
 
@@ -29,30 +36,22 @@ class Event<E extends IdlEvent, T> {
   /// The event definition from IDL
   final E eventDef;
 
-  const Event({
-    required this.name,
-    required this.data,
-    required this.eventDef,
-  });
-
   @override
-  String toString() {
-    return 'Event(name: $name, data: $data)';
-  }
+  String toString() => 'Event(name: $name, data: $data)';
 }
 
 /// Borsh-based implementation of EventCoder
 class BorshEventCoder implements EventCoder {
-  /// The IDL containing event definitions
-  final Idl idl;
-
-  /// Cached event layouts with discriminators
-  late final Map<String, EventLayout> _eventLayouts;
 
   /// Create a new BorshEventCoder
   BorshEventCoder(this.idl) {
     _eventLayouts = _buildEventLayouts();
   }
+  /// The IDL containing event definitions
+  final Idl idl;
+
+  /// Cached event layouts with discriminators
+  late final Map<String, EventLayout> _eventLayouts;
 
   @override
   Event? decode<E extends IdlEvent>(String log) {
@@ -115,7 +114,7 @@ class BorshEventCoder implements EventCoder {
     }
 
     if (idl.types == null) {
-      throw EventCoderException('Events require `idl.types`');
+      throw const EventCoderException('Events require `idl.types`');
     }
 
     for (final event in idl.events!) {
@@ -143,7 +142,7 @@ class BorshEventCoder implements EventCoder {
     if (typeSpec.kind == 'struct') {
       final fields = typeSpec.fields;
       if (fields == null) {
-        throw EventCoderException('Struct type missing fields');
+        throw const EventCoderException('Struct type missing fields');
       }
 
       final data = <String, dynamic>{};
@@ -205,7 +204,7 @@ class BorshEventCoder implements EventCoder {
         // Handle user-defined types (nested structs)
         final typeName = type.defined;
         if (typeName == null) {
-          throw EventCoderException('Defined type missing name');
+          throw const EventCoderException('Defined type missing name');
         }
         final nestedTypeDef = idl.types?.firstWhere(
           (t) => t.name == typeName,
@@ -217,13 +216,19 @@ class BorshEventCoder implements EventCoder {
         return null;
       default:
         throw EventCoderException(
-            'Unsupported type for decoding: ${type.kind}');
+            'Unsupported type for decoding: ${type.kind}',);
     }
   }
 }
 
 /// Internal event layout information
 class EventLayout {
+
+  const EventLayout({
+    required this.discriminator,
+    required this.event,
+    required this.typeDef,
+  });
   /// The event discriminator bytes
   final List<int> discriminator;
 
@@ -232,16 +237,9 @@ class EventLayout {
 
   /// The IDL type definition for this event
   final IdlTypeDef typeDef;
-
-  const EventLayout({
-    required this.discriminator,
-    required this.event,
-    required this.typeDef,
-  });
 }
 
 /// Exception thrown by event coder operations
 class EventCoderException extends AnchorException {
-  const EventCoderException(String message, [dynamic cause])
-      : super(message, cause);
+  const EventCoderException(super.message, [super.cause]);
 }

@@ -5,18 +5,25 @@
 ///
 /// This provides structured error parsing from transaction logs,
 /// program error extraction, and detailed error context.
+library;
 
-import '../types/public_key.dart';
-import 'anchor_error.dart';
-import 'program_error.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
+import 'package:coral_xyz_anchor/src/error/program_error.dart' as programErrorLib;
 
 /// Result of RPC error parsing
 class RpcErrorParseResult {
+
+  const RpcErrorParseResult({
+    this.anchorError,
+    this.programError,
+    required this.originalError,
+  });
   /// Parsed AnchorError if found
   final AnchorError? anchorError;
 
   /// Parsed ProgramError if found
-  final ProgramError? programError;
+  final programErrorLib.ProgramError? programError;
 
   /// Original error if no parsing was possible
   final dynamic originalError;
@@ -26,16 +33,17 @@ class RpcErrorParseResult {
 
   /// Get the best available error (parsed or original)
   dynamic get bestError => anchorError ?? programError ?? originalError;
-
-  const RpcErrorParseResult({
-    this.anchorError,
-    this.programError,
-    required this.originalError,
-  });
 }
 
 /// Enhanced error parsing context
 class ErrorParsingContext {
+
+  const ErrorParsingContext({
+    required this.error,
+    required this.logs,
+    this.idlErrors = const {},
+    this.debugMode = false,
+  });
   /// Original error object
   final dynamic error;
 
@@ -47,13 +55,6 @@ class ErrorParsingContext {
 
   /// Debug mode flag
   final bool debugMode;
-
-  const ErrorParsingContext({
-    required this.error,
-    required this.logs,
-    this.idlErrors = const {},
-    this.debugMode = false,
-  });
 }
 
 /// RPC Error Parser - main parsing engine
@@ -208,7 +209,7 @@ class RpcErrorParser {
             errorLogs.addAll(logs.getRange(
               anchorErrorLogIndex + 1,
               anchorErrorLogIndex + 5,
-            ));
+            ),);
 
             return ComparedValues.publicKeys([leftPubkey, rightPubkey]);
           }
@@ -238,7 +239,7 @@ class RpcErrorParser {
             errorLogs.addAll(logs.getRange(
               anchorErrorLogIndex + 1,
               anchorErrorLogIndex + 3,
-            ));
+            ),);
 
             return ComparedValues.accountNames([leftValue, rightValue]);
           }
@@ -366,9 +367,8 @@ class RpcErrorParser {
   }
 
   /// Parse ProgramError from context
-  static ProgramError? _parseProgramError(ErrorParsingContext context) {
-    return ProgramError.parse(context.error, context.idlErrors);
-  }
+  static programErrorLib.ProgramError? _parseProgramError(
+      ErrorParsingContext context,) => programErrorLib.ProgramError.parse(context.error, context.idlErrors);
 
   /// Enhance error with program error stack from logs
   static dynamic _enhanceErrorWithLogs(dynamic error, List<String> logs) {
@@ -409,6 +409,12 @@ class RpcErrorParser {
 
 /// Enhanced error wrapper for errors with program context
 class EnhancedError extends Error {
+
+  EnhancedError({
+    required this.originalError,
+    required this.programErrorStack,
+    required this.logs,
+  });
   /// Original error object
   final dynamic originalError;
 
@@ -417,12 +423,6 @@ class EnhancedError extends Error {
 
   /// Transaction logs
   final List<String> logs;
-
-  EnhancedError({
-    required this.originalError,
-    required this.programErrorStack,
-    required this.logs,
-  });
 
   /// Get the program that caused the error
   PublicKey? get program {
@@ -443,9 +443,9 @@ class EnhancedError extends Error {
     final buffer = StringBuffer();
     buffer.write('Enhanced Error: ${originalError.toString()}');
 
-    if (!programErrorStack.isEmpty) {
+    if (programErrorStack.isNotEmpty) {
       buffer.write(
-          '\nProgram Stack: ${programStack.map((p) => p.toBase58()).join(' -> ')}');
+          '\nProgram Stack: ${programStack.map((p) => p.toBase58()).join(' -> ')}',);
     }
 
     buffer.write('\nLogs: ${logs.length} lines');

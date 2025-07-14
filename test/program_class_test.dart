@@ -1,8 +1,8 @@
 import 'package:test/test.dart';
-import '../lib/src/program/program_class.dart';
-import '../lib/src/idl/idl.dart';
-import '../lib/src/provider/provider.dart';
-import '../lib/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/provider/provider.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 void main() {
   group('Program Class Foundation Tests', () {
@@ -14,7 +14,7 @@ void main() {
 
       testIdl = Idl(
         address: testProgramId.toBase58(),
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'test_program',
           version: '0.1.0',
           spec: '0.1.0',
@@ -71,7 +71,7 @@ void main() {
       // For now, this will throw Exception since crypto implementation is incomplete
       // but we can test that the method exists and is called correctly
       expect(
-        () async => await Program.getIdlAddress(testProgramId),
+        () async => Program.getIdlAddress(testProgramId),
         throwsA(isA<Exception>()),
       );
     });
@@ -98,7 +98,7 @@ void main() {
       // Different IDL should not be equal
       final differentIdl = Idl(
         address: testProgramId.toBase58(),
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'different_program',
           version: '0.1.0',
           spec: '0.1.0',

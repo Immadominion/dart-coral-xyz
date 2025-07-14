@@ -10,7 +10,7 @@ void main() {
 
     setUp(() {
       // Set up test IDL
-      idl = Idl(
+      idl = const Idl(
         address: 'TestAddress',
         metadata: IdlMetadata(
           name: 'TestProgram',
@@ -28,8 +28,6 @@ void main() {
               ),
               IdlInstructionAccount(
                 name: 'optionalAccount',
-                writable: false,
-                signer: false,
                 optional: true,
               ),
             ],
@@ -117,7 +115,7 @@ void main() {
         'user': userKey,
       }).addSigner(userKey);
 
-      expect(() => builder.build(), throwsA(isA<IdlError>()));
+      expect(builder.build, throwsA(isA<IdlError>()));
     });
 
     test('validates missing required accounts', () async {
@@ -134,7 +132,7 @@ void main() {
         'data': 'test',
       });
 
-      expect(() => builder.build(), throwsA(isA<IdlError>()));
+      expect(builder.build, throwsA(isA<IdlError>()));
     });
 
     test('validates missing required signers', () async {
@@ -153,7 +151,7 @@ void main() {
         'user': userKey,
       });
 
-      expect(() => builder.build(), throwsA(isA<IdlError>()));
+      expect(builder.build, throwsA(isA<IdlError>()));
     });
 
     test('supports remaining accounts', () async {

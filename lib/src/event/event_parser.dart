@@ -4,11 +4,12 @@
 /// logs to extract and decode program events. It tracks program execution context
 /// across Cross-Program Invocation (CPI) boundaries to ensure events are correctly
 /// attributed to their originating programs.
+library;
 
-import '../types/public_key.dart';
-import '../coder/main_coder.dart';
-import 'types.dart';
-import '../idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Parser for extracting events from transaction logs
 ///
@@ -17,6 +18,11 @@ import '../idl/idl.dart';
 /// to track which program is currently executing, enabling proper event
 /// attribution across CPI boundaries.
 class EventParser {
+
+  const EventParser({
+    required this.programId,
+    required this.coder,
+  });
   /// The program ID this parser is configured for
   final PublicKey programId;
 
@@ -39,11 +45,6 @@ class EventParser {
 
   /// Program data prefix
   static const String _programDataPrefix = 'Program data: ';
-
-  const EventParser({
-    required this.programId,
-    required this.coder,
-  });
 
   /// Parse events from transaction logs
   ///
@@ -86,7 +87,7 @@ class EventParser {
       // Yield event with context if found
       if (event != null) {
         final eventContext = context ??
-            EventContext(
+            const EventContext(
               slot: 0, // Will be filled by caller
               signature: '', // Will be filled by caller
             );
@@ -165,7 +166,7 @@ class EventParser {
           throw EventParseException('Failed to decode event: $logStr', e);
         }
 
-        return _LogHandleResult(
+        return const _LogHandleResult(
           event: null,
           newProgram: null,
           didPop: false,
@@ -186,7 +187,7 @@ class EventParser {
   _SystemLogResult _handleSystemLog(String log) {
     // Check if this is a CPI invoke (but not depth 1)
     if (log.contains('invoke') && !log.endsWith('[1]')) {
-      return _SystemLogResult(
+      return const _SystemLogResult(
         newProgram: 'cpi',
         didPop: false,
       );
@@ -195,13 +196,13 @@ class EventParser {
     // Check if this is a program success (indicating program completion)
     final successMatch = _successRegex.firstMatch(log);
     if (successMatch != null) {
-      return _SystemLogResult(
+      return const _SystemLogResult(
         newProgram: null,
         didPop: true,
       );
     }
 
-    return _SystemLogResult(
+    return const _SystemLogResult(
       newProgram: null,
       didPop: false,
     );
@@ -215,8 +216,8 @@ class _ExecutionContext {
   /// Get the currently executing program
   String currentProgram() {
     if (stack.isEmpty) {
-      throw EventParseException(
-          'Expected the execution stack to have elements');
+      throw const EventParseException(
+          'Expected the execution stack to have elements',);
     }
     return stack.last;
   }
@@ -229,8 +230,8 @@ class _ExecutionContext {
   /// Pop the current program from the execution stack
   void pop() {
     if (stack.isEmpty) {
-      throw EventParseException(
-          'Expected the execution stack to have elements');
+      throw const EventParseException(
+          'Expected the execution stack to have elements',);
     }
     stack.removeLast();
   }
@@ -238,10 +239,10 @@ class _ExecutionContext {
 
 /// Scanner for processing log messages
 class _LogScanner {
-  List<String> _logs;
 
   _LogScanner(List<String> logs)
       : _logs = logs.where((log) => log.startsWith('Program ')).toList();
+  final List<String> _logs;
 
   /// Get the next log message
   String? next() {
@@ -250,31 +251,29 @@ class _LogScanner {
   }
 
   /// Peek at the next log message without consuming it
-  String? peek() {
-    return _logs.isEmpty ? null : _logs.first;
-  }
+  String? peek() => _logs.isEmpty ? null : _logs.first;
 }
 
 /// Result of handling a log message
 class _LogHandleResult {
-  final dynamic event;
-  final String? newProgram;
-  final bool didPop;
 
   const _LogHandleResult({
     required this.event,
     required this.newProgram,
     required this.didPop,
   });
+  final dynamic event;
+  final String? newProgram;
+  final bool didPop;
 }
 
 /// Result of handling a system log
 class _SystemLogResult {
-  final String? newProgram;
-  final bool didPop;
 
   const _SystemLogResult({
     required this.newProgram,
     required this.didPop,
   });
+  final String? newProgram;
+  final bool didPop;
 }

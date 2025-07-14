@@ -17,7 +17,7 @@ void main() async {
   try {
     // Create a dummy public key for testing
     final dummyKey = solana.Ed25519HDPublicKey.fromBase58(
-        '11111111111111111111111111111111');
+        '11111111111111111111111111111111',);
 
     // Try to call requestAirdrop (this will likely fail but we can see if the method exists)
     final result =

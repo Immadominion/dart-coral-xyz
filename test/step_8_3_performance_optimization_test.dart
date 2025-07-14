@@ -3,6 +3,7 @@
 /// This test suite validates the comprehensive performance optimization system
 /// including intelligent caching, request batching, performance monitoring,
 /// optimization recommendations, resource management, and adaptive optimization.
+library;
 
 import 'dart:async';
 import 'package:test/test.dart';
@@ -115,7 +116,7 @@ void main() {
                   'getAccountInfo',
                   ['same_pubkey'],
                   (response) => response,
-                ));
+                ),);
 
         // All should complete successfully
         await Future.wait(futures);
@@ -208,7 +209,7 @@ void main() {
         // Record some measurements
         monitor.recordMeasurement('fast_op', const Duration(milliseconds: 10));
         monitor.recordMeasurement(
-            'slow_op', const Duration(milliseconds: 1000));
+            'slow_op', const Duration(milliseconds: 1000),);
 
         final metrics = monitor.getMetrics();
         expect(
@@ -218,7 +219,7 @@ void main() {
               perf.SystemHealth.good,
               perf.SystemHealth.degraded,
               perf.SystemHealth.critical,
-            ]));
+            ]),);
       });
 
       test('should generate performance recommendations', () async {
@@ -374,7 +375,7 @@ void main() {
         final perfConfig = perf.PerformanceConfig.highPerformance();
         expect(perfConfig.batchingConfig.maxBatchSize, equals(200));
         expect(
-            perfConfig.batchingConfig.batchTimeout.inMilliseconds, equals(25));
+            perfConfig.batchingConfig.batchTimeout.inMilliseconds, equals(25),);
       });
 
       test('should create development configurations', () {
@@ -436,7 +437,7 @@ void main() {
             'high_load_method',
             ['param_$i'],
             (response) => response,
-          ));
+          ),);
         }
 
         // Multiple performance measurements
@@ -445,7 +446,7 @@ void main() {
           futures
               .add(Future.delayed(Duration(milliseconds: i % 10 + 1)).then((_) {
             timer.stop();
-          }));
+          }),);
         }
 
         // Multiple resource tracking
@@ -489,7 +490,7 @@ void main() {
         final metrics = optimizer.getMetrics();
         expect(metrics.batchMetrics.averageBatchSize, isA<double>());
         expect(
-            metrics.monitoringMetrics.systemHealth, isA<perf.SystemHealth>());
+            metrics.monitoringMetrics.systemHealth, isA<perf.SystemHealth>(),);
         expect(metrics.resourceMetrics.totalMemoryUsage, isA<int>());
         expect(metrics.adaptiveMetrics.optimizationScore, isA<double>());
       });

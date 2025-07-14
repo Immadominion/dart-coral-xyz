@@ -2,24 +2,16 @@
 ///
 /// This module provides capabilities for persisting events to storage
 /// and restoring them for replay or analysis purposes.
+library;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import '../idl/idl.dart';
-import 'types.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
 
 /// Service for persisting and restoring events
 class EventPersistenceService {
-  final String _storageDirectory;
-  final bool _enableCompression;
-  final int _maxFileSize;
-  final Duration _rotationInterval;
-
-  late final Directory _storageDir;
-  Timer? _rotationTimer;
-  String? _currentLogFile;
-  int _currentFileSize = 0;
 
   EventPersistenceService({
     required String storageDirectory,
@@ -32,6 +24,15 @@ class EventPersistenceService {
         _rotationInterval = rotationInterval {
     _initializeStorage();
   }
+  final String _storageDirectory;
+  final bool _enableCompression;
+  final int _maxFileSize;
+  final Duration _rotationInterval;
+
+  late final Directory _storageDir;
+  Timer? _rotationTimer;
+  String? _currentLogFile;
+  int _currentFileSize = 0;
 
   /// Initialize storage directory and rotation timer
   Future<void> _initializeStorage() async {
@@ -66,7 +67,7 @@ class EventPersistenceService {
               event: event,
               timestamp: DateTime.now(),
               programId: event.name, // This should be the actual program ID
-            ))
+            ),)
         .toList();
 
     final batchData = {
@@ -250,7 +251,7 @@ class EventPersistenceService {
               yield PersistedEvent.fromJson(eventData);
             } else if (eventData is Map) {
               yield PersistedEvent.fromJson(
-                  Map<String, dynamic>.from(eventData));
+                  Map<String, dynamic>.from(eventData),);
             }
           }
         } else {
@@ -282,24 +283,12 @@ class EventPersistenceService {
 
 /// Represents a persisted event with metadata
 class PersistedEvent {
-  final ParsedEvent<dynamic> event;
-  final DateTime timestamp;
-  final String programId;
 
   PersistedEvent({
     required this.event,
     required this.timestamp,
     required this.programId,
   });
-
-  Map<String, dynamic> toJson() => {
-        'event': {
-          'name': event.name,
-          'data': event.data,
-        },
-        'timestamp': timestamp.toIso8601String(),
-        'programId': programId,
-      };
 
   factory PersistedEvent.fromJson(Map<String, dynamic> json) {
     // Defensive: ensure types for all fields
@@ -333,16 +322,22 @@ class PersistedEvent {
       programId: programId,
     );
   }
+  final ParsedEvent<dynamic> event;
+  final DateTime timestamp;
+  final String programId;
+
+  Map<String, dynamic> toJson() => {
+        'event': {
+          'name': event.name,
+          'data': event.data,
+        },
+        'timestamp': timestamp.toIso8601String(),
+        'programId': programId,
+      };
 }
 
 /// Statistics about persisted events
 class EventPersistenceStats {
-  final int totalEvents;
-  final int totalSizeBytes;
-  final int fileCount;
-  final DateTime? oldestEvent;
-  final DateTime? newestEvent;
-  final bool compressionEnabled;
 
   EventPersistenceStats({
     required this.totalEvents,
@@ -352,6 +347,12 @@ class EventPersistenceStats {
     this.newestEvent,
     required this.compressionEnabled,
   });
+  final int totalEvents;
+  final int totalSizeBytes;
+  final int fileCount;
+  final DateTime? oldestEvent;
+  final DateTime? newestEvent;
+  final bool compressionEnabled;
 
   double get averageEventSize =>
       totalEvents > 0 ? totalSizeBytes / totalEvents : 0;
@@ -374,14 +375,6 @@ class EventPersistenceStats {
 
 /// Configuration for event persistence
 class EventPersistenceConfig {
-  final String storageDirectory;
-  final bool enableCompression;
-  final int maxFileSize;
-  final Duration rotationInterval;
-  final Duration? retentionPeriod;
-  final bool enableBatchPersistence;
-  final int batchSize;
-  final Duration batchTimeout;
 
   const EventPersistenceConfig({
     required this.storageDirectory,
@@ -415,4 +408,12 @@ class EventPersistenceConfig {
         batchSize: 500,
         batchTimeout: const Duration(minutes: 2),
       );
+  final String storageDirectory;
+  final bool enableCompression;
+  final int maxFileSize;
+  final Duration rotationInterval;
+  final Duration? retentionPeriod;
+  final bool enableBatchPersistence;
+  final int batchSize;
+  final Duration batchTimeout;
 }

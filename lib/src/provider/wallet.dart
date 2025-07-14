@@ -8,9 +8,9 @@ library;
 
 import 'dart:typed_data';
 import 'dart:async';
-import '../types/keypair.dart';
-import '../types/public_key.dart';
-import '../types/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
 
 /// Abstract wallet interface for signing Solana transactions
 ///
@@ -56,18 +56,11 @@ abstract class Wallet {
 /// for signing. It's suitable for server-side applications or development
 /// environments where the private key can be safely stored in memory.
 class KeypairWallet implements Wallet {
-  final Keypair _keypair;
 
   /// Create a wallet from a keypair
   ///
   /// [keypair] - The keypair to use for signing
   KeypairWallet(this._keypair);
-
-  /// Create a wallet by generating a new random keypair
-  static Future<KeypairWallet> generate() async {
-    final keypair = await Keypair.generate();
-    return KeypairWallet(keypair);
-  }
 
   /// Create a wallet from a secret key
   ///
@@ -92,6 +85,13 @@ class KeypairWallet implements Wallet {
     final keypair = Keypair.fromJson(secretKeyArray);
     return KeypairWallet(keypair);
   }
+  final Keypair _keypair;
+
+  /// Create a wallet by generating a new random keypair
+  static Future<KeypairWallet> generate() async {
+    final keypair = await Keypair.generate();
+    return KeypairWallet(keypair);
+  }
 
   /// Create a wallet from a seed for deterministic key generation
   ///
@@ -110,7 +110,7 @@ class KeypairWallet implements Wallet {
   @override
   Future<Transaction> signTransaction(Transaction transaction) async {
     // Create a transaction serializer/signer helper
-    return await _signTransactionInternal(transaction);
+    return _signTransactionInternal(transaction);
   }
 
   @override
@@ -128,9 +128,7 @@ class KeypairWallet implements Wallet {
   }
 
   @override
-  Future<Uint8List> signMessage(Uint8List message) async {
-    return await _keypair.sign(message);
-  }
+  Future<Uint8List> signMessage(Uint8List message) async => await _keypair.sign(message);
 
   /// Internal method to sign a transaction
   ///
@@ -139,7 +137,7 @@ class KeypairWallet implements Wallet {
   /// public key as a signer and the signature will be computed later.
   Future<Transaction> _signTransactionInternal(Transaction transaction) async {
     print(
-        'DEBUG: Wallet signing transaction with public key: ${publicKey.toBase58()}');
+        'DEBUG: Wallet signing transaction with public key: ${publicKey.toBase58()}',);
 
     // Ensure feePayer is set if not already set
     if (transaction.feePayer == null) {
@@ -172,16 +170,14 @@ class KeypairWallet implements Wallet {
   /// to the Solana network.
   Future<Uint8List> signTransactionMessage(Uint8List messageBytes) async {
     print(
-        'DEBUG: Wallet signing transaction message (${messageBytes.length} bytes)');
+        'DEBUG: Wallet signing transaction message (${messageBytes.length} bytes)',);
     final signatureBytes = await _keypair.sign(messageBytes);
     print('DEBUG: Generated signature (${signatureBytes.length} bytes)');
     return signatureBytes;
   }
 
   @override
-  String toString() {
-    return 'KeypairWallet(publicKey: $publicKey)';
-  }
+  String toString() => 'KeypairWallet(publicKey: $publicKey)';
 
   @override
   bool operator ==(Object other) {
@@ -247,10 +243,10 @@ abstract class WalletAdapter {
 /// This class allows external wallet adapters to be used with the standard
 /// Wallet interface, providing a bridge between the two systems.
 class AdapterWallet implements Wallet {
-  final WalletAdapter _adapter;
 
   /// Create a wallet from a wallet adapter
   AdapterWallet(this._adapter);
+  final WalletAdapter _adapter;
 
   /// Get the underlying adapter
   WalletAdapter get adapter => _adapter;
@@ -260,7 +256,7 @@ class AdapterWallet implements Wallet {
     final pubkey = _adapter.publicKey;
     if (pubkey == null) {
       throw const WalletNotConnectedException(
-          'Wallet adapter is not connected or has no public key');
+          'Wallet adapter is not connected or has no public key',);
     }
     return pubkey;
   }
@@ -337,9 +333,7 @@ class AdapterWallet implements Wallet {
   Stream<PublicKey?> get onAccountChange => _adapter.onAccountChange;
 
   @override
-  String toString() {
-    return 'AdapterWallet(${_adapter.name}, connected: ${_adapter.connected})';
-  }
+  String toString() => 'AdapterWallet(${_adapter.name}, connected: ${_adapter.connected})';
 
   @override
   bool operator ==(Object other) {
@@ -353,13 +347,13 @@ class AdapterWallet implements Wallet {
 
 /// Exception thrown when wallet operations fail
 class WalletException implements Exception {
+
+  const WalletException(this.message, [this.cause]);
   /// The error message describing what went wrong
   final String message;
 
   /// Optional underlying cause of the error
   final dynamic cause;
-
-  const WalletException(this.message, [this.cause]);
 
   @override
   String toString() {
@@ -394,12 +388,6 @@ class WalletNotAvailableException extends WalletException {
 /// testing and development purposes. It simulates the behavior of an
 /// external wallet without requiring actual wallet software.
 class MockWalletAdapter implements WalletAdapter {
-  final String _name;
-  final String? _icon;
-  final String? _url;
-  final Keypair _keypair;
-
-  bool _connected = false;
 
   MockWalletAdapter(
     this._name,
@@ -408,6 +396,12 @@ class MockWalletAdapter implements WalletAdapter {
     String? url,
   })  : _icon = icon,
         _url = url;
+  final String _name;
+  final String? _icon;
+  final String? _url;
+  final Keypair _keypair;
+
+  bool _connected = false;
 
   @override
   String get name => _name;
@@ -486,7 +480,7 @@ class MockWalletAdapter implements WalletAdapter {
       throw const WalletNotConnectedException();
     }
 
-    return await _keypair.sign(message);
+    return _keypair.sign(message);
   }
 
   // Event streams

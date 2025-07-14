@@ -11,32 +11,12 @@ import 'dart:convert';
 
 import 'package:web_socket_channel/io.dart';
 
-import '../../types/public_key.dart';
-import '../../types/commitment.dart';
-import '../../provider/connection.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
 
 /// Configuration for account subscription manager
 class AccountSubscriptionConfig {
-  /// Enable automatic reconnection on connection failures
-  final bool autoReconnect;
-
-  /// Maximum number of reconnection attempts
-  final int maxReconnectAttempts;
-
-  /// Delay between reconnection attempts
-  final Duration reconnectDelay;
-
-  /// Subscription timeout for inactive subscriptions
-  final Duration subscriptionTimeout;
-
-  /// Maximum number of concurrent subscriptions
-  final int maxConcurrentSubscriptions;
-
-  /// Buffer size for missed updates during reconnection
-  final int bufferSize;
-
-  /// Default commitment level for subscriptions
-  final Commitment defaultCommitment;
 
   const AccountSubscriptionConfig({
     this.autoReconnect = true,
@@ -73,30 +53,30 @@ class AccountSubscriptionConfig {
       defaultCommitment: Commitment.finalized,
     );
   }
+  /// Enable automatic reconnection on connection failures
+  final bool autoReconnect;
+
+  /// Maximum number of reconnection attempts
+  final int maxReconnectAttempts;
+
+  /// Delay between reconnection attempts
+  final Duration reconnectDelay;
+
+  /// Subscription timeout for inactive subscriptions
+  final Duration subscriptionTimeout;
+
+  /// Maximum number of concurrent subscriptions
+  final int maxConcurrentSubscriptions;
+
+  /// Buffer size for missed updates during reconnection
+  final int bufferSize;
+
+  /// Default commitment level for subscriptions
+  final Commitment defaultCommitment;
 }
 
 /// Account change notification
 class AccountChangeNotification {
-  /// Account public key
-  final PublicKey publicKey;
-
-  /// Account data (can be null if account was deleted)
-  final List<int>? data;
-
-  /// Account lamports balance
-  final int lamports;
-
-  /// Account owner program ID
-  final PublicKey owner;
-
-  /// Slot number when change occurred
-  final int slot;
-
-  /// Whether account is executable
-  final bool executable;
-
-  /// Rent epoch
-  final int rentEpoch;
 
   const AccountChangeNotification({
     required this.publicKey,
@@ -145,11 +125,29 @@ class AccountChangeNotification {
       rentEpoch: value['rentEpoch'] as int? ?? 0,
     );
   }
+  /// Account public key
+  final PublicKey publicKey;
+
+  /// Account data (can be null if account was deleted)
+  final List<int>? data;
+
+  /// Account lamports balance
+  final int lamports;
+
+  /// Account owner program ID
+  final PublicKey owner;
+
+  /// Slot number when change occurred
+  final int slot;
+
+  /// Whether account is executable
+  final bool executable;
+
+  /// Rent epoch
+  final int rentEpoch;
 
   @override
-  String toString() {
-    return 'AccountChangeNotification(publicKey: $publicKey, lamports: $lamports, owner: $owner, slot: $slot)';
-  }
+  String toString() => 'AccountChangeNotification(publicKey: $publicKey, lamports: $lamports, owner: $owner, slot: $slot)';
 }
 
 /// Subscription state for account monitoring
@@ -164,6 +162,16 @@ enum AccountSubscriptionState {
 
 /// Statistics for account subscription performance
 class AccountSubscriptionStats {
+
+  const AccountSubscriptionStats({
+    required this.totalNotifications,
+    required this.successfulNotifications,
+    required this.notificationErrors,
+    required this.reconnections,
+    this.lastNotification,
+    required this.state,
+    required this.averageProcessingTime,
+  });
   /// Total number of notifications received
   final int totalNotifications;
 
@@ -185,30 +193,24 @@ class AccountSubscriptionStats {
   /// Average notification processing time (milliseconds)
   final double averageProcessingTime;
 
-  const AccountSubscriptionStats({
-    required this.totalNotifications,
-    required this.successfulNotifications,
-    required this.notificationErrors,
-    required this.reconnections,
-    this.lastNotification,
-    required this.state,
-    required this.averageProcessingTime,
-  });
-
   /// Success rate as percentage
   double get successRate {
-    if (totalNotifications == 0) return 0.0;
+    if (totalNotifications == 0) return 0;
     return (successfulNotifications / totalNotifications) * 100.0;
   }
 
   @override
-  String toString() {
-    return 'AccountSubscriptionStats(notifications: $totalNotifications, success: ${successRate.toStringAsFixed(1)}%, state: $state)';
-  }
+  String toString() => 'AccountSubscriptionStats(notifications: $totalNotifications, success: ${successRate.toStringAsFixed(1)}%, state: $state)';
 }
 
 /// Individual account subscription
 class AccountSubscription {
+
+  AccountSubscription({
+    required this.publicKey,
+    required this.config,
+    required this.commitment,
+  }) : _controller = StreamController<AccountChangeNotification>.broadcast();
   /// Account public key being monitored
   final PublicKey publicKey;
 
@@ -252,12 +254,6 @@ class AccountSubscription {
 
   /// Reconnection attempt counter
   int _reconnectAttempts = 0;
-
-  AccountSubscription({
-    required this.publicKey,
-    required this.config,
-    required this.commitment,
-  }) : _controller = StreamController<AccountChangeNotification>.broadcast();
 
   /// Get the notification stream
   Stream<AccountChangeNotification> get stream => _controller.stream;
@@ -475,7 +471,7 @@ class AccountSubscription {
       if (_state == AccountSubscriptionState.connected) {
         _setState(AccountSubscriptionState.error);
         _controller.addError(TimeoutException(
-            'Subscription timed out', config.subscriptionTimeout));
+            'Subscription timed out', config.subscriptionTimeout,),);
       }
     });
   }
@@ -486,9 +482,7 @@ class AccountSubscription {
   }
 
   /// Get buffered notifications
-  List<AccountChangeNotification> getBufferedNotifications() {
-    return List.unmodifiable(_buffer);
-  }
+  List<AccountChangeNotification> getBufferedNotifications() => List.unmodifiable(_buffer);
 
   /// Clear notification buffer
   void clearBuffer() {
@@ -498,6 +492,12 @@ class AccountSubscription {
 
 /// Manager for account subscriptions with advanced features
 class AccountSubscriptionManager {
+
+  AccountSubscriptionManager({
+    required Connection connection,
+    AccountSubscriptionConfig? config,
+  })  : _connection = connection,
+        _config = config ?? const AccountSubscriptionConfig();
   /// Connection to Solana cluster
   final Connection _connection;
 
@@ -509,12 +509,6 @@ class AccountSubscriptionManager {
 
   /// Manager state
   bool _isActive = true;
-
-  AccountSubscriptionManager({
-    required Connection connection,
-    AccountSubscriptionConfig? config,
-  })  : _connection = connection,
-        _config = config ?? const AccountSubscriptionConfig();
 
   /// Create subscription for account changes
   Future<Stream<AccountChangeNotification>> subscribe(
@@ -536,7 +530,7 @@ class AccountSubscriptionManager {
     // Check subscription limits
     if (_subscriptions.length >= _config.maxConcurrentSubscriptions) {
       throw StateError(
-          'Maximum concurrent subscriptions reached: ${_config.maxConcurrentSubscriptions}');
+          'Maximum concurrent subscriptions reached: ${_config.maxConcurrentSubscriptions}',);
     }
 
     // Create new subscription
@@ -565,9 +559,7 @@ class AccountSubscriptionManager {
   }
 
   /// Check if account is being monitored
-  bool isSubscribed(PublicKey publicKey) {
-    return _subscriptions.containsKey(publicKey.toBase58());
-  }
+  bool isSubscribed(PublicKey publicKey) => _subscriptions.containsKey(publicKey.toBase58());
 
   /// Get subscription statistics for an account
   AccountSubscriptionStats? getSubscriptionStats(PublicKey publicKey) {
@@ -576,12 +568,10 @@ class AccountSubscriptionManager {
   }
 
   /// Get all active subscriptions
-  List<PublicKey> getActiveSubscriptions() {
-    return _subscriptions.values
+  List<PublicKey> getActiveSubscriptions() => _subscriptions.values
         .where((sub) => sub.isActive)
         .map((sub) => sub.publicKey)
         .toList();
-  }
 
   /// Get manager statistics
   Map<String, dynamic> getManagerStats() {

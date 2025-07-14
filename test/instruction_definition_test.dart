@@ -6,7 +6,7 @@ void main() {
     late IdlInstruction sampleInstruction;
 
     setUp(() {
-      sampleInstruction = IdlInstruction(
+      sampleInstruction = const IdlInstruction(
         name: 'initialize',
         docs: ['Initialize a new account'],
         args: [
@@ -26,21 +26,15 @@ void main() {
             name: 'account',
             docs: ['Account to initialize'],
             writable: true,
-            signer: false,
-            optional: false,
           ),
           IdlInstructionAccount(
             name: 'authority',
             docs: ['Authority'],
-            writable: false,
             signer: true,
-            optional: false,
           ),
           IdlInstructionAccount(
             name: 'systemProgram',
             docs: ['System program'],
-            writable: false,
-            signer: false,
             optional: true,
           ),
         ],
@@ -77,7 +71,7 @@ void main() {
       final missingResult = definition.validateArguments(missingArgs);
       expect(missingResult.isValid, isFalse);
       expect(missingResult.errors,
-          contains('Missing required argument: authority'));
+          contains('Missing required argument: authority'),);
 
       // Invalid type
       final invalidArgs = {
@@ -95,9 +89,9 @@ void main() {
       // Valid accounts
       final validAccounts = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
         'systemProgram':
             PublicKey.fromBase58('11111111111111111111111111111111'),
       };
@@ -108,19 +102,19 @@ void main() {
       // Missing required account
       final missingAccounts = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
       };
       final missingResult = definition.validateAccounts(missingAccounts);
       expect(missingResult.isValid, isFalse);
       expect(missingResult.errors,
-          contains('Missing required account: authority'));
+          contains('Missing required account: authority'),);
 
       // Optional account can be missing
       final withoutOptional = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
       };
       final optionalResult = definition.validateAccounts(withoutOptional);
       expect(optionalResult.isValid, isTrue);
@@ -135,9 +129,9 @@ void main() {
       };
       final validAccounts = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
       };
 
       final result = definition.validate(
@@ -152,7 +146,7 @@ void main() {
 
   group('ArgumentDefinition', () {
     test('creates from IDL field', () {
-      final field = IdlField(
+      final field = const IdlField(
         name: 'amount',
         type: IdlType(kind: 'u64'),
         docs: ['Amount parameter'],
@@ -166,7 +160,7 @@ void main() {
     });
 
     test('validates types correctly', () {
-      final u64Field = IdlField(
+      final u64Field = const IdlField(
         name: 'amount',
         type: IdlType(kind: 'u64'),
       );
@@ -184,12 +178,10 @@ void main() {
 
   group('InstructionAccountDefinition', () {
     test('creates from IDL instruction account', () {
-      final account = IdlInstructionAccount(
+      final account = const IdlInstructionAccount(
         name: 'authority',
         docs: ['Authority account'],
-        writable: false,
         signer: true,
-        optional: false,
       );
 
       final accountDef = InstructionAccountDefinition.fromIdlAccount(account);
@@ -202,11 +194,9 @@ void main() {
     });
 
     test('validates accounts correctly', () {
-      final account = IdlInstructionAccount(
+      final account = const IdlInstructionAccount(
         name: 'authority',
-        writable: false,
         signer: true,
-        optional: false,
       );
       final accountDef = InstructionAccountDefinition.fromIdlAccount(account);
 
@@ -230,52 +220,52 @@ void main() {
   group('TypeValidator', () {
     test('validates basic types correctly', () {
       // Boolean validator
-      final boolValidator = TypeValidator.fromIdlType(IdlType(kind: 'bool'));
+      final boolValidator = TypeValidator.fromIdlType(const IdlType(kind: 'bool'));
       expect(boolValidator.validate(true).isValid, isTrue);
       expect(boolValidator.validate('not bool').isValid, isFalse);
 
       // Integer validator
-      final u64Validator = TypeValidator.fromIdlType(IdlType(kind: 'u64'));
+      final u64Validator = TypeValidator.fromIdlType(const IdlType(kind: 'u64'));
       expect(u64Validator.validate(123).isValid, isTrue);
       expect(u64Validator.validate('not int').isValid, isFalse);
 
       // String validator
       final stringValidator =
-          TypeValidator.fromIdlType(IdlType(kind: 'string'));
+          TypeValidator.fromIdlType(const IdlType(kind: 'string'));
       expect(stringValidator.validate('hello').isValid, isTrue);
       expect(stringValidator.validate(123).isValid, isFalse);
 
       // PublicKey validator
       final pubkeyValidator =
-          TypeValidator.fromIdlType(IdlType(kind: 'publicKey'));
+          TypeValidator.fromIdlType(const IdlType(kind: 'publicKey'));
       expect(
           pubkeyValidator
               .validate('GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs')
               .isValid,
-          isTrue);
+          isTrue,);
       expect(
           pubkeyValidator
               .validate(PublicKey.fromBase58(
-                  'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'))
+                  'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),)
               .isValid,
-          isTrue);
+          isTrue,);
       expect(pubkeyValidator.validate(123).isValid, isFalse);
     });
 
     test('validates complex types correctly', () {
       // Array validator
-      final arrayValidator = TypeValidator.fromIdlType(IdlType(kind: 'array'));
+      final arrayValidator = TypeValidator.fromIdlType(const IdlType(kind: 'array'));
       expect(arrayValidator.validate([1, 2, 3]).isValid, isTrue);
       expect(arrayValidator.validate('not array').isValid, isFalse);
 
       // Vec validator
-      final vecValidator = TypeValidator.fromIdlType(IdlType(kind: 'vec'));
+      final vecValidator = TypeValidator.fromIdlType(const IdlType(kind: 'vec'));
       expect(vecValidator.validate([1, 2, 3]).isValid, isTrue);
       expect(vecValidator.validate('not vec').isValid, isFalse);
 
       // Option validator (allows any)
       final optionValidator =
-          TypeValidator.fromIdlType(IdlType(kind: 'option'));
+          TypeValidator.fromIdlType(const IdlType(kind: 'option'));
       expect(optionValidator.validate(null).isValid, isTrue);
       expect(optionValidator.validate(123).isValid, isTrue);
       expect(optionValidator.validate('anything').isValid, isTrue);
@@ -284,7 +274,7 @@ void main() {
 
   group('InstructionConstraints', () {
     test('creates from IDL instruction', () {
-      final instruction = IdlInstruction(
+      final instruction = const IdlInstruction(
         name: 'test',
         args: [
           IdlField(name: 'arg1', type: IdlType(kind: 'u64')),
@@ -294,11 +284,9 @@ void main() {
           IdlInstructionAccount(
             name: 'account1',
             writable: true,
-            signer: false,
           ),
           IdlInstructionAccount(
             name: 'signer',
-            writable: false,
             signer: true,
           ),
         ],
@@ -311,7 +299,7 @@ void main() {
     });
 
     test('validates constraints correctly', () {
-      final constraints = InstructionConstraints(
+      final constraints = const InstructionConstraints(
         maxArguments: 5,
         maxAccounts: 10,
         requiresSignature: true,
@@ -351,7 +339,7 @@ void main() {
 
   group('Integration Tests', () {
     test('handles complex instruction with nested accounts', () {
-      final instruction = IdlInstruction(
+      final instruction = const IdlInstruction(
         name: 'complexInstruction',
         docs: ['A complex instruction with multiple account types'],
         args: [
@@ -375,18 +363,15 @@ void main() {
               IdlInstructionAccount(
                 name: 'source',
                 writable: true,
-                signer: false,
               ),
               IdlInstructionAccount(
                 name: 'destination',
                 writable: true,
-                signer: false,
               ),
             ],
           ),
           IdlInstructionAccount(
             name: 'authority',
-            writable: false,
             signer: true,
           ),
         ],
@@ -397,7 +382,7 @@ void main() {
       expect(definition.name, equals('complexInstruction'));
       expect(definition.arguments.length, equals(2));
       expect(
-          definition.accounts.length, equals(2)); // Group + individual account
+          definition.accounts.length, equals(2),); // Group + individual account
 
       // Validate with proper arguments and accounts
       final args = {
@@ -407,7 +392,7 @@ void main() {
       final accounts = {
         'accounts': 'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs'),
+            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
       };
 
       final result = definition.validate(arguments: args, accounts: accounts);
@@ -415,7 +400,7 @@ void main() {
     });
 
     test('instruction definition metadata access', () {
-      final instruction = IdlInstruction(
+      final instruction = const IdlInstruction(
         name: 'testInstruction',
         docs: ['Test docs'],
         args: [],

@@ -19,16 +19,18 @@ export 'web_optimization.dart' hide CacheEntry;
 export 'mobile_optimization.dart' hide TransactionStatus, MobileWalletSession;
 
 import 'dart:async';
-import '../provider/anchor_provider.dart';
-import '../provider/connection.dart';
-import '../provider/wallet.dart';
-import '../types/public_key.dart';
-import 'platform_optimization.dart';
-import 'web_optimization.dart';
-import 'mobile_optimization.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
+import 'package:coral_xyz_anchor/src/platform/web_optimization.dart';
+import 'package:coral_xyz_anchor/src/platform/mobile_optimization.dart';
 
 /// Unified platform manager for the Coral XYZ Anchor client
 class PlatformManager {
+
+  PlatformManager._(this._configuration);
   static PlatformManager? _instance;
 
   /// Platform-specific configuration
@@ -51,8 +53,6 @@ class PlatformManager {
 
   /// Deep link handler (mobile-specific)
   bool _deepLinkInitialized = false;
-
-  PlatformManager._(this._configuration);
 
   /// Get singleton instance
   static PlatformManager get instance {
@@ -146,7 +146,7 @@ class PlatformManager {
 
   /// Create optimized provider
   AnchorProvider createOptimizedProvider(
-      Connection connection, Wallet? wallet) {
+      Connection connection, Wallet? wallet,) {
     final provider = AnchorProvider(connection, wallet);
 
     if (PlatformOptimization.isMobile) {
@@ -181,7 +181,7 @@ class PlatformManager {
   /// Check if wallet session is active (mobile only)
   Future<bool> isWalletSessionActive() async {
     if (PlatformOptimization.isMobile && _walletSession != null) {
-      return await _walletSession!.isSessionActive();
+      return _walletSession!.isSessionActive();
     }
     return false;
   }
@@ -218,7 +218,7 @@ class PlatformManager {
   /// Auto-connect to web wallet (web only)
   Future<BrowserWalletAdapter?> autoConnectWebWallet() async {
     if (PlatformOptimization.isWeb) {
-      return await WebWalletDiscovery.autoConnect();
+      return WebWalletDiscovery.autoConnect();
     }
     return null;
   }
@@ -254,6 +254,17 @@ class PlatformManager {
 
 /// Platform configuration for the Coral XYZ Anchor client
 class PlatformConfiguration {
+
+  const PlatformConfiguration({
+    this.enableOptimizations = true,
+    this.enableBackgroundProcessing = true,
+    this.enableSecureStorage = true,
+    this.enableDeepLinks = true,
+    this.enableWebWalletDiscovery = true,
+    this.enablePerformanceMonitoring = true,
+    this.performanceConfig,
+    this.storageConfig = const {},
+  });
   /// Whether to enable platform-specific optimizations
   final bool enableOptimizations;
 
@@ -278,49 +289,29 @@ class PlatformConfiguration {
   /// Custom storage configuration
   final Map<String, dynamic> storageConfig;
 
-  const PlatformConfiguration({
-    this.enableOptimizations = true,
-    this.enableBackgroundProcessing = true,
-    this.enableSecureStorage = true,
-    this.enableDeepLinks = true,
-    this.enableWebWalletDiscovery = true,
-    this.enablePerformanceMonitoring = true,
-    this.performanceConfig,
-    this.storageConfig = const {},
-  });
-
   /// Get current platform configuration based on detected platform
-  static PlatformConfiguration get current {
-    return PlatformConfiguration.forPlatform(
+  static PlatformConfiguration get current => PlatformConfiguration.forPlatform(
         PlatformOptimization.currentPlatform);
-  }
 
   /// Create configuration for specific platform
   static PlatformConfiguration forPlatform(PlatformType platform) {
     switch (platform) {
       case PlatformType.mobile:
         return const PlatformConfiguration(
-          enableOptimizations: true,
           enableBackgroundProcessing: true,
-          enableSecureStorage: true,
-          enableDeepLinks: true,
           enableWebWalletDiscovery: false,
           enablePerformanceMonitoring: false,
         );
 
       case PlatformType.web:
         return const PlatformConfiguration(
-          enableOptimizations: true,
           enableBackgroundProcessing: false,
           enableSecureStorage: false,
           enableDeepLinks: false,
-          enableWebWalletDiscovery: true,
-          enablePerformanceMonitoring: true,
         );
 
       case PlatformType.desktop:
         return const PlatformConfiguration(
-          enableOptimizations: true,
           enableBackgroundProcessing: true,
           enableSecureStorage: false,
           enableDeepLinks: false,
@@ -341,8 +332,7 @@ class PlatformConfiguration {
   }
 
   /// Create development configuration with all features enabled
-  static PlatformConfiguration get development {
-    return const PlatformConfiguration(
+  static PlatformConfiguration get development => const PlatformConfiguration(
       enableOptimizations: true,
       enableBackgroundProcessing: true,
       enableSecureStorage: true,
@@ -350,22 +340,17 @@ class PlatformConfiguration {
       enableWebWalletDiscovery: true,
       enablePerformanceMonitoring: true,
     );
-  }
 
   /// Create production configuration with conservative settings
-  static PlatformConfiguration get production {
-    return PlatformConfiguration.forPlatform(
+  static PlatformConfiguration get production => PlatformConfiguration.forPlatform(
         PlatformOptimization.currentPlatform);
-  }
 }
 
 /// Convenience class for quick platform-specific operations
 class PlatformUtils {
   /// Get user-friendly error message for current platform
-  static String getErrorMessage(Exception error) {
-    return PlatformErrorHandler.getErrorMessage(
+  static String getErrorMessage(Exception error) => PlatformErrorHandler.getErrorMessage(
         error, PlatformOptimization.currentPlatform);
-  }
 
   /// Check if feature is supported on current platform
   static bool isFeatureSupported(PlatformFeature feature) {

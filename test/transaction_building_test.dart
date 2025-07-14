@@ -2,18 +2,19 @@
 ///
 /// This test suite validates the transaction building, validation, and
 /// optimization infrastructure for TypeScript parity.
+library;
 
 import 'package:test/test.dart';
 import 'dart:typed_data';
 
-import '../lib/src/transaction/transaction_builder.dart';
-import '../lib/src/transaction/transaction_validator.dart';
-import '../lib/src/transaction/transaction_optimizer.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/types/keypair.dart';
-import '../lib/src/provider/anchor_provider.dart';
-import '../lib/src/provider/connection.dart';
-import '../lib/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_builder.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_validator.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_optimizer.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/wallet.dart';
 
 void main() {
   group('Transaction Building Infrastructure', () {
@@ -131,7 +132,7 @@ void main() {
                   programId: programId,
                   accounts: [],
                   data: Uint8List.fromList([i]),
-                ));
+                ),);
 
         final result = builder.addInstructions(instructions);
 
@@ -262,7 +263,7 @@ void main() {
           programId: programId,
           accounts: [
             AccountMeta(
-                publicKey: accountKey, isSigner: true, isWritable: false),
+                publicKey: accountKey, isSigner: true, isWritable: false,),
           ],
           data: Uint8List.fromList([1, 2, 3]),
         );
@@ -294,7 +295,7 @@ void main() {
 
         expect(estimatedSize, greaterThan(100)); // Should include overhead
         expect(
-            estimatedSize, lessThan(1232)); // Should be under transaction limit
+            estimatedSize, lessThan(1232),); // Should be under transaction limit
       });
 
       test('clears builder state', () {
@@ -309,7 +310,7 @@ void main() {
             programId: programId,
             accounts: [],
             data: Uint8List.fromList([1, 2, 3]),
-          ));
+          ),);
 
         // Verify state exists
         var stats = builder.getStats();
@@ -334,7 +335,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         final description = builder.toString();
 
@@ -367,7 +368,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const validator = TransactionValidator();
         final result = await validator.validateBuilder(builder);
@@ -398,7 +399,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List(2000), // Large data
-        ));
+        ),);
 
         const validator = TransactionValidator();
         final result = await validator.validateBuilder(builder);
@@ -416,7 +417,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const validator = TransactionValidator();
         final result = await validator.validateBuilder(builder);
@@ -461,7 +462,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const optimizer = TransactionOptimizer();
         final result = await optimizer.optimize(builder);
@@ -481,7 +482,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const optimizer = TransactionOptimizer();
         final result = await optimizer.optimize(builder);
@@ -506,7 +507,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const optimizer = TransactionOptimizer();
         final recommendations =
@@ -525,7 +526,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const optimizer = TransactionOptimizer();
         final fee = optimizer.estimateTransactionFee(builder);
@@ -543,7 +544,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const optimizer = TransactionOptimizer();
         final insights = optimizer.getPerformanceInsights(builder);
@@ -569,7 +570,7 @@ void main() {
           programId: programId,
           accounts: [],
           data: Uint8List.fromList([1, 2, 3]),
-        ));
+        ),);
 
         const optimizer = TransactionOptimizer();
         final result = await optimizer.optimize(builder);

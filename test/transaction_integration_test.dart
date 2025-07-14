@@ -2,6 +2,7 @@
 ///
 /// This test verifies that the dart-coral-xyz package can properly
 /// serialize, sign, and send transactions using the solana package.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -28,12 +29,12 @@ void main() {
       // Create a simple transfer instruction
       final fromPubkey = PublicKey.fromBase58(signer.publicKey.toBase58());
       final toPubkey = PublicKey.fromBase58(
-          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58());
+          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58(),);
       final lamports = 1000000; // 0.001 SOL
 
       final transferInstruction = TransactionInstruction(
         programId: PublicKey.fromBase58(
-            '11111111111111111111111111111111'), // System Program
+            '11111111111111111111111111111111',), // System Program
         accounts: [
           AccountMeta(
             publicKey: fromPubkey,
@@ -70,16 +71,16 @@ void main() {
       expect(serializedTx.length, greaterThan(0));
 
       print(
-          '✅ Transaction serialized successfully: ${serializedTx.length} bytes');
+          '✅ Transaction serialized successfully: ${serializedTx.length} bytes',);
     });
 
     test('should create and serialize a transaction with multiple instructions',
         () async {
       final fromPubkey = PublicKey.fromBase58(signer.publicKey.toBase58());
       final toPubkey1 = PublicKey.fromBase58(
-          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58());
+          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58(),);
       final toPubkey2 = PublicKey.fromBase58(
-          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58());
+          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58(),);
 
       // Create multiple transfer instructions
       final instructions = [
@@ -87,9 +88,9 @@ void main() {
           programId: PublicKey.fromBase58('11111111111111111111111111111111'),
           accounts: [
             AccountMeta(
-                publicKey: fromPubkey, isSigner: true, isWritable: true),
+                publicKey: fromPubkey, isSigner: true, isWritable: true,),
             AccountMeta(
-                publicKey: toPubkey1, isSigner: false, isWritable: true),
+                publicKey: toPubkey1, isSigner: false, isWritable: true,),
           ],
           data: _createTransferInstructionData(500000),
         ),
@@ -97,9 +98,9 @@ void main() {
           programId: PublicKey.fromBase58('11111111111111111111111111111111'),
           accounts: [
             AccountMeta(
-                publicKey: fromPubkey, isSigner: true, isWritable: true),
+                publicKey: fromPubkey, isSigner: true, isWritable: true,),
             AccountMeta(
-                publicKey: toPubkey2, isSigner: false, isWritable: true),
+                publicKey: toPubkey2, isSigner: false, isWritable: true,),
           ],
           data: _createTransferInstructionData(500000),
         ),
@@ -124,7 +125,7 @@ void main() {
       expect(serializedTx.length, greaterThan(0));
 
       print(
-          '✅ Multi-instruction transaction serialized: ${serializedTx.length} bytes');
+          '✅ Multi-instruction transaction serialized: ${serializedTx.length} bytes',);
     });
 
     test('should demonstrate sending transaction (dry run)', () async {
@@ -132,7 +133,7 @@ void main() {
 
       final fromPubkey = PublicKey.fromBase58(signer.publicKey.toBase58());
       final toPubkey = PublicKey.fromBase58(
-          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58());
+          (await solana.Ed25519HDKeyPair.random()).publicKey.toBase58(),);
 
       final transferInstruction = TransactionInstruction(
         programId: PublicKey.fromBase58('11111111111111111111111111111111'),
@@ -160,13 +161,11 @@ void main() {
 
       // Verify we can create the send call structure
       // (We won't actually send to avoid needing funded accounts)
-      expect(() async {
-        return Transaction.sendTransaction(
+      expect(() async => Transaction.sendTransaction(
           client: client,
           serializedTransaction: serializedTx,
           commitment: solana.Commitment.confirmed,
-        );
-      }, returnsNormally);
+        ), returnsNormally,);
 
       print('✅ Transaction send structure verified');
     });

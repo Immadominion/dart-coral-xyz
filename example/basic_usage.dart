@@ -2,6 +2,7 @@
 ///
 /// This example demonstrates the essential components and workflows for
 /// interacting with Anchor programs using the Dart client library.
+library;
 
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
@@ -92,9 +93,8 @@ Future<void> demonstrateProviderSetup() async {
   print('   ✓ Provider wallet: ${provider.wallet?.publicKey}');
 
   // Demonstrate provider options
-  final customOptions = ConfirmOptions(
+  final customOptions = const ConfirmOptions(
     commitment: CommitmentConfigs.confirmed,
-    skipPreflight: false,
     maxRetries: 3,
   );
 

@@ -5,6 +5,7 @@
 /// levels, and connection configuration.
 ///
 /// Note: Tests are commented out until test dependencies are added in pubspec.yaml
+library;
 
 // TODO: Uncomment these tests once test package is added to dependencies
 /*

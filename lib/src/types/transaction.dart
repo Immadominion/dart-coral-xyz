@@ -7,8 +7,9 @@ library;
 
 import 'dart:typed_data';
 import 'package:bs58/bs58.dart';
-import '../utils/binary_writer.dart';
-import 'public_key.dart';
+import 'package:coral_xyz_anchor/src/utils/binary_writer.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
 
 // Helper functions for collections comparison
 bool _listEquals<T>(List<T>? a, List<T>? b) {
@@ -30,27 +31,19 @@ bool _bytesEquals(Uint8List a, Uint8List b) {
 
 /// Helper class for account information during transaction compilation
 class _AccountInfo {
-  final PublicKey pubkey;
-  final bool isSigner;
-  final bool isWritable;
 
   const _AccountInfo({
     required this.pubkey,
     required this.isSigner,
     required this.isWritable,
   });
+  final PublicKey pubkey;
+  final bool isSigner;
+  final bool isWritable;
 }
 
 /// Solana transaction instruction
 class TransactionInstruction {
-  /// Program ID that will process this instruction
-  final PublicKey programId;
-
-  /// Accounts required by this instruction
-  final List<AccountMeta> accounts;
-
-  /// Instruction data (serialized parameters)
-  final Uint8List data;
 
   const TransactionInstruction({
     required this.programId,
@@ -79,11 +72,17 @@ class TransactionInstruction {
       data: Uint8List(0),
     );
   }
+  /// Program ID that will process this instruction
+  final PublicKey programId;
+
+  /// Accounts required by this instruction
+  final List<AccountMeta> accounts;
+
+  /// Instruction data (serialized parameters)
+  final Uint8List data;
 
   @override
-  String toString() {
-    return 'TransactionInstruction(programId: $programId, accounts: ${accounts.length}, data: ${data.length} bytes)';
-  }
+  String toString() => 'TransactionInstruction(programId: $programId, accounts: ${accounts.length}, data: ${data.length} bytes)';
 
   @override
   bool operator ==(Object other) {
@@ -100,14 +99,6 @@ class TransactionInstruction {
 
 /// Account metadata for transaction instructions
 class AccountMeta {
-  /// The account's public key
-  final PublicKey pubkey;
-
-  /// Whether this account is required to sign the transaction
-  final bool isSigner;
-
-  /// Whether this account can be modified by the instruction
-  final bool isWritable;
 
   const AccountMeta({
     required this.pubkey,
@@ -129,6 +120,14 @@ class AccountMeta {
   factory AccountMeta.readonly(PublicKey pubkey) {
     return AccountMeta(pubkey: pubkey, isSigner: false, isWritable: false);
   }
+  /// The account's public key
+  final PublicKey pubkey;
+
+  /// Whether this account is required to sign the transaction
+  final bool isSigner;
+
+  /// Whether this account can be modified by the instruction
+  final bool isWritable;
 
   @override
   String toString() {
@@ -158,11 +157,6 @@ typedef TransactionSignature = String;
 
 /// Transaction simulation result
 class BasicTransactionSimulationResult {
-  final bool success;
-  final List<String> logs;
-  final String? error;
-  final int? computeUnits;
-  final List<String> warnings;
 
   const BasicTransactionSimulationResult({
     required this.success,
@@ -171,27 +165,28 @@ class BasicTransactionSimulationResult {
     this.computeUnits,
     this.warnings = const [],
   });
+  final bool success;
+  final List<String> logs;
+  final String? error;
+  final int? computeUnits;
+  final List<String> warnings;
 }
 
 /// Transaction confirmation status
 class TransactionConfirmation {
-  final bool success;
-  final String? error;
-  final Map<String, dynamic>? details;
 
   const TransactionConfirmation({
     required this.success,
     this.error,
     this.details,
   });
+  final bool success;
+  final String? error;
+  final Map<String, dynamic>? details;
 }
 
 /// Status of a transaction confirmation
 class TransactionStatus {
-  final bool confirmed;
-  final String? error;
-  final int? slot;
-  final int confirmations;
 
   const TransactionStatus({
     required this.confirmed,
@@ -203,14 +198,18 @@ class TransactionStatus {
   factory TransactionStatus.unconfirmed() {
     return const TransactionStatus(confirmed: false);
   }
+  final bool confirmed;
+  final String? error;
+  final int? slot;
+  final int confirmations;
 }
 
 /// Log message from transaction simulation or execution
 class LogMessage {
-  final String message;
-  final bool isError;
 
   const LogMessage(this.message, {this.isError = false});
+  final String message;
+  final bool isError;
 
   @override
   String toString() => message;
@@ -218,15 +217,15 @@ class LogMessage {
 
 /// Transaction error information
 class TransactionError {
-  final String message;
-  final String? code;
-  final Map<String, dynamic>? data;
 
   const TransactionError(
     this.message, {
     this.code,
     this.data,
   });
+  final String message;
+  final String? code;
+  final Map<String, dynamic>? data;
 
   @override
   String toString() => message;
@@ -234,15 +233,15 @@ class TransactionError {
 
 /// Record of a completed transaction
 class TransactionRecord {
-  final String signature;
-  final int? slot;
-  final TransactionError? error;
 
   const TransactionRecord(
     this.signature, {
     this.slot,
     this.error,
   });
+  final String signature;
+  final int? slot;
+  final TransactionError? error;
 
   /// Whether the transaction was successful
   bool get isSuccess => error == null;
@@ -256,17 +255,17 @@ class TransactionRecord {
 
 /// A Solana transaction
 class Transaction {
-  final List<TransactionInstruction> instructions;
-  final PublicKey? feePayer;
-  final String? recentBlockhash;
-  final List<PublicKey> _signers = [];
-  final Map<String, Uint8List> _signatures = {};
 
   Transaction({
     required this.instructions,
     this.feePayer,
     this.recentBlockhash,
   });
+  final List<TransactionInstruction> instructions;
+  final PublicKey? feePayer;
+  final String? recentBlockhash;
+  final List<PublicKey> _signers = [];
+  final Map<String, Uint8List> _signatures = {};
 
   Transaction setFeePayer(PublicKey payer) => Transaction(
         instructions: instructions,
@@ -350,7 +349,7 @@ class Transaction {
     final blockhashBytes = base58.decode(recentBlockhash!);
     if (blockhashBytes.length != 32) {
       throw StateError(
-          'Invalid blockhash: expected 32 bytes, got ${blockhashBytes.length}');
+          'Invalid blockhash: expected 32 bytes, got ${blockhashBytes.length}',);
     }
     writer.write(blockhashBytes);
 
@@ -460,7 +459,7 @@ class Transaction {
     print('DEBUG: Account ordering and privileges:');
     for (final account in sortedAccounts) {
       print(
-          'DEBUG:   ${account.pubkey.toBase58()}: signer=${account.isSigner}, writable=${account.isWritable}');
+          'DEBUG:   ${account.pubkey.toBase58()}: signer=${account.isSigner}, writable=${account.isWritable}',);
       if (account.isSigner) {
         numRequiredSignatures++;
         if (!account.isWritable) {
@@ -472,7 +471,7 @@ class Transaction {
     }
 
     print(
-        'DEBUG: Header values - required: $numRequiredSignatures, readonly signed: $numReadonlySignedAccounts, readonly unsigned: $numReadonlyUnsignedAccounts');
+        'DEBUG: Header values - required: $numRequiredSignatures, readonly signed: $numReadonlySignedAccounts, readonly unsigned: $numReadonlyUnsignedAccounts',);
 
     return {
       'keys': sortedAccounts.map((a) => a.pubkey).toList(),
@@ -484,7 +483,7 @@ class Transaction {
 
   /// Serialize an individual instruction
   void _serializeInstruction(BinaryWriter writer, TransactionInstruction ix,
-      List<PublicKey> accountKeys) {
+      List<PublicKey> accountKeys,) {
     // Program ID index
     final programIndex = accountKeys.indexOf(ix.programId);
     if (programIndex < 0) {
@@ -506,11 +505,75 @@ class Transaction {
     writer.writeCompactU16(ix.data.length);
     writer.write(ix.data);
   }
+
+  /// Sign the transaction with the provided keypairs
+  Future<void> sign(List<Keypair> signers) async {
+    final message = compileMessage();
+
+    for (final signer in signers) {
+      final signature = await signer.sign(message);
+      addSignature(signer.publicKey, signature);
+      if (!_signers.contains(signer.publicKey)) {
+        _signers.add(signer.publicKey);
+      }
+    }
+  }
+
+  /// Partially sign the transaction with a single keypair
+  Future<void> partialSign(Keypair signer) async {
+    await sign([signer]);
+  }
+
+  /// Check if all required signatures are present
+  bool get isSigned {
+    final requiredSigners = _getRequiredSigners();
+    return requiredSigners.every(isSignedBy);
+  }
+
+  /// Get all required signers for this transaction
+  List<PublicKey> _getRequiredSigners() {
+    final signers = <PublicKey>{};
+
+    // Add fee payer as required signer
+    if (feePayer != null) {
+      signers.add(feePayer!);
+    }
+
+    // Add all signer accounts from instructions
+    for (final instruction in instructions) {
+      for (final account in instruction.accounts) {
+        if (account.isSigner) {
+          signers.add(account.pubkey);
+        }
+      }
+    }
+
+    return signers.toList();
+  }
+
+  /// Create a transaction that can be used with the solana package
+  Map<String, dynamic> toSolanaTransaction() => {
+      'instructions': instructions
+          .map((ix) => {
+                'programId': ix.programId.toBase58(),
+                'accounts': ix.accounts
+                    .map((acc) => {
+                          'pubkey': acc.pubkey.toBase58(),
+                          'isSigner': acc.isSigner,
+                          'isWritable': acc.isWritable,
+                        })
+                    .toList(),
+                'data': ix.data,
+              })
+          .toList(),
+      'recentBlockhash': recentBlockhash,
+      'feePayer': feePayer?.toBase58(),
+      'signatures': _signatures.map((key, sig) => MapEntry(key, sig)),
+    };
 }
 
 /// Solana transaction signature
 class Signature {
-  final Uint8List bytes;
 
   const Signature._(this.bytes);
 
@@ -524,16 +587,24 @@ class Signature {
 
   /// Create a signature from base58 string
   factory Signature.fromString(String signature) {
-    // This would decode base58, but for now we'll use a placeholder
-    // since we don't have base58 decoder implemented yet
-    throw UnimplementedError('Signature.fromString not yet implemented');
+    try {
+      final bytes = base58.decode(signature);
+      if (bytes.length != 64) {
+        throw ArgumentError(
+            'Invalid signature length: expected 64 bytes, got ${bytes.length}');
+      }
+      return Signature.fromBytes(bytes);
+    } catch (e) {
+      throw FormatException('Failed to decode base58 signature: $e');
+    }
   }
+  final Uint8List bytes;
+
+  /// Convert signature to base58 string
+  String toBase58() => base58.encode(bytes);
 
   @override
-  String toString() {
-    // This would encode to base58, but for now return hex
-    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
-  }
+  String toString() => toBase58();
 
   @override
   bool operator ==(Object other) =>

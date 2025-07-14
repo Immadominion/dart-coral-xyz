@@ -346,7 +346,6 @@ void main() {
             spec: '0.1.0',
           ),
           instructions: [],
-          types: null,
         );
 
         final emptyCoder = BorshTypesCoder<String>(emptyTypesIdl);

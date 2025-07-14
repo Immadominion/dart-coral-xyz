@@ -3,6 +3,7 @@
 /// This test validates Step 7.2 implementation including real-time
 /// account subscriptions, intelligent caching, and comprehensive
 /// account management operations.
+library;
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -10,15 +11,15 @@ import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 
 // Test helper classes
 class MockAccountData {
-  final int value;
-  final String name;
-  final PublicKey owner;
 
   const MockAccountData({
     required this.value,
     required this.name,
     required this.owner,
   });
+  final int value;
+  final String name;
+  final PublicKey owner;
 
   Map<String, dynamic> toJson() => {
         'value': value,
@@ -56,7 +57,7 @@ void main() {
       // Create test IDL
       idl = Idl(
         address: programId.toBase58(),
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'TestProgram',
           version: '0.1.0',
           spec: 'anchor-idl/0.1.0',
@@ -84,8 +85,8 @@ void main() {
 
         expect(config.autoReconnect, isTrue);
         expect(config.maxReconnectAttempts, equals(5));
-        expect(config.reconnectDelay, equals(Duration(seconds: 2)));
-        expect(config.subscriptionTimeout, equals(Duration(minutes: 30)));
+        expect(config.reconnectDelay, equals(const Duration(seconds: 2)));
+        expect(config.subscriptionTimeout, equals(const Duration(minutes: 30)));
         expect(config.maxConcurrentSubscriptions, equals(100));
         expect(config.bufferSize, equals(50));
         expect(config.defaultCommitment, equals(Commitment.confirmed));
@@ -96,8 +97,8 @@ void main() {
 
         expect(config.autoReconnect, isTrue);
         expect(config.maxReconnectAttempts, equals(10));
-        expect(config.reconnectDelay, equals(Duration(seconds: 1)));
-        expect(config.subscriptionTimeout, equals(Duration(minutes: 10)));
+        expect(config.reconnectDelay, equals(const Duration(seconds: 1)));
+        expect(config.subscriptionTimeout, equals(const Duration(minutes: 10)));
         expect(config.maxConcurrentSubscriptions, equals(50));
         expect(config.bufferSize, equals(20));
         expect(config.defaultCommitment, equals(Commitment.confirmed));
@@ -108,8 +109,8 @@ void main() {
 
         expect(config.autoReconnect, isTrue);
         expect(config.maxReconnectAttempts, equals(3));
-        expect(config.reconnectDelay, equals(Duration(seconds: 5)));
-        expect(config.subscriptionTimeout, equals(Duration(hours: 1)));
+        expect(config.reconnectDelay, equals(const Duration(seconds: 5)));
+        expect(config.subscriptionTimeout, equals(const Duration(hours: 1)));
         expect(config.maxConcurrentSubscriptions, equals(200));
         expect(config.bufferSize, equals(100));
         expect(config.defaultCommitment, equals(Commitment.finalized));
@@ -174,10 +175,10 @@ void main() {
         const config = AccountCacheConfig();
 
         expect(config.maxEntries, equals(1000));
-        expect(config.ttl, equals(Duration(minutes: 5)));
+        expect(config.ttl, equals(const Duration(minutes: 5)));
         expect(config.strategy, equals(CacheInvalidationStrategy.hybrid));
         expect(config.maxMemoryBytes, equals(50 * 1024 * 1024));
-        expect(config.cleanupInterval, equals(Duration(minutes: 1)));
+        expect(config.cleanupInterval, equals(const Duration(minutes: 1)));
         expect(config.enableStatistics, isTrue);
         expect(config.enableAutoCleanup, isTrue);
         expect(config.memoryPressureThreshold, equals(0.8));
@@ -188,9 +189,9 @@ void main() {
         final config = AccountCacheConfig.highPerformance();
 
         expect(config.maxEntries, equals(10000));
-        expect(config.ttl, equals(Duration(minutes: 10)));
+        expect(config.ttl, equals(const Duration(minutes: 10)));
         expect(config.strategy,
-            equals(CacheInvalidationStrategy.slotBasedInvalidation));
+            equals(CacheInvalidationStrategy.slotBasedInvalidation),);
         expect(config.maxMemoryBytes, equals(200 * 1024 * 1024));
         expect(config.memoryPressureThreshold, equals(0.9));
         expect(config.evictionBatchSize, equals(100));
@@ -200,11 +201,11 @@ void main() {
         final config = AccountCacheConfig.memoryConstrained();
 
         expect(config.maxEntries, equals(100));
-        expect(config.ttl, equals(Duration(minutes: 1)));
+        expect(config.ttl, equals(const Duration(minutes: 1)));
         expect(config.strategy,
-            equals(CacheInvalidationStrategy.timeBasedExpiration));
+            equals(CacheInvalidationStrategy.timeBasedExpiration),);
         expect(config.maxMemoryBytes, equals(5 * 1024 * 1024));
-        expect(config.cleanupInterval, equals(Duration(seconds: 30)));
+        expect(config.cleanupInterval, equals(const Duration(seconds: 30)));
         expect(config.enableStatistics, isFalse);
         expect(config.memoryPressureThreshold, equals(0.7));
         expect(config.evictionBatchSize, equals(20));
@@ -214,10 +215,10 @@ void main() {
         final config = AccountCacheConfig.development();
 
         expect(config.maxEntries, equals(500));
-        expect(config.ttl, equals(Duration(seconds: 30)));
+        expect(config.ttl, equals(const Duration(seconds: 30)));
         expect(config.strategy, equals(CacheInvalidationStrategy.writeThrough));
         expect(config.maxMemoryBytes, equals(10 * 1024 * 1024));
-        expect(config.cleanupInterval, equals(Duration(seconds: 15)));
+        expect(config.cleanupInterval, equals(const Duration(seconds: 15)));
         expect(config.enableStatistics, isTrue);
         expect(config.memoryPressureThreshold, equals(0.8));
         expect(config.evictionBatchSize, equals(25));
@@ -236,8 +237,6 @@ void main() {
           data: testData,
           timestamp: DateTime.now(),
           slot: 12345,
-          isPinned: false,
-          sizeEstimate: 1024,
         );
 
         expect(entry.data, equals(testData));
@@ -248,14 +247,14 @@ void main() {
       });
 
       test('checks expiration based on TTL', () {
-        final oldTimestamp = DateTime.now().subtract(Duration(minutes: 10));
+        final oldTimestamp = DateTime.now().subtract(const Duration(minutes: 10));
         final entry = CacheEntry<String>(
           data: 'test',
           timestamp: oldTimestamp,
         );
 
-        expect(entry.isExpired(Duration(minutes: 5)), isTrue);
-        expect(entry.isExpired(Duration(minutes: 15)), isFalse);
+        expect(entry.isExpired(const Duration(minutes: 5)), isTrue);
+        expect(entry.isExpired(const Duration(minutes: 15)), isFalse);
       });
 
       test('checks staleness based on slot', () {
@@ -280,7 +279,7 @@ void main() {
         final initialLastAccess = entry.lastAccess;
 
         // Wait a small amount to ensure timestamp difference
-        Future.delayed(Duration(milliseconds: 1), () {
+        Future.delayed(const Duration(milliseconds: 1), () {
           entry.recordAccess();
 
           expect(entry.accessCount, equals(initialAccessCount + 1));
@@ -293,10 +292,9 @@ void main() {
       late AccountCacheManager<MockAccountData> cacheManager;
 
       setUp(() {
-        final config = AccountCacheConfig(
+        final config = const AccountCacheConfig(
           maxEntries: 10,
           ttl: Duration(seconds: 5),
-          strategy: CacheInvalidationStrategy.hybrid,
           enableAutoCleanup: false, // Disable for testing
         );
         cacheManager = AccountCacheManager<MockAccountData>(config: config);
@@ -330,7 +328,7 @@ void main() {
         // Fill cache to capacity
         for (int i = 0; i < 10; i++) {
           final address =
-              PublicKey.fromBase58('${i.toString().padLeft(44, '1')}');
+              PublicKey.fromBase58(i.toString().padLeft(44, '1'));
           final data =
               MockAccountData(value: i, name: 'test$i', owner: programId);
           cacheManager.put(address, data);
@@ -338,7 +336,7 @@ void main() {
 
         // Add one more to trigger eviction
         final extraAddress = PublicKey.fromBase58(
-            '99999999999999999999999999999999999999999999');
+            '99999999999999999999999999999999999999999999',);
         final extraData =
             MockAccountData(value: 99, name: 'extra', owner: programId);
         cacheManager.put(extraAddress, extraData);
@@ -359,7 +357,7 @@ void main() {
         cacheManager.put(accountAddress, testData);
 
         // Wait for expiration (TTL is 5 seconds)
-        Future.delayed(Duration(seconds: 6), () {
+        Future.delayed(const Duration(seconds: 6), () {
           cacheManager.cleanup();
           final retrieved = cacheManager.get(accountAddress);
           expect(retrieved, isNull);
@@ -376,7 +374,7 @@ void main() {
         cacheManager.put(accountAddress, testData);
         cacheManager.get(accountAddress); // Hit
         cacheManager.get(
-            PublicKey.fromBase58('33333333333333333333333333333333')); // Miss
+            PublicKey.fromBase58('33333333333333333333333333333333'),); // Miss
 
         final stats = cacheManager.getStatistics();
         expect(stats.currentSize, equals(1));
@@ -472,7 +470,7 @@ void main() {
 
         expect(subscriptionConfig.maxReconnectAttempts, equals(10));
         expect(cacheConfig.strategy,
-            equals(CacheInvalidationStrategy.writeThrough));
+            equals(CacheInvalidationStrategy.writeThrough),);
 
         // Test that configurations work together
         expect(subscriptionConfig.defaultCommitment, isA<Commitment>());

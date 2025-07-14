@@ -2,23 +2,31 @@
 ///
 /// This module defines the fundamental types, interfaces, and data structures
 /// used throughout the event system.
+library;
 
-import '../types/commitment.dart';
-import '../types/public_key.dart';
-import '../idl/idl.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Callback function type for event listeners
 typedef EventCallback<T> = void Function(T event, int slot, String signature);
 
 /// Generic event callback for any event type
 typedef GenericEventCallback = void Function(
-    dynamic event, int slot, String signature);
+    dynamic event, int slot, String signature,);
 
 /// Callback for raw log events (before parsing)
 typedef LogCallback = void Function(LogsNotification notification);
 
 /// Context information for an event emission
 class EventContext {
+
+  const EventContext({
+    required this.slot,
+    required this.signature,
+    this.blockTime,
+    this.metadata,
+  });
   /// The slot number where the event was emitted
   final int slot;
 
@@ -31,19 +39,19 @@ class EventContext {
   /// Additional metadata
   final Map<String, dynamic>? metadata;
 
-  const EventContext({
-    required this.slot,
-    required this.signature,
-    this.blockTime,
-    this.metadata,
-  });
-
   @override
   String toString() => 'EventContext(slot: $slot, signature: $signature)';
 }
 
 /// Parsed event with context and metadata
 class ParsedEvent<T> {
+
+  const ParsedEvent({
+    required this.name,
+    required this.data,
+    required this.context,
+    required this.eventDef,
+  });
   /// The event name
   final String name;
 
@@ -56,19 +64,20 @@ class ParsedEvent<T> {
   /// The IDL event definition
   final IdlEvent eventDef;
 
-  const ParsedEvent({
-    required this.name,
-    required this.data,
-    required this.context,
-    required this.eventDef,
-  });
-
   @override
   String toString() => 'ParsedEvent(name: $name, context: $context)';
 }
 
 /// Log notification from the WebSocket subscription
 class LogsNotification {
+
+  const LogsNotification({
+    required this.signature,
+    required this.logs,
+    this.err,
+    required this.slot,
+    this.blockTime,
+  });
   /// Transaction signature
   final String signature;
 
@@ -84,14 +93,6 @@ class LogsNotification {
   /// Block time (if available)
   final DateTime? blockTime;
 
-  const LogsNotification({
-    required this.signature,
-    required this.logs,
-    this.err,
-    required this.slot,
-    this.blockTime,
-  });
-
   /// Whether the transaction succeeded
   bool get isSuccess => err == null;
 
@@ -102,6 +103,14 @@ class LogsNotification {
 
 /// Configuration for event subscriptions
 class EventSubscriptionConfig {
+
+  const EventSubscriptionConfig({
+    this.commitment = CommitmentConfigs.confirmed,
+    this.includeFailed = false,
+    this.maxBufferSize,
+    this.reconnectTimeout = const Duration(seconds: 30),
+    this.maxReconnectAttempts = 5,
+  });
   /// Commitment level for the subscription
   final CommitmentConfig commitment;
 
@@ -116,32 +125,10 @@ class EventSubscriptionConfig {
 
   /// Maximum number of reconnection attempts
   final int maxReconnectAttempts;
-
-  const EventSubscriptionConfig({
-    this.commitment = CommitmentConfigs.confirmed,
-    this.includeFailed = false,
-    this.maxBufferSize,
-    this.reconnectTimeout = const Duration(seconds: 30),
-    this.maxReconnectAttempts = 5,
-  });
 }
 
 /// Filter criteria for events
 class EventFilter {
-  /// Event names to listen for (null = all events)
-  final Set<String>? eventNames;
-
-  /// Program IDs to filter by (null = any program)
-  final Set<PublicKey>? programIds;
-
-  /// Minimum slot number (null = no minimum)
-  final int? minSlot;
-
-  /// Maximum slot number (null = no maximum)
-  final int? maxSlot;
-
-  /// Whether to include failed transactions
-  final bool includeFailed;
 
   const EventFilter({
     this.eventNames,
@@ -165,6 +152,20 @@ class EventFilter {
   factory EventFilter.bySlotRange(int minSlot, int? maxSlot) {
     return EventFilter(minSlot: minSlot, maxSlot: maxSlot);
   }
+  /// Event names to listen for (null = all events)
+  final Set<String>? eventNames;
+
+  /// Program IDs to filter by (null = any program)
+  final Set<PublicKey>? programIds;
+
+  /// Minimum slot number (null = no minimum)
+  final int? minSlot;
+
+  /// Maximum slot number (null = no maximum)
+  final int? maxSlot;
+
+  /// Whether to include failed transactions
+  final bool includeFailed;
 
   /// Check if an event matches this filter
   bool matches(ParsedEvent event, PublicKey programId) {
@@ -193,6 +194,15 @@ class EventFilter {
 
 /// Statistics about event processing
 class EventStats {
+
+  const EventStats({
+    required this.totalEvents,
+    required this.parsedEvents,
+    required this.parseErrors,
+    required this.filteredEvents,
+    required this.lastProcessed,
+    required this.eventsPerSecond,
+  });
   /// Total number of events processed
   final int totalEvents;
 
@@ -211,15 +221,6 @@ class EventStats {
   /// Events per second (recent average)
   final double eventsPerSecond;
 
-  const EventStats({
-    required this.totalEvents,
-    required this.parsedEvents,
-    required this.parseErrors,
-    required this.filteredEvents,
-    required this.lastProcessed,
-    required this.eventsPerSecond,
-  });
-
   @override
   String toString() =>
       'EventStats(total: $totalEvents, parsed: $parsedEvents, errors: $parseErrors)';
@@ -227,6 +228,14 @@ class EventStats {
 
 /// Event replay configuration
 class EventReplayConfig {
+
+  const EventReplayConfig({
+    required this.fromSlot,
+    this.toSlot,
+    this.maxEvents,
+    this.filter,
+    this.includeFailed = false,
+  });
   /// Starting slot for replay
   final int fromSlot;
 
@@ -241,14 +250,6 @@ class EventReplayConfig {
 
   /// Whether to include failed transactions
   final bool includeFailed;
-
-  const EventReplayConfig({
-    required this.fromSlot,
-    this.toSlot,
-    this.maxEvents,
-    this.filter,
-    this.includeFailed = false,
-  });
 }
 
 /// WebSocket connection state
@@ -271,10 +272,10 @@ enum WebSocketState {
 
 /// Exception thrown by event system operations
 class EventException implements Exception {
-  final String message;
-  final dynamic cause;
 
   const EventException(this.message, [this.cause]);
+  final String message;
+  final dynamic cause;
 
   @override
   String toString() =>
@@ -283,12 +284,10 @@ class EventException implements Exception {
 
 /// Exception thrown during event parsing
 class EventParseException extends EventException {
-  const EventParseException(String message, [dynamic cause])
-      : super(message, cause);
+  const EventParseException(super.message, [super.cause]);
 }
 
 /// Exception thrown during subscription operations
 class EventSubscriptionException extends EventException {
-  const EventSubscriptionException(String message, [dynamic cause])
-      : super(message, cause);
+  const EventSubscriptionException(super.message, [super.cause]);
 }

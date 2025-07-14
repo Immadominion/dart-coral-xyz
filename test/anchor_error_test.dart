@@ -2,6 +2,7 @@
 ///
 /// This test suite validates the error system implementation against TypeScript
 /// behavior with comprehensive coverage of all error types and parsing scenarios.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -320,7 +321,7 @@ void main() {
 
       expect(result, isNotNull);
       expect(result!.error.comparedValues,
-          isNull); // Should gracefully handle invalid pubkeys
+          isNull,); // Should gracefully handle invalid pubkeys
     });
   });
 
@@ -343,8 +344,8 @@ void main() {
 
     test('throws error when accessing program with empty stack', () {
       final emptyStackError = AnchorError(
-        error: ErrorInfo(
-          errorCode: const ErrorCode(code: 'TestError', number: 6000),
+        error: const ErrorInfo(
+          errorCode: ErrorCode(code: 'TestError', number: 6000),
           errorMessage: 'Test message',
         ),
         errorLogs: ['test log'],
@@ -367,7 +368,7 @@ void main() {
       );
 
       expect(fileLineError.toString(),
-          contains('AnchorError thrown in src/lib.rs:42'));
+          contains('AnchorError thrown in src/lib.rs:42'),);
       expect(fileLineError.toString(), contains('Error Code: TestError'));
       expect(fileLineError.toString(), contains('Error Number: 6000'));
       expect(fileLineError.toString(), contains('Error Message: Test message'));
@@ -384,12 +385,12 @@ void main() {
       );
 
       expect(accountError.toString(),
-          contains('AnchorError caused by account: test_account'));
+          contains('AnchorError caused by account: test_account'),);
 
       // No origin
       final noOriginError = AnchorError(
-        error: ErrorInfo(
-          errorCode: const ErrorCode(code: 'TestError', number: 6000),
+        error: const ErrorInfo(
+          errorCode: ErrorCode(code: 'TestError', number: 6000),
           errorMessage: 'Test message',
         ),
         errorLogs: ['test log'],
@@ -435,9 +436,9 @@ void main() {
 
     test('provides error messages for all codes', () {
       expect(getErrorMessage(LangErrorCode.instructionMissing),
-          equals('Instruction discriminator not provided'));
+          equals('Instruction discriminator not provided'),);
       expect(getErrorMessage(LangErrorCode.accountDiscriminatorMismatch),
-          equals('Account discriminator did not match what was expected'));
+          equals('Account discriminator did not match what was expected'),);
       expect(getErrorMessage(9999), equals('Unknown error code: 9999'));
     });
   });
@@ -537,7 +538,7 @@ void main() {
           'Program 11111111111111111111111111111111 invoke [1]',
           'Program log: AnchorError occurred. Error Code: TestError. Error Number: 6000. Error Message: Test error.',
           'Program 11111111111111111111111111111111 failed',
-        ]
+        ],
       };
 
       final result = translateError(err, <int, String>{});
@@ -564,7 +565,7 @@ void main() {
           'Program 11111111111111111111111111111111 invoke [1]',
           'Program 11111111111111111111111111111111 failed',
         ],
-        'message': 'Some other error'
+        'message': 'Some other error',
       };
 
       final result = translateError(err, <int, String>{});

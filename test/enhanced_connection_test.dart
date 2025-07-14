@@ -2,24 +2,25 @@
 ///
 /// This module provides comprehensive tests for the enhanced connection
 /// functionality including retry logic, circuit breaker, and performance metrics.
+library;
 
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 
-import '../lib/src/provider/enhanced_connection.dart';
-import '../lib/src/provider/connection_pool.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/utils/rpc_errors.dart';
+import 'package:coral_xyz_anchor/src/provider/enhanced_connection.dart';
+import 'package:coral_xyz_anchor/src/provider/connection_pool.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
 
 /// Mock HTTP client for testing
 class MockHttpClient extends http.BaseClient {
+
+  MockHttpClient({this.delay});
   final List<http.Response> responses = [];
   final List<Exception> exceptions = [];
   int requestCount = 0;
   final Duration? delay;
-
-  MockHttpClient({this.delay});
 
   void addResponse(http.Response response) {
     responses.add(response);
@@ -212,13 +213,13 @@ void main() {
 
     test('should not retry non-retryable errors', () async {
       mockClient.addResponse(http.Response(
-          '{"error": {"code": -32600, "message": "Invalid request"}}', 200));
+          '{"error": {"code": -32600, "message": "Invalid request"}}', 200,),);
 
       final publicKey =
           PublicKey.fromBase58('11111111111111111111111111111112');
 
       expect(
-        () async => await connection.getBalance(publicKey),
+        () async => connection.getBalance(publicKey),
         throwsA(isA<RpcException>()),
       );
 
@@ -241,24 +242,21 @@ void main() {
           PublicKey.fromBase58('11111111111111111111111111111112');
 
       expect(
-        () async => await conn.getBalance(publicKey),
+        () async => conn.getBalance(publicKey),
         throwsA(isA<Exception>()),
       );
 
       // Second request should be blocked by circuit breaker
       expect(
-        () async => await conn.getBalance(publicKey),
+        () async => conn.getBalance(publicKey),
         throwsA(
-            predicate((e) => e.toString().contains('Circuit breaker is open'))),
+            predicate((e) => e.toString().contains('Circuit breaker is open')),),
       );
     });
 
     test('should calculate exponential backoff with jitter', () {
       final retryConfig = const RetryConfig(
-        baseDelayMs: 1000,
-        backoffMultiplier: 2.0,
-        enableJitter: true,
-        jitterFactor: 0.1,
+        backoffMultiplier: 2,
       );
 
       final conn = EnhancedConnection(
@@ -320,12 +318,12 @@ void main() {
       // Trigger circuit breaker
       conn.circuitBreakerForTesting.recordFailure();
       expect(conn.circuitBreakerForTesting.state,
-          equals(CircuitBreakerState.open));
+          equals(CircuitBreakerState.open),);
 
       // Reset circuit breaker
       conn.resetCircuitBreaker();
       expect(conn.circuitBreakerForTesting.state,
-          equals(CircuitBreakerState.closed));
+          equals(CircuitBreakerState.closed),);
     });
   });
 
@@ -338,7 +336,7 @@ void main() {
 
       final metrics = pool.metrics;
       expect(
-          metrics.totalConnections, greaterThanOrEqualTo(2)); // Default minimum
+          metrics.totalConnections, greaterThanOrEqualTo(2),); // Default minimum
 
       await pool.dispose();
     });
@@ -353,9 +351,7 @@ void main() {
       // Allow time for initialization
       await Future.delayed(const Duration(milliseconds: 100));
 
-      final result = await pool.execute((connection) async {
-        return 'test-result';
-      });
+      final result = await pool.execute((connection) async => 'test-result');
 
       expect(result, equals('test-result'));
       await pool.dispose();
@@ -367,9 +363,7 @@ void main() {
       // Allow time for initialization
       await Future.delayed(const Duration(milliseconds: 100));
 
-      await pool.execute((connection) async {
-        return 'success';
-      });
+      await pool.execute((connection) async => 'success');
 
       final metrics = pool.metrics;
       expect(metrics.totalRequests, equals(1));
@@ -387,7 +381,7 @@ void main() {
 
       final pool = ConnectionPool(
         endpoints,
-        config: const ConnectionPoolConfig(minConnections: 2),
+        config: const ConnectionPoolConfig(),
       );
 
       // Allow time for initialization
@@ -425,7 +419,7 @@ void main() {
 
       // Should not accept new operations after disposal
       expect(
-        () async => await pool.execute((connection) async => 'test'),
+        () async => pool.execute((connection) async => 'test'),
         throwsA(isA<StateError>()),
       );
     });

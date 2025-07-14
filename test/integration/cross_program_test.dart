@@ -22,7 +22,7 @@ void main() {
       // Create mock programs
       final program1Idl = Idl(
         address: 'Program1111111111111111111111111111111111',
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'caller_program',
           version: '0.1.0',
           spec: '0.1.0',
@@ -33,7 +33,7 @@ void main() {
             docs: ['Call external program'],
             discriminator: [1, 1, 1, 1, 1, 1, 1, 1],
             accounts: [
-              IdlInstructionAccount(
+              const IdlInstructionAccount(
                 name: 'caller',
                 writable: true,
                 signer: true,
@@ -48,7 +48,7 @@ void main() {
 
       final program2Idl = Idl(
         address: 'Program2222222222222222222222222222222222',
-        metadata: IdlMetadata(
+        metadata: const IdlMetadata(
           name: 'target_program',
           version: '0.1.0',
           spec: '0.1.0',
@@ -59,10 +59,8 @@ void main() {
             docs: ['Handle external call'],
             discriminator: [2, 2, 2, 2, 2, 2, 2, 2],
             accounts: [
-              IdlInstructionAccount(
+              const IdlInstructionAccount(
                 name: 'caller',
-                writable: false,
-                signer: false,
               ),
             ],
             args: [
@@ -110,7 +108,7 @@ void main() {
       expect(program1.programId, isNotNull);
       expect(program2.programId, isNotNull);
       expect(program1.programId.toBase58(),
-          isNot(equals(program2.programId.toBase58())));
+          isNot(equals(program2.programId.toBase58())),);
 
       // Test account sharing through cross-program calls
       final accountMeta = AccountMeta.writable(sharedAccount.publicKey);
@@ -210,7 +208,7 @@ void main() {
 
 /// Helper to create a test program with basic structure
 Future<Program> _createTestProgram(
-    String name, IntegrationTestEnvironment env) async {
+    String name, IntegrationTestEnvironment env,) async {
   final programKeypair = await env.createFundedAccount();
 
   final idl = Idl(
@@ -226,7 +224,7 @@ Future<Program> _createTestProgram(
         docs: ['Process data instruction'],
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
         accounts: [
-          IdlInstructionAccount(
+          const IdlInstructionAccount(
             name: 'authority',
             writable: true,
             signer: true,
@@ -241,10 +239,9 @@ Future<Program> _createTestProgram(
         docs: ['Store data instruction'],
         discriminator: [8, 7, 6, 5, 4, 3, 2, 1],
         accounts: [
-          IdlInstructionAccount(
+          const IdlInstructionAccount(
             name: 'storage',
             writable: true,
-            signer: false,
           ),
         ],
         args: [

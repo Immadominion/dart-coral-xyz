@@ -7,9 +7,9 @@
 library;
 
 import 'dart:typed_data';
-import '../types/public_key.dart';
-import '../idl/idl.dart';
-import '../utils/pubkey.dart' as pubkey_utils;
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/utils/pubkey.dart' as pubkey_utils;
 
 /// Utilities for working with Program Derived Addresses (PDAs)
 class PdaUtils {
@@ -20,9 +20,7 @@ class PdaUtils {
   static Future<PdaResult> findProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async {
-    return PublicKey.findProgramAddress(seeds, programId);
-  }
+  ) async => PublicKey.findProgramAddress(seeds, programId);
 
   /// Create a program address directly (without finding bump)
   ///
@@ -31,9 +29,7 @@ class PdaUtils {
   static Future<PublicKey> createProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async {
-    return PublicKey.createProgramAddress(seeds, programId);
-  }
+  ) async => PublicKey.createProgramAddress(seeds, programId);
 
   /// Convert various seed types to bytes for PDA derivation
   ///
@@ -64,9 +60,7 @@ class PdaUtils {
   }
 
   /// Convert multiple seeds to bytes for PDA derivation
-  static List<Uint8List> seedsToBytes(List<dynamic> seeds) {
-    return seeds.map(seedToBytesEnhanced).toList();
-  }
+  static List<Uint8List> seedsToBytes(List<dynamic> seeds) => seeds.map(seedToBytesEnhanced).toList();
 
   /// Derive PDA from mixed seed types
   ///
@@ -157,7 +151,7 @@ class PdaUtils {
       final seed = seeds[i];
       if (seed.length > 32) {
         throw ArgumentError(
-            'Seed $i is too long: ${seed.length} bytes (max 32)');
+            'Seed $i is too long: ${seed.length} bytes (max 32)',);
       }
     }
 
@@ -175,13 +169,11 @@ class PdaUtils {
     PublicKey fromPublicKey,
     String seed,
     PublicKey programId,
-  ) {
-    return pubkey_utils.PublicKeyUtils.createWithSeedSync(
+  ) => pubkey_utils.PublicKeyUtils.createWithSeedSync(
       fromPublicKey,
       seed,
       programId,
     );
-  }
 }
 
 /// Address resolution utilities for account management
@@ -321,7 +313,7 @@ class AddressResolver {
       return Uint8List.fromList(value);
     } else {
       throw ArgumentError(
-          'Cannot convert ${value.runtimeType} to bytes for seed');
+          'Cannot convert ${value.runtimeType} to bytes for seed',);
     }
   }
 }
@@ -343,9 +335,7 @@ class AddressValidator {
   }
 
   /// Validate that an address is a valid PublicKey
-  static bool validatePublicKey(String address) {
-    return PublicKey.isValidBase58(address);
-  }
+  static bool validatePublicKey(String address) => PublicKey.isValidBase58(address);
 
   /// Validate account relationships based on IDL specification
   ///
@@ -397,7 +387,5 @@ class AddressValidator {
   }
 
   /// Validate that an address is a valid base58 PublicKey string
-  static bool isValidBase58(String address) {
-    return validatePublicKey(address);
-  }
+  static bool isValidBase58(String address) => validatePublicKey(address);
 }

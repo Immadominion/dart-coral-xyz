@@ -6,6 +6,7 @@
 /// 3. Unified configuration and lifecycle management works
 /// 4. Cross-namespace communication patterns function correctly
 /// 5. Error propagation is consistent across namespaces
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -85,8 +86,8 @@ void main() {
         168,
         89,
         238,
-        135
-      ]));
+        135,
+      ]),);
       final wallet = KeypairWallet(keypair);
       provider = AnchorProvider(connection, wallet);
     });
@@ -97,12 +98,12 @@ void main() {
       expect(provider, isNotNull);
       expect(provider.connection, equals(connection));
       expect(provider.connection.endpoint,
-          equals('https://api.devnet.solana.com'));
+          equals('https://api.devnet.solana.com'),);
     });
 
     test('critical iteration 3 - basic program creation with simple IDL', () {
       // Create a minimal test IDL
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address:
@@ -116,14 +117,14 @@ void main() {
 
       // Test basic properties
       expect(program.programId.toBase58(),
-          equals('So11111111111111111111111111111111111111112'));
+          equals('So11111111111111111111111111111111111111112'),);
       expect(program.provider, equals(provider));
       expect(program.connection, equals(provider.connection));
       expect(program.connection, equals(connection));
     });
 
     test('critical iteration 3 - namespace integration', () {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -154,7 +155,7 @@ void main() {
 
     test('critical iteration 3 - event manager access and resource sharing',
         () {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -180,7 +181,7 @@ void main() {
     });
 
     test('critical iteration 3 - namespace types properly exported', () {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -202,7 +203,7 @@ void main() {
     });
 
     test('critical iteration 3 - coder consistency across namespaces', () {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -223,7 +224,7 @@ void main() {
     });
 
     test('critical iteration 3 - lifecycle management disposal', () async {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -242,7 +243,7 @@ void main() {
     });
 
     test('critical iteration 3 - error handling consistency', () {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -266,13 +267,13 @@ void main() {
             anyOf([
               isA<ArgumentError>(),
               isA<NoSuchMethodError>(),
-            ]));
+            ]),);
         expect(e.toString(), contains('nonExistentMethod'));
       }
     });
 
     test('critical iteration 3 - event listener integration', () {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -287,7 +288,7 @@ void main() {
       expect(eventManager, isNotNull);
 
       // Test event listener registration (should not throw)
-      int listenerId = eventManager.addEventListener<Map<String, dynamic>>(
+      final int listenerId = eventManager.addEventListener<Map<String, dynamic>>(
         'TestEvent',
         (event, slot, signature) {
           // Event callback
@@ -299,7 +300,7 @@ void main() {
     });
 
     test('critical iteration 3 - namespace state management', () {
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -385,12 +386,12 @@ void main() {
         168,
         89,
         238,
-        135
-      ]));
+        135,
+      ]),);
       final wallet = KeypairWallet(keypair);
       final provider = AnchorProvider(connection, wallet);
 
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',
@@ -402,7 +403,7 @@ void main() {
 
       // Test that program maintains proper context
       expect(program.programId.toBase58(),
-          equals('So11111111111111111111111111111111111111112'));
+          equals('So11111111111111111111111111111111111111112'),);
       expect(program.provider, equals(provider));
       expect(program.connection, equals(provider.connection));
       expect(program.connection, equals(connection));
@@ -474,12 +475,12 @@ void main() {
         168,
         89,
         238,
-        135
-      ]));
+        135,
+      ]),);
       final wallet = KeypairWallet(keypair);
       final provider = AnchorProvider(connection, wallet);
 
-      final testIdl = Idl(
+      final testIdl = const Idl(
         version: '1.0.0',
         name: 'test_program',
         address: 'So11111111111111111111111111111111111111112',

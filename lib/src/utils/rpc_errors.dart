@@ -7,6 +7,12 @@ library;
 
 /// Base exception for RPC-related errors
 class RpcException implements Exception {
+
+  const RpcException(
+    this.message, {
+    this.code,
+    this.data,
+  });
   /// The error message
   final String message;
 
@@ -15,12 +21,6 @@ class RpcException implements Exception {
 
   /// Optional additional error data
   final dynamic data;
-
-  const RpcException(
-    this.message, {
-    this.code,
-    this.data,
-  });
 
   @override
   String toString() {
@@ -69,8 +69,6 @@ class TimeoutException extends RpcException {
 
 /// Exception for retry exhaustion
 class RetryExhaustedException extends RpcException {
-  /// Number of attempts made
-  final int attempts;
 
   const RetryExhaustedException(
     super.message,
@@ -78,9 +76,9 @@ class RetryExhaustedException extends RpcException {
     super.code,
     super.data,
   });
+  /// Number of attempts made
+  final int attempts;
 
   @override
-  String toString() {
-    return 'RetryExhaustedException: $message after $attempts attempts';
-  }
+  String toString() => 'RetryExhaustedException: $message after $attempts attempts';
 }

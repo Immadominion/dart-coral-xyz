@@ -3,6 +3,7 @@
 /// Comprehensive test suite validating the BorshAccountsCoder implementation
 /// against TypeScript Anchor client behavior, ensuring exact compatibility
 /// for encoding, decoding, discriminator validation, and error handling.
+library;
 
 import 'package:test/test.dart';
 import 'dart:typed_data';
@@ -16,7 +17,7 @@ void main() {
 
     setUp(() {
       // Create a test IDL matching TypeScript structure
-      testIdl = Idl(
+      testIdl = const Idl(
         instructions: [],
         accounts: [
           IdlAccount(
@@ -77,19 +78,19 @@ void main() {
 
         // Test that basic operations work to verify layouts were built
         expect(
-            () => coder.accountDiscriminator('TestAccount'), returnsNormally);
+            () => coder.accountDiscriminator('TestAccount'), returnsNormally,);
         expect(
-            () => coder.accountDiscriminator('UserAccount'), returnsNormally);
+            () => coder.accountDiscriminator('UserAccount'), returnsNormally,);
       });
 
       test('should handle empty accounts in IDL', () {
-        final emptyIdl = Idl(instructions: [], accounts: []);
+        final emptyIdl = const Idl(instructions: [], accounts: []);
         final emptyCoder = BorshAccountsCoder<String>(emptyIdl);
         expect(emptyCoder, isNotNull);
       });
 
       test('should throw error when account type not found', () {
-        final invalidIdl = Idl(
+        final invalidIdl = const Idl(
           instructions: [],
           accounts: [
             IdlAccount(
@@ -108,7 +109,7 @@ void main() {
       });
 
       test('should throw error when types are missing', () {
-        final noTypesIdl = Idl(
+        final noTypesIdl = const Idl(
           instructions: [],
           accounts: [
             IdlAccount(
@@ -117,7 +118,6 @@ void main() {
               discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
             ),
           ],
-          types: null, // Missing types
         );
 
         expect(
@@ -127,13 +127,12 @@ void main() {
       });
 
       test('should throw error when account discriminator is missing', () {
-        final noDiscriminatorIdl = Idl(
+        final noDiscriminatorIdl = const Idl(
           instructions: [],
           accounts: [
             IdlAccount(
               name: 'TestAccount',
               type: IdlTypeDefType(kind: 'struct', fields: []),
-              discriminator: null, // Missing discriminator
             ),
           ],
           types: [
@@ -158,13 +157,13 @@ void main() {
       test('should return correct discriminator for account', () {
         final discriminator = coder.accountDiscriminator('TestAccount');
         expect(discriminator,
-            equals(Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8])));
+            equals(Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8])),);
       });
 
       test('should return correct discriminator for different account', () {
         final discriminator = coder.accountDiscriminator('UserAccount');
         expect(discriminator,
-            equals(Uint8List.fromList([9, 10, 11, 12, 13, 14, 15, 16])));
+            equals(Uint8List.fromList([9, 10, 11, 12, 13, 14, 15, 16])),);
       });
 
       test('should throw error for unknown account', () {
@@ -194,7 +193,7 @@ void main() {
         final accountData = {'id': 123};
 
         expect(
-          () async => await coder.encode('UnknownAccount', accountData),
+          () async => coder.encode('UnknownAccount', accountData),
           throwsA(isA<AccountCoderError>()),
         );
       });
@@ -202,7 +201,7 @@ void main() {
       test('should handle encoding errors gracefully', () async {
         // Test with invalid data type
         expect(
-          () async => await coder.encode('TestAccount', 'invalid_data'),
+          () async => coder.encode('TestAccount', 'invalid_data'),
           throwsA(isA<AccountCoderError>()),
         );
       });
@@ -263,7 +262,7 @@ void main() {
           final error = e as AccountDiscriminatorMismatchError;
           expect(error.expectedDiscriminator, equals([1, 2, 3, 4, 5, 6, 7, 8]));
           expect(error.actualDiscriminator,
-              equals([99, 98, 97, 96, 95, 94, 93, 92]));
+              equals([99, 98, 97, 96, 95, 94, 93, 92]),);
         }
       });
     });
@@ -278,7 +277,7 @@ void main() {
             Uint8List.fromList([...discriminator, ...jsonBytes]);
 
         final decoded = coder.decodeUnchecked<Map<String, dynamic>>(
-            'UserAccount', accountData);
+            'UserAccount', accountData,);
         expect(decoded, isA<Map<String, dynamic>>());
       });
 

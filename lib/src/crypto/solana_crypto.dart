@@ -48,7 +48,7 @@ class SolanaCrypto {
 
     if (totalSeedLength > maxSeedsLength) {
       throw ArgumentError(
-          'Total seed length cannot exceed $maxSeedsLength bytes');
+          'Total seed length cannot exceed $maxSeedsLength bytes',);
     }
 
     // Build the buffer for hashing
@@ -146,10 +146,10 @@ class SolanaCrypto {
 
 /// Result of a PDA (Program Derived Address) operation
 class PdaResult {
-  final Uint8List address;
-  final int bump;
 
   const PdaResult(this.address, this.bump);
+  final Uint8List address;
+  final int bump;
 
   @override
   String toString() =>

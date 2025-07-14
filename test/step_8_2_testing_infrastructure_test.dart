@@ -3,22 +3,22 @@
 /// This test suite validates the enhanced testing infrastructure including
 /// test validator management, account management, mocks, fixtures, and
 /// development utilities matching TypeScript's testing capabilities.
+library;
 
 import 'package:test/test.dart';
 import 'dart:typed_data';
-import '../lib/src/testing/test_infrastructure.dart';
-import '../lib/src/types/keypair.dart';
-import '../lib/src/types/public_key.dart';
-import '../lib/src/types/transaction.dart';
-import '../lib/src/provider/connection.dart';
-import '../lib/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/testing/test_infrastructure.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 void main() {
   group('Step 8.2: Testing Infrastructure and Development Tools', () {
     group('Test Validator Management', () {
       test('should create test validator with configuration', () {
         final validator = TestValidator(
-          rpcUrl: 'http://localhost:8899',
           config: {'reset': true, 'quiet': true},
         );
 
@@ -228,13 +228,11 @@ void main() {
     });
 
     group('Test Fixtures', () {
-      tearDown(() {
-        TestFixtures.clear();
-      });
+      tearDown(TestFixtures.clear);
 
       test('should register and retrieve program IDL fixtures', () {
         final testIdl = TestDataGenerator.generateTestIdl(
-          name: 'test_program',
+          
         );
 
         TestFixtures.registerProgramIdl('test_program', testIdl);
@@ -339,7 +337,6 @@ void main() {
             TestAccountManager(mockProvider.connection, payer);
 
         final runner = IntegrationTestRunner(
-          validator: null, // No real validator
           connection: mockProvider.connection,
           accountManager: accountManager,
         );
@@ -362,7 +359,6 @@ void main() {
             TestAccountManager(mockProvider.connection, payer);
 
         final runner = IntegrationTestRunner(
-          validator: null, // No real validator
           connection: mockProvider.connection,
           accountManager: accountManager,
         );
@@ -391,7 +387,7 @@ void main() {
 
         // Register test IDL
         final programIdl =
-            TestDataGenerator.generateTestIdl(name: 'test_program');
+            TestDataGenerator.generateTestIdl();
         TestFixtures.registerProgramIdl('test_program', programIdl);
 
         // Create workspace fixture

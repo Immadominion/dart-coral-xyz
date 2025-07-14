@@ -3,20 +3,21 @@
 /// This module provides concrete implementations of event listeners
 /// and utilities for managing event subscriptions with different
 /// patterns and requirements.
+library;
 
 import 'dart:async';
-import 'types.dart';
-import 'event_subscription.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz_anchor/src/event/event_subscription.dart';
 
 /// Event listener that can be paused and resumed
 class PausableEventListener {
+
+  PausableEventListener(this._subscription, {int? maxBufferSize})
+      : _maxBufferSize = maxBufferSize;
   final EventSubscription _subscription;
   bool _isPaused = false;
   final List<ParsedEvent> _bufferedEvents = [];
   final int? _maxBufferSize;
-
-  PausableEventListener(this._subscription, {int? maxBufferSize})
-      : _maxBufferSize = maxBufferSize;
 
   /// Whether the listener is currently paused
   bool get isPaused => _isPaused;
@@ -57,13 +58,6 @@ class PausableEventListener {
 
 /// Event listener that batches events for processing
 class BatchedEventListener {
-  final EventSubscription _subscription;
-  final Duration _batchInterval;
-  final int _maxBatchSize;
-  final void Function(List<ParsedEvent>) _batchHandler;
-
-  final List<ParsedEvent> _currentBatch = [];
-  Timer? _batchTimer;
 
   BatchedEventListener({
     required EventSubscription subscription,
@@ -76,6 +70,13 @@ class BatchedEventListener {
         _batchHandler = batchHandler {
     _startBatchTimer();
   }
+  final EventSubscription _subscription;
+  final Duration _batchInterval;
+  final int _maxBatchSize;
+  final void Function(List<ParsedEvent>) _batchHandler;
+
+  final List<ParsedEvent> _currentBatch = [];
+  Timer? _batchTimer;
 
   /// Add an event to the current batch
   void addEvent(ParsedEvent event) {
@@ -126,12 +127,6 @@ class BatchedEventListener {
 
 /// Event listener that filters events based on custom criteria
 class FilteredEventListener {
-  final EventSubscription _subscription;
-  final bool Function(ParsedEvent) _filter;
-  final void Function(ParsedEvent) _eventHandler;
-
-  int _filteredCount = 0;
-  int _passedCount = 0;
 
   FilteredEventListener({
     required EventSubscription subscription,
@@ -140,6 +135,12 @@ class FilteredEventListener {
   })  : _subscription = subscription,
         _filter = filter,
         _eventHandler = eventHandler;
+  final EventSubscription _subscription;
+  final bool Function(ParsedEvent) _filter;
+  final void Function(ParsedEvent) _eventHandler;
+
+  int _filteredCount = 0;
+  int _passedCount = 0;
 
   /// Process an event through the filter
   void processEvent(ParsedEvent event) {
@@ -176,15 +177,15 @@ class FilteredEventListener {
 
 /// Event listener that maintains a history of recent events
 class HistoryEventListener {
-  final EventSubscription _subscription;
-  final int _maxHistorySize;
-  final List<ParsedEvent> _history = [];
 
   HistoryEventListener({
     required EventSubscription subscription,
     int maxHistorySize = 1000,
   })  : _subscription = subscription,
         _maxHistorySize = maxHistorySize;
+  final EventSubscription _subscription;
+  final int _maxHistorySize;
+  final List<ParsedEvent> _history = [];
 
   /// Add an event to the history
   void addEvent(ParsedEvent event) {
@@ -200,13 +201,11 @@ class HistoryEventListener {
   List<ParsedEvent> get history => List.unmodifiable(_history);
 
   /// Get events from a specific time range
-  List<ParsedEvent> getEventsInRange(DateTime start, DateTime end) {
-    return _history
+  List<ParsedEvent> getEventsInRange(DateTime start, DateTime end) => _history
         .where((event) =>
             !event.context.blockTime!.isBefore(start) &&
             !event.context.blockTime!.isAfter(end))
         .toList();
-  }
 
   /// Get the last N events
   List<ParsedEvent> getLastEvents(int count) {
@@ -215,9 +214,7 @@ class HistoryEventListener {
   }
 
   /// Search events by name
-  List<ParsedEvent> findEventsByName(String eventName) {
-    return _history.where((event) => event.name == eventName).toList();
-  }
+  List<ParsedEvent> findEventsByName(String eventName) => _history.where((event) => event.name == eventName).toList();
 
   /// Clear the event history
   void clearHistory() {
@@ -259,7 +256,7 @@ class EventListenerBuilder {
   /// Enable batching with specified interval
   EventListenerBuilder batched(
       Duration interval, void Function(List<ParsedEvent>) handler,
-      {int maxBatchSize = 100}) {
+      {int maxBatchSize = 100,}) {
     _batchInterval = interval;
     _batchHandler = handler;
     _maxBatchSize = maxBatchSize;

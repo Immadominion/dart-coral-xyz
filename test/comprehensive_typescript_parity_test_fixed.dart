@@ -3,6 +3,7 @@
 /// This test suite validates complete TypeScript parity across all implemented
 /// features, ensuring that the Dart SDK provides equivalent functionality to
 /// the TypeScript Anchor client.
+library;
 
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart' hide MockWallet;
@@ -53,16 +54,14 @@ void main() {
         // Test provider transaction methods
         final emptyTx = Transaction(instructions: []);
         expect(() => mockProvider.sendAndConfirm(emptyTx),
-            throwsA(isA<Exception>()));
+            throwsA(isA<Exception>()),);
       });
 
       test('enhanced connection with retry and circuit breaker', () {
         // Test enhanced connection features
-        final retryConfig = RetryConfig(
-          maxRetries: 3,
+        final retryConfig = const RetryConfig(
           baseDelayMs: 100,
           maxDelayMs: 5000,
-          enableJitter: true,
         );
 
         final enhancedConnection = EnhancedConnection(
@@ -152,7 +151,7 @@ void main() {
       });
 
       test('error handling and retry mechanisms', () {
-        final errorHandler = ErrorHandler();
+        final errorHandler = const ErrorHandler();
 
         expect(errorHandler, isNotNull);
         expect(errorHandler.handleError, isA<Function>());
@@ -179,31 +178,31 @@ void main() {
       test('all major TypeScript features have Dart equivalents', () {
         // Verify core SDK features
         expect(testProgram.instruction, isNotNull,
-            reason: 'Program instruction builder should be available');
+            reason: 'Program instruction builder should be available',);
         expect(testProgram.account, isNotNull,
-            reason: 'Program account helpers should be available');
+            reason: 'Program account helpers should be available',);
         expect(testProgram.rpc, isNotNull,
-            reason: 'Program RPC methods should be available');
+            reason: 'Program RPC methods should be available',);
 
         // Verify provider features
         expect(mockProvider.connection, isNotNull,
-            reason: 'Provider connection should be available');
+            reason: 'Provider connection should be available',);
         expect(mockProvider.wallet, isNotNull,
-            reason: 'Provider wallet should be available');
+            reason: 'Provider wallet should be available',);
 
         // Verify platform optimizations
         expect(PlatformOptimization.currentPlatform, isA<PlatformType>(),
-            reason: 'Platform detection should work');
+            reason: 'Platform detection should work',);
         expect(PlatformOptimization.connectionTimeout, isA<Duration>(),
-            reason: 'Platform-specific timeouts should be available');
+            reason: 'Platform-specific timeouts should be available',);
 
         // Verify mobile/web specific features
         expect(MobileWalletAdapter, isNotNull,
-            reason: 'Mobile wallet adapter should be available');
+            reason: 'Mobile wallet adapter should be available',);
         expect(WebStorage, isNotNull,
-            reason: 'Web storage should be available');
+            reason: 'Web storage should be available',);
         expect(MobileSecureStorage, isNotNull,
-            reason: 'Mobile secure storage should be available');
+            reason: 'Mobile secure storage should be available',);
       });
     });
   });

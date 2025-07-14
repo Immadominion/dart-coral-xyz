@@ -1,37 +1,17 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../types/public_key.dart';
-import '../types/transaction.dart' as transaction_types;
-import '../types/keypair.dart';
-import '../provider/anchor_provider.dart';
-import '../utils/rpc_utils.dart';
-import '../provider/connection.dart';
-import 'preflight_validator.dart';
-import 'simulation_result_processor.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/utils/rpc_utils.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/transaction/preflight_validator.dart';
+import 'package:coral_xyz_anchor/src/transaction/simulation_result_processor.dart';
 
 /// Transaction simulation configuration
 class TransactionSimulationConfig {
-  /// Commitment level for simulation
-  final String? commitment;
-
-  /// Whether to include account information in response
-  final bool includeAccounts;
-
-  /// Specific accounts to include in response
-  final List<PublicKey>? accountsToInclude;
-
-  /// Whether to verify signatures during simulation
-  final bool sigVerify;
-
-  /// Whether to replace recent blockhash with simulation blockhash
-  final bool replaceRecentBlockhash;
-
-  /// Account encoding format (base58, base64, jsonParsed)
-  final String encoding;
-
-  /// Minimum context slot for simulation
-  final int? minContextSlot;
 
   const TransactionSimulationConfig({
     this.commitment,
@@ -62,6 +42,26 @@ class TransactionSimulationConfig {
       sigVerify: true,
     );
   }
+  /// Commitment level for simulation
+  final String? commitment;
+
+  /// Whether to include account information in response
+  final bool includeAccounts;
+
+  /// Specific accounts to include in response
+  final List<PublicKey>? accountsToInclude;
+
+  /// Whether to verify signatures during simulation
+  final bool sigVerify;
+
+  /// Whether to replace recent blockhash with simulation blockhash
+  final bool replaceRecentBlockhash;
+
+  /// Account encoding format (base58, base64, jsonParsed)
+  final String encoding;
+
+  /// Minimum context slot for simulation
+  final int? minContextSlot;
 
   /// Convert to RPC parameters
   Map<String, dynamic> toRpcParams() {
@@ -98,26 +98,6 @@ class TransactionSimulationConfig {
 
 /// Transaction simulation result with comprehensive error analysis
 class TransactionSimulationResult {
-  /// Whether the simulation was successful
-  final bool success;
-
-  /// Program logs from simulation
-  final List<String> logs;
-
-  /// Error information if simulation failed
-  final TransactionSimulationError? error;
-
-  /// Compute units consumed during simulation
-  final int? unitsConsumed;
-
-  /// Accounts information if requested
-  final Map<String, dynamic>? accounts;
-
-  /// Return data from program execution
-  final TransactionReturnData? returnData;
-
-  /// Inner instructions executed during simulation
-  final List<Map<String, dynamic>>? innerInstructions;
 
   const TransactionSimulationResult({
     required this.success,
@@ -186,27 +166,34 @@ class TransactionSimulationResult {
           : null,
     );
   }
+  /// Whether the simulation was successful
+  final bool success;
+
+  /// Program logs from simulation
+  final List<String> logs;
+
+  /// Error information if simulation failed
+  final TransactionSimulationError? error;
+
+  /// Compute units consumed during simulation
+  final int? unitsConsumed;
+
+  /// Accounts information if requested
+  final Map<String, dynamic>? accounts;
+
+  /// Return data from program execution
+  final TransactionReturnData? returnData;
+
+  /// Inner instructions executed during simulation
+  final List<Map<String, dynamic>>? innerInstructions;
 
   @override
-  String toString() {
-    return 'TransactionSimulationResult(success: $success, '
+  String toString() => 'TransactionSimulationResult(success: $success, '
         'logs: ${logs.length}, error: $error, unitsConsumed: $unitsConsumed)';
-  }
 }
 
 /// Transaction simulation error with detailed context
 class TransactionSimulationError {
-  /// Error type (e.g., InstructionError, InvalidAccountData)
-  final String type;
-
-  /// Error details specific to the error type
-  final dynamic details;
-
-  /// Instruction index where error occurred (for InstructionError)
-  final int? instructionIndex;
-
-  /// Custom error code (for Custom errors)
-  final int? customErrorCode;
 
   const TransactionSimulationError({
     required this.type,
@@ -255,6 +242,17 @@ class TransactionSimulationError {
       details: error.toString(),
     );
   }
+  /// Error type (e.g., InstructionError, InvalidAccountData)
+  final String type;
+
+  /// Error details specific to the error type
+  final dynamic details;
+
+  /// Instruction index where error occurred (for InstructionError)
+  final int? instructionIndex;
+
+  /// Custom error code (for Custom errors)
+  final int? customErrorCode;
 
   @override
   String toString() {
@@ -268,11 +266,6 @@ class TransactionSimulationError {
 
 /// Return data from program execution
 class TransactionReturnData {
-  /// Program ID that returned the data
-  final String programId;
-
-  /// Returned data (base64 encoded)
-  final String data;
 
   const TransactionReturnData({
     required this.programId,
@@ -286,25 +279,28 @@ class TransactionReturnData {
       data: json['data'] as String,
     );
   }
+  /// Program ID that returned the data
+  final String programId;
+
+  /// Returned data (base64 encoded)
+  final String data;
 
   /// Decode the returned data
   Uint8List get decodedData => base64Decode(data);
 
   @override
-  String toString() {
-    return 'TransactionReturnData(programId: $programId, data: ${data.length} bytes)';
-  }
+  String toString() => 'TransactionReturnData(programId: $programId, data: ${data.length} bytes)';
 }
 
 /// Core transaction simulation engine matching TypeScript's capabilities
 class TransactionSimulator {
+
+  TransactionSimulator(this._provider)
+      : _preflightValidator = PreflightValidator(_provider);
   final AnchorProvider _provider;
   final PreflightValidator _preflightValidator;
   final Map<String, TransactionSimulationResult> _cache = {};
   static const int _maxCacheSize = 1000;
-
-  TransactionSimulator(this._provider)
-      : _preflightValidator = PreflightValidator(_provider);
 
   /// Simulate a transaction with comprehensive error analysis
   Future<TransactionSimulationResult> simulate(
@@ -460,12 +456,10 @@ class TransactionSimulator {
   }
 
   /// Get cache statistics
-  Map<String, int> getCacheStats() {
-    return {
+  Map<String, int> getCacheStats() => {
       'size': _cache.length,
       'maxSize': _maxCacheSize,
     };
-  }
 
   /// Prepare transaction for simulation
   Future<transaction_types.Transaction> _prepareTransaction(
@@ -624,8 +618,8 @@ class TransactionSimulator {
 
     // Process the result with comprehensive analysis
     final cacheKey = _generateCacheKey(
-        transaction, config ?? TransactionSimulationConfig.defaultConfig());
-    return await processor.processResult(
+        transaction, config ?? TransactionSimulationConfig.defaultConfig(),);
+    return processor.processResult(
       simulationResult,
       cacheKey: cacheKey,
       options: processingOptions,
@@ -653,8 +647,8 @@ class TransactionSimulator {
 
     // Process the result with comprehensive analysis
     final cacheKey = _generateCacheKey(
-        transaction, config ?? TransactionSimulationConfig.defaultConfig());
-    return await processor.processResult(
+        transaction, config ?? TransactionSimulationConfig.defaultConfig(),);
+    return processor.processResult(
       simulationResult,
       cacheKey: '${cacheKey}_preflight',
       options: processingOptions,
@@ -696,20 +690,6 @@ class TransactionSimulator {
 
 /// Simulation optimization settings
 class SimulationOptimization {
-  /// Enable result caching
-  final bool enableCaching;
-
-  /// Cache size limit
-  final int cacheSize;
-
-  /// Enable batch optimization
-  final bool enableBatching;
-
-  /// Maximum batch size
-  final int maxBatchSize;
-
-  /// Parallel simulation limit
-  final int parallelLimit;
 
   const SimulationOptimization({
     this.enableCaching = true,
@@ -745,4 +725,18 @@ class SimulationOptimization {
       parallelLimit: 2,
     );
   }
+  /// Enable result caching
+  final bool enableCaching;
+
+  /// Cache size limit
+  final int cacheSize;
+
+  /// Enable batch optimization
+  final bool enableBatching;
+
+  /// Maximum batch size
+  final int maxBatchSize;
+
+  /// Parallel simulation limit
+  final int parallelLimit;
 }

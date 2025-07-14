@@ -2,13 +2,30 @@
 ///
 /// This module provides program error parsing and representation matching
 /// the TypeScript Anchor SDK's ProgramError functionality.
+library;
 
-import '../types/public_key.dart';
-import 'anchor_error.dart';
-import 'error_constants.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
+import 'package:coral_xyz_anchor/src/error/error_constants.dart';
 
 /// Error from a user-defined program
 class ProgramError extends Error {
+
+  /// Create ProgramError with code, message and optional logs
+  ProgramError({
+    required this.code,
+    required this.msg,
+    this.logs,
+  }) : _programErrorStack = logs != null ? ProgramErrorStack.parse(logs) : null;
+
+  /// Create from JSON representation
+  factory ProgramError.fromJson(Map<String, dynamic> json) {
+    return ProgramError(
+      code: json['code'] as int,
+      msg: json['msg'] as String,
+      logs: (json['logs'] as List?)?.cast<String>(),
+    );
+  }
   /// Error code number
   final int code;
 
@@ -23,13 +40,6 @@ class ProgramError extends Error {
 
   /// Program error stack for tracking CPI calls
   final ProgramErrorStack? _programErrorStack;
-
-  /// Create ProgramError with code, message and optional logs
-  ProgramError({
-    required this.code,
-    required this.msg,
-    this.logs,
-  }) : _programErrorStack = logs != null ? ProgramErrorStack.parse(logs) : null;
 
   /// Get the program that threw the error (last in stack)
   PublicKey? get program {
@@ -196,15 +206,6 @@ class ProgramError extends Error {
     return json;
   }
 
-  /// Create from JSON representation
-  factory ProgramError.fromJson(Map<String, dynamic> json) {
-    return ProgramError(
-      code: json['code'] as int,
-      msg: json['msg'] as String,
-      logs: (json['logs'] as List?)?.cast<String>(),
-    );
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -254,10 +255,10 @@ dynamic translateError(dynamic err, Map<int, String> idlErrors) {
 
 /// Wrapper class to add program error stack to existing errors
 class _ErrorWithStack {
-  final dynamic originalError;
-  final ProgramErrorStack programErrorStack;
 
   _ErrorWithStack(this.originalError, this.programErrorStack);
+  final dynamic originalError;
+  final ProgramErrorStack programErrorStack;
 
   /// Get the program that caused the error
   PublicKey? get program => programErrorStack.currentProgram;
@@ -269,6 +270,7 @@ class _ErrorWithStack {
   String toString() => originalError.toString();
 
   /// Forward all other property access to original error
+  @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       final name = invocation.memberName.toString();
