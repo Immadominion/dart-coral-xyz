@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart' hide AccountMeta;
+import 'package:coral_xyz_anchor/src/types/transaction.dart' show AccountMeta;
 import 'integration_test_utils.dart';
 
 /// Cross-program interaction tests
@@ -107,8 +108,10 @@ void main() {
       // Test that both programs can reference the same account
       expect(program1.programId, isNotNull);
       expect(program2.programId, isNotNull);
-      expect(program1.programId.toBase58(),
-          isNot(equals(program2.programId.toBase58())),);
+      expect(
+        program1.programId.toBase58(),
+        isNot(equals(program2.programId.toBase58())),
+      );
 
       // Test account sharing through cross-program calls
       final accountMeta = AccountMeta.writable(sharedAccount.publicKey);
@@ -208,7 +211,9 @@ void main() {
 
 /// Helper to create a test program with basic structure
 Future<Program> _createTestProgram(
-    String name, IntegrationTestEnvironment env,) async {
+  String name,
+  IntegrationTestEnvironment env,
+) async {
   final programKeypair = await env.createFundedAccount();
 
   final idl = Idl(

@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart' hide AccountMeta;
+import 'package:coral_xyz_anchor/src/types/transaction.dart' show AccountMeta;
 
 void main() {
   group('AccountNamespace', () {
@@ -111,7 +112,7 @@ void main() {
 
       // Test fetchAll without filters
       final all = await client!.fetchAll();
-      expect(all, isA<List<ProgramAccount>>());
+      expect(all, isA<List<ProgramAccount<dynamic>>>());
       expect(all, isEmpty); // Mock implementation returns empty list
 
       // Test fetchAll with filters
@@ -122,7 +123,7 @@ void main() {
         ],
         limit: 10,
       );
-      expect(filtered, isA<List<ProgramAccount>>());
+      expect(filtered, isA<List<ProgramAccount<dynamic>>>());
       expect(filtered, isEmpty); // Mock implementation returns empty list
     });
 
@@ -247,7 +248,7 @@ class DummyInstructionCoder implements InstructionCoder {
 
 class DummyEventCoder implements EventCoder {
   @override
-  Event? decode<E extends IdlEvent>(String log) => null;
+  Event<IdlEvent, dynamic>? decode<E extends IdlEvent>(String log) => null;
 }
 
 class DummyTypesCoder implements TypesCoder<String> {

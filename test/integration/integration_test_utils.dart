@@ -9,12 +9,14 @@ library;
 import 'dart:async';
 import 'dart:io';
 import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'
+    hide Transaction, TransactionInstruction;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    show Transaction, TransactionInstruction;
 import 'dart:typed_data';
 
 /// Configuration for integration test environment
 class IntegrationTestConfig {
-
   const IntegrationTestConfig({
     this.rpcUrl = 'http://127.0.0.1:8899',
     this.wsUrl = 'ws://127.0.0.1:8900',
@@ -22,6 +24,7 @@ class IntegrationTestConfig {
     this.validatorTimeout = const Duration(seconds: 30),
     this.fundingAmount = 1000000000, // 1 SOL
   });
+
   /// RPC URL for the test validator
   final String rpcUrl;
 
@@ -40,7 +43,6 @@ class IntegrationTestConfig {
 
 /// Manager for local Solana test validator
 class SolanaTestValidator {
-
   SolanaTestValidator(this.config);
   Process? _validatorProcess;
   final IntegrationTestConfig config;
@@ -108,7 +110,7 @@ class SolanaTestValidator {
         await connection.getLatestBlockhash();
         return; // Validator is ready
       } catch (e) {
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       }
     }
 
@@ -118,7 +120,6 @@ class SolanaTestValidator {
 
 /// Integration test environment setup
 class IntegrationTestEnvironment {
-
   IntegrationTestEnvironment([IntegrationTestConfig? config])
       : config = config ?? const IntegrationTestConfig(),
         validator =
@@ -167,17 +168,20 @@ class IntegrationTestEnvironment {
       // Mock implementation - in real integration tests, this would use test validator's airdrop
       // For now, we'll skip actual funding and assume accounts are funded
       print(
-          'Mock funding account ${publicKey.toBase58()} with $lamports lamports',);
+        'Mock funding account ${publicKey.toBase58()} with $lamports lamports',
+      );
 
       // In a real implementation, this would call:
       // final signature = await connection.requestAirdrop(publicKey, lamports);
       // await connection.confirmTransaction(signature);
 
-      await Future.delayed(
-          const Duration(milliseconds: 100),); // Simulate network delay
+      await Future<void>.delayed(
+        const Duration(milliseconds: 100),
+      ); // Simulate network delay
     } catch (e) {
       print(
-          'Mock funding completed (real airdrop would be implemented here): $e',);
+        'Mock funding completed (real airdrop would be implemented here): $e',
+      );
     }
   }
 
@@ -186,7 +190,9 @@ class IntegrationTestEnvironment {
 
   /// Deploy a test program (mock implementation)
   Future<PublicKey> deployTestProgram(
-      String programName, List<int> programData,) async {
+    String programName,
+    List<int> programData,
+  ) async {
     // In a real implementation, this would deploy the program to the test validator
     // For now, return a mock program ID
     final keypair = await Keypair.generate();
@@ -196,7 +202,6 @@ class IntegrationTestEnvironment {
 
 /// Performance benchmarking utilities
 class PerformanceBenchmark {
-
   PerformanceBenchmark(this.name);
   final String name;
   final List<Duration> _measurements = [];
@@ -220,7 +225,12 @@ class PerformanceBenchmark {
   BenchmarkStats get stats {
     if (_measurements.isEmpty) {
       return BenchmarkStats(
-          name, Duration.zero, Duration.zero, Duration.zero, 0,);
+        name,
+        Duration.zero,
+        Duration.zero,
+        Duration.zero,
+        0,
+      );
     }
 
     final sortedMeasurements = List<Duration>.from(_measurements)..sort();
@@ -244,7 +254,6 @@ class PerformanceBenchmark {
 
 /// Benchmark statistics
 class BenchmarkStats {
-
   const BenchmarkStats(
       this.name, this.min, this.max, this.average, this.sampleCount);
   final String name;
@@ -255,13 +264,12 @@ class BenchmarkStats {
 
   @override
   String toString() => 'BenchmarkStats($name: avg=${average.inMilliseconds}ms, '
-        'min=${min.inMilliseconds}ms, max=${max.inMilliseconds}ms, '
-        'samples=$sampleCount)';
+      'min=${min.inMilliseconds}ms, max=${max.inMilliseconds}ms, '
+      'samples=$sampleCount)';
 }
 
 /// Cross-program testing utilities
 class CrossProgramTester {
-
   CrossProgramTester(this.environment);
   final IntegrationTestEnvironment environment;
   final Map<String, Program> _programs = {};
@@ -306,7 +314,6 @@ class CrossProgramTester {
 
 /// Compatibility testing with TypeScript implementation
 class TypeScriptCompatibilityTester {
-
   TypeScriptCompatibilityTester(this.environment);
   final IntegrationTestEnvironment environment;
 

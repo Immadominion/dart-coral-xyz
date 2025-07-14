@@ -109,7 +109,7 @@ void main() {
         programId: programKeypair.publicKey,
         accounts: [
           AccountMeta(
-            pubkey: userKeypair.publicKey,
+            publicKey: userKeypair.publicKey,
             isWritable: true,
             isSigner: true,
           ),

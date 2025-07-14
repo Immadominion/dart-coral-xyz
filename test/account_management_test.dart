@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart' hide Transaction;
+import 'package:coral_xyz_anchor/src/types/transaction.dart' show Transaction;
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 // Mock classes for testing
 class MockConnection extends Connection {
-
   MockConnection() : super('http://localhost:8899');
   final Map<String, dynamic> _accounts = {};
   final Map<String, StreamController<AccountInfo?>> _subscriptions = {};
@@ -46,12 +46,15 @@ class MockConnection extends Connection {
           ? data['lamports'] as int
           : int.tryParse(data['lamports']?.toString() ?? '') ?? 1000000,
       owner: PublicKey.fromBase58(
-          data['owner']?.toString() ?? '11111111111111111111111111111111',),
-      data: Uint8List.fromList((data['data'] is List<int>)
-          ? data['data'] as List<int>
-          : (data['data'] is List)
-              ? List<int>.from(data['data'] as List)
-              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],),
+        data['owner']?.toString() ?? '11111111111111111111111111111111',
+      ),
+      data: Uint8List.fromList(
+        (data['data'] is List<int>)
+            ? data['data'] as List<int>
+            : (data['data'] is List)
+                ? List<int>.from(data['data'] as List)
+                : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      ),
       executable: (data['executable'] is bool)
           ? data['executable'] as bool
           : (data['executable']?.toString() == 'true'),
@@ -65,9 +68,10 @@ class MockConnection extends Connection {
   Future<List<AccountInfo?>> getMultipleAccountsInfo(
     List<PublicKey> addresses, {
     CommitmentConfig? commitment,
-  }) async => Future.wait(
-      addresses.map((addr) => getAccountInfo(addr, commitment: commitment)),
-    );
+  }) async =>
+      Future.wait(
+        addresses.map((addr) => getAccountInfo(addr, commitment: commitment)),
+      );
 
   @override
   Future<List<ProgramAccountInfo>> getProgramAccounts(
@@ -128,12 +132,14 @@ class MockWallet implements Wallet {
       PublicKey.fromBase58('11111111111111111111111111111111');
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async => transaction;
+  Future<Transaction> signTransaction(Transaction transaction) async =>
+      transaction;
 
   @override
   Future<List<Transaction>> signAllTransactions(
     List<Transaction> transactions,
-  ) async => transactions;
+  ) async =>
+      transactions;
 
   @override
   Future<Uint8List> signMessage(Uint8List message) async => message;
@@ -173,19 +179,21 @@ class MockAccountsCoder implements AccountsCoder {
   }
 
   @override
-  Future<Uint8List> encode<T>(String accountName, T data) async => Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  Future<Uint8List> encode<T>(String accountName, T data) async =>
+      Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
   @override
   int size(String accountName) => 100;
 
   @override
   Map<String, dynamic> memcmp(String accountName, {Uint8List? appendData}) => {
-      'offset': 0,
-      'bytes': 'base58string',
-    };
+        'offset': 0,
+        'bytes': 'base58string',
+      };
 
   @override
-  Uint8List accountDiscriminator(String accountName) => Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
+  Uint8List accountDiscriminator(String accountName) =>
+      Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
 }
 
 class MockIdlAccount implements IdlAccount {
@@ -206,10 +214,10 @@ class MockIdlAccount implements IdlAccount {
 
   @override
   Map<String, dynamic> toJson() => {
-      'name': name,
-      'type': type.toJson(),
-      'discriminator': discriminator,
-    };
+        'name': name,
+        'type': type.toJson(),
+        'discriminator': discriminator,
+      };
 }
 
 void main() {
@@ -477,11 +485,13 @@ void main() {
 
     group('Integration Tests', () {
       // This test will be skipped until the AccountOperationsManager API is finalized
-      test('should handle complete account lifecycle', () {
-        // Implementation will be added later when AccountOperationsManager API is finalized
-      },
-          skip:
-              'Test needs to be updated to match AccountOperationsManager API',);
+      test(
+        'should handle complete account lifecycle',
+        () {
+          // Implementation will be added later when AccountOperationsManager API is finalized
+        },
+        skip: 'Test needs to be updated to match AccountOperationsManager API',
+      );
     });
   });
 }

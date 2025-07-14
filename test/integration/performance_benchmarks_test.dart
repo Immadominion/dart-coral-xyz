@@ -1,5 +1,8 @@
 import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'
+    hide AccountMeta, Transaction, TransactionInstruction;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    show AccountMeta, Transaction, TransactionInstruction;
 import 'integration_test_utils.dart';
 import 'dart:typed_data';
 
@@ -46,8 +49,10 @@ void main() {
 
       final stats = connectionBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
-      expect(stats.average.inMilliseconds,
-          lessThan(5000),); // Should be under 5 seconds in test env
+      expect(
+        stats.average.inMilliseconds,
+        lessThan(5000),
+      ); // Should be under 5 seconds in test env
     });
 
     test('instruction encoding benchmark', () async {
@@ -95,8 +100,10 @@ void main() {
 
       final stats = encodingBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
-      expect(stats.average.inMicroseconds,
-          lessThan(10000),); // Should be under 10ms
+      expect(
+        stats.average.inMicroseconds,
+        lessThan(10000),
+      ); // Should be under 10ms
     });
 
     test('transaction building benchmark', () async {
@@ -112,11 +119,23 @@ void main() {
         final instruction = TransactionInstruction(
           programId: programKeypair.publicKey,
           accounts: [
-            AccountMeta.signer(userKeypair.publicKey, isWritable: true),
-            AccountMeta.readonly(programKeypair.publicKey),
+            AccountMeta(
+              pubkey: userKeypair.publicKey,
+              isSigner: true,
+              isWritable: true,
+            ),
+            AccountMeta(
+              pubkey: programKeypair.publicKey,
+              isSigner: false,
+              isWritable: false,
+            ),
           ],
-          data: Uint8List.fromList(List.generate(
-              64, (index) => index % 256,),), // 64 bytes of test data
+          data: Uint8List.fromList(
+            List.generate(
+              64,
+              (index) => index % 256,
+            ),
+          ), // 64 bytes of test data
         );
 
         final transaction = Transaction(
@@ -137,7 +156,9 @@ void main() {
       final stats = transactionBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
       expect(
-          stats.average.inMicroseconds, lessThan(5000),); // Should be under 5ms
+        stats.average.inMicroseconds,
+        lessThan(5000),
+      ); // Should be under 5ms
     });
 
     test('account data processing benchmark', () async {
@@ -187,20 +208,23 @@ void main() {
             await coder.accounts.encode('BenchmarkAccount', testData);
 
         // Decode account data
-        final decoded = coder.accounts.decode('BenchmarkAccount', encoded);
+        final decoded = coder.accounts
+            .decode<Map<String, dynamic>>('BenchmarkAccount', encoded);
 
         accountBenchmark.stop();
 
         expect(decoded, isNotNull);
-        expect(decoded?['value1'], equals(987654321));
-        expect(decoded?['value2'], equals(12345));
-        expect(decoded?['flag'], equals(false));
+        expect(decoded['value1'], equals(987654321));
+        expect(decoded['value2'], equals(12345));
+        expect(decoded['flag'], equals(false));
       }
 
       final stats = accountBenchmark.stats;
       expect(stats.sampleCount, equals(iterations));
       expect(
-          stats.average.inMilliseconds, lessThan(100),); // Should be under 100ms
+        stats.average.inMilliseconds,
+        lessThan(100),
+      ); // Should be under 100ms
 
       print('Account Processing Benchmark: $stats');
     });
@@ -224,8 +248,7 @@ void main() {
       final publicKeys = testAccounts.map((kp) => kp.publicKey).toList();
 
       // Create many account metas
-      final accountMetas =
-          publicKeys.map(AccountMeta.readonly).toList();
+      final accountMetas = publicKeys.map(AccountMeta.readonly).toList();
 
       memoryBenchmark.stop();
 
@@ -234,8 +257,10 @@ void main() {
       expect(accountMetas.length, equals(largeIterations));
 
       final stats = memoryBenchmark.stats;
-      expect(stats.average.inSeconds,
-          lessThan(30),); // Should complete within 30 seconds
+      expect(
+        stats.average.inSeconds,
+        lessThan(30),
+      ); // Should complete within 30 seconds
 
       print('Memory Operations Benchmark: $stats');
     });
