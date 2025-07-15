@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
 
 void main() {
   group('InstructionBuilder', () {
@@ -174,7 +175,7 @@ void main() {
           })
           .addSigner(userKey)
           .remainingAccounts([
-            AccountMeta(
+            tx.AccountMeta(
               pubkey: extraAccount,
               isWritable: true,
               isSigner: false,

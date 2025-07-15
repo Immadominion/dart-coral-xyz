@@ -1,11 +1,12 @@
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as types;
 import 'dart:typed_data';
 
 void main() {
   group('Transaction Serialization', () {
     late KeypairWallet wallet;
-    late Transaction tx;
+    late types.Transaction tx;
     late String blockhash;
     late PublicKey programId;
 
@@ -14,13 +15,16 @@ void main() {
       blockhash =
           'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5'; // Valid base58 blockhash
       programId = PublicKey.fromBase58('11111111111111111111111111111111');
-      tx = Transaction(
+      tx = types.Transaction(
         instructions: [
-          TransactionInstruction(
+          types.TransactionInstruction(
             programId: programId,
             accounts: [
-              AccountMeta(
-                  pubkey: wallet.publicKey, isSigner: true, isWritable: true,),
+              types.AccountMeta(
+                pubkey: wallet.publicKey,
+                isSigner: true,
+                isWritable: true,
+              ),
             ],
             data: Uint8List.fromList([1, 2, 3]),
           ),
@@ -38,25 +42,25 @@ void main() {
 
     test('serialize produces consistent output', () async {
       await wallet.signTransaction(tx);
-      final serialized = tx.serialize();
+      final serialized = await tx.serialize();
       expect(serialized, isA<Uint8List>());
       expect(serialized.length, greaterThan(0));
     });
 
     test('throws if blockhash missing', () {
-      final txNoBlockhash = Transaction(
+      final txNoBlockhash = types.Transaction(
         instructions: tx.instructions,
         feePayer: wallet.publicKey,
       );
-      expect(txNoBlockhash.compileMessage, throwsA(isA<Exception>()));
-      expect(txNoBlockhash.serialize, throwsA(isA<Exception>()));
+      expect(() => txNoBlockhash.compileMessage(), throwsA(isA<Exception>()));
+      expect(() => txNoBlockhash.serialize(), throwsA(isA<Exception>()));
     });
   });
 
   group('Transaction Partial Signatures', () {
     late KeypairWallet wallet1;
     late KeypairWallet wallet2;
-    late Transaction tx;
+    late types.Transaction tx;
     late String blockhash;
     late PublicKey programId;
 
@@ -66,15 +70,21 @@ void main() {
       blockhash =
           'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5'; // Valid base58 blockhash
       programId = PublicKey.fromBase58('11111111111111111111111111111113');
-      tx = Transaction(
+      tx = types.Transaction(
         instructions: [
-          TransactionInstruction(
+          types.TransactionInstruction(
             programId: programId,
             accounts: [
-              AccountMeta(
-                  pubkey: wallet1.publicKey, isSigner: true, isWritable: true,),
-              AccountMeta(
-                  pubkey: wallet2.publicKey, isSigner: true, isWritable: false,),
+              types.AccountMeta(
+                pubkey: wallet1.publicKey,
+                isSigner: true,
+                isWritable: true,
+              ),
+              types.AccountMeta(
+                pubkey: wallet2.publicKey,
+                isSigner: true,
+                isWritable: false,
+              ),
             ],
             data: Uint8List.fromList([4, 5, 6]),
           ),

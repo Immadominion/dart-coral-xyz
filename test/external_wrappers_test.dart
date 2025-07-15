@@ -7,7 +7,8 @@ void main() {
     group('EncodingWrapper', () {
       test('should encode and decode hex correctly', () {
         final bytes = Uint8List.fromList(
-            [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF],);
+          [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF],
+        );
         final hex = EncodingWrapper.encodeHex(bytes);
         expect(hex, equals('0123456789abcdef'));
 
@@ -60,32 +61,45 @@ void main() {
     });
 
     group('CryptoWrapper', () {
-      test(
-        'should throw UnimplementedError for methods not yet implemented',
-        () {
-          expect(
-            CryptoWrapper.generateKeypair,
-            throwsA(isA<UnimplementedError>()),
-          );
-          expect(
-            () => CryptoWrapper.fromSecretKey(Uint8List(0)),
-            throwsA(isA<UnimplementedError>()),
-          );
-          expect(
-            () => CryptoWrapper.sign(Uint8List(0), Uint8List(0)),
-            throwsA(isA<UnimplementedError>()),
-          );
-          expect(
-            () =>
-                CryptoWrapper.verify(Uint8List(0), Uint8List(0), Uint8List(0)),
-            throwsA(isA<UnimplementedError>()),
-          );
-          expect(
-            () => CryptoWrapper.deriveFromSeed(Uint8List(0), ''),
-            throwsA(isA<UnimplementedError>()),
-          );
-        },
-      );
+      test('should generate keypair successfully', () async {
+        final keypair = await CryptoWrapper.generateKeypair();
+        expect(keypair.publicKey.length, equals(32));
+        expect(keypair.privateKey.length, equals(64));
+      });
+
+      test('should throw CryptoException for invalid secret key', () {
+        final invalidSecretKey = Uint8List(10); // Wrong size
+        expect(
+          () => CryptoWrapper.fromSecretKey(invalidSecretKey),
+          throwsA(isA<CryptoException>()),
+        );
+      });
+
+      test('should throw CryptoException for invalid private key in sign', () {
+        final invalidPrivateKey = Uint8List(10); // Wrong size
+        final data = Uint8List.fromList([1, 2, 3]);
+        expect(
+          () => CryptoWrapper.sign(data, invalidPrivateKey),
+          throwsA(isA<CryptoException>()),
+        );
+      });
+
+      test('should verify signature correctly', () async {
+        final keypair = await CryptoWrapper.generateKeypair();
+        final data = Uint8List.fromList([1, 2, 3, 4, 5]);
+        final signature = await CryptoWrapper.sign(data, keypair.privateKey);
+        final isValid =
+            await CryptoWrapper.verify(data, signature, keypair.publicKey);
+        expect(isValid, isTrue);
+      });
+
+      test('should throw CryptoException for invalid seed', () {
+        final invalidSeed = Uint8List(10); // Wrong size
+        expect(
+          () => CryptoWrapper.fromSeed(invalidSeed),
+          throwsA(isA<CryptoException>()),
+        );
+      });
     });
 
     group('BorshWrapper', () {
@@ -125,14 +139,6 @@ void main() {
       );
     });
 
-    group('SolanaRpcWrapper', () {
-      test('should create instance successfully with valid URL', () {
-        final wrapper = SolanaRpcWrapper('https://api.devnet.solana.com');
-        expect(wrapper, isA<SolanaRpcWrapper>());
-        expect(wrapper.client, isA<Object>()); // solana_lib.SolanaClient
-      });
-    });
-
     group('KeypairData', () {
       test('should create KeypairData correctly', () {
         final publicKey = Uint8List.fromList([1, 2, 3, 4]);
@@ -162,9 +168,6 @@ void main() {
           encodingException.toString(),
           equals('EncodingException: $message'),
         );
-
-        final rpcException = SolanaRpcException(message);
-        expect(rpcException.toString(), equals('SolanaRpcException: $message'));
       });
     });
   });

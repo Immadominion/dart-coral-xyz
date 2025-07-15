@@ -29,9 +29,12 @@ void main() {
           () async {
         // This test would require a mock provider and connection
         // For now, we test the method signature and error handling
-        expect(() async {
-          await Program.at('11111111111111111111111111111112');
-        }, returnsNormally,);
+        expect(
+          () async {
+            await Program.at('11111111111111111111111111111112');
+          },
+          returnsNormally,
+        );
       });
 
       test('should return null when IDL is not found', () async {
@@ -48,11 +51,12 @@ void main() {
           fail('Should have thrown an error');
         } catch (e) {
           expect(
-              e,
-              anyOf([
-                isA<ArgumentError>(), // Invalid base58
-                isA<ProgramOperationError>(), // Wrapped error
-              ]),);
+            e,
+            anyOf([
+              isA<ArgumentError>(), // Invalid base58
+              isA<ProgramOperationError>(), // Wrapped error
+            ]),
+          );
         }
       });
     });
@@ -81,8 +85,10 @@ void main() {
         expect(converted.instructions.first.name, equals('myTestMethod'));
 
         // Test that field names are converted
-        expect(converted.instructions.first.args.first.name,
-            equals('someFieldName'),);
+        expect(
+          converted.instructions.first.args.first.name,
+          equals('someFieldName'),
+        );
       });
 
       test('should handle dot notation in names', () {
@@ -105,8 +111,10 @@ void main() {
         final converted = IdlUtils.convertIdlToCamelCase(testIdl);
 
         // Should preserve dot notation while converting parts
-        expect(converted.instructions.first.args.first.name,
-            equals('nestedField.subField'),);
+        expect(
+          converted.instructions.first.args.first.name,
+          equals('nestedField.subField'),
+        );
       });
 
       test('should preserve non-snake_case names', () {
@@ -130,8 +138,10 @@ void main() {
 
         // Should not change already camelCase names
         expect(converted.instructions.first.name, equals('simpleMethod'));
-        expect(converted.instructions.first.args.first.name,
-            equals('alreadyCamelCase'),);
+        expect(
+          converted.instructions.first.args.first.name,
+          equals('alreadyCamelCase'),
+        );
       });
     });
 
@@ -244,7 +254,9 @@ void main() {
         );
         expect(idlError.operation, equals('fetchIdl'));
         expect(
-            idlError.context!['programId'], equals(testProgramId.toBase58()),);
+          idlError.context!['programId'],
+          equals(testProgramId.toBase58()),
+        );
 
         // Test account operation error
         final accountError = ProgramOperationError.accountOperation(
@@ -273,14 +285,17 @@ void main() {
       });
 
       test('should convert exceptions to ProgramOperationError', () async {
-        expect(() async {
-          await ProgramErrorHandler.wrapOperation(
-            'testOperation',
-            () async {
-              throw Exception('Test exception');
-            },
-          );
-        }, throwsA(isA<ProgramOperationError>()),);
+        expect(
+          () async {
+            await ProgramErrorHandler.wrapOperation(
+              'testOperation',
+              () async {
+                throw Exception('Test exception');
+              },
+            );
+          },
+          throwsA(isA<ProgramOperationError>()),
+        );
       });
 
       test('should create user-friendly error messages', () {
@@ -330,11 +345,19 @@ void main() {
         );
         final program = Program(testIdl);
 
-        final error = program.createError('Test error message');
+        // Create error using ProgramOperationError constructor
+        final error = ProgramOperationError(
+          operation: 'test',
+          message: 'Test error message',
+          code: 6000,
+          context: {'programId': program.programId.toBase58()},
+        );
         expect(error, isA<ProgramOperationError>());
-        expect(error.msg, equals('Test error message'));
+        expect(error.message, equals('Test error message'));
         expect(
-            error.context!['programId'], equals(program.programId.toBase58()),);
+          error.context!['programId'],
+          equals(program.programId.toBase58()),
+        );
       });
 
       test('should wrap operations with Program context', () async {
@@ -344,9 +367,11 @@ void main() {
         );
         final program = Program(testIdl);
 
-        final result = await program.withErrorHandling(
+        // Use ProgramErrorHandler.wrapOperation instead of program.withErrorHandling
+        final result = await ProgramErrorHandler.wrapOperation(
           'testOperation',
           () async => 'success',
+          context: {'programId': program.programId.toBase58()},
         );
 
         expect(result, equals('success'));

@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
 import 'dart:typed_data';
 
 void main() {
@@ -67,19 +68,24 @@ void main() {
               IdlField(
                 name: 'optionalField',
                 type: IdlType(
-                    kind: 'option', inner: IdlType(kind: 'u8'),), // Changed
+                  kind: 'option',
+                  inner: IdlType(kind: 'u8'),
+                ), // Changed
               ),
               IdlField(
                 name: 'vector',
                 type: IdlType(
-                    kind: 'vec', inner: IdlType(kind: 'string'),), // Changed
+                  kind: 'vec',
+                  inner: IdlType(kind: 'string'),
+                ), // Changed
               ),
               IdlField(
                 name: 'array',
                 type: IdlType(
-                    kind: 'array',
-                    inner: IdlType(kind: 'u16'),
-                    size: 3,), // Changed
+                  kind: 'array',
+                  inner: IdlType(kind: 'u16'),
+                  size: 3,
+                ), // Changed
               ),
             ],
           ),
@@ -250,15 +256,17 @@ void main() {
         );
 
         final accountMetas = [
-          AccountMeta(
+          tx.AccountMeta(
             pubkey: PublicKey.fromBase58(
-                'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',),
+              'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            ),
             isSigner: true,
             isWritable: true,
           ),
-          AccountMeta(
+          tx.AccountMeta(
             pubkey: PublicKey.fromBase58(
-                'So11111111111111111111111111111111111111112',),
+              'So11111111111111111111111111111111111111112',
+            ),
             isSigner: false,
             isWritable: false,
           ),
@@ -277,13 +285,17 @@ void main() {
 
         expect(formatted.accounts.length, equals(2));
         expect(formatted.accounts[0].name, equals('user'));
-        expect(formatted.accounts[0].pubkey,
-            equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),);
+        expect(
+          formatted.accounts[0].pubkey,
+          equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        );
         expect(formatted.accounts[0].isSigner, isTrue);
         expect(formatted.accounts[0].isWritable, isTrue);
         expect(formatted.accounts[1].name, equals('program'));
-        expect(formatted.accounts[1].pubkey,
-            equals('So11111111111111111111111111111111111111112'),);
+        expect(
+          formatted.accounts[1].pubkey,
+          equals('So11111111111111111111111111111111111111112'),
+        );
         expect(formatted.accounts[1].isSigner, isFalse);
         expect(formatted.accounts[1].isWritable, isFalse);
       });
@@ -297,14 +309,15 @@ void main() {
         );
 
         final accountMetas = [
-          AccountMeta(
+          tx.AccountMeta(
             pubkey: PublicKey.fromBase58('11111111111111111111111111111112'),
             isSigner: true,
             isWritable: false,
           ),
-          AccountMeta(
+          tx.AccountMeta(
             pubkey: PublicKey.fromBase58(
-                'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',),
+              'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+            ),
             isSigner: false,
             isWritable: true,
           ),
@@ -384,36 +397,49 @@ void main() {
               accounts: [],
               args: [
                 IdlField(
-                    name: 'boolVal',
-                    type: IdlType(kind: 'bool'),), // Changed
+                  name: 'boolVal',
+                  type: IdlType(kind: 'bool'),
+                ), // Changed
                 IdlField(
-                    name: 'u8Val', type: IdlType(kind: 'u8'),), // Changed
+                  name: 'u8Val',
+                  type: IdlType(kind: 'u8'),
+                ), // Changed
                 IdlField(
-                    name: 'i8Val', type: IdlType(kind: 'i8'),), // Changed
+                  name: 'i8Val',
+                  type: IdlType(kind: 'i8'),
+                ), // Changed
                 IdlField(
-                    name: 'u16Val',
-                    type: IdlType(kind: 'u16'),), // Changed
+                  name: 'u16Val',
+                  type: IdlType(kind: 'u16'),
+                ), // Changed
                 IdlField(
-                    name: 'i16Val',
-                    type: IdlType(kind: 'i16'),), // Changed
+                  name: 'i16Val',
+                  type: IdlType(kind: 'i16'),
+                ), // Changed
                 IdlField(
-                    name: 'u32Val',
-                    type: IdlType(kind: 'u32'),), // Changed
+                  name: 'u32Val',
+                  type: IdlType(kind: 'u32'),
+                ), // Changed
                 IdlField(
-                    name: 'i32Val',
-                    type: IdlType(kind: 'i32'),), // Changed
+                  name: 'i32Val',
+                  type: IdlType(kind: 'i32'),
+                ), // Changed
                 IdlField(
-                    name: 'u64Val',
-                    type: IdlType(kind: 'u64'),), // Changed
+                  name: 'u64Val',
+                  type: IdlType(kind: 'u64'),
+                ), // Changed
                 IdlField(
-                    name: 'i64Val',
-                    type: IdlType(kind: 'i64'),), // Changed
+                  name: 'i64Val',
+                  type: IdlType(kind: 'i64'),
+                ), // Changed
                 IdlField(
-                    name: 'stringVal',
-                    type: IdlType(kind: 'string'),), // Changed
+                  name: 'stringVal',
+                  type: IdlType(kind: 'string'),
+                ), // Changed
                 IdlField(
-                    name: 'pubkeyVal',
-                    type: IdlType(kind: 'pubkey'),), // Changed
+                  name: 'pubkeyVal',
+                  type: IdlType(kind: 'pubkey'),
+                ), // Changed
               ],
             ),
           ],

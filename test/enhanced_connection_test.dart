@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
 
 /// Mock HTTP client for testing
 class MockHttpClient extends http.BaseClient {
-
   MockHttpClient({this.delay});
   final List<http.Response> responses = [];
   final List<Exception> exceptions = [];
@@ -33,7 +32,7 @@ class MockHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (delay != null) {
-      await Future.delayed(delay!);
+      await Future<void>.delayed(delay!);
     }
 
     requestCount++;
@@ -120,7 +119,7 @@ void main() {
       breaker.recordFailure();
       expect(breaker.state, equals(CircuitBreakerState.open));
 
-      await Future.delayed(const Duration(milliseconds: 150));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
       expect(breaker.shouldAllowRequest(), isTrue);
       expect(breaker.state, equals(CircuitBreakerState.halfOpen));
     });
@@ -186,7 +185,6 @@ void main() {
       mockClient = MockHttpClient();
       connection = EnhancedConnection(
         'https://api.devnet.solana.com',
-        httpClient: mockClient,
         retryConfig: const RetryConfig(maxRetries: 2, baseDelayMs: 10),
       );
     });
@@ -212,8 +210,12 @@ void main() {
     });
 
     test('should not retry non-retryable errors', () async {
-      mockClient.addResponse(http.Response(
-          '{"error": {"code": -32600, "message": "Invalid request"}}', 200,),);
+      mockClient.addResponse(
+        http.Response(
+          '{"error": {"code": -32600, "message": "Invalid request"}}',
+          200,
+        ),
+      );
 
       final publicKey =
           PublicKey.fromBase58('11111111111111111111111111111112');
@@ -231,7 +233,6 @@ void main() {
       const config = CircuitBreakerConfig(failureThreshold: 1);
       final conn = EnhancedConnection(
         'https://api.devnet.solana.com',
-        httpClient: mockClient,
         circuitBreakerConfig: config,
       );
 
@@ -250,7 +251,8 @@ void main() {
       expect(
         () async => conn.getBalance(publicKey),
         throwsA(
-            predicate((e) => e.toString().contains('Circuit breaker is open')),),
+          predicate((e) => e.toString().contains('Circuit breaker is open')),
+        ),
       );
     });
 
@@ -317,13 +319,17 @@ void main() {
 
       // Trigger circuit breaker
       conn.circuitBreakerForTesting.recordFailure();
-      expect(conn.circuitBreakerForTesting.state,
-          equals(CircuitBreakerState.open),);
+      expect(
+        conn.circuitBreakerForTesting.state,
+        equals(CircuitBreakerState.open),
+      );
 
       // Reset circuit breaker
       conn.resetCircuitBreaker();
-      expect(conn.circuitBreakerForTesting.state,
-          equals(CircuitBreakerState.closed),);
+      expect(
+        conn.circuitBreakerForTesting.state,
+        equals(CircuitBreakerState.closed),
+      );
     });
   });
 
@@ -332,11 +338,13 @@ void main() {
       final pool = ConnectionPool(['https://api.devnet.solana.com']);
 
       // Allow time for initialization
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final metrics = pool.metrics;
       expect(
-          metrics.totalConnections, greaterThanOrEqualTo(2),); // Default minimum
+        metrics.totalConnections,
+        greaterThanOrEqualTo(2),
+      ); // Default minimum
 
       await pool.dispose();
     });
@@ -349,7 +357,7 @@ void main() {
       );
 
       // Allow time for initialization
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final result = await pool.execute((connection) async => 'test-result');
 
@@ -361,7 +369,7 @@ void main() {
       final pool = ConnectionPool(['https://api.devnet.solana.com']);
 
       // Allow time for initialization
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       await pool.execute((connection) async => 'success');
 
@@ -385,7 +393,7 @@ void main() {
       );
 
       // Allow time for initialization
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final metrics = pool.metrics;
       expect(metrics.totalConnections, greaterThanOrEqualTo(2));
@@ -401,7 +409,7 @@ void main() {
       );
 
       // Allow time for initialization
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final metrics = pool.metrics;
       expect(metrics.totalConnections, lessThanOrEqualTo(2));
@@ -413,7 +421,7 @@ void main() {
       final pool = ConnectionPool(['https://api.devnet.solana.com']);
 
       // Allow time for initialization
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       await pool.dispose();
 

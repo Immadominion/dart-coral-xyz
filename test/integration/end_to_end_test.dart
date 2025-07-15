@@ -1,7 +1,11 @@
 import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'integration_test_utils.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction.dart' as tx;
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx_types;
+
 import '../test_helpers.dart';
+import 'integration_test_utils.dart';
 
 /// End-to-end integration tests
 void main() {
@@ -71,8 +75,10 @@ void main() {
       final program = Program(mockIdl, provider: env.provider);
 
       // Test basic program properties
-      expect(program.programId.toBase58(),
-          equals(programAccount.publicKey.toBase58()),);
+      expect(
+        program.programId.toBase58(),
+        equals(programAccount.publicKey.toBase58()),
+      );
       expect(program.provider, equals(env.provider));
 
       // Test namespace access
@@ -95,8 +101,11 @@ void main() {
       expect(createdData['lamports'], equals(1000));
 
       // Test account assertion helpers
-      expectAnchorAccount(createdData,
-          expectedName: 'test_account', expectedLamports: 1000,);
+      expectAnchorAccount(
+        createdData,
+        expectedName: 'test_account',
+        expectedLamports: 1000,
+      );
     });
 
     test('instruction building and transaction flow', () async {
@@ -108,8 +117,8 @@ void main() {
       final instruction = buildTestInstruction(
         programId: programKeypair.publicKey,
         accounts: [
-          AccountMeta(
-            publicKey: userKeypair.publicKey,
+          tx_types.AccountMeta(
+            pubkey: userKeypair.publicKey,
             isWritable: true,
             isSigner: true,
           ),
@@ -122,8 +131,20 @@ void main() {
       expect(instruction.data.length, equals(4));
 
       // Test transaction creation
-      final transaction = Transaction(
-        instructions: [instruction],
+      final transaction = tx.Transaction(
+        instructions: [
+          tx.TransactionInstruction(
+            programId: instruction.programId,
+            accounts: instruction.accounts
+                .map((acc) => tx.AccountMeta(
+                      publicKey: acc.pubkey,
+                      isWritable: acc.isWritable,
+                      isSigner: acc.isSigner,
+                    ))
+                .toList(),
+            data: instruction.data,
+          ),
+        ],
         feePayer: userKeypair.publicKey,
       );
 
@@ -176,8 +197,10 @@ void main() {
       });
 
       expect(instructionData, isNotNull);
-      expect(instructionData.length,
-          greaterThan(8),); // Should include discriminator
+      expect(
+        instructionData.length,
+        greaterThan(8),
+      ); // Should include discriminator
 
       // Test account encoding
       final accountData = await coder.accounts.encode('TestAccount', {
@@ -186,11 +209,16 @@ void main() {
 
       expect(accountData, isNotNull);
       expect(
-          accountData.length, greaterThan(8),); // Should include discriminator
+        accountData.length,
+        greaterThan(8),
+      ); // Should include discriminator
 
       // Test decoding
-      final decodedAccount = coder.accounts.decode('TestAccount', accountData);
-      expect(decodedAccount?['data'], equals(42));
+      final decodedAccount = coder.accounts.decode<Map<String, dynamic>>(
+        'TestAccount',
+        accountData,
+      );
+      expect(decodedAccount['data'], equals(42));
     });
 
     test('provider and connection integration', () async {
@@ -214,11 +242,12 @@ void main() {
 Map<String, dynamic> createTestAccountData({
   required String name,
   required int lamports,
-}) => {
-    'name': name,
-    'lamports': lamports,
-    'timestamp': DateTime.now().millisecondsSinceEpoch,
-  };
+}) =>
+    {
+      'name': name,
+      'lamports': lamports,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    };
 
 /// Helper assertion for account data
 void expectAnchorAccount(

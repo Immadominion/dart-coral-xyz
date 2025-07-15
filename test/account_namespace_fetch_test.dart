@@ -9,11 +9,15 @@ void main() {
       final idl = const Idl(
         address: 'TestAddress',
         metadata: IdlMetadata(
-            name: 'TestProgram', version: '0.0.1', spec: 'anchor-idl/0.0.1',),
+          name: 'TestProgram',
+          version: '0.0.1',
+          spec: 'anchor-idl/0.0.1',
+        ),
         accounts: [
           IdlAccount(
-              name: 'TestAccount',
-              type: IdlTypeDefType(kind: 'struct', fields: []),),
+            name: 'TestAccount',
+            type: IdlTypeDefType(kind: 'struct', fields: []),
+          ),
         ],
         instructions: [],
       );
@@ -198,8 +202,10 @@ void main() {
       // Test account client properties
       expect(client!.name, equals('TestAccount'));
       expect(client.size, equals(0)); // Mock implementation returns 0
-      expect(client.discriminator,
-          equals([]),); // Mock implementation returns empty list
+      expect(
+        client.discriminator,
+        equals([]),
+      ); // Mock implementation returns empty list
     });
   });
 }

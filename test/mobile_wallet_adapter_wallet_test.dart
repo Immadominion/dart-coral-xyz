@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as types;
 import 'dart:typed_data';
 
 /// Mock MWA client for testing
@@ -40,13 +41,16 @@ void main() {
     });
 
     test('should sign a transaction', () async {
-      final tx = Transaction(instructions: [
-        TransactionInstruction(
-          programId: pubkey,
-          accounts: [],
-          data: Uint8List.fromList([1, 2, 3]),
-        ),
-      ], recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',);
+      final tx = types.Transaction(
+        instructions: [
+          types.TransactionInstruction(
+            programId: pubkey,
+            accounts: <types.AccountMeta>[],
+            data: Uint8List.fromList([1, 2, 3]),
+          ),
+        ],
+        recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',
+      );
       final signed = await mwaWallet.signTransaction(tx);
       expect(signed.signatures.length, greaterThan(0));
       expect(signed.feePayer, isNull); // Not set by wallet
@@ -54,12 +58,14 @@ void main() {
 
     test('should sign multiple transactions', () async {
       final txs = [
-        Transaction(
-            instructions: [],
-            recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',),
-        Transaction(
-            instructions: [],
-            recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',),
+        types.Transaction(
+          instructions: <types.TransactionInstruction>[],
+          recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',
+        ),
+        types.Transaction(
+          instructions: <types.TransactionInstruction>[],
+          recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',
+        ),
       ];
       final signed = await mwaWallet.signAllTransactions(txs);
       expect(signed.length, equals(2));
@@ -97,13 +103,16 @@ void main() {
     });
 
     test('should send and confirm transaction (mock)', () async {
-      final tx = Transaction(instructions: [
-        TransactionInstruction(
-          programId: pubkey,
-          accounts: [],
-          data: Uint8List.fromList([1, 2, 3]),
-        ),
-      ], recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',);
+      final tx = types.Transaction(
+        instructions: [
+          types.TransactionInstruction(
+            programId: pubkey,
+            accounts: <types.AccountMeta>[],
+            data: Uint8List.fromList([1, 2, 3]),
+          ),
+        ],
+        recentBlockhash: 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5',
+      );
       final sig = await provider.sendAndConfirm(tx);
       expect(sig, isA<String>());
     });

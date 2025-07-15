@@ -14,6 +14,7 @@ import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/methods_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/views_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/program_error_handler.dart';
@@ -72,7 +73,6 @@ import 'package:coral_xyz_anchor/src/program/program_error_handler.dart';
 ///   .transaction();
 /// ```
 class Program<T extends Idl> {
-
   /// Creates a new Program instance
   ///
   /// This is the primary constructor for creating a Program instance from an IDL.
@@ -172,6 +172,7 @@ class Program<T extends Idl> {
     _eventDebugging = null;
     _eventAggregation = null;
   }
+
   /// The IDL definition for this program
   final T _idl;
 
@@ -434,6 +435,24 @@ class Program<T extends Idl> {
   /// - Must be suitable for simulation without state changes
   ViewsNamespace get views => _namespaces.views;
 
+  /// The simulate namespace for transaction simulation
+  ///
+  /// This namespace provides methods for simulating program transactions
+  /// without sending them to the blockchain. This is useful for testing
+  /// and debugging transactions before execution.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Simulate a transaction
+  /// final result = await program.simulate.initialize([value], context);
+  /// ```
+  ///
+  /// ## Note
+  ///
+  /// This namespace is available for all instructions defined in the IDL.
+  SimulateNamespace get simulate => _namespaces.simulate;
+
   /// Creates a Program instance by fetching the IDL from the network
   ///
   /// This method fetches the IDL from the on-chain IDL account and creates
@@ -520,7 +539,8 @@ class Program<T extends Idl> {
   /// Calculate the IDL address for a given program ID
   ///
   /// This derives the deterministic address where the IDL is stored on-chain
-  static Future<PublicKey> getIdlAddress(PublicKey programId) async => await IdlUtils.getIdlAddress(programId);
+  static Future<PublicKey> getIdlAddress(PublicKey programId) async =>
+      await IdlUtils.getIdlAddress(programId);
 
   /// Get the size of an account for the given account name
   ///
@@ -575,11 +595,12 @@ class Program<T extends Idl> {
     String eventName,
     event_types.EventCallback<T> callback, {
     CommitmentConfig? commitment,
-  }) => _eventManager.addEventListener<T>(
-      eventName,
-      callback,
-      commitment: commitment,
-    );
+  }) =>
+      _eventManager.addEventListener<T>(
+        eventName,
+        callback,
+        commitment: commitment,
+      );
 
   /// Remove an event listener (TypeScript-compatible)
   ///
@@ -594,7 +615,8 @@ class Program<T extends Idl> {
   /// // Later...
   /// await program.removeEventListener(listenerId);
   /// ```
-  Future<void> removeEventListener(int listenerId) async => await _eventManager.removeEventListener(listenerId);
+  Future<void> removeEventListener(int listenerId) async =>
+      await _eventManager.removeEventListener(listenerId);
 
   /// Get event connection state
   ///

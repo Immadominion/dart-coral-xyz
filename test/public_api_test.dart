@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as types;
 
 /// Comprehensive test to validate the public API exports
 ///
@@ -231,7 +232,9 @@ void main() {
 
       // Test PDA creation with known bump
       final address = PdaDerivationEngine.createProgramAddress(
-          [stringSeed, NumberSeed(result.bump, byteLength: 1)], programId,);
+        [stringSeed, NumberSeed(result.bump, byteLength: 1)],
+        programId,
+      );
       expect(address, equals(result.address));
     });
 
@@ -259,8 +262,10 @@ void main() {
       );
       expect(workspaceConfig, isNotNull);
       expect(workspaceConfig.provider, equals(providerConfig));
-      expect(workspaceConfig.programs['localnet']?['test_program'],
-          equals(programEntry),);
+      expect(
+        workspaceConfig.programs['localnet']?['test_program'],
+        equals(programEntry),
+      );
     });
   });
 
@@ -293,13 +298,15 @@ class MockWallet extends Wallet {
       PublicKey.fromBase58('11111111111111111111111111111111');
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async {
+  Future<types.Transaction> signTransaction(
+      types.Transaction transaction) async {
     return transaction; // Mock implementation - return unsigned transaction
   }
 
   @override
-  Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions,) async {
+  Future<List<types.Transaction>> signAllTransactions(
+    List<types.Transaction> transactions,
+  ) async {
     return transactions; // Mock implementation - return unsigned transactions
   }
 
