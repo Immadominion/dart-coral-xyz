@@ -4,13 +4,15 @@ library;
 
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
 import 'package:coral_xyz_anchor/src/program/program_class.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
 
 // Export workspace configuration system
 export 'workspace_config.dart';
@@ -22,8 +24,7 @@ export 'program_manager.dart';
 import 'package:coral_xyz_anchor/src/workspace/workspace_config.dart';
 
 /// TypeScript-like workspace for managing multiple Anchor programs
-class Workspace {
-
+class Workspace extends Object {
   Workspace(this._provider);
   final Map<String, Program> _programs = {};
   final AnchorProvider _provider;
@@ -49,6 +50,26 @@ class Workspace {
   /// Remove a program from workspace
   bool removeProgram(String name) => _programs.remove(name) != null;
 
+  /// Dynamic proxy for TypeScript-like workspace.ProgramName access
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.isGetter) {
+      final memberName = invocation.memberName;
+      final name = _symbolToProgramName(memberName);
+      final program = getProgram(name);
+      if (program != null) return program;
+      throw ArgumentError('Program "$name" not found in workspace');
+    }
+    return super.noSuchMethod(invocation);
+  }
+
+  String _symbolToProgramName(Symbol symbol) {
+    final s = symbol.toString();
+    // Symbol("ProgramName") => ProgramName
+    final match = RegExp(r'"(.*)"').firstMatch(s);
+    return match != null ? match.group(1)! : s;
+  }
+
   /// Load program from IDL and program ID
   Future<Program> loadProgram(
     String name,
@@ -60,10 +81,8 @@ class Workspace {
       programId,
       provider: _provider,
     );
-
     _programs[name] = program;
     _idls[name] = idl;
-
     return program;
   }
 
@@ -88,482 +107,367 @@ class Workspace {
     }
   }
 
-  /// Get IDL for a program
-  Idl? getIdl(String programName) => _idls[programName];
-
-  /// Check if program exists in workspace
-  bool hasProgram(String name) => _programs.containsKey(name);
-
-  /// Clear all programs from workspace
-  void clear() {
-    _programs.clear();
-    _idls.clear();
-  }
-
-  /// Get program by program ID
-  Program? getProgramById(PublicKey programId) {
-    for (final program in _programs.values) {
-      if (program.programId == programId) {
-        return program;
-      }
-    }
-    return null;
-  }
-
-  /// Create a new workspace from provider
-  static Workspace create(AnchorProvider provider) => Workspace(provider);
-
-  /// Create workspace with default connection
-  static Future<Workspace> createDefault({
-    String? endpoint,
-    Keypair? payer,
-  }) async {
-    final provider = await AnchorProvider.local();
-    return Workspace(provider);
-  }
-
-  /// Batch load programs from a workspace configuration file
-  static Future<Workspace> fromConfig(
-    AnchorProvider provider,
-    Map<String, dynamic> config,
+  /// Load multiple programs from configuration
+  Future<Map<String, Program>> loadProgramsFromConfig(
+    WorkspaceConfig config,
   ) async {
-    final workspace = Workspace(provider);
+    final loadedPrograms = <String, Program>{};
 
-    final programsConfig = config['programs'] as Map<String, dynamic>?;
-    if (programsConfig != null) {
-      for (final entry in programsConfig.entries) {
+    // Load programs from all clusters
+    for (final clusterEntry in config.programs.entries) {
+      final programs = clusterEntry.value;
+
+      for (final entry in programs.entries) {
         final name = entry.key;
-        final programConfig = entry.value as Map<String, dynamic>;
+        final programEntry = entry.value;
 
-        final idlData = programConfig['idl'];
-        final programIdStr = programConfig['programId'] as String?;
+        if (programEntry.address != null) {
+          try {
+            final programId = PublicKey.fromBase58(programEntry.address!);
+            late Idl idl;
 
-        if (idlData != null && programIdStr != null) {
-          final programId = PublicKey.fromBase58(programIdStr);
+            if (programEntry.idl != null) {
+              // Load from specified IDL path
+              idl = await _loadIdlFromPath(programEntry.idl!);
+            } else {
+              // Try to fetch IDL from on-chain
+              idl = await _fetchIdlFromChain(programId);
+            }
 
-          Idl idl;
-          if (idlData is String) {
-            // IDL as JSON string
-            final idlMap = jsonDecode(idlData) as Map<String, dynamic>;
-            idl = Idl.fromJson(idlMap);
-          } else if (idlData is Map<String, dynamic>) {
-            // IDL as object
-            idl = Idl.fromJson(idlData);
-          } else {
-            throw ArgumentError('Invalid IDL format for program $name');
+            final program = await loadProgram(name, idl, programId);
+            loadedPrograms[name] = program;
+          } catch (e) {
+            // Log error but continue with other programs
+            print('Warning: Failed to load program "$name": $e');
           }
-
-          await workspace.loadProgram(name, idl, programId);
         }
       }
     }
 
-    return workspace;
+    return loadedPrograms;
   }
 
-  /// Export workspace configuration
-  Map<String, dynamic> toConfig() {
-    final programsConfig = <String, dynamic>{};
-
-    for (final entry in _programs.entries) {
-      final name = entry.key;
-      final program = entry.value;
-      final idl = _idls[name];
-
-      if (idl != null) {
-        programsConfig[name] = {
-          'programId': program.programId.toBase58(),
-          'idl': idl.toJson(),
-        };
-      }
-    }
-
-    return {
-      'programs': programsConfig,
-      'provider': {
-        'cluster': 'local', // Since we can't access endpoint directly
-      },
-    };
-  }
-
-  /// Get all program IDs in the workspace
-  List<PublicKey> getProgramIds() => _programs.values.map((p) => p.programId).toList();
-
-  /// Validate all programs in workspace
-  Future<Map<String, bool>> validatePrograms() async {
-    final results = <String, bool>{};
-
-    for (final entry in _programs.entries) {
-      final name = entry.key;
-      final program = entry.value;
-
-      try {
-        // Try to fetch account info to validate program exists
-        final accountInfo = await _provider.connection.getAccountInfo(
-          program.programId,
-        );
-        results[name] = accountInfo != null;
-      } catch (e) {
-        results[name] = false;
-      }
-    }
-
-    return results;
-  }
-
-  /// Create a transaction with multiple programs
-  Transaction createTransaction() => Transaction(instructions: []);
-
-  /// Get workspace statistics
-  WorkspaceStats getStats() {
-    final programCount = _programs.length;
-    final totalInstructions = _idls.values
-        .map((idl) => idl.instructions.length)
-        .fold(0, (a, b) => a + b);
-    final totalAccounts = _idls.values
-        .map((idl) => idl.accounts?.length ?? 0)
-        .fold(0, (a, b) => a + b);
-
-    return WorkspaceStats(
-      programCount: programCount,
-      totalInstructions: totalInstructions,
-      totalAccounts: totalAccounts,
-      programNames: _programs.keys.toList(),
-    );
-  }
-
-  @override
-  String toString() => 'Workspace(programs: ${_programs.length}, provider: local)';
-
-  /// Auto-discovery workspace loader with TypeScript-like proxy behavior
-  static Future<Workspace> discover({
-    String? workspacePath,
+  /// Discover and load workspace from Anchor.toml
+  static Future<Workspace> fromAnchorWorkspace({
+    String? workspaceDir,
     AnchorProvider? provider,
     String? cluster,
   }) async {
-    final actualProvider = provider ?? await AnchorProvider.local();
-    final workspace = Workspace(actualProvider);
+    workspaceDir ??= await _findWorkspaceRoot();
 
-    await workspace._autoDiscoverPrograms(
-      workspacePath: workspacePath,
-      cluster: cluster,
+    final config = await WorkspaceConfig.fromFile(
+      path.join(workspaceDir, 'Anchor.toml'),
     );
 
-    return workspace;
-  }
+    // Create provider if not provided
+    provider ??= await _createProviderFromConfig(config, cluster);
 
-  /// Auto-discover programs from workspace structure
-  Future<void> _autoDiscoverPrograms({
-    String? workspacePath,
-    String? cluster,
-  }) async {
-    try {
-      // Load workspace configuration
-      final config = workspacePath != null
-          ? WorkspaceConfig.fromDirectory(workspacePath)
-          : WorkspaceConfig.fromCurrentDirectory();
-
-      final targetCluster = cluster ?? config.provider.cluster;
-      final programEntries = config.getProgramsForCluster(targetCluster);
-
-      // Load each program
-      for (final entry in programEntries.entries) {
-        final programName = entry.key;
-        final programEntry = entry.value;
-
-        try {
-          final idl = config.loadProgramIdl(programName, targetCluster);
-          if (idl != null && programEntry.address != null) {
-            final programId = PublicKey.fromBase58(programEntry.address!);
-            await loadProgram(programName, idl, programId);
-          }
-        } catch (e) {
-          // Continue loading other programs even if one fails
-          print('Warning: Failed to load program $programName: $e');
-        }
-      }
-    } catch (e) {
-      // If auto-discovery fails, continue with empty workspace
-      print('Warning: Auto-discovery failed: $e');
-    }
-  }
-
-  /// Get a program with TypeScript-like camelCase conversion
-  Program? getProgramCamelCase(String name) {
-    // First try exact match
-    final exactMatch = getProgram(name);
-    if (exactMatch != null) return exactMatch;
-
-    // Convert to camelCase and try again
-    final camelCaseName = _toCamelCase(name);
-    final camelMatch = getProgram(camelCaseName);
-    if (camelMatch != null) return camelMatch;
-
-    // Try snake_case conversion
-    final snakeCaseName = _toSnakeCase(name);
-    final snakeMatch = getProgram(snakeCaseName);
-    if (snakeMatch != null) return snakeMatch;
-
-    // Try all program names with case-insensitive comparison
-    for (final entry in _programs.entries) {
-      if (entry.key.toLowerCase() == name.toLowerCase()) {
-        return entry.value;
-      }
-    }
-
-    return null;
-  }
-
-  /// Convert string to camelCase
-  String _toCamelCase(String input) {
-    if (input.isEmpty) return input;
-
-    // Handle snake_case and kebab-case
-    final parts = input.split(RegExp(r'[-_\s]'));
-    if (parts.length <= 1) {
-      return input[0].toLowerCase() + input.substring(1);
-    }
-
-    final camelCase = StringBuffer(parts.first.toLowerCase());
-    for (int i = 1; i < parts.length; i++) {
-      if (parts[i].isNotEmpty) {
-        camelCase.write(parts[i][0].toUpperCase());
-        if (parts[i].length > 1) {
-          camelCase.write(parts[i].substring(1).toLowerCase());
-        }
-      }
-    }
-
-    return camelCase.toString();
-  }
-
-  /// Convert string to snake_case
-  String _toSnakeCase(String input) => input
-        .replaceAllMapped(
-            RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}')
-        .replaceFirst(RegExp(r'^_'), '');
-
-  /// Validate workspace health and configuration
-  Future<WorkspaceHealthReport> validateHealth() async {
-    final issues = <WorkspaceIssue>[];
-    final warnings = <String>[];
-    final programStatuses = <String, ProgramStatus>{};
-
-    for (final entry in _programs.entries) {
-      final name = entry.key;
-      final program = entry.value;
-
-      try {
-        // Check if program exists on-chain
-        final accountInfo =
-            await _provider.connection.getAccountInfo(program.programId);
-
-        if (accountInfo == null) {
-          issues.add(WorkspaceIssue(
-            type: WorkspaceIssueType.programNotFound,
-            programName: name,
-            message:
-                'Program ${program.programId.toBase58()} not found on-chain',
-          ),);
-          programStatuses[name] = ProgramStatus.notFound;
-        } else if (!accountInfo.executable) {
-          issues.add(WorkspaceIssue(
-            type: WorkspaceIssueType.programNotExecutable,
-            programName: name,
-            message:
-                'Program ${program.programId.toBase58()} is not executable',
-          ),);
-          programStatuses[name] = ProgramStatus.notExecutable;
-        } else {
-          programStatuses[name] = ProgramStatus.healthy;
-        }
-
-        // Validate IDL compatibility
-        try {
-          // Basic IDL validation - could be expanded
-          if (program.idl.instructions.isEmpty) {
-            warnings.add('Program $name has no instructions defined');
-          }
-        } catch (e) {
-          issues.add(WorkspaceIssue(
-            type: WorkspaceIssueType.idlValidationFailed,
-            programName: name,
-            message: 'IDL validation failed: $e',
-          ),);
-        }
-      } catch (e) {
-        issues.add(WorkspaceIssue(
-          type: WorkspaceIssueType.connectionError,
-          programName: name,
-          message: 'Failed to validate program: $e',
-        ),);
-        programStatuses[name] = ProgramStatus.error;
-      }
-    }
-
-    return WorkspaceHealthReport(
-      isHealthy: issues.isEmpty,
-      issues: issues,
-      warnings: warnings,
-      programStatuses: programStatuses,
-      checkedAt: DateTime.now(),
-    );
-  }
-
-  /// Deploy a program to the workspace
-  Future<DeploymentResult> deployProgram(
-    String name,
-    Uint8List programData,
-    Keypair programKeypair, {
-    Keypair? authorityKeypair,
-    int? maxDataLen,
-  }) async {
-    try {
-      final authority = authorityKeypair ??
-          (_provider.wallet is KeypairWallet
-              ? (_provider.wallet as KeypairWallet).keypair
-              : null);
-      if (authority == null) {
-        return DeploymentResult(
-          success: false,
-          error: 'No authority keypair available for deployment',
-          deployedAt: DateTime.now(),
-        );
-      }
-
-      // TODO: Implement program deployment logic
-      // This is a placeholder - actual implementation would use
-      // Solana's program deployment instructions
-
-      return DeploymentResult(
-        success: true,
-        programId: programKeypair.publicKey,
-        transactionId: 'placeholder-tx-id',
-        deployedAt: DateTime.now(),
-      );
-    } catch (e) {
-      return DeploymentResult(
-        success: false,
-        error: e.toString(),
-        deployedAt: DateTime.now(),
-      );
-    }
-  }
-
-  /// Upgrade a program in the workspace
-  Future<UpgradeResult> upgradeProgram(
-    String name,
-    Uint8List newProgramData, {
-    Keypair? authorityKeypair,
-  }) async {
-    final program = getProgram(name);
-    if (program == null) {
-      return UpgradeResult(
-        success: false,
-        error: 'Program $name not found in workspace',
-        upgradedAt: DateTime.now(),
-      );
-    }
-
-    try {
-      final authority = authorityKeypair ??
-          (_provider.wallet is KeypairWallet
-              ? (_provider.wallet as KeypairWallet).keypair
-              : null);
-
-      if (authority == null) {
-        return UpgradeResult(
-          success: false,
-          programId: program.programId,
-          error: 'No authority keypair available for upgrade',
-          upgradedAt: DateTime.now(),
-        );
-      }
-
-      // TODO: Implement program upgrade logic
-      // This is a placeholder - actual implementation would use
-      // Solana's program upgrade instructions
-
-      return UpgradeResult(
-        success: true,
-        programId: program.programId,
-        transactionId: 'placeholder-tx-id',
-        upgradedAt: DateTime.now(),
-      );
-    } catch (e) {
-      return UpgradeResult(
-        success: false,
-        programId: program.programId,
-        error: e.toString(),
-        upgradedAt: DateTime.now(),
-      );
-    }
-  }
-
-  /// Initialize workspace with template configuration
-  static Future<Workspace> initializeFromTemplate(
-    AnchorProvider provider,
-    WorkspaceTemplate template, {
-    String? workspacePath,
-  }) async {
     final workspace = Workspace(provider);
 
-    // Apply template configuration
-    for (final entry in template.programs.entries) {
-      final name = entry.key;
-      final config = entry.value;
+    // Load all programs from configuration
+    await workspace.loadProgramsFromConfig(config);
 
-      await workspace.loadProgram(name, config.idl, config.programId);
+    // Add development mode features
+    await workspace._enableDevelopmentMode(workspaceDir, config);
+
+    return workspace;
+  }
+
+  /// Find the root directory of an Anchor workspace
+  static Future<String> _findWorkspaceRoot([String? startDir]) async {
+    startDir ??= Directory.current.path;
+
+    var currentDir = Directory(startDir);
+
+    while (true) {
+      final anchorToml = File(path.join(currentDir.path, 'Anchor.toml'));
+      if (await anchorToml.exists()) {
+        return currentDir.path;
+      }
+
+      final parentDir = currentDir.parent;
+      if (parentDir.path == currentDir.path) {
+        throw WorkspaceConfigException(
+          'Could not find Anchor.toml in current directory or any parent directory',
+        );
+      }
+
+      currentDir = parentDir;
+    }
+  }
+
+  /// Create provider from workspace configuration
+  static Future<AnchorProvider> _createProviderFromConfig(
+    WorkspaceConfig config,
+    String? cluster,
+  ) async {
+    final clusterUrl = cluster ?? config.provider.cluster;
+    final walletPath = config.provider.wallet;
+
+    // Load wallet from file
+    final wallet = await _loadWalletFromPath(
+        walletPath); // Create connection based on cluster
+    final connection = Connection(_getClusterUrl(clusterUrl));
+
+    return AnchorProvider(
+      connection,
+      wallet,
+    );
+  }
+
+  /// Get cluster URL from cluster name
+  static String _getClusterUrl(String cluster) {
+    switch (cluster.toLowerCase()) {
+      case 'mainnet':
+      case 'mainnet-beta':
+        return 'https://api.mainnet-beta.solana.com';
+      case 'testnet':
+        return 'https://api.testnet.solana.com';
+      case 'devnet':
+        return 'https://api.devnet.solana.com';
+      case 'localnet':
+      case 'localhost':
+        return 'http://localhost:8899';
+      default:
+        // Assume it's a custom URL
+        return cluster;
+    }
+  }
+
+  /// Load wallet from file path
+  static Future<Wallet> _loadWalletFromPath(String walletPath) async {
+    // Expand home directory
+    final expandedPath = walletPath.startsWith('~/')
+        ? path.join(Platform.environment['HOME'] ?? '', walletPath.substring(2))
+        : walletPath;
+
+    final walletFile = File(expandedPath);
+
+    if (!await walletFile.exists()) {
+      throw WorkspaceConfigException(
+        'Wallet file not found: $expandedPath',
+      );
+    }
+
+    final walletData = await walletFile.readAsString();
+    final keyData = jsonDecode(walletData)
+        as List<dynamic>; // Convert to Uint8List and create keypair
+    final secretKey = Uint8List.fromList(keyData.cast<int>());
+    final keypair = Keypair.fromSecretKey(secretKey);
+
+    return KeypairWallet(keypair);
+  }
+
+  /// Load IDL from file path
+  Future<Idl> _loadIdlFromPath(String idlPath) async {
+    final idlFile = File(idlPath);
+
+    if (!await idlFile.exists()) {
+      throw WorkspaceConfigException(
+        'IDL file not found: $idlPath',
+      );
+    }
+
+    final idlContent = await idlFile.readAsString();
+    final idlMap = jsonDecode(idlContent) as Map<String, dynamic>;
+
+    return Idl.fromJson(idlMap);
+  }
+
+  /// Fetch IDL from on-chain
+  Future<Idl> _fetchIdlFromChain(PublicKey programId) async {
+    // Implementation depends on the IDL fetching utilities
+    // This is a placeholder that would use the IDL utilities
+    throw UnimplementedError(
+      'On-chain IDL fetching not yet implemented. Please provide IDL path in Anchor.toml',
+    );
+  }
+
+  /// Enable development mode features
+  Future<void> _enableDevelopmentMode(
+      String workspaceDir, WorkspaceConfig config) async {
+    // Set up file watching for IDL changes
+    await _watchIdlFiles(workspaceDir);
+
+    // Enable test environment features
+    await _enableTestEnvironment(config);
+
+    // Enable hot reload if supported
+    await _enableHotReload();
+  }
+
+  /// Watch IDL files for changes and reload programs
+  Future<void> _watchIdlFiles(String workspaceDir) async {
+    final targetDir = Directory(path.join(workspaceDir, 'target', 'idl'));
+
+    if (!await targetDir.exists()) {
+      return; // No IDL directory to watch
+    }
+
+    // Watch for IDL file changes
+    await for (final event in targetDir.watch(recursive: true)) {
+      if (event.path.endsWith('.json') &&
+          event.type == FileSystemEvent.modify) {
+        await _reloadProgramFromIdl(event.path);
+      }
+    }
+  }
+
+  /// Reload program from IDL file change
+  Future<void> _reloadProgramFromIdl(String idlPath) async {
+    try {
+      final idlFile = File(idlPath);
+      final fileName = path.basenameWithoutExtension(idlPath);
+
+      // Find program by IDL filename
+      final programName = _findProgramNameByIdlFile(fileName);
+      if (programName == null) return;
+
+      // Load new IDL
+      final idlContent = await idlFile.readAsString();
+      final idlMap = jsonDecode(idlContent) as Map<String, dynamic>;
+      final newIdl = Idl.fromJson(idlMap);
+
+      // Get existing program ID
+      final existingProgram = _programs[programName];
+      if (existingProgram == null) return;
+
+      // Create new program with updated IDL
+      final newProgram = Program.withProgramId(
+        newIdl,
+        existingProgram.programId,
+        provider: _provider,
+      );
+
+      // Replace program in workspace
+      _programs[programName] = newProgram;
+      _idls[programName] = newIdl;
+
+      print('Reloaded program "$programName" from updated IDL');
+    } catch (e) {
+      print('Warning: Failed to reload program from IDL: $e');
+    }
+  }
+
+  /// Find program name by IDL filename
+  String? _findProgramNameByIdlFile(String idlFileName) {
+    // This is a simple heuristic - in practice, you might want to
+    // maintain a mapping of IDL files to program names
+    return _programs.keys
+            .firstWhere(
+              (name) =>
+                  name.toLowerCase().replaceAll('_', '') ==
+                  idlFileName.toLowerCase().replaceAll('_', ''),
+              orElse: () => '',
+            )
+            .isNotEmpty
+        ? _programs.keys.first
+        : null;
+  }
+
+  /// Enable test environment features
+  Future<void> _enableTestEnvironment(WorkspaceConfig config) async {
+    if (config.test == null) return;
+
+    // Set up test configuration
+    final testConfig = config.test!;
+
+    // Configure startup wait time
+    if (testConfig.startupWait != null) {
+      await Future<void>.delayed(Duration(seconds: testConfig.startupWait!));
+    }
+
+    // Enable test mode logging
+    print('Test environment enabled');
+  }
+
+  /// Enable hot reload functionality
+  Future<void> _enableHotReload() async {
+    // Hot reload implementation would go here
+    // This is a placeholder for future implementation
+    print('Hot reload enabled (placeholder)');
+  }
+
+  /// Create a test environment setup
+  static Future<Workspace> createTestEnvironment({
+    String? cluster,
+    Keypair? payer,
+    Map<String, String>? programIds,
+  }) async {
+    cluster ??= 'http://localhost:8899';
+    payer ??= await Keypair.generate();
+
+    final connection = Connection(cluster);
+
+    final wallet = KeypairWallet(payer);
+    final provider = AnchorProvider(connection, wallet);
+
+    final workspace = Workspace(provider);
+
+    // Load programs from provided IDs
+    if (programIds != null) {
+      for (final entry in programIds.entries) {
+        final programName = entry.key;
+        final programId = PublicKey.fromBase58(entry.value);
+
+        try {
+          // Try to fetch IDL from on-chain or use minimal IDL
+          final idl = await workspace._createMinimalIdl(programName);
+          await workspace.loadProgram(programName, idl, programId);
+        } catch (e) {
+          print('Warning: Failed to load test program "$programName": $e');
+        }
+      }
     }
 
     return workspace;
   }
 
-  /// Create workspace development configuration
-  Map<String, dynamic> createDevConfig() => {
-      'workspace': {
-        'programs': _programs.length,
-        'provider': 'local',
-        'cluster': 'localnet',
-      },
-      'programs': _programs.map((name, program) => MapEntry(name, {
-            'programId': program.programId.toBase58(),
-            'instructions': program.idl.instructions.length,
-            'accounts': program.idl.accounts?.length ?? 0,
-          })),
-    };
+  /// Create minimal IDL for testing
+  Future<Idl> _createMinimalIdl(String programName) async {
+    // Create a minimal IDL for testing purposes
+    return Idl(
+      version: '0.1.0',
+      name: programName,
+      instructions: [],
+      accounts: [],
+      types: [],
+      events: [],
+      errors: [],
+      constants: [],
+    );
+  }
 
-  /// Export workspace for deployment
-  Future<Map<String, dynamic>> exportForDeployment() async {
-    final programs = <String, dynamic>{};
+  /// Deploy program utilities (placeholder for future implementation)
+  Future<String> deployProgram(
+    String programPath, {
+    String? cluster,
+    Keypair? upgradeAuthority,
+  }) async {
+    throw UnimplementedError(
+      'Program deployment not yet implemented. Use anchor deploy command for now.',
+    );
+  }
 
-    for (final entry in _programs.entries) {
-      final name = entry.key;
-      final program = entry.value;
-
-      programs[name] = {
-        'programId': program.programId.toBase58(),
-        'idl': program.idl.toJson(),
-        'instructions':
-            program.idl.instructions.map((inst) => inst.name).toList(),
-        'accounts': program.idl.accounts?.map((acc) => acc.name).toList() ?? [],
-      };
+  /// Get program deployment status
+  Future<Map<String, dynamic>> getDeploymentStatus(String programName) async {
+    final program = _programs[programName];
+    if (program == null) {
+      throw ArgumentError('Program "$programName" not found');
     }
 
     return {
-      'workspace': {
-        'version': '1.0.0',
-        'exportedAt': DateTime.now().toIso8601String(),
-        'provider': 'anchor-dart',
-      },
-      'programs': programs,
+      'programId': program.programId.toBase58(),
+      'isDeployed': true, // Placeholder - would check on-chain
+      'upgradeAuthority': null, // Placeholder
+      'dataSize': 0, // Placeholder
+      'lastModified': DateTime.now().toIso8601String(),
     };
   }
 }
 
 /// Configuration for a single program in the workspace
 class ProgramConfig {
-
   const ProgramConfig({
     required this.idl,
     required this.programId,
@@ -587,16 +491,15 @@ class ProgramConfig {
 
   /// Convert to JSON
   Map<String, dynamic> toJson() => {
-      'idl': idl.toJson(),
-      'programId': programId.toBase58(),
-      if (name != null) 'name': name,
-      if (metadata != null) 'metadata': metadata,
-    };
+        'idl': idl.toJson(),
+        'programId': programId.toBase58(),
+        if (name != null) 'name': name,
+        if (metadata != null) 'metadata': metadata,
+      };
 }
 
 /// Statistics about the workspace
 class WorkspaceStats {
-
   const WorkspaceStats({
     required this.programCount,
     required this.totalInstructions,
@@ -610,15 +513,14 @@ class WorkspaceStats {
 
   @override
   String toString() => 'WorkspaceStats('
-        'programs: $programCount, '
-        'instructions: $totalInstructions, '
-        'accounts: $totalAccounts'
-        ')';
+      'programs: $programCount, '
+      'instructions: $totalInstructions, '
+      'accounts: $totalAccounts'
+      ')';
 }
 
 /// Workspace builder for fluent API
 class WorkspaceBuilder {
-
   WorkspaceBuilder(this._provider);
   final AnchorProvider _provider;
   final Map<String, ProgramConfig> _programConfigs = {};
@@ -653,7 +555,6 @@ class WorkspaceBuilder {
 
 /// Workspace health report with validation results
 class WorkspaceHealthReport {
-
   const WorkspaceHealthReport({
     required this.isHealthy,
     required this.issues,
@@ -691,7 +592,6 @@ enum WorkspaceIssueType {
 
 /// Individual workspace issue
 class WorkspaceIssue {
-
   WorkspaceIssue({
     required this.type,
     this.programName,
@@ -727,7 +627,6 @@ enum ProgramStatus {
 
 /// Deployment result
 class DeploymentResult {
-
   const DeploymentResult({
     required this.success,
     this.programId,
@@ -753,7 +652,6 @@ class DeploymentResult {
 
 /// Upgrade result
 class UpgradeResult {
-
   const UpgradeResult({
     required this.success,
     this.programId,
@@ -779,7 +677,6 @@ class UpgradeResult {
 
 /// Workspace template for initialization
 class WorkspaceTemplate {
-
   const WorkspaceTemplate({
     required this.name,
     required this.version,
@@ -820,16 +717,15 @@ class WorkspaceTemplate {
   final Map<String, dynamic> configuration;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      'version': version,
-      'programs': programs.map((key, value) => MapEntry(key, value.toJson())),
-      'configuration': configuration,
-    };
+        'name': name,
+        'version': version,
+        'programs': programs.map((key, value) => MapEntry(key, value.toJson())),
+        'configuration': configuration,
+      };
 }
 
 /// Enhanced workspace builder with TypeScript-like features
 class EnhancedWorkspaceBuilder {
-
   EnhancedWorkspaceBuilder(this._provider);
   final AnchorProvider _provider;
   final Map<String, ProgramConfig> _programConfigs = {};
@@ -880,8 +776,8 @@ class EnhancedWorkspaceBuilder {
     Workspace workspace;
 
     if (_autoDiscover) {
-      workspace = await Workspace.discover(
-        workspacePath: _workspacePath,
+      workspace = await Workspace.fromAnchorWorkspace(
+        workspaceDir: _workspacePath,
         provider: _provider,
       );
     } else {

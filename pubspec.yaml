@@ -52,6 +52,22 @@ dev_dependencies:
   # dart_code_metrics: ^5.7.6  # Disabled due to http version conflicts
   mockito: ^5.4.2
   build_runner: ^2.4.7
+  build: ^2.4.1
+  source_gen: ^1.4.0
+  analyzer: ^6.0.0
+
+# Build configuration for code generation
+build_runner:
+  builders:
+    coral_xyz_anchor:
+      import: "package:coral_xyz_anchor/builder.dart"
+      builder_factories:
+        - anchorBuilder
+      build_extensions:
+        ".dart": [".anchor.dart"]
+      auto_apply: dependents
+      build_to: source
+      applies_builders: ["source_gen|combining_builder"]
 
 # Uncomment for Flutter package
 # flutter:

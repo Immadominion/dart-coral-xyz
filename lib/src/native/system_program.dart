@@ -1,6 +1,6 @@
 /// Native Solana System Program utilities.
 /// Provides TypeScript-like system program functionality.
-library;
+library system_program;
 
 import 'dart:typed_data';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
@@ -20,80 +20,102 @@ class SystemProgram {
     required int lamports,
     required int space,
     required PublicKey programId,
-  }) => TransactionInstruction(
+  }) =>
+      TransactionInstruction(
+        programId: SystemProgram.programId,
+        accounts: [
+          AccountMeta(
+            pubkey: fromPubkey,
+            isSigner: true,
+            isWritable: true,
+          ),
+          AccountMeta(
+            pubkey: newAccountPubkey,
+            isSigner: true,
+            isWritable: true,
+          ),
+        ],
+        data: _encodeCreateAccountData(
+          lamports: lamports,
+          space: space,
+          programId: programId,
+        ),
+      );
+
+  /// Close account instruction (generic, transfers lamports to destination)
+  static TransactionInstruction closeAccount({
+    required PublicKey account,
+    required PublicKey destination,
+    PublicKey? authority,
+  }) {
+    return TransactionInstruction(
       programId: SystemProgram.programId,
       accounts: [
-        AccountMeta(
-          pubkey: fromPubkey,
-          isSigner: true,
-          isWritable: true,
-        ),
-        AccountMeta(
-          pubkey: newAccountPubkey,
-          isSigner: true,
-          isWritable: true,
-        ),
+        AccountMeta(pubkey: account, isSigner: false, isWritable: true),
+        AccountMeta(pubkey: destination, isSigner: false, isWritable: true),
+        if (authority != null)
+          AccountMeta(pubkey: authority, isSigner: true, isWritable: false),
       ],
-      data: _encodeCreateAccountData(
-        lamports: lamports,
-        space: space,
-        programId: programId,
-      ),
+      data: Uint8List(0), // No data for generic close
     );
+  }
 
   /// Transfer instruction
   static TransactionInstruction transfer({
     required PublicKey fromPubkey,
     required PublicKey toPubkey,
     required int lamports,
-  }) => TransactionInstruction(
-      programId: SystemProgram.programId,
-      accounts: [
-        AccountMeta(
-          pubkey: fromPubkey,
-          isSigner: true,
-          isWritable: true,
-        ),
-        AccountMeta(
-          pubkey: toPubkey,
-          isSigner: false,
-          isWritable: true,
-        ),
-      ],
-      data: _encodeTransferData(lamports: lamports),
-    );
+  }) =>
+      TransactionInstruction(
+        programId: SystemProgram.programId,
+        accounts: [
+          AccountMeta(
+            pubkey: fromPubkey,
+            isSigner: true,
+            isWritable: true,
+          ),
+          AccountMeta(
+            pubkey: toPubkey,
+            isSigner: false,
+            isWritable: true,
+          ),
+        ],
+        data: _encodeTransferData(lamports: lamports),
+      );
 
   /// Assign account to program instruction
   static TransactionInstruction assign({
     required PublicKey accountPubkey,
     required PublicKey programId,
-  }) => TransactionInstruction(
-      programId: SystemProgram.programId,
-      accounts: [
-        AccountMeta(
-          pubkey: accountPubkey,
-          isSigner: true,
-          isWritable: true,
-        ),
-      ],
-      data: _encodeAssignData(programId: programId),
-    );
+  }) =>
+      TransactionInstruction(
+        programId: SystemProgram.programId,
+        accounts: [
+          AccountMeta(
+            pubkey: accountPubkey,
+            isSigner: true,
+            isWritable: true,
+          ),
+        ],
+        data: _encodeAssignData(programId: programId),
+      );
 
   /// Allocate space for account instruction
   static TransactionInstruction allocate({
     required PublicKey accountPubkey,
     required int space,
-  }) => TransactionInstruction(
-      programId: SystemProgram.programId,
-      accounts: [
-        AccountMeta(
-          pubkey: accountPubkey,
-          isSigner: true,
-          isWritable: true,
-        ),
-      ],
-      data: _encodeAllocateData(space: space),
-    );
+  }) =>
+      TransactionInstruction(
+        programId: SystemProgram.programId,
+        accounts: [
+          AccountMeta(
+            pubkey: accountPubkey,
+            isSigner: true,
+            isWritable: true,
+          ),
+        ],
+        data: _encodeAllocateData(space: space),
+      );
 
   /// Encode create account instruction data
   static Uint8List _encodeCreateAccountData({

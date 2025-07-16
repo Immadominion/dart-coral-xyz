@@ -1,0 +1,19 @@
+targets:
+  $default:
+    builders:
+      coral_xyz_anchor|anchorBuilder:
+        enabled: true
+        options:
+          idl_path: "target/idl"
+          output_dir: "lib/generated"
+        generate_for:
+          - "test/**.dart"
+
+builders:
+  anchorBuilder:
+    import: "package:coral_xyz_anchor/builder.dart"
+    builder_factories: ["anchorBuilder"]
+    build_extensions: {".dart": [".anchor.dart"]}
+    auto_apply: dependents
+    build_to: source
+    applies_builders: ["source_gen|combining_builder"]

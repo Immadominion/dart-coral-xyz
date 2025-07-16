@@ -61,6 +61,7 @@
 library;
 
 // Core exports - these will be implemented in phases
+export 'src/codegen/annotations.dart';
 export 'src/provider/provider.dart'
     show
         Wallet,
