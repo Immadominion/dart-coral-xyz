@@ -9,14 +9,15 @@ import 'dart:typed_data';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/provider/provider.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/utils/pubkey.dart';
 
 /// IDL Program Account structure for on-chain IDL storage
 class IdlProgramAccount {
-
   const IdlProgramAccount({
     required this.authority,
     required this.data,
   });
+
   /// Authority that can update the IDL
   final PublicKey authority;
 
@@ -51,10 +52,11 @@ class IdlProgramAccount {
   }
 
   /// Read a 32-bit unsigned integer in little-endian format
-  static int _readU32LE(Uint8List data, int offset) => data[offset] |
-        (data[offset + 1] << 8) |
-        (data[offset + 2] << 16) |
-        (data[offset + 3] << 24);
+  static int _readU32LE(Uint8List data, int offset) =>
+      data[offset] |
+      (data[offset + 1] << 8) |
+      (data[offset + 2] << 16) |
+      (data[offset + 3] << 24);
 }
 
 /// Utilities for fetching and processing IDLs from the blockchain
@@ -62,18 +64,16 @@ class IdlUtils {
   /// Calculate the IDL address for a given program ID
   ///
   /// This derives the deterministic address where the IDL is stored on-chain
+  /// following the TypeScript implementation exactly:
+  /// 1. Find program address with empty seeds
+  /// 2. Create with seed using the base address
   static Future<PublicKey> getIdlAddress(PublicKey programId) async {
-    final seeds = [
-      utf8.encode('anchor:idl'),
-      programId.bytes,
-    ];
+    // Step 1: Find the base address (like TypeScript findProgramAddress([], programId))
+    final baseResult = await PublicKey.findProgramAddress([], programId);
+    final base = baseResult.address;
 
-    final result = await PublicKey.findProgramAddress(
-      seeds,
-      programId,
-    );
-
-    return result.address;
+    // Step 2: Create with seed (like TypeScript createWithSeed(base, "anchor:idl", programId))
+    return PublicKeyUtils.createWithSeedSync(base, 'anchor:idl', programId);
   }
 
   /// Fetch and decode an IDL from the blockchain
@@ -131,7 +131,8 @@ class IdlUtils {
     const keysToConvert = ['name', 'path', 'account', 'relations', 'generic'];
 
     // Convert a single string to camelCase, handling dot notation
-    String toCamelCase(String s) => s.split('.').map((part) => _toCamelCase(part)).join('.');
+    String toCamelCase(String s) =>
+        s.split('.').map((part) => _toCamelCase(part)).join('.');
 
     // Recursively convert field names in objects
     dynamic convertObject(dynamic obj) {
@@ -146,8 +147,11 @@ class IdlUtils {
           if (keysToConvert.contains(key)) {
             if (value is List) {
               convertedValue = value
-                  .map((item) =>
-                      item is String ? toCamelCase(item) : convertObject(item),)
+                  .map(
+                    (item) => item is String
+                        ? toCamelCase(item)
+                        : convertObject(item),
+                  )
                   .toList();
             } else if (value is String) {
               convertedValue = toCamelCase(value);
@@ -186,9 +190,11 @@ class IdlUtils {
     if (parts.isEmpty) return snakeCase;
 
     final first = parts.first.toLowerCase();
-    final rest = parts.skip(1).map((part) => part.isEmpty
-        ? ''
-        : part[0].toUpperCase() + part.substring(1).toLowerCase(),);
+    final rest = parts.skip(1).map(
+          (part) => part.isEmpty
+              ? ''
+              : part[0].toUpperCase() + part.substring(1).toLowerCase(),
+        );
 
     return first + rest.join();
   }

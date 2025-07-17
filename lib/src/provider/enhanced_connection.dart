@@ -19,7 +19,6 @@ import 'package:coral_xyz_anchor/src/provider/connection.dart';
 
 /// Configuration for retry strategies
 class RetryConfig {
-
   const RetryConfig({
     this.maxRetries = 3,
     this.baseDelayMs = 1000,
@@ -43,6 +42,7 @@ class RetryConfig {
     },
     this.retryableStatusCodes = const {429, 500, 502, 503, 504},
   });
+
   /// Maximum number of retry attempts
   final int maxRetries;
 
@@ -77,13 +77,13 @@ enum CircuitBreakerState {
 
 /// Circuit breaker configuration
 class CircuitBreakerConfig {
-
   const CircuitBreakerConfig({
     this.failureThreshold = 5,
     this.recoveryTimeoutMs = 60000,
     this.successThreshold = 3,
     this.timeWindowMs = 60000,
   });
+
   /// Failure threshold to open circuit
   final int failureThreshold;
 
@@ -99,7 +99,6 @@ class CircuitBreakerConfig {
 
 /// Circuit breaker for preventing cascading failures
 class CircuitBreaker {
-
   CircuitBreaker(this._config);
   final CircuitBreakerConfig _config;
   CircuitBreakerState _state = CircuitBreakerState.closed;
@@ -197,8 +196,8 @@ class RequestDeduplicator {
       _pendingRequests.remove(key);
       _timeouts.remove(key);
       if (!completer.isCompleted) {
-        completer
-            .completeError(const TimeoutException('Request deduplication timeout'));
+        completer.completeError(
+            const TimeoutException('Request deduplication timeout'));
       }
     });
 
@@ -225,16 +224,17 @@ class RequestDeduplicator {
   }
 
   /// Generate deduplication key for request
-  static String generateKey(String method, List<dynamic> params) => '$method:${jsonEncode(params)}';
+  static String generateKey(String method, List<dynamic> params) =>
+      '$method:${jsonEncode(params)}';
 }
 
 /// Enhanced Connection with retry, recovery, and health monitoring
 class EnhancedConnection extends Connection {
-
   /// Create enhanced connection
   EnhancedConnection(
     super.endpoint, {
     super.config,
+    super.httpClient,
     RetryConfig? retryConfig,
     CircuitBreakerConfig? circuitBreakerConfig,
   })  : _retryConfig = retryConfig ?? const RetryConfig(),
@@ -272,31 +272,34 @@ class EnhancedConnection extends Connection {
   Future<int> getBalance(
     PublicKey publicKey, {
     CommitmentConfig? commitment,
-  }) async => _executeWithRetry(
-        () => super.getBalance(publicKey, commitment: commitment));
+  }) async =>
+      _executeWithRetry(
+          () => super.getBalance(publicKey, commitment: commitment));
 
   /// Enhanced account info fetching with retry
   @override
   Future<AccountInfo?> getAccountInfo(
     PublicKey publicKey, {
     CommitmentConfig? commitment,
-  }) async => _executeWithRetry(
-        () => super.getAccountInfo(publicKey, commitment: commitment));
+  }) async =>
+      _executeWithRetry(
+          () => super.getAccountInfo(publicKey, commitment: commitment));
 
   /// Enhanced latest blockhash fetching with retry
   @override
   Future<LatestBlockhash> getLatestBlockhash({
     CommitmentConfig? commitment,
-  }) async => _executeWithRetry(
-        () => super.getLatestBlockhash(commitment: commitment));
+  }) async =>
+      _executeWithRetry(() => super.getLatestBlockhash(commitment: commitment));
 
   /// Enhanced multiple accounts fetching with retry
   @override
   Future<List<AccountInfo?>> getMultipleAccountsInfo(
     List<PublicKey> publicKeys, {
     CommitmentConfig? commitment,
-  }) async => _executeWithRetry(() =>
-        super.getMultipleAccountsInfo(publicKeys, commitment: commitment));
+  }) async =>
+      _executeWithRetry(() =>
+          super.getMultipleAccountsInfo(publicKeys, commitment: commitment));
 
   /// Enhanced program accounts fetching with retry
   @override
@@ -304,20 +307,24 @@ class EnhancedConnection extends Connection {
     PublicKey programId, {
     List<AccountFilter>? filters,
     CommitmentConfig? commitment,
-  }) async => _executeWithRetry(() => super.getProgramAccounts(programId,
-        filters: filters, commitment: commitment));
+  }) async =>
+      _executeWithRetry(() => super.getProgramAccounts(programId,
+          filters: filters, commitment: commitment));
 
   /// Enhanced minimum balance fetching with retry
   @override
   Future<int> getMinimumBalanceForRentExemption(
     int dataLength, {
     CommitmentConfig? commitment,
-  }) async => _executeWithRetry(() => super
-        .getMinimumBalanceForRentExemption(dataLength, commitment: commitment));
+  }) async =>
+      _executeWithRetry(() => super.getMinimumBalanceForRentExemption(
+          dataLength,
+          commitment: commitment));
 
   /// Enhanced health check with retry
   @override
-  Future<String> checkHealth() async => _executeWithRetry(() => super.checkHealth());
+  Future<String> checkHealth() async =>
+      _executeWithRetry(() => super.checkHealth());
 
   /// Execute operation with retry logic
   Future<T> _executeWithRetry<T>(Future<T> Function() operation) async {
@@ -329,7 +336,8 @@ class EnhancedConnection extends Connection {
     for (int attempt = 0; attempt <= _retryConfig.maxRetries; attempt++) {
       // Check circuit breaker
       if (!_circuitBreaker.shouldAllowRequest()) {
-        throw const RpcException('Circuit breaker is open - service unavailable');
+        throw const RpcException(
+            'Circuit breaker is open - service unavailable');
       }
 
       try {

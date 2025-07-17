@@ -30,7 +30,7 @@ class ProgramGenerator {
 
   /// Generate the main program class
   void _generateProgramClass(StringBuffer buffer) {
-    final programName = _toPascalCase(idl.name ?? 'Program');
+    final programName = '${_toPascalCase(idl.name ?? 'Program')}Program';
 
     buffer.writeln('/// Main program interface for ${idl.name ?? 'program'}');
     if (idl.docs?.isNotEmpty == true) {
@@ -40,7 +40,11 @@ class ProgramGenerator {
     }
     buffer.writeln('class $programName extends Program {');
     buffer.writeln('  /// Creates a new $programName instance');
-    buffer.writeln('  $programName(super.idl, {super.provider, super.coder});');
+    buffer.writeln('  $programName({');
+    buffer.writeln('    required PublicKey programId,');
+    buffer.writeln('    AnchorProvider? provider,');
+    buffer.writeln(
+        '  }) : super.withProgramId(Idl.fromJson(programIdl), programId, provider: provider);');
     buffer.writeln();
 
     // Generate instruction methods
@@ -102,8 +106,10 @@ class ProgramGenerator {
     buffer.writeln('  static const Map<String, dynamic> programIdl = {');
 
     // Generate IDL structure
-    buffer.writeln('    \'version\': \'${idl.version}\',');
-    buffer.writeln('    \'name\': \'${idl.name}\',');
+    buffer.writeln(
+        '    \'version\': \'${idl.metadata?.version ?? idl.version ?? '0.1.0'}\',');
+    buffer.writeln(
+        '    \'name\': \'${idl.metadata?.name ?? idl.name ?? 'program'}\',');
     buffer.writeln('    \'instructions\': [');
 
     for (final instruction in idl.instructions) {

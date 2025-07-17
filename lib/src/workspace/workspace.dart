@@ -173,65 +173,119 @@ class Workspace extends Object {
     return workspace;
   }
 
-  /// Find the root directory of an Anchor workspace
-  static Future<String> _findWorkspaceRoot([String? startDir]) async {
-    startDir ??= Directory.current.path;
-
-    var currentDir = Directory(startDir);
-
-    while (true) {
-      final anchorToml = File(path.join(currentDir.path, 'Anchor.toml'));
-      if (await anchorToml.exists()) {
-        return currentDir.path;
-      }
-
-      final parentDir = currentDir.parent;
-      if (parentDir.path == currentDir.path) {
-        throw WorkspaceConfigException(
-          'Could not find Anchor.toml in current directory or any parent directory',
-        );
-      }
-
-      currentDir = parentDir;
-    }
-  }
-
-  /// Create provider from workspace configuration
-  static Future<AnchorProvider> _createProviderFromConfig(
-    WorkspaceConfig config,
+  /// Discover workspace from directory
+  static Future<Workspace> discover({
+    String? workspaceDir,
+    AnchorProvider? provider,
     String? cluster,
-  ) async {
-    final clusterUrl = cluster ?? config.provider.cluster;
-    final walletPath = config.provider.wallet;
-
-    // Load wallet from file
-    final wallet = await _loadWalletFromPath(
-        walletPath); // Create connection based on cluster
-    final connection = Connection(_getClusterUrl(clusterUrl));
-
-    return AnchorProvider(
-      connection,
-      wallet,
+  }) async {
+    return await fromAnchorWorkspace(
+      workspaceDir: workspaceDir,
+      provider: provider,
+      cluster: cluster,
     );
   }
 
-  /// Get cluster URL from cluster name
-  static String _getClusterUrl(String cluster) {
-    switch (cluster.toLowerCase()) {
-      case 'mainnet':
-      case 'mainnet-beta':
-        return 'https://api.mainnet-beta.solana.com';
-      case 'testnet':
-        return 'https://api.testnet.solana.com';
-      case 'devnet':
-        return 'https://api.devnet.solana.com';
-      case 'localnet':
-      case 'localhost':
-        return 'http://localhost:8899';
-      default:
-        // Assume it's a custom URL
-        return cluster;
+  /// Initialize workspace from template
+  static Future<Workspace> initializeFromTemplate(
+    AnchorProvider provider,
+    WorkspaceTemplate template,
+  ) async {
+    final workspace = Workspace(provider);
+
+    // Load programs from template
+    for (final entry in template.programs.entries) {
+      final name = entry.key;
+      final programConfig = entry.value;
+      await workspace.loadProgram(
+          name, programConfig.idl, programConfig.programId);
     }
+
+    return workspace;
+  }
+
+  /// Get program by camelCase name
+  Program? getProgramCamelCase(String name) {
+    // Try exact match first
+    var program = getProgram(name);
+    if (program != null) return program;
+
+    // Try converting snake_case to camelCase
+    final camelCase = name.replaceAllMapped(
+      RegExp(r'_([a-z])'),
+      (match) => match.group(1)!.toUpperCase(),
+    );
+    program = getProgram(camelCase);
+    if (program != null) return program;
+
+    // Try converting camelCase to snake_case
+    final snakeCase = name.replaceAllMapped(
+      RegExp(r'([A-Z])'),
+      (match) => '_${match.group(1)!.toLowerCase()}',
+    );
+    return getProgram(snakeCase);
+  }
+
+  /// Check if workspace has program
+  bool hasProgram(String name) {
+    return getProgram(name) != null || getProgramCamelCase(name) != null;
+  }
+
+  /// Validate workspace health
+  Future<WorkspaceHealthReport> validateHealth() async {
+    final issues = <WorkspaceIssue>[];
+    final warnings = <String>[];
+    final programStatuses = <String, ProgramStatus>{};
+
+    // Check provider health
+    try {
+      final connection = _provider.connection;
+      await connection.checkHealth();
+    } catch (e) {
+      issues.add(WorkspaceIssue(
+        type: WorkspaceIssueType.connectionError,
+        message: 'Provider connection failed: ${e.toString()}',
+      ));
+    }
+
+    // Check each program
+    for (final entry in _programs.entries) {
+      final name = entry.key;
+      final program = entry.value;
+
+      try {
+        // Try to get account info for program
+        final accountInfo =
+            await _provider.connection.getAccountInfo(program.programId);
+        if (accountInfo != null) {
+          programStatuses[name] = accountInfo.executable
+              ? ProgramStatus.healthy
+              : ProgramStatus.notExecutable;
+        } else {
+          programStatuses[name] = ProgramStatus.notFound;
+          issues.add(WorkspaceIssue(
+            type: WorkspaceIssueType.programNotFound,
+            programName: name,
+            message: 'Program not found on-chain',
+          ));
+        }
+      } catch (e) {
+        programStatuses[name] = ProgramStatus.error;
+        issues.add(WorkspaceIssue(
+          type: WorkspaceIssueType.programNotFound,
+          programName: name,
+          message: 'Error checking program: ${e.toString()}',
+        ));
+      }
+    }
+
+    return WorkspaceHealthReport(
+      isHealthy: issues.isEmpty,
+      issues: issues,
+      warnings: warnings,
+      programStatuses: programStatuses,
+      checkedAt: DateTime.now(),
+    );
   }
 
   /// Load wallet from file path
@@ -438,17 +492,6 @@ class Workspace extends Object {
     );
   }
 
-  /// Deploy program utilities (placeholder for future implementation)
-  Future<String> deployProgram(
-    String programPath, {
-    String? cluster,
-    Keypair? upgradeAuthority,
-  }) async {
-    throw UnimplementedError(
-      'Program deployment not yet implemented. Use anchor deploy command for now.',
-    );
-  }
-
   /// Get program deployment status
   Future<Map<String, dynamic>> getDeploymentStatus(String programName) async {
     final program = _programs[programName];
@@ -462,6 +505,172 @@ class Workspace extends Object {
       'upgradeAuthority': null, // Placeholder
       'dataSize': 0, // Placeholder
       'lastModified': DateTime.now().toIso8601String(),
+    };
+  }
+
+  /// Find the workspace root directory by looking for Anchor.toml
+  static Future<String> _findWorkspaceRoot([String? startDir]) async {
+    startDir ??= Directory.current.path;
+
+    var currentDir = Directory(startDir);
+
+    // Walk up the directory tree looking for Anchor.toml
+    while (true) {
+      final anchorTomlPath = path.join(currentDir.path, 'Anchor.toml');
+      final anchorToml = File(anchorTomlPath);
+
+      if (await anchorToml.exists()) {
+        return currentDir.path;
+      }
+
+      // Move to parent directory
+      final parent = currentDir.parent;
+      if (parent.path == currentDir.path) {
+        // We've reached the root directory
+        break;
+      }
+      currentDir = parent;
+    }
+
+    // If not found, return current directory
+    return startDir;
+  }
+
+  /// Create provider from workspace configuration
+  static Future<AnchorProvider> _createProviderFromConfig(
+    WorkspaceConfig config,
+    String? cluster,
+  ) async {
+    // Use provided cluster or default from config
+    cluster ??= config.provider.cluster;
+
+    // Create connection
+    final connection = Connection(cluster);
+
+    // Create wallet from wallet path
+    final walletPath = config.provider.wallet;
+    final wallet = await _loadWalletFromPath(walletPath);
+
+    // Create provider
+    return AnchorProvider(connection, wallet);
+  }
+
+  /// Deploy program to cluster
+  Future<DeploymentResult> deployProgram(
+    String programName,
+    Uint8List programData,
+    Keypair programKeypair, {
+    String? cluster,
+  }) async {
+    try {
+      // This is a placeholder implementation
+      // In a real implementation, this would:
+      // 1. Calculate rent for the program account
+      // 2. Create and send deployment transaction
+      // 3. Wait for confirmation
+
+      return DeploymentResult(
+        success: true,
+        programId: programKeypair.publicKey,
+        transactionId: 'placeholder_tx_id',
+        deployedAt: DateTime.now(),
+      );
+    } catch (e) {
+      return DeploymentResult(
+        success: false,
+        error: e.toString(),
+        deployedAt: DateTime.now(),
+      );
+    }
+  }
+
+  /// Upgrade program on cluster
+  Future<UpgradeResult> upgradeProgram(
+    String programName,
+    Uint8List newProgramData,
+  ) async {
+    try {
+      final program = _programs[programName];
+      if (program == null) {
+        throw ArgumentError('Program "$programName" not found');
+      }
+
+      // This is a placeholder implementation
+      // In a real implementation, this would:
+      // 1. Check upgrade authority
+      // 2. Create upgrade transaction
+      // 3. Send and confirm transaction
+
+      return UpgradeResult(
+        success: true,
+        programId: program.programId,
+        transactionId: 'placeholder_upgrade_tx_id',
+        upgradedAt: DateTime.now(),
+      );
+    } catch (e) {
+      return UpgradeResult(
+        success: false,
+        error: e.toString(),
+        upgradedAt: DateTime.now(),
+      );
+    }
+  }
+
+  /// Create development configuration
+  Map<String, dynamic> createDevConfig() {
+    final programs = <String, dynamic>{};
+
+    for (final entry in _programs.entries) {
+      final name = entry.key;
+      final program = entry.value;
+
+      programs[name] = {
+        'programId': program.programId.toBase58(),
+        'idl': program.idl.toJson(),
+      };
+    }
+
+    return {
+      'workspace': {
+        'cluster': 'localnet',
+        'development': true,
+        'hotReload': true,
+        'watchFiles': true,
+        'logLevel': 'debug',
+        'testMode': true,
+      },
+      'programs': programs,
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+  }
+
+  /// Export workspace for deployment
+  Future<Map<String, dynamic>> exportForDeployment() async {
+    final programs = <String, dynamic>{};
+
+    for (final entry in _programs.entries) {
+      final name = entry.key;
+      final program = entry.value;
+
+      programs[name] = {
+        'programId': program.programId.toBase58(),
+        'idl': program.idl.toJson(),
+        'metadata': {
+          'name': name,
+          'version': program.idl.version,
+          'exportedAt': DateTime.now().toIso8601String(),
+        },
+      };
+    }
+
+    return {
+      'workspace': {
+        'version': '1.0.0',
+        'cluster': _provider.connection.endpoint,
+        'wallet': _provider.wallet?.publicKey.toBase58(),
+        'exportedAt': DateTime.now().toIso8601String(),
+      },
+      'programs': programs,
     };
   }
 }

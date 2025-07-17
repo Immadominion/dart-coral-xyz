@@ -1,29 +1,24 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// **************************************************************************
-// AnchorGenerator
-// **************************************************************************
-
-// GENERATED CODE - DO NOT MODIFY BY HAND
 // Generated from IDL: test_program
 // Version: 0.1.0
-// Generated at: 2025-07-15T03:08:19.704872
+// Generated at: 2025-07-17T22:39:21.366801
 
 import 'dart:typed_data';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:solana/solana.dart';
-import 'package:borsh/borsh.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
+import 'package:solana/solana.dart' as solana;
 
 /// Program ID for test_program
 const String kProgramId = '11111111111111111111111111111112';
 
 /// Main program interface for test_program
-class TestProgram extends Program {
-  /// Creates a new TestProgram instance
-  TestProgram({
-    required super.programId,
-    required super.provider,
-  });
+class TestProgramProgram extends Program {
+  /// Creates a new TestProgramProgram instance
+  TestProgramProgram({
+    required PublicKey programId,
+    AnchorProvider? provider,
+  }) : super.withProgramId(Idl.fromJson(programIdl), programId, provider: provider);
 
   /// initialize instruction
   InitializeInstructionBuilder initialize({
@@ -46,7 +41,7 @@ class TestProgram extends Program {
   }
 
   /// Get the program IDL
-  static const Map<String, dynamic> idl = {
+  static const Map<String, dynamic> programIdl = {
     'version': '0.1.0',
     'name': 'test_program',
     'instructions': [
@@ -70,12 +65,14 @@ class TestProgram extends Program {
       },
     ],
   };
+
 }
 
+
 /// Account data class for TestAccount
-class Testaccount {
-  /// Creates a new Testaccount
-  const Testaccount({
+class TestaccountAccount {
+  /// Creates a new TestaccountAccount
+  const TestaccountAccount({
     required this.authority,
     required this.value,
     required this.name,
@@ -83,39 +80,37 @@ class Testaccount {
 
   /// authority field
   final PublicKey authority;
-
   /// value field
   final BigInt value;
-
   /// name field
   final String name;
 
-  /// Create Testaccount from bytes
-  static Testaccount fromBytes(List<int> bytes) {
-    final reader = BinaryReader(bytes);
-    return Testaccount.fromReader(reader);
+  /// Create TestaccountAccount from bytes
+  static TestaccountAccount fromBytes(List<int> bytes) {
+    final reader = BinaryReader(Uint8List.fromList(bytes).buffer.asByteData());
+    return TestaccountAccount.fromReader(reader);
   }
 
-  /// Create Testaccount from BinaryReader
-  static Testaccount fromReader(BinaryReader reader) {
+  /// Create TestaccountAccount from BinaryReader
+  static TestaccountAccount fromReader(BinaryReader reader) {
     final authority = PublicKey.fromBytes(reader.readBytes(32));
     final value = reader.readU64();
     final name = reader.readString();
-    return Testaccount(
+    return TestaccountAccount(
       authority: authority,
       value: value,
       name: name,
     );
   }
 
-  /// Convert Testaccount to bytes
+  /// Convert TestaccountAccount to bytes
   List<int> toBytes() {
     final writer = BinaryWriter();
     writeToWriter(writer);
-    return writer.toBytes();
+    return writer.toArray();
   }
 
-  /// Write Testaccount to BinaryWriter
+  /// Write TestaccountAccount to BinaryWriter
   void writeToWriter(BinaryWriter writer) {
     writer.writeBytes(authority.toBytes());
     writer.writeU64(value);
@@ -124,20 +119,21 @@ class Testaccount {
 
   @override
   String toString() {
-    return 'Testaccount(' +
-        'authority: $authority, ' +
-        'value: $value, ' +
-        'name: $name' +
-        ')';
+    return 'TestaccountAccount(' +
+      'authority: $authority, ' +
+      'value: $value, ' +
+      'name: $name' +
+      ')';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! Testaccount) return false;
-    return authority == other.authority &&
-        value == other.value &&
-        name == other.name;
+    if (other is! TestaccountAccount) return false;
+    return
+      authority == other.authority &&
+      value == other.value &&
+      name == other.name;
   }
 
   @override
@@ -148,7 +144,9 @@ class Testaccount {
       name,
     );
   }
+
 }
+
 
 /// Accounts configuration for initialize instruction
 class InitializeAccounts {
@@ -160,7 +158,6 @@ class InitializeAccounts {
 
   /// user account
   final PublicKey user;
-
   /// systemProgram account
   final PublicKey systemprogram;
 
@@ -177,106 +174,80 @@ class InitializeAccounts {
 class InitializeInstructionBuilder extends InstructionBuilder {
   /// Creates a new InitializeInstructionBuilder
   InitializeInstructionBuilder({
-    required super.program,
+    required this.program,
     this.amount,
-  });
+  }) : super(
+    idl: program.idl,
+    methodName: 'initialize',
+    instructionCoder: program.coder.instructions,
+    accountsResolver: _createAccountsResolver(program),
+  );
 
-  /// amount parameter
+  /// Helper method to create an AccountsResolver for instruction building
+  static AccountsResolver _createAccountsResolver(Program program) {
+    // For now, create a minimal AccountsResolver with empty data
+    // In a production system, this would be properly implemented
+    return AccountsResolver(
+      args: <dynamic>[],
+      accounts: <String, dynamic>{},
+      provider: program.provider,
+      programId: program.programId,
+      idlInstruction: program.idl.instructions.first, // Placeholder
+      idlTypes: program.idl.types ?? [],
+    );
+  }
+
+  /// Program instance
+  final Program program;
+
+  /// amount argument
   final BigInt? amount;
 
-  /// Configure accounts for this instruction
-  InitializeInstructionBuilder accounts(InitializeAccounts accounts) {
-    return InitializeInstructionBuilder(
-      program: program,
-      amount: amount,
-    )..accountsConfig = accounts;
-  }
-
-  /// Configure signers for this instruction
-  InitializeInstructionBuilder signers(List<Signer> signers) {
-    return InitializeInstructionBuilder(
-      program: program,
-      amount: amount,
-    )..signersConfig = signers;
-  }
-
-  /// Add pre-instructions to this instruction
-  InitializeInstructionBuilder preInstructions(
-      List<TransactionInstruction> instructions) {
-    return InitializeInstructionBuilder(
-      program: program,
-      amount: amount,
-    )..preInstructionsConfig = instructions;
-  }
-
-  /// Add post-instructions to this instruction
-  InitializeInstructionBuilder postInstructions(
-      List<TransactionInstruction> instructions) {
-    return InitializeInstructionBuilder(
-      program: program,
-      amount: amount,
-    )..postInstructionsConfig = instructions;
-  }
-
-  /// Build the instruction
-  @override
-  Future<TransactionInstruction> instruction() async {
-    final args = <String, dynamic>{};
-    if (amount != null) {
-      args['amount'] = amount;
-    }
-    return program.instruction(
-      'initialize',
-      args,
-      accounts: accountsConfig?.toMap() ?? {},
+  /// Create instruction
+  Future<tx.TransactionInstruction> instruction() async {
+    final args = <String, dynamic>{
+      if (amount != null) 'amount': amount,
+    };
+    final result = await super.args(args).build();
+    return tx.TransactionInstruction(
+      programId: result.programId,
+      accounts: result.metas.map((meta) => tx.AccountMeta(
+        pubkey: meta.pubkey,
+        isSigner: meta.isSigner,
+        isWritable: meta.isWritable,
+      )).toList(),
+      data: result.data,
     );
   }
 
-  /// Execute the instruction via RPC
-  @override
+  /// Send and confirm transaction
   Future<String> rpc({
-    Commitment? commitment,
-    bool? skipPreflight,
-    int? maxRetries,
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
   }) async {
     final instruction = await this.instruction();
-    return program.rpc(
-      instruction,
-      signers: signersConfig ?? [],
-      commitment: commitment,
-      skipPreflight: skipPreflight,
-      maxRetries: maxRetries,
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
     );
+    return await program.provider.sendAndConfirm(transaction);
   }
 
-  /// Simulate the instruction
-  @override
-  Future<SimulateTransactionResponse> simulate({
-    Commitment? commitment,
-    bool? sigVerify,
-    bool? replaceRecentBlockhash,
+  /// Simulate transaction
+  Future<TransactionSimulationResult> simulate({
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
   }) async {
     final instruction = await this.instruction();
-    return program.simulate(
-      instruction,
-      signers: signersConfig ?? [],
-      commitment: commitment,
-      sigVerify: sigVerify,
-      replaceRecentBlockhash: replaceRecentBlockhash,
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
     );
+    return await program.provider.simulate(transaction);
   }
 
-  /// Accounts configuration
-  InitializeAccounts? accountsConfig;
-
-  /// Signers configuration
-  List<Signer>? signersConfig;
-
-  /// Pre-instructions configuration
-  List<TransactionInstruction>? preInstructionsConfig;
-
-  /// Post-instructions configuration
-  List<TransactionInstruction>? postInstructionsConfig;
 }
 
 /// Accounts configuration for update instruction
@@ -289,7 +260,6 @@ class UpdateAccounts {
 
   /// user account
   final PublicKey user;
-
   /// account account
   final PublicKey account;
 
@@ -306,126 +276,101 @@ class UpdateAccounts {
 class UpdateInstructionBuilder extends InstructionBuilder {
   /// Creates a new UpdateInstructionBuilder
   UpdateInstructionBuilder({
-    required super.program,
+    required this.program,
     this.newvalue,
-  });
+  }) : super(
+    idl: program.idl,
+    methodName: 'update',
+    instructionCoder: program.coder.instructions,
+    accountsResolver: _createAccountsResolver(program),
+  );
 
-  /// newValue parameter
+  /// Helper method to create an AccountsResolver for instruction building
+  static AccountsResolver _createAccountsResolver(Program program) {
+    // For now, create a minimal AccountsResolver with empty data
+    // In a production system, this would be properly implemented
+    return AccountsResolver(
+      args: <dynamic>[],
+      accounts: <String, dynamic>{},
+      provider: program.provider,
+      programId: program.programId,
+      idlInstruction: program.idl.instructions.first, // Placeholder
+      idlTypes: program.idl.types ?? [],
+    );
+  }
+
+  /// Program instance
+  final Program program;
+
+  /// newValue argument
   final String? newvalue;
 
-  /// Configure accounts for this instruction
-  UpdateInstructionBuilder accounts(UpdateAccounts accounts) {
-    return UpdateInstructionBuilder(
-      program: program,
-      newvalue: newvalue,
-    )..accountsConfig = accounts;
-  }
-
-  /// Configure signers for this instruction
-  UpdateInstructionBuilder signers(List<Signer> signers) {
-    return UpdateInstructionBuilder(
-      program: program,
-      newvalue: newvalue,
-    )..signersConfig = signers;
-  }
-
-  /// Add pre-instructions to this instruction
-  UpdateInstructionBuilder preInstructions(
-      List<TransactionInstruction> instructions) {
-    return UpdateInstructionBuilder(
-      program: program,
-      newvalue: newvalue,
-    )..preInstructionsConfig = instructions;
-  }
-
-  /// Add post-instructions to this instruction
-  UpdateInstructionBuilder postInstructions(
-      List<TransactionInstruction> instructions) {
-    return UpdateInstructionBuilder(
-      program: program,
-      newvalue: newvalue,
-    )..postInstructionsConfig = instructions;
-  }
-
-  /// Build the instruction
-  @override
-  Future<TransactionInstruction> instruction() async {
-    final args = <String, dynamic>{};
-    if (newvalue != null) {
-      args['newValue'] = newvalue;
-    }
-    return program.instruction(
-      'update',
-      args,
-      accounts: accountsConfig?.toMap() ?? {},
+  /// Create instruction
+  Future<tx.TransactionInstruction> instruction() async {
+    final args = <String, dynamic>{
+      if (newvalue != null) 'newValue': newvalue,
+    };
+    final result = await super.args(args).build();
+    return tx.TransactionInstruction(
+      programId: result.programId,
+      accounts: result.metas.map((meta) => tx.AccountMeta(
+        pubkey: meta.pubkey,
+        isSigner: meta.isSigner,
+        isWritable: meta.isWritable,
+      )).toList(),
+      data: result.data,
     );
   }
 
-  /// Execute the instruction via RPC
-  @override
+  /// Send and confirm transaction
   Future<String> rpc({
-    Commitment? commitment,
-    bool? skipPreflight,
-    int? maxRetries,
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
   }) async {
     final instruction = await this.instruction();
-    return program.rpc(
-      instruction,
-      signers: signersConfig ?? [],
-      commitment: commitment,
-      skipPreflight: skipPreflight,
-      maxRetries: maxRetries,
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
     );
+    return await program.provider.sendAndConfirm(transaction);
   }
 
-  /// Simulate the instruction
-  @override
-  Future<SimulateTransactionResponse> simulate({
-    Commitment? commitment,
-    bool? sigVerify,
-    bool? replaceRecentBlockhash,
+  /// Simulate transaction
+  Future<TransactionSimulationResult> simulate({
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
   }) async {
     final instruction = await this.instruction();
-    return program.simulate(
-      instruction,
-      signers: signersConfig ?? [],
-      commitment: commitment,
-      sigVerify: sigVerify,
-      replaceRecentBlockhash: replaceRecentBlockhash,
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
     );
+    return await program.provider.simulate(transaction);
   }
 
-  /// Accounts configuration
-  UpdateAccounts? accountsConfig;
-
-  /// Signers configuration
-  List<Signer>? signersConfig;
-
-  /// Pre-instructions configuration
-  List<TransactionInstruction>? preInstructionsConfig;
-
-  /// Post-instructions configuration
-  List<TransactionInstruction>? postInstructionsConfig;
 }
+
 
 /// Error class for test_program program
 class TestProgramError extends ProgramError {
   /// Creates a new TestProgramError
-  const TestProgramError._(super.code, super.message);
+  TestProgramError._({
+    required int code,
+    required String message,
+  }) : super(
+    code: code,
+    msg: message,
+  );
 
   /// InvalidAmount error
-  /// Message: The amount provided is invalid
-  static const invalidamount =
-      TestProgramError._(6000, 'The amount provided is invalid');
-
-  /// Unauthorized error
-  /// Message: Unauthorized access
-  static const unauthorized = TestProgramError._(6001, 'Unauthorized access');
+  /// Message: The amount is invalid
+  static final invalidamount = TestProgramError._(code: 6000, message: 'The amount is invalid');
 
   /// Map of error codes to error instances
-  static const Map<int, TestProgramError> _errorMap = {
+  static final Map<int, TestProgramError> _errorMap = {
     6000: invalidamount,
-    6001: unauthorized,
   };
 
   /// Create error from error code
@@ -452,37 +397,9 @@ class TestProgramError extends ProgramError {
 
   /// List of all program errors
   static List<TestProgramError> get allErrors => [
-        invalidamount,
-        unauthorized,
-      ];
+    invalidamount,
+  ];
+
 }
 
-/// Enum type: Status
-enum Status {
-  /// Active variant
-  active,
 
-  /// Inactive variant
-  inactive,
-}
-
-/// Extension for Status enum
-extension StatusExtension on Status {
-  /// Create enum from index
-  static Status fromIndex(int index) {
-    return Status.values[index];
-  }
-
-  /// Get index of enum value
-  int get index => Status.values.indexOf(this);
-
-  /// Get name of enum value
-  String get name {
-    switch (this) {
-      case Status.active:
-        return 'Active';
-      case Status.inactive:
-        return 'Inactive';
-    }
-  }
-}

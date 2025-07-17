@@ -12,38 +12,31 @@ import 'package:coral_xyz_anchor/src/program/namespace/account_cache_manager.dar
     as cache_mgr;
 import 'package:coral_xyz_anchor/src/program/namespace/account_subscription_manager.dart';
 import 'package:coral_xyz_anchor/src/native/system_program.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart' show IdlAccount;
 
 // Missing types - define as placeholders for robust implementation
 class AccountCreationParams {
-  final PublicKey newAccountPubkey;
-  final int lamports;
+  final PublicKey? newAccountPubkey;
+  final int? lamports;
   final int space;
-  final PublicKey programId;
-  final PublicKey fromPubkey;
+  final PublicKey? programId;
+  final PublicKey? fromPubkey;
   final PublicKey? owner;
   final Keypair? keypair;
   final bool executable;
   final Map<String, dynamic>? initData;
 
-  AccountCreationParams({
-    required this.newAccountPubkey,
-    required this.lamports,
+  const AccountCreationParams({
+    this.newAccountPubkey,
+    this.lamports,
     required this.space,
-    required this.programId,
-    required this.fromPubkey,
+    this.programId,
+    this.fromPubkey,
     this.owner,
     this.keypair,
     this.executable = false,
     this.initData,
   });
-}
-
-class IdlAccount {
-  final String name;
-  final Map<String, dynamic> type;
-  final List<int>? discriminator;
-
-  IdlAccount({required this.name, required this.type, this.discriminator});
 }
 
 class AccountOwnedByWrongProgramError implements Exception {
@@ -457,7 +450,7 @@ class AccountOperationsManager<T> {
       final owner = params.owner ?? _programId;
 
       // Calculate required lamports for rent exemption if not provided
-      int lamports = params.lamports;
+      int lamports = params.lamports ?? 0;
       if (lamports == 0) {
         lamports = await _provider.connection.getMinimumBalanceForRentExemption(
           params.space,
@@ -1406,10 +1399,11 @@ class AccountOperationsManager<T> {
     // Validate lamports for rent exemption
     final minLamports = await _provider.connection
         .getMinimumBalanceForRentExemption(params.space);
-    if (params.lamports < minLamports) {
+    final lamports = params.lamports ?? 0;
+    if (lamports < minLamports) {
       validation['valid'] = false;
       validation['errors'].add(
-          'Lamports (${params.lamports}) is less than rent exempt minimum (${minLamports})');
+          'Lamports (${lamports}) is less than rent exempt minimum (${minLamports})');
     }
 
     // Validate owner
@@ -1419,11 +1413,13 @@ class AccountOperationsManager<T> {
 
     // Check if account already exists
     try {
-      final existing =
-          await _provider.connection.getAccountInfo(params.newAccountPubkey);
-      if (existing != null) {
-        validation['valid'] = false;
-        validation['errors'].add('Account already exists');
+      if (params.newAccountPubkey != null) {
+        final existing =
+            await _provider.connection.getAccountInfo(params.newAccountPubkey!);
+        if (existing != null) {
+          validation['valid'] = false;
+          validation['errors'].add('Account already exists');
+        }
       }
     } catch (e) {
       // Account doesn't exist, which is good

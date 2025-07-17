@@ -148,9 +148,11 @@ export 'src/account/account_definition.dart'; // Account Definition Metadata Sys
 // import 'package:coral_xyz_anchor/src/idl/enhanced_types.dart' as enhanced;
 export 'src/utils/utils.dart';
 
-// PDA and multisig utilities (Phase 5.1 - COMPLETED: Core PDA Derivation Engine)
+// Core utilities
 export 'src/utils/pubkey.dart';
 export 'src/utils/multisig.dart';
+export 'src/utils/binary_reader.dart';
+export 'src/utils/binary_writer.dart';
 export 'src/program/pda_utils.dart' show PdaUtils, AddressResolver;
 export 'src/pda/pda_derivation_engine.dart' hide PdaUtils;
 export 'src/pda/pda_cache.dart'; // PDA Caching and Performance Optimization (Phase 5.2 - COMPLETED)

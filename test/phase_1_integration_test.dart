@@ -19,13 +19,13 @@ import 'codegen_test.anchor.dart';
 void main() {
   group('Phase 1: Enhanced Method Generation', () {
     late MockAnchorProvider mockProvider;
-    late TestProgram program;
+    late TestProgramProgram program;
     late PublicKey programId;
 
     setUp(() {
       mockProvider = MockAnchorProvider();
       programId = PublicKey.fromBase58(kProgramId);
-      program = TestProgram(
+      program = TestProgramProgram(
         programId: programId,
         provider: mockProvider,
       );
@@ -45,7 +45,7 @@ void main() {
         user: PublicKey.fromBase58('11111111111111111111111111111111'),
         systemprogram: PublicKey.fromBase58('11111111111111111111111111111111'),
       ))
-          .signers([]);
+          .signers(<dynamic>[]);
 
       expect(configuredBuilder, isA<InitializeInstructionBuilder>());
     });
@@ -130,7 +130,7 @@ void main() {
 
     test('should support account data classes with proper serialization', () {
       // Test 7: Account data class functionality
-      final account = Testaccount(
+      final account = TestaccountAccount(
         authority: PublicKey.fromBase58('11111111111111111111111111111111'),
         value: BigInt.from(42),
         name: "test account",
@@ -141,7 +141,7 @@ void main() {
       expect(bytes, isA<List<int>>());
 
       // Test equality and hash code
-      final account2 = Testaccount(
+      final account2 = TestaccountAccount(
         authority: PublicKey.fromBase58('11111111111111111111111111111111'),
         value: BigInt.from(42),
         name: "test account",
@@ -154,10 +154,11 @@ void main() {
     test('should validate IDL structure and constants', () {
       // Test 8: IDL validation
       expect(kProgramId, equals('11111111111111111111111111111112'));
-      expect(TestProgram.idl['name'], equals('test_program'));
-      expect(TestProgram.idl['version'], equals('0.1.0'));
+      expect(TestProgramProgram.programIdl['name'], equals('test_program'));
+      expect(TestProgramProgram.programIdl['version'], equals('0.1.0'));
 
-      final instructions = TestProgram.idl['instructions'] as List;
+      final instructions =
+          TestProgramProgram.programIdl['instructions'] as List;
       expect(instructions.length, equals(2));
       expect(instructions[0]['name'], equals('initialize'));
       expect(instructions[1]['name'], equals('update'));

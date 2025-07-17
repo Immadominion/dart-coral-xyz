@@ -34,7 +34,7 @@ class AccountGenerator {
 
   /// Generate account data class for a single account
   void _generateAccountClass(StringBuffer buffer, IdlAccount account) {
-    final className = _toPascalCase(account.name);
+    final className = '${_toPascalCase(account.name)}Account';
 
     buffer.writeln('/// Account data class for ${account.name}');
     if (account.docs?.isNotEmpty == true) {
@@ -87,12 +87,13 @@ class AccountGenerator {
 
   /// Generate serialization methods
   void _generateSerializationMethods(StringBuffer buffer, IdlAccount account) {
-    final className = _toPascalCase(account.name);
+    final className = '${_toPascalCase(account.name)}Account';
 
     // Generate fromBytes method
     buffer.writeln('  /// Create $className from bytes');
     buffer.writeln('  static $className fromBytes(List<int> bytes) {');
-    buffer.writeln('    final reader = BinaryReader(bytes);');
+    buffer.writeln(
+        '    final reader = BinaryReader(Uint8List.fromList(bytes).buffer.asByteData());');
     buffer.writeln('    return $className.fromReader(reader);');
     buffer.writeln('  }');
     buffer.writeln();
@@ -123,7 +124,7 @@ class AccountGenerator {
     buffer.writeln('  List<int> toBytes() {');
     buffer.writeln('    final writer = BinaryWriter();');
     buffer.writeln('    writeToWriter(writer);');
-    buffer.writeln('    return writer.toBytes();');
+    buffer.writeln('    return writer.toArray();');
     buffer.writeln('  }');
     buffer.writeln();
 
@@ -143,7 +144,7 @@ class AccountGenerator {
 
   /// Generate utility methods
   void _generateUtilityMethods(StringBuffer buffer, IdlAccount account) {
-    final className = _toPascalCase(account.name);
+    final className = '${_toPascalCase(account.name)}Account';
 
     // Generate toString method
     buffer.writeln('  @override');

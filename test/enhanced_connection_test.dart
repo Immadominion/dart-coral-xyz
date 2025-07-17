@@ -5,6 +5,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 
@@ -52,10 +53,14 @@ class MockHttpClient extends http.BaseClient {
       );
     }
 
-    // Default successful response
+    // Default successful response for unhandled requests
     return http.StreamedResponse(
-      Stream.fromIterable([]),
+      Stream.fromIterable([
+        utf8.encode(
+            '{"jsonrpc":"2.0","result":{"context":{"slot":1},"value":1000},"id":1}')
+      ]),
       200,
+      headers: {'content-type': 'application/json'},
     );
   }
 }
@@ -185,12 +190,16 @@ void main() {
       mockClient = MockHttpClient();
       connection = EnhancedConnection(
         'https://api.devnet.solana.com',
+        httpClient: mockClient,
         retryConfig: const RetryConfig(maxRetries: 2, baseDelayMs: 10),
       );
     });
 
     test('should create with default configuration', () {
-      final conn = EnhancedConnection('https://api.devnet.solana.com');
+      final conn = EnhancedConnection(
+        'https://api.devnet.solana.com',
+        httpClient: mockClient,
+      );
       expect(conn.endpoint, equals('https://api.devnet.solana.com'));
       expect(conn.metrics['totalRequests'], equals(0));
     });
@@ -198,7 +207,9 @@ void main() {
     test('should retry on retryable errors', () async {
       // First call fails, second succeeds
       mockClient.addException(http.ClientException('Network error'));
-      mockClient.addResponse(http.Response('{"result": {"value": 1000}}', 200));
+      mockClient.addResponse(http.Response(
+          '{"jsonrpc":"2.0","result":{"context":{"apiVersion":"2.3.4","slot":394846359},"value":1000},"id":123456789}',
+          200));
 
       final publicKey =
           PublicKey.fromBase58('11111111111111111111111111111112');
@@ -233,21 +244,29 @@ void main() {
       const config = CircuitBreakerConfig(failureThreshold: 1);
       final conn = EnhancedConnection(
         'https://api.devnet.solana.com',
+        httpClient: mockClient,
+        retryConfig: const RetryConfig(maxRetries: 2, baseDelayMs: 10),
         circuitBreakerConfig: config,
       );
 
       // First request fails to trigger circuit breaker
+      // Add multiple exceptions to exhaust all retries (maxRetries=2 means 3 total attempts)
       mockClient.addException(http.ClientException('Network error'));
+      mockClient.addException(http.ClientException('Network error'));
+      mockClient.addException(http.ClientException('Network error'));
+      mockClient.addException(
+          http.ClientException('Network error')); // Extra to be sure
 
       final publicKey =
           PublicKey.fromBase58('11111111111111111111111111111112');
 
       expect(
         () async => conn.getBalance(publicKey),
-        throwsA(isA<Exception>()),
+        throwsA(isA<http.ClientException>()),
       );
 
       // Second request should be blocked by circuit breaker
+      // No need to add more mock responses since circuit breaker should block
       expect(
         () async => conn.getBalance(publicKey),
         throwsA(
@@ -263,6 +282,7 @@ void main() {
 
       final conn = EnhancedConnection(
         'https://api.devnet.solana.com',
+        httpClient: mockClient,
         retryConfig: retryConfig,
       );
 
@@ -277,7 +297,10 @@ void main() {
     });
 
     test('should track connection metrics', () async {
-      mockClient.addResponse(http.Response('{"result": {"value": 1000}}', 200));
+      mockClient.addResponse(http.Response(
+        '{"jsonrpc":"2.0","result":{"context":{"slot":1},"value":1000},"id":1}',
+        200,
+      ));
       mockClient.addException(http.ClientException('Network error'));
 
       final publicKey =
@@ -302,7 +325,10 @@ void main() {
 
     test('should check health status', () async {
       // Healthy response
-      mockClient.addResponse(http.Response('"ok"', 200));
+      mockClient.addResponse(http.Response(
+        '{"jsonrpc":"2.0","result":"ok","id":1}',
+        200,
+      ));
       expect(await connection.isHealthy(), isTrue);
 
       // Unhealthy response
@@ -314,6 +340,7 @@ void main() {
       const config = CircuitBreakerConfig(failureThreshold: 1);
       final conn = EnhancedConnection(
         'https://api.devnet.solana.com',
+        httpClient: mockClient,
         circuitBreakerConfig: config,
       );
 

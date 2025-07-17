@@ -1,12 +1,14 @@
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/account_operations.dart';
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_subscription_manager.dart';
 
 void main() {
   group('AccountOperations Basic Types', () {
     test('can create IdlAccount', () {
       final idlAccount = IdlAccount(
         name: 'TestAccount',
-        type: <String, dynamic>{'kind': 'struct', 'fields': <dynamic>[]},
+        type: IdlTypeDefType(kind: 'struct', fields: <IdlField>[]),
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
       );
 
@@ -28,12 +30,12 @@ void main() {
 
     test('can create AccountSubscriptionConfig', () {
       final config = AccountSubscriptionConfig(
-        enabled: true,
-        reconnectInterval: Duration(seconds: 30),
+        autoReconnect: true,
+        reconnectDelay: Duration(seconds: 30),
       );
 
-      expect(config.enabled, equals(true));
-      expect(config.reconnectInterval, equals(Duration(seconds: 30)));
+      expect(config.autoReconnect, equals(true));
+      expect(config.reconnectDelay, equals(Duration(seconds: 30)));
     });
 
     test('AccountRelationshipType enum has all values', () {

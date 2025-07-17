@@ -38,7 +38,13 @@ class ErrorGenerator {
     buffer.writeln('/// Error class for ${idl.name ?? 'program'} program');
     buffer.writeln('class $errorClassName extends ProgramError {');
     buffer.writeln('  /// Creates a new $errorClassName');
-    buffer.writeln('  const $errorClassName._(super.code, super.message);');
+    buffer.writeln('  $errorClassName._({');
+    buffer.writeln('    required int code,');
+    buffer.writeln('    required String message,');
+    buffer.writeln('  }) : super(');
+    buffer.writeln('    code: code,');
+    buffer.writeln('    msg: message,');
+    buffer.writeln('  );');
     buffer.writeln();
 
     // Generate error constants
@@ -49,13 +55,13 @@ class ErrorGenerator {
         buffer.writeln('  /// Message: ${error.msg}');
       }
       buffer.writeln(
-          '  static const $errorName = $errorClassName._(${error.code}, \'${error.msg ?? error.name}\');');
+          '  static final $errorName = $errorClassName._(code: ${error.code}, message: \'${error.msg ?? error.name}\');');
     }
     buffer.writeln();
 
     // Generate error lookup map
     buffer.writeln('  /// Map of error codes to error instances');
-    buffer.writeln('  static const Map<int, $errorClassName> _errorMap = {');
+    buffer.writeln('  static final Map<int, $errorClassName> _errorMap = {');
     for (final error in idl.errors!) {
       final errorName = _toCamelCase(error.name);
       buffer.writeln('    ${error.code}: $errorName,');

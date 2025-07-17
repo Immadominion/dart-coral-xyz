@@ -8,6 +8,7 @@ import 'package:coral_xyz_anchor/src/program/context.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
+import 'package:coral_xyz_anchor/src/program/namespace/types.dart' show Signer;
 import 'dart:typed_data';
 
 /// Builds instructions for Anchor programs with a fluent API
@@ -19,7 +20,6 @@ import 'dart:typed_data';
 /// - Instruction data serialization
 /// - Comprehensive validation
 class InstructionBuilder {
-
   /// Create a new instruction builder
   InstructionBuilder({
     required this.idl,
@@ -48,9 +48,38 @@ class InstructionBuilder {
 
   /// Set instruction accounts
   ///
-  /// [accounts] - Map of account name to public key or account info
-  InstructionBuilder accounts(Map<String, dynamic> accounts) {
-    _accounts.addAll(accounts);
+  /// [accounts] - Map of account name to public key or account info, or an accounts object with toMap() method
+  InstructionBuilder accounts(dynamic accounts) {
+    if (accounts is Map<String, dynamic>) {
+      _accounts.addAll(accounts);
+    } else if (accounts is Map<String, PublicKey>) {
+      // Convert Map<String, PublicKey> to Map<String, dynamic>
+      final dynamicMap = <String, dynamic>{};
+      accounts.forEach((key, value) {
+        dynamicMap[key] = value;
+      });
+      _accounts.addAll(dynamicMap);
+    } else {
+      // Try to call toMap() method if it exists
+      try {
+        final map = accounts.toMap();
+        if (map is Map<String, PublicKey>) {
+          final dynamicMap = <String, dynamic>{};
+          map.forEach((key, value) {
+            dynamicMap[key] = value;
+          });
+          _accounts.addAll(dynamicMap);
+        } else if (map is Map<String, dynamic>) {
+          _accounts.addAll(map);
+        } else {
+          throw ArgumentError(
+              'toMap() must return Map<String, PublicKey> or Map<String, dynamic>');
+        }
+      } catch (e) {
+        throw ArgumentError(
+            'Invalid accounts type: ${accounts.runtimeType}. Expected Map<String, dynamic>, Map<String, PublicKey>, or object with toMap() method');
+      }
+    }
     return this;
   }
 
@@ -74,6 +103,28 @@ class InstructionBuilder {
     return this;
   }
 
+  /// Set signers for the instruction (fluent API method)
+  ///
+  /// [signers] - List of signers to set
+  /// Can accept a list of [PublicKey] or [Signer] objects
+  InstructionBuilder signers(List<dynamic> signers) {
+    // Convert Signer objects to PublicKey
+    final pubKeys = <PublicKey>[];
+
+    for (final signer in signers) {
+      if (signer is PublicKey) {
+        pubKeys.add(signer);
+      } else if (signer is Signer) {
+        pubKeys.add(signer.publicKey);
+      } else {
+        throw ArgumentError(
+            'Invalid signer type: ${signer.runtimeType}. Expected PublicKey or Signer.');
+      }
+    }
+
+    return addSigners(pubKeys);
+  }
+
   /// Add remaining accounts that are not part of the instruction's account struct
   ///
   /// [remainingAccounts] - List of additional account metas
@@ -92,9 +143,10 @@ class InstructionBuilder {
 
   /// Get the IDL instruction for this builder
   IdlInstruction get _instruction => idl.instructions.firstWhere(
-      (ix) => ix.name == methodName,
-      orElse: () => throw IdlError('Instruction $methodName not found in IDL'),
-    );
+        (ix) => ix.name == methodName,
+        orElse: () =>
+            throw IdlError('Instruction $methodName not found in IDL'),
+      );
 
   /// Validate the instruction arguments and accounts
   ///
@@ -159,11 +211,13 @@ class InstructionBuilder {
             throw IdlError('Account ${acct.name} could not be resolved');
           }
 
-          metas.add(tx.AccountMeta(
-            pubkey: pubkey,
-            isSigner: acct.isSigner || _signers.contains(pubkey),
-            isWritable: acct.writable,
-          ),);
+          metas.add(
+            tx.AccountMeta(
+              pubkey: pubkey,
+              isSigner: acct.isSigner || _signers.contains(pubkey),
+              isWritable: acct.writable,
+            ),
+          );
         } else if (acct is IdlInstructionAccounts) {
           addMetas(acct.accounts);
         }
@@ -198,6 +252,7 @@ class InstructionBuilder {
       metas: metas,
       resolvedAccounts: resolvedAccounts,
       signers: _signers,
+      programId: accountsResolver.programId,
       context: _context,
     );
   }
@@ -208,20 +263,22 @@ class InstructionBuilder {
 
 /// Result of building an instruction
 class InstructionBuildResult {
-
   const InstructionBuildResult({
     required this.data,
     required this.metas,
     required this.resolvedAccounts,
     required this.signers,
+    required this.programId,
     this.context,
   });
   final Uint8List data;
   final List<tx.AccountMeta> metas;
   final Map<String, dynamic> resolvedAccounts;
   final List<PublicKey> signers;
+  final PublicKey programId;
   final Context? context;
 
   @override
-  String toString() => 'InstructionBuildResult(metas: ${metas.length}, signers: ${signers.length})';
+  String toString() =>
+      'InstructionBuildResult(metas: ${metas.length}, signers: ${signers.length})';
 }
