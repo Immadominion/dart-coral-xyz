@@ -1,64 +1,182 @@
-/// Coral XYZ Anchor - A comprehensive Dart client for Anchor programs on Solana
+/// # Coral XYZ Anchor for Dart
 ///
-/// This library provides a type-safe, idiomatic Dart interface for interacting
-/// with Anchor programs on the Solana blockchain. It mirrors the functionality
-/// of the TypeScript @coral-xyz/anchor package while leveraging Dart's strengths
-/// like null safety, strong typing, and excellent async/await support.
+/// A comprehensive Dart client for Anchor programs on Solana, providing complete
+/// feature parity with the TypeScript `@coral-xyz/anchor` package. This library
+/// enables type-safe, idiomatic Dart interactions with Anchor programs on the
+/// Solana blockchain.
 ///
 /// ## Features
 ///
-/// - Type-safe program interactions based on IDL definitions
-/// - Comprehensive Borsh serialization/deserialization support
-/// - Flexible provider system for wallet and connection management
-/// - Dynamic namespace generation for intuitive program APIs
-/// - Built-in event listening and parsing capabilities
-/// - Cross-platform support (mobile, web, desktop via Flutter)
-/// - Extensive utility functions for addresses, transactions, and accounts
+/// - **🔒 Type-Safe**: Full type safety with Dart's null safety and strong typing
+/// - **📋 IDL-Based**: Automatic type-safe interfaces from Anchor IDL files
+/// - **🌐 Cross-Platform**: Mobile (Flutter), web, and desktop support
+/// - **⚡ Modern Async**: Idiomatic Dart async/await patterns
+/// - **🎯 TypeScript Parity**: Complete compatibility with `@coral-xyz/anchor`
+/// - **📊 Event System**: Real-time event listening and parsing
+/// - **🔧 Extensible**: Custom coders and advanced use cases
 ///
-/// ## Basic Usage
+/// ## Quick Start
 ///
 /// ```dart
 /// import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 ///
-/// // Create a connection to the Solana cluster
+/// // Connect to Solana devnet
 /// final connection = Connection('https://api.devnet.solana.com');
-///
-/// // Set up a provider with your wallet
 /// final provider = AnchorProvider(connection, wallet);
 ///
-/// // Load your program using its IDL
+/// // Load and interact with your program
 /// final program = Program(idl, programId, provider);
 ///
 /// // Call program methods
-/// final result = await program.methods
-///   .myInstruction(arg1, arg2)
-///   .accounts({
-///     'account1': publicKey1,
-///     'account2': publicKey2,
+/// final signature = await program.methods
+///   .initialize()
+///   .accounts({'counter': counterKeypair.publicKey})
+///   .signers([counterKeypair])
+///   .rpc();
+///
+/// // Fetch account data
+/// final account = await program.account.counter.fetch(counterKeypair.publicKey);
+/// print('Counter: ${account.count}');
+/// ```
+///
+/// ## Core Classes
+///
+/// ### Program
+/// The main interface for interacting with Anchor programs:
+/// - `Program.methods` - Call program instructions
+/// - `Program.account` - Fetch and manage account data
+/// - `Program.instruction` - Build raw instructions
+/// - `Program.transaction` - Construct transactions
+/// - `Program.addEventListener` - Listen for program events
+///
+/// ### AnchorProvider
+/// Manages connections and wallet interactions:
+/// - Connection to Solana RPC endpoints
+/// - Wallet integration for signing transactions
+/// - Configurable commitment levels and options
+///
+/// ### IDL (Interface Definition Language)
+/// Type definitions for your Anchor programs:
+/// - Parse IDL JSON files
+/// - Generate type-safe interfaces
+/// - Validate program structure
+///
+/// ## Advanced Features
+///
+/// ### Event System
+/// Listen to and parse program events in real-time:
+///
+/// ```dart
+/// // Subscribe to specific events
+/// program.addEventListener('Transfer', (event, slot, signature) {
+///   print('Transfer: ${event.data.amount} tokens');
+/// });
+///
+/// // Event filtering and aggregation
+/// final stats = await program.getEventStatistics('Transfer');
+/// ```
+///
+/// ### Custom Account Resolution
+/// Dynamically resolve accounts and PDAs:
+///
+/// ```dart
+/// await program.methods
+///   .complexInstruction()
+///   .accountsResolver((accounts) async {
+///     final (pda, bump) = await PublicKey.findProgramAddress(
+///       [utf8.encode('seed')], programId
+///     );
+///     return {...accounts, 'derivedAccount': pda};
 ///   })
 ///   .rpc();
 /// ```
 ///
-/// ## Advanced Usage
+/// ### Transaction Building
+/// Build and customize transactions:
 ///
 /// ```dart
-/// // Listen to program events
-/// program.addEventListener('MyEvent', (event, slot) {
-///   print('Event received: ${event.data}');
-/// });
-///
-/// // Fetch account data
-/// final accountData = await program.account.myAccount.fetch(accountPublicKey);
-///
-/// // Build and send transactions manually
 /// final tx = await program.methods
-///   .myInstruction(args)
+///   .myInstruction()
 ///   .accounts(accounts)
 ///   .transaction();
 ///
-/// final signature = await provider.sendAndConfirm(tx);
+/// // Add additional instructions
+/// tx.add(SystemProgram.transfer(/* ... */));
+///
+/// // Send with custom options
+/// await provider.sendAndConfirm(tx, signers: [wallet]);
 /// ```
-library;
+///
+/// ## Error Handling
+///
+/// The library provides comprehensive error handling:
+///
+/// ```dart
+/// try {
+///   await program.methods.initialize().rpc();
+/// } on AnchorError catch (e) {
+///   print('Anchor error: ${e.message}');
+/// } on SolanaException catch (e) {
+///   print('Solana error: ${e.message}');
+/// } catch (e) {
+///   print('Unexpected error: $e');
+/// }
+/// ```
+///
+/// ## Flutter Integration
+///
+/// Perfect for mobile dApps with Flutter:
+///
+/// ```dart
+/// class CounterWidget extends StatefulWidget {
+///   @override
+///   _CounterWidgetState createState() => _CounterWidgetState();
+/// }
+///
+/// class _CounterWidgetState extends State<CounterWidget> {
+///   late Program program;
+///   int count = 0;
+///
+///   @override
+///   void initState() {
+///     super.initState();
+///     _initializeProgram();
+///   }
+///
+///   Future<void> _increment() async {
+///     await program.methods.increment().rpc();
+///     _fetchCount();
+///   }
+///
+///   // ... rest of implementation
+/// }
+/// ```
+///
+/// ## Migration from TypeScript
+///
+/// This library provides 1:1 compatibility with TypeScript patterns:
+///
+/// | TypeScript | Dart | Notes |
+/// |------------|------|-------|
+/// | `program.methods.initialize()` | `program.methods.initialize()` | Identical API |
+/// | `program.account.counter.fetch()` | `program.account.counter.fetch()` | Type-safe |
+/// | `addEventListener()` | `addEventListener()` | Same signature |
+/// | `AnchorProvider` | `AnchorProvider` | Compatible options |
+///
+/// ## Performance
+///
+/// Optimized for production use:
+/// - Memory-efficient object pooling
+/// - Intelligent RPC batching and caching
+/// - Minimal runtime overhead
+/// - Compile-time type guarantees
+///
+/// ## See Also
+///
+/// - [Examples](https://github.com/coral-xyz/dart-coral-xyz/tree/main/example) - Working examples
+/// - [Anchor Documentation](https://www.anchor-lang.com/) - Learn Anchor framework
+/// - [Solana Documentation](https://docs.solana.com/) - Solana blockchain docs
+library coral_xyz_anchor;
 
 export 'src/account/account_definition.dart'; // Account Definition Metadata System (Phase 2.1 - COMPLETED)
 // Core exports - these will be implemented in phases

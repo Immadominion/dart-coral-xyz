@@ -19,59 +19,147 @@ import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dar
 import 'package:coral_xyz_anchor/src/program/namespace/views_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/program_error_handler.dart';
 
-/// Core Program class for interacting with Anchor programs
+/// # Core Program Class for Anchor Program Interactions
 ///
-/// This class provides the main interface for interacting with Anchor programs,
-/// similar to the TypeScript Program class. It manages the IDL, provider, coder,
-/// and provides access to various namespace factories for building instructions,
-/// transactions, and other program operations.
+/// The `Program` class is the primary interface for interacting with Anchor programs
+/// on Solana. It provides a type-safe, idiomatic Dart API that mirrors the TypeScript
+/// `@coral-xyz/anchor` Program class functionality.
 ///
-/// ## Example Usage
+/// ## Key Features
+///
+/// - **Type-Safe Method Calls**: Automatically generated method builders based on IDL
+/// - **Account Management**: Fetch, create, and manage program accounts
+/// - **Event Subscription**: Real-time event listening and parsing
+/// - **Transaction Building**: Flexible transaction construction and submission
+/// - **Simulation Support**: Test transactions before sending
+/// - **Error Handling**: Comprehensive error types with detailed context
+///
+/// ## Basic Usage
 ///
 /// ```dart
-/// // Create a connection to devnet
+/// // Connect to Solana devnet
 /// final connection = Connection('https://api.devnet.solana.com');
-///
-/// // Create a provider with your wallet
 /// final provider = AnchorProvider(connection, wallet);
 ///
-/// // Create a program instance
-/// final program = Program(idl, provider: provider);
+/// // Create program instance
+/// final program = Program(idl, programId, provider);
 ///
-/// // Call a program method
-/// final result = await program.methods
+/// // Call program methods
+/// final signature = await program.methods
 ///   .initialize()
-///   .accounts({
-///     'user': wallet.publicKey,
-///     'systemProgram': SystemProgram.programId,
-///   })
+///   .accounts({'counter': counterKeypair.publicKey})
+///   .signers([counterKeypair])
 ///   .rpc();
 ///
 /// // Fetch account data
-/// final accountData = await program.account.myAccount.fetch(accountAddress);
+/// final account = await program.account.counter.fetch(counterKeypair.publicKey);
 /// ```
 ///
 /// ## Advanced Usage
 ///
+/// ### Custom Account Resolution
 /// ```dart
-/// // Build instruction without sending
-/// final instruction = await program.methods
-///   .updateData(newValue)
-///   .accounts({'dataAccount': dataAccountKey})
-///   .instruction();
+/// await program.methods
+///   .complexInstruction()
+///   .accountsResolver((accounts) async {
+///     final (pda, bump) = await PublicKey.findProgramAddress(
+///       [utf8.encode('seed'), userKey.toBytes()], programId
+///     );
+///     return {...accounts, 'derivedAccount': pda};
+///   })
+///   .rpc();
+/// ```
 ///
-/// // Simulate transaction
+/// ### Event Subscription
+/// ```dart
+/// // Listen to specific events
+/// program.addEventListener('Transfer', (event, slot, signature) {
+///   print('Transfer: ${event.data.amount} tokens');
+/// });
+///
+/// // Event filtering
+/// program.addEventListener('Trade', (event, slot, signature) {
+///   final trade = event.data as TradeEvent;
+///   if (trade.amount > BigInt.from(1000000)) {
+///     print('Large trade detected: ${trade.amount}');
+///   }
+/// });
+/// ```
+///
+/// ### Transaction Simulation
+/// ```dart
+/// // Simulate before sending
 /// final simulation = await program.methods
-///   .myMethod()
-///   .accounts({'account': key})
+///   .risky_operation()
+///   .accounts({'account': accountKey})
 ///   .simulate();
 ///
-/// // Build full transaction
-/// final transaction = await program.methods
-///   .myMethod()
-///   .accounts({'account': key})
-///   .transaction();
+/// if (simulation.err != null) {
+///   print('Transaction would fail: ${simulation.err}');
+///   return;
+/// }
+///
+/// // Transaction looks good, send it
+/// await program.methods
+///   .risky_operation()
+///   .accounts({'account': accountKey})
+///   .rpc();
 /// ```
+///
+/// ### Manual Transaction Building
+/// ```dart
+/// // Build transaction without sending
+/// final transaction = await program.methods
+///   .myInstruction(args)
+///   .accounts({'account': accountKey})
+///   .transaction();
+///
+/// // Add additional instructions
+/// transaction.add(SystemProgram.transfer(
+///   fromPubkey: wallet.publicKey,
+///   toPubkey: recipient,
+///   lamports: amount,
+/// ));
+///
+/// // Send manually with custom options
+/// final signature = await provider.sendAndConfirm(
+///   transaction,
+///   signers: [wallet],
+///   options: ConfirmOptions(commitment: Commitment.finalized),
+/// );
+/// ```
+///
+/// ## Error Handling
+///
+/// ```dart
+/// try {
+///   await program.methods.initialize().rpc();
+/// } on AnchorError catch (e) {
+///   // Handle program-specific errors
+///   print('Anchor error ${e.code}: ${e.message}');
+/// } on SolanaException catch (e) {
+///   // Handle network/RPC errors
+///   print('Solana error: ${e.message}');
+/// } catch (e) {
+///   // Handle unexpected errors
+///   print('Unexpected error: $e');
+/// }
+/// ```
+///
+/// ## TypeScript Compatibility
+///
+/// This class provides 1:1 compatibility with the TypeScript Anchor Program class:
+///
+/// | TypeScript | Dart | Notes |
+/// |------------|------|-------|
+/// | `program.methods.initialize()` | `program.methods.initialize()` | Identical |
+/// | `program.account.counter.fetch()` | `program.account.counter.fetch()` | Type-safe |
+/// | `program.addEventListener()` | `program.addEventListener()` | Same API |
+/// | `program.instruction.init()` | `program.instruction.init()` | Raw instructions |
+/// | `program.transaction.init()` | `program.transaction.init()` | Transaction builders |
+///
+/// See the [migration guide](https://github.com/coral-xyz/dart-coral-xyz/blob/main/MIGRATION.md)
+/// for detailed TypeScript to Dart conversion patterns.
 class Program<T extends Idl> {
   /// Creates a new Program instance
   ///

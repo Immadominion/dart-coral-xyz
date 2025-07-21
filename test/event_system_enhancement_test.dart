@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
 
@@ -9,8 +10,9 @@ void main() {
   group('Event System Enhancement Tests (Step 7.3)', () {
     group('Event Persistence', () {
       test('EventPersistenceService basic functionality', () async {
+        final tempDir = Directory.systemTemp.createTempSync('event_test_');
         final service = EventPersistenceService(
-          storageDirectory: './test_logs',
+          storageDirectory: tempDir.path,
           enableCompression: false,
           maxFileSize: 1024,
         );
@@ -28,6 +30,7 @@ void main() {
         expect(stats.totalEvents, equals(1));
 
         await service.dispose();
+        tempDir.deleteSync(recursive: true);
       });
 
       test('EventPersistenceConfig presets', () {
@@ -41,8 +44,9 @@ void main() {
       });
 
       test('Event restoration and filtering', () async {
+        final tempDir = Directory.systemTemp.createTempSync('event_restore_');
         final service = EventPersistenceService(
-          storageDirectory: './test_logs_restore',
+          storageDirectory: tempDir.path,
           enableCompression: false,
         );
 
@@ -64,6 +68,7 @@ void main() {
         expect(events.first.name, equals('Event2'));
 
         await service.dispose();
+        tempDir.deleteSync(recursive: true);
       });
     });
 
@@ -291,8 +296,9 @@ void main() {
     group('Integration Tests', () {
       test('Complete event system workflow', () async {
         // Set up all components
+        final tempDir = Directory.systemTemp.createTempSync('event_workflow_');
         final persistenceService = EventPersistenceService(
-          storageDirectory: './test_complete_workflow',
+          storageDirectory: tempDir.path,
           enableCompression: false,
         );
 
@@ -357,6 +363,7 @@ void main() {
         await persistenceService.dispose();
         await debugMonitor.dispose();
         await aggregationService.dispose();
+        tempDir.deleteSync(recursive: true);
       });
     });
   });

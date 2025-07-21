@@ -1,9 +1,159 @@
-/// AnchorProvider implementation for Solana Anchor programs
+/// # AnchorProvider - Connection and Wallet Management
 ///
-/// This module provides the core AnchorProvider class that combines connection
-/// and wallet functionality to provide a unified interface for interacting
-/// with Solana programs through Anchor.
-
+/// The `AnchorProvider` class combines Solana RPC connection management with
+/// wallet functionality to provide a unified interface for interacting with
+/// Anchor programs. It handles transaction signing, submission, and confirmation
+/// while providing flexible configuration options.
+///
+/// ## Features
+///
+/// - **Connection Management**: Handle RPC connections to Solana clusters
+/// - **Wallet Integration**: Support for various wallet types and signing
+/// - **Transaction Handling**: Send, confirm, and simulate transactions
+/// - **Commitment Levels**: Configurable commitment for different use cases
+/// - **Error Handling**: Comprehensive error parsing and context
+/// - **Batch Operations**: Send multiple transactions efficiently
+///
+/// ## Basic Usage
+///
+/// ```dart
+/// // Connect to devnet
+/// final connection = Connection('https://api.devnet.solana.com');
+///
+/// // Create or load your wallet
+/// final wallet = Keypair.generate(); // or load from secret key
+///
+/// // Create provider
+/// final provider = AnchorProvider(connection, wallet);
+///
+/// // Use with Program
+/// final program = Program(idl, programId, provider);
+/// ```
+///
+/// ## Advanced Configuration
+///
+/// ```dart
+/// // Custom confirmation options
+/// final provider = AnchorProvider(
+///   connection,
+///   wallet,
+///   AnchorProviderOptions(
+///     commitment: Commitment.finalized,        // Wait for finalization
+///     preflightCommitment: Commitment.recent,  // Use recent for preflight
+///     skipPreflight: false,                    // Always check transactions
+///     maxRetries: 3,                           // Retry failed transactions
+///   ),
+/// );
+/// ```
+///
+/// ## Transaction Management
+///
+/// ```dart
+/// // Send and confirm a transaction
+/// final signature = await provider.sendAndConfirm(
+///   transaction,
+///   signers: [wallet, additionalSigner],
+///   options: ConfirmOptions(
+///     commitment: Commitment.confirmed,
+///     skipPreflight: false,
+///   ),
+/// );
+///
+/// // Simulate before sending
+/// final simulation = await provider.simulate(transaction);
+/// if (simulation.err != null) {
+///   print('Transaction would fail: ${simulation.err}');
+/// }
+///
+/// // Send multiple transactions
+/// final signatures = await provider.sendAll([
+///   SendTxRequest(tx: tx1, signers: [signer1]),
+///   SendTxRequest(tx: tx2, signers: [signer2]),
+/// ]);
+/// ```
+///
+/// ## Wallet Integration
+///
+/// ```dart
+/// // With Keypair wallet
+/// final keypair = Keypair.fromSecretKey(secretKeyBytes);
+/// final provider = AnchorProvider(connection, keypair);
+///
+/// // With custom wallet implementation
+/// class MyCustomWallet implements Wallet {
+///   @override
+///   PublicKey get publicKey => myPublicKey;
+///
+///   @override
+///   Future<Uint8List> signTransaction(Transaction tx) async {
+///     // Custom signing logic
+///   }
+///
+///   @override
+///   Future<List<Uint8List>> signAllTransactions(List<Transaction> txs) async {
+///     // Batch signing logic
+///   }
+/// }
+///
+/// final customWallet = MyCustomWallet();
+/// final provider = AnchorProvider(connection, customWallet);
+/// ```
+///
+/// ## Error Handling
+///
+/// ```dart
+/// try {
+///   final signature = await provider.sendAndConfirm(transaction);
+///   print('Transaction confirmed: $signature');
+/// } on TransactionError catch (e) {
+///   print('Transaction failed: ${e.message}');
+///   print('Error details: ${e.logs}');
+/// } on NetworkError catch (e) {
+///   print('Network error: ${e.message}');
+/// } catch (e) {
+///   print('Unexpected error: $e');
+/// }
+/// ```
+///
+/// ## TypeScript Compatibility
+///
+/// This provider implementation matches the TypeScript Anchor Provider API:
+///
+/// | TypeScript Method | Dart Equivalent | Notes |
+/// |-------------------|-----------------|-------|
+/// | `provider.sendAndConfirm()` | `provider.sendAndConfirm()` | Same signature |
+/// | `provider.simulate()` | `provider.simulate()` | Same functionality |
+/// | `provider.sendAll()` | `provider.sendAll()` | Batch operations |
+/// | `provider.connection` | `provider.connection` | RPC connection |
+/// | `provider.wallet` | `provider.wallet` | Wallet interface |
+///
+/// ## Mobile and Flutter Integration
+///
+/// ```dart
+/// // Flutter widget integration
+/// class SolanaWidget extends StatefulWidget {
+///   @override
+///   _SolanaWidgetState createState() => _SolanaWidgetState();
+/// }
+///
+/// class _SolanaWidgetState extends State<SolanaWidget> {
+///   late AnchorProvider provider;
+///
+///   @override
+///   void initState() {
+///     super.initState();
+///     _initializeProvider();
+///   }
+///
+///   Future<void> _initializeProvider() async {
+///     final connection = Connection('https://api.devnet.solana.com');
+///     final wallet = await loadWalletFromSecureStorage();
+///     provider = AnchorProvider(connection, wallet);
+///   }
+///
+///   // ... rest of widget
+/// }
+/// ```
 library;
 
 import 'dart:async';

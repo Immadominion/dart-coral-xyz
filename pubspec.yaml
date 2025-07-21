@@ -1,12 +1,16 @@
 name: coral_xyz_anchor
-description: A comprehensive Dart client for Anchor programs on Solana
-version: 0.1.0
-homepage: https://github.com/your-username/dart-coral-xyz
-repository: https://github.com/your-username/dart-coral-xyz
-issue_tracker: https://github.com/your-username/dart-coral-xyz/issues
+description: |
+  A comprehensive Dart client for Anchor programs on Solana.
+  Provides type-safe program interactions, IDL parsing, and seamless integration
+  with Solana's Anchor framework.
+version: 1.0.0
+homepage: https://github.com/coral-xyz/dart-coral-xyz
+repository: https://github.com/coral-xyz/dart-coral-xyz
+issue_tracker: https://github.com/coral-xyz/dart-coral-xyz/issues
+documentation: https://pub.dev/documentation/coral_xyz_anchor
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   # Core Dart dependencies
@@ -85,10 +89,8 @@ topics:
   - anchor
   - blockchain
   - web3
+  - crypto
 
 # screenshots:
 #   - description: 'Basic usage example'
 #     path: screenshots/example.png
-
-funding:
-  - https://github.com/sponsors/your-username

@@ -1,13 +1,186 @@
-/// IDL (Interface Definition Language) system with essential PDA support
+/// # Interface Definition Language (IDL) System
 ///
-/// This module handles parsing, validation, and management of Anchor IDL files
-/// which define the interface and structure of Anchor programs.
-
+/// The IDL system provides comprehensive support for parsing, validating, and
+/// managing Anchor Interface Definition Language files. IDL files define the
+/// complete interface of Anchor programs including instructions, accounts,
+/// events, errors, and custom types.
+///
+/// ## Features
+///
+/// - **Complete IDL Parsing**: Support for all Anchor IDL features
+/// - **Type-Safe Validation**: Comprehensive validation with detailed error reporting
+/// - **TypeScript Compatibility**: Full compatibility with TypeScript IDL format
+/// - **Advanced Utilities**: Type introspection, complexity analysis, and more
+/// - **On-Chain Fetching**: Retrieve IDL files directly from program accounts
+///
+/// ## Basic Usage
+///
+/// ```dart
+/// // Parse IDL from JSON string
+/// final idl = Idl.fromJson(jsonDecode(idlJsonString));
+///
+/// // Fetch IDL from on-chain program account
+/// final idl = await Idl.fetchFromAddress(programId, provider);
+///
+/// // Validate IDL structure
+/// final validation = IdlUtils.validateIdl(idl);
+/// if (validation.hasErrors) {
+///   print('Validation errors: ${validation.errors}');
+/// }
+/// ```
+///
+/// ## IDL Structure
+///
+/// An IDL defines the complete interface of an Anchor program:
+///
+/// ```dart
+/// final idl = Idl(
+///   name: 'my_program',
+///   version: '0.1.0',
+///   instructions: [
+///     IdlInstruction(
+///       name: 'initialize',
+///       args: [IdlField(name: 'amount', type: IdlType.u64())],
+///       accounts: [
+///         IdlAccountItem.single(IdlAccount(name: 'user', isMut: false, isSigner: true)),
+///         IdlAccountItem.single(IdlAccount(name: 'systemProgram', isMut: false, isSigner: false)),
+///       ],
+///     ),
+///   ],
+///   accounts: [
+///     IdlAccount(name: 'Counter', type: IdlTypeDef(/* ... */)),
+///   ],
+///   events: [
+///     IdlEvent(name: 'CounterUpdated', fields: [/* ... */]),
+///   ],
+/// );
+/// ```
+///
+/// ## Advanced Features
+///
+/// ### Type Introspection
+/// ```dart
+/// // Find all custom types referenced in the IDL
+/// final types = IdlUtils.extractTypeReferences(idl);
+///
+/// // Find which accounts use a specific type
+/// final accounts = IdlUtils.findAccountsUsingType(idl, 'MyCustomType');
+///
+/// // Calculate IDL complexity
+/// final complexity = IdlUtils.calculateComplexity(idl);
+/// ```
+///
+/// ### IDL Validation
+/// ```dart
+/// final result = IdlUtils.validateIdl(idl);
+///
+/// // Check for errors
+/// if (result.hasErrors) {
+///   for (final error in result.errors) {
+///     print('Error: ${error.message} at ${error.path}');
+///   }
+/// }
+///
+/// // Check for warnings
+/// if (result.hasWarnings) {
+///   for (final warning in result.warnings) {
+///     print('Warning: ${warning.message}');
+///   }
+/// }
+/// ```
+///
+/// ### Type Conversion
+/// ```dart
+/// // Convert snake_case IDL to Dart camelCase
+/// final dartIdl = IdlUtils.convertToCamelCase(idl);
+///
+/// // Generate summary for documentation
+/// final summary = IdlUtils.generateSummary(idl);
+/// print('Program: ${summary.name} (${summary.instructionCount} instructions)');
+/// ```
+///
+/// ## On-Chain IDL Fetching
+///
+/// Anchor programs can store their IDL on-chain for dynamic loading:
+///
+/// ```dart
+/// try {
+///   // Fetch IDL from program's IDL account
+///   final idl = await Idl.fetchFromAddress(programId, provider);
+///   final program = Program(idl, programId, provider);
+/// } on IdlError catch (e) {
+///   // Handle IDL not found or invalid
+///   print('Failed to fetch IDL: ${e.message}');
+/// }
+/// ```
+///
+/// ## TypeScript Compatibility
+///
+/// This IDL implementation is fully compatible with TypeScript Anchor IDLs:
+///
+/// | TypeScript Feature | Dart Support | Notes |
+/// |-------------------|--------------|-------|
+/// | Instructions | ✅ Complete | Full argument and account support |
+/// | Accounts | ✅ Complete | Type definitions and constraints |
+/// | Events | ✅ Complete | Event fields and discriminators |
+/// | Errors | ✅ Complete | Custom error codes and messages |
+/// | Types | ✅ Complete | All Borsh types + custom types |
+/// | Constants | ✅ Complete | Program constants |
+/// | Metadata | ✅ Complete | Version and deployment info |
+///
+/// ## Error Handling
+///
+/// ```dart
+/// try {
+///   final idl = Idl.fromJson(json);
+/// } on IdlParseError catch (e) {
+///   print('Failed to parse IDL: ${e.message}');
+/// } on IdlValidationError catch (e) {
+///   print('Invalid IDL structure: ${e.message}');
+/// }
+/// ```
 library;
 
 // Core IDL Types (Task 2.1)
 
-/// The main IDL structure that defines an Anchor program interface
+/// ## The Main IDL Class
+///
+/// The `Idl` class represents a complete Anchor program interface definition.
+/// It contains all the information needed to interact with an Anchor program
+/// including instructions, accounts, events, errors, and custom types.
+///
+/// ### Constructor Parameters
+///
+/// - `instructions` - List of program instructions (required)
+/// - `address` - Program's on-chain address (optional)
+/// - `name` - Human-readable program name (optional)
+/// - `version` - Program version string (optional)
+/// - `metadata` - Additional metadata like spec version (optional)
+/// - `docs` - Program documentation strings (optional)
+/// - `accounts` - Account type definitions (optional)
+/// - `events` - Event definitions for program events (optional)
+/// - `errors` - Custom error code definitions (optional)
+/// - `types` - Custom type definitions (optional)
+/// - `constants` - Program constant definitions (optional)
+///
+/// ### Example
+///
+/// ```dart
+/// final idl = Idl(
+///   name: 'counter_program',
+///   version: '0.1.0',
+///   instructions: [
+///     IdlInstruction(
+///       name: 'initialize',
+///       args: [IdlField(name: 'initial_count', type: IdlType.u64())],
+///       accounts: [/* account definitions */],
+///     ),
+///   ],
+///   accounts: [
+///     IdlAccount(name: 'Counter', type: /* type definition */),
+///   ],
+/// );
+/// ```
 class Idl {
   const Idl({
     required this.instructions,
