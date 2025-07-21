@@ -348,10 +348,26 @@ class BorshInstructionCoder implements InstructionCoder {
         serializer.writeI32(value as int);
         break;
       case 'u64':
-        serializer.writeU64(value as int);
+        // Accept int or BigInt for u64
+        if (value is BigInt) {
+          serializer.writeU64(value.toInt());
+        } else if (value is int) {
+          serializer.writeU64(value);
+        } else {
+          throw InstructionCoderException(
+              'Invalid u64 value type: ${value.runtimeType}');
+        }
         break;
       case 'i64':
-        serializer.writeI64(value as int);
+        // Accept int or BigInt for i64
+        if (value is BigInt) {
+          serializer.writeI64(value.toInt());
+        } else if (value is int) {
+          serializer.writeI64(value);
+        } else {
+          throw InstructionCoderException(
+              'Invalid i64 value type: ${value.runtimeType}');
+        }
         break;
       case 'string':
         serializer.writeString(value as String);

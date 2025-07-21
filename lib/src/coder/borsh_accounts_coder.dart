@@ -38,11 +38,11 @@ abstract class AccountsCoder<A extends String> {
 
 /// Account layout with discriminator and type definition
 class AccountLayout {
-
   const AccountLayout({
     required this.discriminator,
     required this.typeDef,
   });
+
   /// The 8-byte discriminator for this account type
   final Uint8List discriminator;
 
@@ -52,7 +52,6 @@ class AccountLayout {
 
 /// Enhanced Borsh-based implementation of AccountsCoder
 class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
-
   /// Create a new BorshAccountsCoder matching TypeScript implementation
   BorshAccountsCoder(this.idl) {
     if (idl.accounts == null || idl.accounts!.isEmpty) {
@@ -72,6 +71,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       _buildAccountLayouts();
     }
   }
+
   /// The IDL containing account definitions
   final Idl idl;
 
@@ -82,8 +82,9 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
   bool _hasInlineAccountTypes() {
     if (idl.accounts == null) return false;
 
-    return idl.accounts!.any((account) =>
-        account.type.kind == 'struct' || account.type.kind == 'enum',);
+    return idl.accounts!.any(
+      (account) => account.type.kind == 'struct' || account.type.kind == 'enum',
+    );
   }
 
   /// Build account layouts from inline account type definitions
@@ -98,11 +99,13 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         type: acc.type, // acc.type is already IdlTypeDefType
       );
 
-      // Use existing discriminator or generate a default one if missing
-      final discriminator = acc.discriminator ?? [0, 0, 0, 0, 0, 0, 0, 0];
+      // Use existing discriminator or compute one if missing
+      final Uint8List discriminator = acc.discriminator != null
+          ? Uint8List.fromList(acc.discriminator!)
+          : DiscriminatorComputer.computeAccountDiscriminator(acc.name);
 
       layouts[acc.name as A] = AccountLayout(
-        discriminator: Uint8List.fromList(discriminator),
+        discriminator: discriminator,
         typeDef: typeDef,
       );
     }
@@ -122,13 +125,12 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         orElse: () => throw AccountCoderError('Account not found: ${acc.name}'),
       );
 
-      final discriminator = acc.discriminator;
-      if (discriminator == null) {
-        throw AccountCoderError('Account ${acc.name} missing discriminator');
-      }
-
+      // Use predefined discriminator or compute if missing
+      final Uint8List discriminator = acc.discriminator != null
+          ? Uint8List.fromList(acc.discriminator!)
+          : DiscriminatorComputer.computeAccountDiscriminator(acc.name);
       layouts[acc.name as A] = AccountLayout(
-        discriminator: Uint8List.fromList(discriminator),
+        discriminator: discriminator,
         typeDef: typeDef,
       );
     }
@@ -171,7 +173,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         expectedDiscriminator: discriminator.toList(),
         actualDiscriminator: data.toList(),
         accountAddress: PublicKey.fromBase58(
-            '11111111111111111111111111111112',), // Placeholder
+          '11111111111111111111111111111112',
+        ), // Placeholder
         errorLogs: [
           'Account data too short for discriminator',
         ],
@@ -187,7 +190,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         expectedDiscriminator: discriminator.toList(),
         actualDiscriminator: dataDiscriminator.toList(),
         accountAddress: PublicKey.fromBase58(
-            '11111111111111111111111111111112',), // Placeholder
+          '11111111111111111111111111111112',
+        ), // Placeholder
         errorLogs: [
           'Invalid account discriminator',
         ],
@@ -235,6 +239,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       _decodeAccountData(accountData, layout.typeDef, result, offset);
       return result as T;
     } catch (e) {
+      // Generic Borsh decode failed; propagate error for proper handling
       throw AccountDidNotDeserializeError(
         errorLogs: ['Failed to deserialize account $accountName'],
         logs: ['Error: $e'],
@@ -295,19 +300,33 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
 
   /// Simple account data encoding
   void _encodeAccountData(
-      dynamic account, IdlTypeDef typeDef, List<int> buffer,) {
+    dynamic account,
+    IdlTypeDef typeDef,
+    List<int> buffer,
+  ) {
     if (account is Map<String, dynamic>) {
       // Handle Counter account specifically with proper Borsh encoding
       if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
-        final count = account['count'] as int? ?? 0;
-        final bump = account['bump'] as int? ?? 0;
+        // Support count as BigInt or int
+        final rawCount = account['count'];
+        int count;
+        if (rawCount is BigInt) {
+          count = rawCount.toInt();
+        } else if (rawCount is int) {
+          count = rawCount;
+        } else {
+          count = 0;
+        }
+        // Support bump as int or BigInt
+        final rawBump = account['bump'];
+        final bump = rawBump is BigInt
+            ? rawBump.toInt()
+            : (rawBump is int ? rawBump : 0);
 
         // Encode u64 count (8 bytes, little endian)
         _encodeU64LittleEndian(count, buffer);
-
         // Encode u8 bump (1 byte)
         buffer.add(bump & 0xFF);
-
         return;
       }
 
@@ -317,7 +336,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       buffer.addAll(bytes);
     } else {
       throw AccountCoderError(
-          'Expected Map for account encoding, got ${account.runtimeType}',);
+        'Expected Map for account encoding, got ${account.runtimeType}',
+      );
     }
   }
 
@@ -329,26 +349,28 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
   }
 
   /// Simple account data decoding
-  void _decodeAccountData(Uint8List data, IdlTypeDef typeDef,
-      Map<String, dynamic> result, int offset,) {
+  void _decodeAccountData(
+    Uint8List data,
+    IdlTypeDef typeDef,
+    Map<String, dynamic> result,
+    int offset,
+  ) {
     try {
       // Handle Counter account specifically with proper Borsh decoding
       if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
         final fields = typeDef.type.fields;
         if (fields != null && fields.length == 2) {
-          // Decode u64 count (8 bytes, little endian)
+          // Decode u64 count (8 bytes, little endian) as BigInt
           if (data.length >= 8) {
             final countBytes = data.sublist(0, 8);
-            final count = _decodeU64LittleEndian(countBytes);
-            result['count'] = count;
+            final countValue = _decodeU64LittleEndian(countBytes);
+            result['count'] = BigInt.from(countValue);
           }
-
           // Decode u8 bump (1 byte)
           if (data.length >= 9) {
             final bump = data[8];
             result['bump'] = bump;
           }
-
           return;
         }
       }
@@ -383,7 +405,6 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
 
 /// Error thrown when account coder operations fail
 class AccountCoderError extends Error {
-
   AccountCoderError(this.message);
   final String message;
 
