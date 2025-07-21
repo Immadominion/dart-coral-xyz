@@ -1,7 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // Generated from IDL: test_program
 // Version: 0.1.0
-// Generated at: 2025-07-21T19:49:48.311352
+// Generated at: 2025-07-21T21:28:50.515869
 
 import 'dart:typed_data';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
@@ -11,45 +11,6 @@ import 'package:solana/solana.dart' as solana;
 
 /// Program ID for test_program
 const String kProgramId = '11111111111111111111111111111112';
-
-/// Base class for instruction builders in this test
-abstract class TestInstructionBuilder {
-  /// Program instance
-  final Program program;
-
-  TestInstructionBuilder({required this.program});
-
-  /// Create instruction
-  Future<tx.TransactionInstruction> instruction();
-
-  /// Send and confirm transaction
-  Future<String> rpc({
-    solana.Commitment? commitment,
-    List<PublicKey>? signers,
-    Map<String, dynamic>? options,
-  }) async {
-    final instruction = await this.instruction();
-    final transaction = tx.Transaction(
-      instructions: [instruction],
-      feePayer: program.provider.wallet?.publicKey,
-    );
-    return await program.provider.sendAndConfirm(transaction);
-  }
-
-  /// Simulate transaction
-  Future<TransactionSimulationResult> simulate({
-    solana.Commitment? commitment,
-    List<PublicKey>? signers,
-    Map<String, dynamic>? options,
-  }) async {
-    final instruction = await this.instruction();
-    final transaction = tx.Transaction(
-      instructions: [instruction],
-      feePayer: program.provider.wallet?.publicKey,
-    );
-    return await program.provider.simulate(transaction);
-  }
-}
 
 /// Main program interface for test_program
 class TestProgramProgram extends Program {
@@ -210,36 +171,83 @@ class InitializeAccounts {
 }
 
 /// Builder for initialize instruction
-class InitializeInstructionBuilder extends TestInstructionBuilder {
+class InitializeInstructionBuilder extends InstructionBuilder {
   /// Creates a new InitializeInstructionBuilder
   InitializeInstructionBuilder({
-    required Program program,
+    required this.program,
     this.amount,
-  }) : super(program: program);
+  }) : super(
+    idl: program.idl,
+    methodName: 'initialize',
+    instructionCoder: program.coder.instructions,
+    accountsResolver: _createAccountsResolver(program),
+  );
+
+  /// Helper method to create an AccountsResolver for instruction building
+  static AccountsResolver _createAccountsResolver(Program program) {
+    // For now, create a minimal AccountsResolver with empty data
+    // In a production system, this would be properly implemented
+    return AccountsResolver(
+      args: <dynamic>[],
+      accounts: <String, dynamic>{},
+      provider: program.provider,
+      programId: program.programId,
+      idlInstruction: program.idl.instructions.first, // Placeholder
+      idlTypes: program.idl.types ?? [],
+    );
+  }
+
+  /// Program instance
+  final Program program;
 
   /// amount argument
   final BigInt? amount;
 
-  /// Add accounts configuration
-  InitializeInstructionBuilder accounts(InitializeAccounts accounts) {
-    return this;
-  }
-
-  /// Add signers configuration
-  InitializeInstructionBuilder signers(List<dynamic> signers) {
-    return this;
-  }
-
   /// Create instruction
-  @override
   Future<tx.TransactionInstruction> instruction() async {
-    // Create a mock result for testing
+    final args = <String, dynamic>{
+      if (amount != null) 'amount': amount,
+    };
+    final result = await super.args(args).build();
     return tx.TransactionInstruction(
-      programId: program.programId,
-      accounts: <tx.AccountMeta>[],
-      data: Uint8List(0),
+      programId: result.programId,
+      accounts: result.metas.map((meta) => tx.AccountMeta(
+        pubkey: meta.pubkey,
+        isSigner: meta.isSigner,
+        isWritable: meta.isWritable,
+      )).toList(),
+      data: result.data,
     );
   }
+
+  /// Send and confirm transaction
+  Future<String> rpc({
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
+  }) async {
+    final instruction = await this.instruction();
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
+    );
+    return await program.provider.sendAndConfirm(transaction);
+  }
+
+  /// Simulate transaction
+  Future<TransactionSimulationResult> simulate({
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
+  }) async {
+    final instruction = await this.instruction();
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
+    );
+    return await program.provider.simulate(transaction);
+  }
+
 }
 
 /// Accounts configuration for update instruction
@@ -265,36 +273,83 @@ class UpdateAccounts {
 }
 
 /// Builder for update instruction
-class UpdateInstructionBuilder extends TestInstructionBuilder {
+class UpdateInstructionBuilder extends InstructionBuilder {
   /// Creates a new UpdateInstructionBuilder
   UpdateInstructionBuilder({
-    required Program program,
+    required this.program,
     this.newvalue,
-  }) : super(program: program);
+  }) : super(
+    idl: program.idl,
+    methodName: 'update',
+    instructionCoder: program.coder.instructions,
+    accountsResolver: _createAccountsResolver(program),
+  );
+
+  /// Helper method to create an AccountsResolver for instruction building
+  static AccountsResolver _createAccountsResolver(Program program) {
+    // For now, create a minimal AccountsResolver with empty data
+    // In a production system, this would be properly implemented
+    return AccountsResolver(
+      args: <dynamic>[],
+      accounts: <String, dynamic>{},
+      provider: program.provider,
+      programId: program.programId,
+      idlInstruction: program.idl.instructions.first, // Placeholder
+      idlTypes: program.idl.types ?? [],
+    );
+  }
+
+  /// Program instance
+  final Program program;
 
   /// newValue argument
   final String? newvalue;
 
-  /// Add accounts configuration
-  UpdateInstructionBuilder accounts(UpdateAccounts accounts) {
-    return this;
-  }
-
-  /// Add signers configuration
-  UpdateInstructionBuilder signers(List<dynamic> signers) {
-    return this;
-  }
-
   /// Create instruction
-  @override
   Future<tx.TransactionInstruction> instruction() async {
-    // Create a mock result for testing
+    final args = <String, dynamic>{
+      if (newvalue != null) 'newValue': newvalue,
+    };
+    final result = await super.args(args).build();
     return tx.TransactionInstruction(
-      programId: program.programId,
-      accounts: <tx.AccountMeta>[],
-      data: Uint8List(0),
+      programId: result.programId,
+      accounts: result.metas.map((meta) => tx.AccountMeta(
+        pubkey: meta.pubkey,
+        isSigner: meta.isSigner,
+        isWritable: meta.isWritable,
+      )).toList(),
+      data: result.data,
     );
   }
+
+  /// Send and confirm transaction
+  Future<String> rpc({
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
+  }) async {
+    final instruction = await this.instruction();
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
+    );
+    return await program.provider.sendAndConfirm(transaction);
+  }
+
+  /// Simulate transaction
+  Future<TransactionSimulationResult> simulate({
+    solana.Commitment? commitment,
+    List<PublicKey>? signers,
+    Map<String, dynamic>? options,
+  }) async {
+    final instruction = await this.instruction();
+    final transaction = tx.Transaction(
+      instructions: [instruction],
+      feePayer: program.provider.wallet?.publicKey,
+    );
+    return await program.provider.simulate(transaction);
+  }
+
 }
 
 

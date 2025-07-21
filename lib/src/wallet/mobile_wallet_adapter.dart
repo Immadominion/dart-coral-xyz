@@ -9,6 +9,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:logging/logging.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart';
 import 'package:coral_xyz_anchor/src/wallet/wallet_adapter.dart';
@@ -30,6 +31,7 @@ class MobileWalletAdapter extends BaseWalletAdapter {
     _initialize();
   }
   static const String _name = 'Mobile Wallet Adapter';
+  static final _logger = Logger('MobileWalletAdapter');
 
   /// Configuration for the mobile wallet adapter
   final MobileWalletAdapterConfig _config;
@@ -794,6 +796,8 @@ class MobileWalletErrorResponse extends MobileWalletResponse {
 
 /// Deep link handler for mobile wallet communication
 class MobileWalletDeepLinkHandler {
+  static final _logger = Logger('MobileWalletDeepLinkHandler');
+  
   /// Stream controller for responses
   final StreamController<MobileWalletResponse> _responseController =
       StreamController<MobileWalletResponse>.broadcast();
@@ -807,8 +811,8 @@ class MobileWalletDeepLinkHandler {
     // In a real implementation, this would use platform-specific
     // code to launch the wallet app with the given URI
 
-    // For now, just print the URI that would be launched
-    print('Would launch wallet with URI: $uri');
+    // For now, just log the URI that would be launched
+    _logger.info('Would launch wallet with URI: $uri');
 
     // Simulate a delayed response for testing
     Future.delayed(const Duration(seconds: 2), () {
@@ -840,7 +844,7 @@ class MobileWalletDeepLinkHandler {
       }
     } catch (e) {
       // Handle malformed response
-      print('Failed to parse mobile wallet response: $e');
+      _logger.warning('Failed to parse mobile wallet response: $e');
     }
   }
 

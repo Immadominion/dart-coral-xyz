@@ -408,9 +408,9 @@ class Workspace extends Object {
       _programs[programName] = newProgram;
       _idls[programName] = newIdl;
 
-      print('Reloaded program "$programName" from updated IDL');
+      _logger.info('Reloaded program "$programName" from updated IDL');
     } catch (e) {
-      print('Warning: Failed to reload program from IDL: $e');
+      _logger.warning('Failed to reload program from IDL: $e');
     }
   }
 
@@ -443,14 +443,14 @@ class Workspace extends Object {
     }
 
     // Enable test mode logging
-    print('Test environment enabled');
+    _logger.info('Test environment enabled');
   }
 
   /// Enable hot reload functionality
   Future<void> _enableHotReload() async {
     // Hot reload implementation would go here
     // This is a placeholder for future implementation
-    print('Hot reload enabled (placeholder)');
+    _logger.info('Hot reload enabled (placeholder)');
   }
 
   /// Create a test environment setup
@@ -480,7 +480,7 @@ class Workspace extends Object {
           final idl = await workspace._createMinimalIdl(programName);
           await workspace.loadProgram(programName, idl, programId);
         } catch (e) {
-          print('Warning: Failed to load test program "$programName": $e');
+          _logger.warning('Failed to load test program "$programName": $e');
         }
       }
     }

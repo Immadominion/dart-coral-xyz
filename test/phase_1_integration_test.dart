@@ -11,7 +11,8 @@
 import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    as transaction_types;
 import 'package:coral_xyz_anchor/src/program/enhanced_transaction_builder.dart'
     show TransactionSimulationResult;
 
@@ -43,10 +44,14 @@ void main() {
 
       // Test fluent chaining
       final configuredBuilder = initializeBuilder
-          .accounts(InitializeAccounts(
-        user: PublicKey.fromBase58('11111111111111111111111111111111'),
-        systemprogram: PublicKey.fromBase58('11111111111111111111111111111111'),
-      ))
+          .accounts(
+        InitializeAccounts(
+          user: PublicKey.fromBase58('11111111111111111111111111111111'),
+          systemprogram: PublicKey.fromBase58(
+            '11111111111111111111111111111111',
+          ),
+        ),
+      )
           .signers(<dynamic>[]);
 
       expect(configuredBuilder, isA<InitializeInstructionBuilder>());
@@ -102,15 +107,21 @@ void main() {
       expect(updateBuilder, isA<UpdateInstructionBuilder>());
 
       // Test that they can be configured independently
-      final configuredInit = initializeBuilder.accounts(InitializeAccounts(
-        user: PublicKey.fromBase58('11111111111111111111111111111111'),
-        systemprogram: PublicKey.fromBase58('11111111111111111111111111111111'),
-      ));
+      final configuredInit = initializeBuilder.accounts(
+        InitializeAccounts(
+          user: PublicKey.fromBase58('11111111111111111111111111111111'),
+          systemprogram: PublicKey.fromBase58(
+            '11111111111111111111111111111111',
+          ),
+        ),
+      );
 
-      final configuredUpdate = updateBuilder.accounts(UpdateAccounts(
-        user: PublicKey.fromBase58('11111111111111111111111111111111'),
-        account: PublicKey.fromBase58('11111111111111111111111111111111'),
-      ));
+      final configuredUpdate = updateBuilder.accounts(
+        UpdateAccounts(
+          user: PublicKey.fromBase58('11111111111111111111111111111111'),
+          account: PublicKey.fromBase58('11111111111111111111111111111111'),
+        ),
+      );
 
       expect(configuredInit, isA<InitializeInstructionBuilder>());
       expect(configuredUpdate, isA<UpdateInstructionBuilder>());
@@ -207,10 +218,7 @@ class MockAnchorProvider implements AnchorProvider {
     CommitmentConfig? commitment,
     List<PublicKey>? includeAccounts,
   }) async {
-    return const TransactionSimulationResult(
-      success: true,
-      logs: ['mock log'],
-    );
+    return const TransactionSimulationResult(success: true, logs: ['mock log']);
   }
 }
 
