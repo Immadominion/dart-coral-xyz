@@ -47,7 +47,10 @@ dependencies:
   
   # Additional blockchain utilities
   blockchain_utils: ^5.0.0             # Enhanced blockchain utilities
-  
+  build: ^2.4.1                       # Builder API for code generation
+  source_gen: ^1.4.0                  # Source code generation support
+  analyzer: ^6.0.0                    # Dart analyzer APIs
+
   # Optional mobile/Flutter dependencies
   # flutter: 
   #   sdk: flutter
@@ -58,9 +61,6 @@ dev_dependencies:
   # dart_code_metrics: ^5.7.6  # Disabled due to http version conflicts
   mockito: ^5.4.2
   build_runner: ^2.4.7
-  build: ^2.4.1
-  source_gen: ^1.4.0
-  analyzer: ^6.0.0
 
 # Build configuration for code generation
 build_runner:
