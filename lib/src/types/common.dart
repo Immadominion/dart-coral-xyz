@@ -98,7 +98,8 @@ class ByteUtils {
   }
 
   /// Convert an 8-bit unsigned integer to bytes
-  static Uint8List uint8ToBytes(int value) => Uint8List.fromList([value & 0xFF]);
+  static Uint8List uint8ToBytes(int value) =>
+      Uint8List.fromList([value & 0xFF]);
 
   /// Convert bytes to an 8-bit unsigned integer
   static int bytesToUint8(Uint8List bytes) {
@@ -139,7 +140,8 @@ class ByteUtils {
   }
 
   /// Convert bytes to hexadecimal string
-  static String toHex(Uint8List bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+  static String toHex(Uint8List bytes) =>
+      bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Convert hexadecimal string to bytes
   static Uint8List fromHex(String hex) {
@@ -163,9 +165,9 @@ class ByteUtils {
 class StringUtils {
   /// Convert camelCase to snake_case
   static String camelToSnake(String input) => input.replaceAllMapped(
-      RegExp(r'[A-Z]'),
-      (match) => '_${match.group(0)!.toLowerCase()}',
-    );
+        RegExp('[A-Z]'),
+        (match) => '_${match.group(0)!.toLowerCase()}',
+      );
 
   /// Convert snake_case to camelCase
   static String snakeToCamel(String input) {
@@ -213,10 +215,12 @@ class StringUtils {
 /// Utility functions for working with numbers and precision
 class NumberUtils {
   /// Convert lamports to SOL with proper decimal precision
-  static double lamportsToSol(int lamports) => lamports / AnchorConstants.lamportsPerSol;
+  static double lamportsToSol(int lamports) =>
+      lamports / AnchorConstants.lamportsPerSol;
 
   /// Convert SOL to lamports
-  static int solToLamports(double sol) => (sol * AnchorConstants.lamportsPerSol).round();
+  static int solToLamports(double sol) =>
+      (sol * AnchorConstants.lamportsPerSol).round();
 
   /// Format lamports as a human-readable SOL amount
   static String formatSol(int lamports, {int decimals = 9}) {
@@ -243,18 +247,13 @@ class NumberUtils {
 
 /// Result type for operations that can fail
 class Result<T, E> {
-
   const Result._(this._value, this._error, this._isSuccess);
 
   /// Create a successful result
-  factory Result.success(T value) {
-    return Result._(value, null, true);
-  }
+  factory Result.success(T value) => Result._(value, null, true);
 
   /// Create a failed result
-  factory Result.failure(E error) {
-    return Result._(null, error, false);
-  }
+  factory Result.failure(E error) => Result._(null, error, false);
   final T? _value;
   final E? _error;
   final bool _isSuccess;
@@ -311,7 +310,6 @@ class Result<T, E> {
 
 /// Exception base class for Anchor-related errors
 abstract class AnchorException implements Exception {
-
   const AnchorException(this.message, [this.cause]);
   final String message;
   final dynamic cause;

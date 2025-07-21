@@ -30,7 +30,6 @@ abstract class BorshDeserializable<T> {
 
 /// Main Borsh serializer and deserializer
 class BorshSerializer {
-
   /// Create a new serializer
   BorshSerializer();
   final List<int> _buffer = [];
@@ -53,7 +52,8 @@ class BorshSerializer {
   void writeU16(int value) {
     if (value < 0 || value > 65535) {
       throw BorshException(
-          'u16 value must be between 0 and 65535, got: $value',);
+        'u16 value must be between 0 and 65535, got: $value',
+      );
     }
     _buffer.add(value & 0xFF);
     _buffer.add((value >> 8) & 0xFF);
@@ -63,7 +63,8 @@ class BorshSerializer {
   void writeU32(int value) {
     if (value < 0 || value > 4294967295) {
       throw BorshException(
-          'u32 value must be between 0 and 4294967295, got: $value',);
+        'u32 value must be between 0 and 4294967295, got: $value',
+      );
     }
     _buffer.add(value & 0xFF);
     _buffer.add((value >> 8) & 0xFF);
@@ -87,7 +88,8 @@ class BorshSerializer {
   void writeI8(int value) {
     if (value < -128 || value > 127) {
       throw BorshException(
-          'i8 value must be between -128 and 127, got: $value',);
+        'i8 value must be between -128 and 127, got: $value',
+      );
     }
     _buffer.add(value < 0 ? value + 256 : value);
   }
@@ -96,7 +98,8 @@ class BorshSerializer {
   void writeI16(int value) {
     if (value < -32768 || value > 32767) {
       throw BorshException(
-          'i16 value must be between -32768 and 32767, got: $value',);
+        'i16 value must be between -32768 and 32767, got: $value',
+      );
     }
     final unsigned = value < 0 ? value + 65536 : value;
     _buffer.add(unsigned & 0xFF);
@@ -107,7 +110,8 @@ class BorshSerializer {
   void writeI32(int value) {
     if (value < -2147483648 || value > 2147483647) {
       throw BorshException(
-          'i32 value must be between -2147483648 and 2147483647, got: $value',);
+        'i32 value must be between -2147483648 and 2147483647, got: $value',
+      );
     }
     final unsigned = value < 0 ? value + 4294967296 : value;
     _buffer.add(unsigned & 0xFF);
@@ -120,7 +124,8 @@ class BorshSerializer {
   void writeI64(int value) {
     if (value < -9223372036854775808 || value > 9223372036854775807) {
       throw BorshException(
-          'i64 value must be between -9223372036854775808 and 9223372036854775807, got: $value',);
+        'i64 value must be between -9223372036854775808 and 9223372036854775807, got: $value',
+      );
     }
     // Convert to bytes using ByteData for proper signed integer handling
     final data = ByteData(8);
@@ -166,7 +171,6 @@ class BorshSerializer {
 
 /// Borsh deserializer
 class BorshDeserializer {
-
   /// Create a deserializer for the given data
   BorshDeserializer(this._data);
   final Uint8List _data;
@@ -276,7 +280,8 @@ class BorshDeserializer {
   Uint8List readFixedArray(int length) {
     if (_offset + length > _data.length) {
       throw BorshException(
-          'Not enough bytes to read fixed array of length $length',);
+        'Not enough bytes to read fixed array of length $length',
+      );
     }
     final result = _data.sublist(_offset, _offset + length);
     _offset += length;
@@ -380,7 +385,8 @@ class BorshDeserializer {
           // For defined types, we would need access to the IDL's type definitions
           // For now, fall back to reading bytes
           throw BorshException(
-              'Defined type "${type.defined}" not supported without IDL context',);
+            'Defined type "${type.defined}" not supported without IDL context',
+          );
         }
         throw BorshException('Unsupported IDL type: ${type.kind}');
     }
@@ -389,7 +395,6 @@ class BorshDeserializer {
 
 /// Exception thrown by Borsh operations
 class BorshException implements Exception {
-
   const BorshException(this.message);
   final String message;
 

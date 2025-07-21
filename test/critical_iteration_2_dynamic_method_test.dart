@@ -5,13 +5,12 @@
 
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/types.dart' as ns;
+import 'package:test/test.dart';
 
 // Mock Signer implementation for testing
 class MockSigner implements Signer {
-
   const MockSigner(this.publicKey);
   @override
   final PublicKey publicKey;
@@ -112,12 +111,15 @@ void main() {
         // Verify that we can access methods dynamically like TypeScript:
         // program.methods.initialize(value)
 
-        expect(() {
-          // This should not throw an error - the method exists in IDL
-          final dynamic methodsNamespace = program.methods;
-          final result = methodsNamespace.initialize([42]);
-          expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally,);
+        expect(
+          () {
+            // This should not throw an error - the method exists in IDL
+            final dynamic methodsNamespace = program.methods;
+            final result = methodsNamespace.initialize([42]);
+            expect(result, isA<TypeSafeMethodBuilder>());
+          },
+          returnsNormally,
+        );
       });
 
       test('should support bracket notation method access', () {
@@ -137,46 +139,58 @@ void main() {
       test('should handle methods with no arguments', () {
         // Test methods that don't require arguments
 
-        expect(() {
-          final dynamic methodsNamespace = program.methods;
-          final result = methodsNamespace.noArgs([]);
-          expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally,);
+        expect(
+          () {
+            final dynamic methodsNamespace = program.methods;
+            final result = methodsNamespace.noArgs([]);
+            expect(result, isA<TypeSafeMethodBuilder>());
+          },
+          returnsNormally,
+        );
       });
 
       test('should handle methods with multiple arguments', () {
         // Test methods with multiple parameters
 
-        expect(() {
-          final dynamic methodsNamespace = program.methods;
-          final result =
-              methodsNamespace.updateData(['test string', 1234567890]);
-          expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally,);
+        expect(
+          () {
+            final dynamic methodsNamespace = program.methods;
+            final result =
+                methodsNamespace.updateData(['test string', 1234567890]);
+            expect(result, isA<TypeSafeMethodBuilder>());
+          },
+          returnsNormally,
+        );
       });
 
       test('should throw helpful error for non-existent methods', () {
         // Verify proper error handling for invalid method names
 
-        expect(() {
-          final dynamic methodsNamespace = program.methods;
-          methodsNamespace.nonExistentMethod([]);
-        },
-            throwsA(isA<ArgumentError>().having(
+        expect(
+          () {
+            final dynamic methodsNamespace = program.methods;
+            methodsNamespace.nonExistentMethod([]);
+          },
+          throwsA(
+            isA<ArgumentError>().having(
               (e) => e.message,
               'message',
               contains('Method "nonExistentMethod" not found in program IDL'),
-            ),),);
+            ),
+          ),
+        );
       });
 
       test('should list available methods in error message', () {
         // Verify that error messages include available methods for discoverability
 
-        expect(() {
-          final dynamic methodsNamespace = program.methods;
-          methodsNamespace.invalidMethod([]);
-        },
-            throwsA(isA<ArgumentError>().having(
+        expect(
+          () {
+            final dynamic methodsNamespace = program.methods;
+            methodsNamespace.invalidMethod([]);
+          },
+          throwsA(
+            isA<ArgumentError>().having(
               (e) => e.message,
               'message',
               allOf([
@@ -185,7 +199,9 @@ void main() {
                 contains('updateData'),
                 contains('noArgs'),
               ]),
-            ),),);
+            ),
+          ),
+        );
       });
     });
 
@@ -193,19 +209,22 @@ void main() {
       test('should support full fluent chain like TypeScript', () {
         // Verify the complete fluent API chain works as expected
 
-        expect(() {
-          final dynamic methodsNamespace = program.methods;
-          final builder = methodsNamespace.initialize([42]);
+        expect(
+          () {
+            final dynamic methodsNamespace = program.methods;
+            final builder = methodsNamespace.initialize([42]);
 
-          // Chain should be fluent like TypeScript
-          final result = builder.accounts({
-            'user': PublicKey.fromBase58('11111111111111111111111111111111'),
-            'systemProgram':
-                PublicKey.fromBase58('11111111111111111111111111111111'),
-          }).signers(<Signer>[]);
+            // Chain should be fluent like TypeScript
+            final result = builder.accounts({
+              'user': PublicKey.fromBase58('11111111111111111111111111111111'),
+              'systemProgram':
+                  PublicKey.fromBase58('11111111111111111111111111111111'),
+            }).signers(<Signer>[]);
 
-          expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally,);
+            expect(result, isA<TypeSafeMethodBuilder>());
+          },
+          returnsNormally,
+        );
       });
 
       test('should support method chaining with bracket notation', () {
@@ -214,18 +233,21 @@ void main() {
         final methodFunction = program.methods['updateData'];
         expect(methodFunction, isNotNull);
 
-        expect(() {
-          final builder = methodFunction!(['new value', 9876543210]);
+        expect(
+          () {
+            final builder = methodFunction!(['new value', 9876543210]);
 
-          final result = builder.accounts({
-            'dataAccount':
-                PublicKey.fromBase58('11111111111111111111111111111111'),
-            'authority':
-                PublicKey.fromBase58('11111111111111111111111111111111'),
-          }).signers(<Signer>[]);
+            final result = builder.accounts({
+              'dataAccount':
+                  PublicKey.fromBase58('11111111111111111111111111111111'),
+              'authority':
+                  PublicKey.fromBase58('11111111111111111111111111111111'),
+            }).signers(<Signer>[]);
 
-          expect(result, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally,);
+            expect(result, isA<TypeSafeMethodBuilder>());
+          },
+          returnsNormally,
+        );
       });
 
       test('should maintain builder state independently', () {
@@ -319,19 +341,22 @@ void main() {
         //
         // The only difference is that Dart requires args in a list due to language constraints
 
-        expect(() {
-          final dynamic methodsNamespace = program.methods;
+        expect(
+          () {
+            final dynamic methodsNamespace = program.methods;
 
-          // This should work exactly like TypeScript (except for list wrapping)
-          final builder = methodsNamespace.initialize([42]);
-          final accountsSet = builder.accounts({
-            'user': PublicKey.fromBase58('11111111111111111111111111111111'),
-            'systemProgram':
-                PublicKey.fromBase58('11111111111111111111111111111111'),
-          });
+            // This should work exactly like TypeScript (except for list wrapping)
+            final builder = methodsNamespace.initialize([42]);
+            final accountsSet = builder.accounts({
+              'user': PublicKey.fromBase58('11111111111111111111111111111111'),
+              'systemProgram':
+                  PublicKey.fromBase58('11111111111111111111111111111111'),
+            });
 
-          expect(accountsSet, isA<TypeSafeMethodBuilder>());
-        }, returnsNormally,);
+            expect(accountsSet, isA<TypeSafeMethodBuilder>());
+          },
+          returnsNormally,
+        );
       });
 
       test('should support all TypeScript builder methods', () {
@@ -344,19 +369,25 @@ void main() {
         expect(() => builder.accounts(<String, PublicKey>{}), returnsNormally);
         expect(() => builder.signers(<Signer>[]), returnsNormally);
         expect(
-            () => builder.remainingAccounts(<ns.AccountMeta>[
-                  ns.AccountMeta(
-                    publicKey: PublicKey.fromBase58(
-                        '11111111111111111111111111111111',),
-                    isWritable: false,
-                    isSigner: false,
-                  ),
-                ]),
-            returnsNormally,);
-        expect(() => builder.preInstructions(<ns.TransactionInstruction>[]),
-            returnsNormally,);
-        expect(() => builder.postInstructions(<ns.TransactionInstruction>[]),
-            returnsNormally,);
+          () => builder.remainingAccounts(<ns.AccountMeta>[
+            ns.AccountMeta(
+              publicKey: PublicKey.fromBase58(
+                '11111111111111111111111111111111',
+              ),
+              isWritable: false,
+              isSigner: false,
+            ),
+          ]),
+          returnsNormally,
+        );
+        expect(
+          () => builder.preInstructions(<ns.TransactionInstruction>[]),
+          returnsNormally,
+        );
+        expect(
+          () => builder.postInstructions(<ns.TransactionInstruction>[]),
+          returnsNormally,
+        );
 
         // Execution methods
         expect(builder.instruction, isA<Function>());
@@ -370,11 +401,13 @@ void main() {
       test('should provide clear error messages for invalid method access', () {
         // Verify developer-friendly error messages
 
-        expect(() {
-          final dynamic methodsNamespace = program.methods;
-          methodsNamespace.thisMethodDoesNotExist([]);
-        },
-            throwsA(isA<ArgumentError>().having(
+        expect(
+          () {
+            final dynamic methodsNamespace = program.methods;
+            methodsNamespace.thisMethodDoesNotExist([]);
+          },
+          throwsA(
+            isA<ArgumentError>().having(
               (e) => e.message,
               'message',
               allOf([
@@ -382,7 +415,9 @@ void main() {
                 contains('Available methods:'),
                 contains('[initialize, updateData, noArgs]'),
               ]),
-            ),),);
+            ),
+          ),
+        );
       });
 
       test('should handle property access vs method calls correctly', () {
@@ -391,17 +426,23 @@ void main() {
         final dynamic methodsNamespace = program.methods;
 
         // Property access should fail normally (not intercepted)
-        expect(() {
-          // This is property access, not a method call
-          // ignore: unused_local_variable
-          final something = methodsNamespace.nonExistentProperty;
-        }, throwsA(isA<NoSuchMethodError>()),);
+        expect(
+          () {
+            // This is property access, not a method call
+            // ignore: unused_local_variable
+            final something = methodsNamespace.nonExistentProperty;
+          },
+          throwsA(isA<NoSuchMethodError>()),
+        );
 
         // Method calls should be intercepted
-        expect(() {
-          // This is a method call - should be intercepted
-          methodsNamespace.nonExistentMethod([]);
-        }, throwsA(isA<ArgumentError>()),);
+        expect(
+          () {
+            // This is a method call - should be intercepted
+            methodsNamespace.nonExistentMethod([]);
+          },
+          throwsA(isA<ArgumentError>()),
+        );
       });
     });
   });

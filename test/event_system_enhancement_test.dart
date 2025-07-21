@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 /// Tests for the enhanced event system (Step 7.3)
 ///
@@ -225,27 +225,36 @@ void main() {
 
         // Add a filter processor
         pipeline.addProcessor(
-            FilterProcessor((event) => event.eventName.startsWith('Keep')),);
+          FilterProcessor((event) => event.eventName.startsWith('Keep')),
+        );
 
         // Add a transform processor
-        pipeline.addProcessor(TransformProcessor((event) => event
-            .copyWith(data: {'transformed': true, 'original': event.data}),),);
+        pipeline.addProcessor(
+          TransformProcessor(
+            (event) => event
+                .copyWith(data: {'transformed': true, 'original': event.data}),
+          ),
+        );
 
         final outputEvents = <ProcessedEvent>[];
         pipeline.output.listen(outputEvents.add);
 
         // Process events
-        pipeline.input.add(ProcessedEvent(
-          eventName: 'KeepThis',
-          data: {'value': 1},
-          timestamp: DateTime.now(),
-        ),);
+        pipeline.input.add(
+          ProcessedEvent(
+            eventName: 'KeepThis',
+            data: {'value': 1},
+            timestamp: DateTime.now(),
+          ),
+        );
 
-        pipeline.input.add(ProcessedEvent(
-          eventName: 'FilterThis',
-          data: {'value': 2},
-          timestamp: DateTime.now(),
-        ),);
+        pipeline.input.add(
+          ProcessedEvent(
+            eventName: 'FilterThis',
+            data: {'value': 2},
+            timestamp: DateTime.now(),
+          ),
+        );
 
         // Wait for processing
         await Future.delayed(const Duration(milliseconds: 10));
@@ -259,10 +268,12 @@ void main() {
       });
 
       test('EnrichmentProcessor functionality', () async {
-        final processor = EnrichmentProcessor((event) => {
-              'enriched_at': DateTime.now().toIso8601String(),
-              'event_type': event.eventName.toLowerCase(),
-            },);
+        final processor = EnrichmentProcessor(
+          (event) => {
+            'enriched_at': DateTime.now().toIso8601String(),
+            'event_type': event.eventName.toLowerCase(),
+          },
+        );
 
         final event = ProcessedEvent(
           eventName: 'TestEvent',
@@ -321,7 +332,10 @@ void main() {
 
           // Process for aggregation
           aggregationService.processEvent(
-              event.name, event.data, DateTime.now(),);
+            event.name,
+            event.data,
+            DateTime.now(),
+          );
 
           // Complete tracking
           debugMonitor.completeEventProcessing(trackingId);

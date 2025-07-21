@@ -23,7 +23,8 @@ void demonstrateTypescriptCompatibility() {
         accounts: [
           IdlInstructionAccount(name: 'user', writable: true, signer: true),
           IdlInstructionAccount(
-              name: 'systemProgram',),
+            name: 'systemProgram',
+          ),
         ],
         args: [
           IdlField(name: 'value', type: IdlType(kind: 'u64')),
@@ -34,9 +35,13 @@ void demonstrateTypescriptCompatibility() {
         discriminator: [129, 25, 88, 69, 104, 200, 15, 164],
         accounts: [
           IdlInstructionAccount(
-              name: 'dataAccount', writable: true,),
+            name: 'dataAccount',
+            writable: true,
+          ),
           IdlInstructionAccount(
-              name: 'authority', signer: true,),
+            name: 'authority',
+            signer: true,
+          ),
         ],
         args: [
           IdlField(name: 'newValue', type: IdlType(kind: 'string')),
@@ -95,9 +100,11 @@ void demonstrateTypescriptCompatibility() {
   // Example 3: Complete fluent chain
   print('3. Complete Fluent Chain (TypeScript-compatible):');
   print(
-      '   TypeScript: program.methods.initialize(42).accounts({...}).signers([])',);
+    '   TypeScript: program.methods.initialize(42).accounts({...}).signers([])',
+  );
   print(
-      '   Dart:       program.methods.initialize([42]).accounts({...}).signers([])',);
+    '   Dart:       program.methods.initialize([42]).accounts({...}).signers([])',
+  );
   print('');
 
   try {
@@ -125,7 +132,8 @@ void demonstrateTypescriptCompatibility() {
   print('   Contains "initialize": ${program.methods.contains("initialize")}');
   print('   Contains "updateData": ${program.methods.contains("updateData")}');
   print(
-      '   Contains "nonExistent": ${program.methods.contains("nonExistent")}',);
+    '   Contains "nonExistent": ${program.methods.contains("nonExistent")}',
+  );
   print('');
 
   // Example 5: Error handling
@@ -145,7 +153,8 @@ void demonstrateTypescriptCompatibility() {
   final builder1 = methods.initialize([100]);
   final builder2 = methods.initialize([200]);
   print(
-      '   Builder 1 and Builder 2 are different instances: ${!identical(builder1, builder2)}',);
+    '   Builder 1 and Builder 2 are different instances: ${!identical(builder1, builder2)}',
+  );
   print('   ✅ Each method call creates a fresh builder (TypeScript behavior)');
   print('');
 
@@ -159,7 +168,8 @@ void demonstrateTypescriptCompatibility() {
   print('   ✅ Method introspection and validation');
   print('');
   print(
-      '🎯 The Dart SDK now provides the same developer experience as TypeScript!',);
+    '🎯 The Dart SDK now provides the same developer experience as TypeScript!',
+  );
 }
 
 void main() {

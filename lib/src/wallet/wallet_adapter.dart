@@ -227,13 +227,13 @@ abstract class BaseWalletAdapter implements WalletAdapter {
 
 /// Exception thrown when wallet operations fail
 class WalletException implements Exception {
-
   const WalletException(
     this.message, {
     this.code,
     this.cause,
     this.context,
   });
+
   /// The error message describing what went wrong
   final String message;
 
@@ -269,7 +269,9 @@ class WalletConnectionException extends WalletException {
     String? code,
     super.cause,
     super.context,
-  }) : super(code: code ?? 'CONNECTION_FAILED',);
+  }) : super(
+          code: code ?? 'CONNECTION_FAILED',
+        );
 }
 
 /// Exception thrown when user rejects a wallet operation
@@ -331,7 +333,6 @@ class WalletNotSupportedException extends WalletException {
 
 /// Exception thrown when wallet operation times out
 class WalletTimeoutException extends WalletException {
-
   WalletTimeoutException(
     this.timeout, [
     String? message,

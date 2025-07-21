@@ -9,16 +9,17 @@ library;
 
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/error/program_error.dart' as programErrorLib;
+import 'package:coral_xyz_anchor/src/error/program_error.dart'
+    as programErrorLib;
 
 /// Result of RPC error parsing
 class RpcErrorParseResult {
-
   const RpcErrorParseResult({
+    required this.originalError,
     this.anchorError,
     this.programError,
-    required this.originalError,
   });
+
   /// Parsed AnchorError if found
   final AnchorError? anchorError;
 
@@ -37,13 +38,13 @@ class RpcErrorParseResult {
 
 /// Enhanced error parsing context
 class ErrorParsingContext {
-
   const ErrorParsingContext({
     required this.error,
     required this.logs,
     this.idlErrors = const {},
     this.debugMode = false,
   });
+
   /// Original error object
   final dynamic error;
 
@@ -206,10 +207,12 @@ class RpcErrorParser {
             final leftPubkey = PublicKey.fromBase58(leftMatch.group(1)!);
             final rightPubkey = PublicKey.fromBase58(rightMatch.group(1)!);
 
-            errorLogs.addAll(logs.getRange(
-              anchorErrorLogIndex + 1,
-              anchorErrorLogIndex + 5,
-            ),);
+            errorLogs.addAll(
+              logs.getRange(
+                anchorErrorLogIndex + 1,
+                anchorErrorLogIndex + 5,
+              ),
+            );
 
             return ComparedValues.publicKeys([leftPubkey, rightPubkey]);
           }
@@ -236,10 +239,12 @@ class RpcErrorParser {
             final leftValue = leftMatch.group(2)!;
             final rightValue = rightMatch.group(2)!;
 
-            errorLogs.addAll(logs.getRange(
-              anchorErrorLogIndex + 1,
-              anchorErrorLogIndex + 3,
-            ),);
+            errorLogs.addAll(
+              logs.getRange(
+                anchorErrorLogIndex + 1,
+                anchorErrorLogIndex + 3,
+              ),
+            );
 
             return ComparedValues.accountNames([leftValue, rightValue]);
           }
@@ -368,7 +373,9 @@ class RpcErrorParser {
 
   /// Parse ProgramError from context
   static programErrorLib.ProgramError? _parseProgramError(
-      ErrorParsingContext context,) => programErrorLib.ProgramError.parse(context.error, context.idlErrors);
+    ErrorParsingContext context,
+  ) =>
+      programErrorLib.ProgramError.parse(context.error, context.idlErrors);
 
   /// Enhance error with program error stack from logs
   static dynamic _enhanceErrorWithLogs(dynamic error, List<String> logs) {
@@ -409,12 +416,12 @@ class RpcErrorParser {
 
 /// Enhanced error wrapper for errors with program context
 class EnhancedError extends Error {
-
   EnhancedError({
     required this.originalError,
     required this.programErrorStack,
     required this.logs,
   });
+
   /// Original error object
   final dynamic originalError;
 
@@ -445,7 +452,8 @@ class EnhancedError extends Error {
 
     if (programErrorStack.isNotEmpty) {
       buffer.write(
-          '\nProgram Stack: ${programStack.map((p) => p.toBase58()).join(' -> ')}',);
+        '\nProgram Stack: ${programStack.map((p) => p.toBase58()).join(' -> ')}',
+      );
     }
 
     buffer.write('\nLogs: ${logs.length} lines');

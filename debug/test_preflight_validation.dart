@@ -3,12 +3,13 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
+
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
 import 'package:coral_xyz_anchor/src/transaction/preflight_validator.dart';
 import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
 
 void main() async {
   print('Testing Pre-flight Account Validation System...\n');
@@ -47,9 +48,11 @@ void main() async {
     final testAccounts = [
       PublicKey.systemProgram,
       PublicKey.fromBase58(
-          'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',), // Token Program
+        'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+      ), // Token Program
       PublicKey.fromBase58(
-          '11111111111111111111111111111111',), // System Program
+        '11111111111111111111111111111111',
+      ), // System Program
     ];
 
     final validationResult = await validator.validateAccounts(
@@ -62,7 +65,8 @@ void main() async {
     print('   - Invalid accounts: ${validationResult.invalidAccounts}');
     print('   - Validation successful: ${validationResult.success}');
     print(
-        '   - Validation time: ${validationResult.validationTime.inMilliseconds}ms',);
+      '   - Validation time: ${validationResult.validationTime.inMilliseconds}ms',
+    );
     print('   - Errors: ${validationResult.errors.length}');
     print('   - Warnings: ${validationResult.warnings.length}');
 
@@ -77,11 +81,14 @@ void main() async {
     );
 
     print(
-        '   - Transaction validation successful: ${transactionValidationResult.success}',);
+      '   - Transaction validation successful: ${transactionValidationResult.success}',
+    );
     print(
-        '   - Accounts in transaction: ${transactionValidationResult.totalAccounts}',);
+      '   - Accounts in transaction: ${transactionValidationResult.totalAccounts}',
+    );
     print(
-        '   - Validation errors: ${transactionValidationResult.errors.length}',);
+      '   - Validation errors: ${transactionValidationResult.errors.length}',
+    );
 
     print('\n4. Testing different validation configurations...');
 
@@ -109,7 +116,8 @@ void main() async {
     );
     print('   - Batch validation successful: ${batchResult.success}');
     print(
-        '   - Batch validation time: ${batchResult.validationTime.inMilliseconds}ms',);
+      '   - Batch validation time: ${batchResult.validationTime.inMilliseconds}ms',
+    );
 
     print('\n6. Testing simulation with pre-flight validation...');
 
@@ -119,7 +127,8 @@ void main() async {
     );
 
     print(
-        '   - Simulation with preflight successful: ${simulationResult.success}',);
+      '   - Simulation with preflight successful: ${simulationResult.success}',
+    );
     print('   - Simulation logs: ${simulationResult.logs.length} entries');
     if (simulationResult.error != null) {
       print('   - Simulation error: ${simulationResult.error!.type}');
@@ -134,7 +143,8 @@ void main() async {
     print('   - Cache size before: ${cacheStats1['size']}');
     print('   - Cache size after: ${cacheStats2['size']}');
     print(
-        '   - Cache working: ${cacheStats2['size']! >= cacheStats1['size']!}',);
+      '   - Cache working: ${cacheStats2['size']! >= cacheStats1['size']!}',
+    );
 
     validator.clearCache();
     final cacheStats3 = validator.getCacheStats();
@@ -160,7 +170,8 @@ void main() async {
     final errorResult = await validator.validateAccounts([nonExistentAccount]);
 
     print(
-        '   - Non-existent account validation failed as expected: ${!errorResult.success}',);
+      '   - Non-existent account validation failed as expected: ${!errorResult.success}',
+    );
     print('   - Error count: ${errorResult.errors.length}');
     if (errorResult.errors.isNotEmpty) {
       print('   - Error type: ${errorResult.errors.first.type}');
@@ -168,7 +179,8 @@ void main() async {
     }
 
     print(
-        '\n✅ Pre-flight Account Validation System tests completed successfully!',);
+      '\n✅ Pre-flight Account Validation System tests completed successfully!',
+    );
     print('🚀 Phase 3, Step 3.2 is fully implemented and working.');
   } catch (e, stackTrace) {
     print('❌ Test failed with error: $e');

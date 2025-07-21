@@ -110,7 +110,6 @@ class RpcPerformanceStats {
 
 /// Configuration for RPC request/response logging
 class RpcLoggingConfig {
-
   const RpcLoggingConfig({
     this.logRequests = true,
     this.logResponses = true,
@@ -119,6 +118,7 @@ class RpcLoggingConfig {
     this.logBodies = false,
     this.logPrefix = '[RPC]',
   });
+
   /// Whether to log requests
   final bool logRequests;
 
@@ -139,7 +139,6 @@ class RpcLoggingConfig {
 
   /// Configuration for debugging (logs everything)
   static const debug = RpcLoggingConfig(
-    logResponses: true,
     logBodies: true,
     logPrefix: '[RPC-DEBUG]',
   );
@@ -154,7 +153,6 @@ class RpcLoggingConfig {
 
 /// Enhanced RPC client with logging, monitoring, and network utilities
 class EnhancedRpcClient {
-
   /// Create an enhanced RPC client
   EnhancedRpcClient(
     this._connection, {
@@ -199,8 +197,9 @@ class EnhancedRpcClient {
 
     final actualTimeout = timeout ??
         Duration(
-            milliseconds:
-                _connection.endpoint.contains('localhost') ? 10000 : 30000,);
+          milliseconds:
+              _connection.endpoint.contains('localhost') ? 10000 : 30000,
+        );
     final actualMaxRetries = maxRetries ?? 3;
 
     dynamic result;
@@ -265,7 +264,8 @@ class EnhancedRpcClient {
 
         if (_loggingConfig.logErrors) {
           _log(
-              'Request #$requestId failed (attempt ${attempt + 1}/$actualMaxRetries): $e',);
+            'Request #$requestId failed (attempt ${attempt + 1}/$actualMaxRetries): $e',
+          );
         }
 
         if (attempt == actualMaxRetries - 1) {
@@ -311,9 +311,11 @@ class EnhancedRpcClient {
       ]);
 
       final accounts = (batchResult['value'] as List<dynamic>?)
-              ?.map((account) => account != null
-                  ? AccountInfo.fromJson(account as Map<String, dynamic>)
-                  : null,)
+              ?.map(
+                (account) => account != null
+                    ? AccountInfo.fromJson(account as Map<String, dynamic>)
+                    : null,
+              )
               .toList() ??
           <AccountInfo?>[];
 
@@ -347,7 +349,8 @@ class EnhancedRpcClient {
 
     final result = await makeRequest('simulateTransaction', params);
     return RpcSimulationResult.fromJson(
-        result['value'] as Map<String, dynamic>,);
+      result['value'] as Map<String, dynamic>,
+    );
   }
 
   /// Check if the network is healthy
@@ -416,32 +419,33 @@ class EnhancedRpcClient {
 
 /// Result of a transaction simulation from RPC calls
 class RpcSimulationResult {
-
   const RpcSimulationResult({
     required this.success,
-    this.error,
     required this.logs,
+    this.error,
     this.computeUnits,
     this.accounts,
   });
 
   /// Create from JSON response
-  factory RpcSimulationResult.fromJson(Map<String, dynamic> json) {
-    return RpcSimulationResult(
-      success: json['err'] == null,
-      error: json['err']?.toString(),
-      logs: (json['logs'] as List<dynamic>?)
-              ?.map((log) => log.toString())
-              .toList() ??
-          [],
-      computeUnits: json['unitsConsumed'] as int?,
-      accounts: (json['accounts'] as List<dynamic>?)
-          ?.map((account) => account != null
-              ? AccountInfo.fromJson(account as Map<String, dynamic>)
-              : null)
-          .toList(),
-    );
-  }
+  factory RpcSimulationResult.fromJson(Map<String, dynamic> json) =>
+      RpcSimulationResult(
+        success: json['err'] == null,
+        error: json['err']?.toString(),
+        logs: (json['logs'] as List<dynamic>?)
+                ?.map((log) => log.toString())
+                .toList() ??
+            [],
+        computeUnits: json['unitsConsumed'] as int?,
+        accounts: (json['accounts'] as List<dynamic>?)
+            ?.map(
+              (account) => account != null
+                  ? AccountInfo.fromJson(account as Map<String, dynamic>)
+                  : null,
+            )
+            .toList(),
+      );
+
   /// Whether the simulation was successful
   final bool success;
 
@@ -460,7 +464,6 @@ class RpcSimulationResult {
 
 /// Network health status information
 class NetworkHealthStatus {
-
   const NetworkHealthStatus({
     required this.isHealthy,
     required this.responseTimeMs,
@@ -468,6 +471,7 @@ class NetworkHealthStatus {
     this.version,
     this.details,
   });
+
   /// Whether the network is healthy
   final bool isHealthy;
 
@@ -495,16 +499,16 @@ class NetworkHealthStatus {
 
 /// Comprehensive network information
 class NetworkInfo {
-
   const NetworkInfo({
     required this.networkType,
     required this.rpcUrl,
-    this.version,
     required this.epoch,
     required this.slot,
     required this.totalSupply,
     required this.circulatingSupply,
+    this.version,
   });
+
   /// Network type
   final SolanaNetwork networkType;
 
@@ -597,22 +601,22 @@ ConnectionConfig createNetworkConfig(
   int? timeoutMs,
   int? retryAttempts,
   Map<String, String>? headers,
-}) => ConnectionConfig(
-    rpcUrl: getDefaultRpcUrl(network),
-    websocketUrl: getDefaultWebSocketUrl(network),
-    commitment: commitment ??
-        (network == SolanaNetwork.mainnet
-            ? CommitmentConfigs.finalized
-            : CommitmentConfigs.confirmed),
-    timeoutMs:
-        timeoutMs ?? (network == SolanaNetwork.localhost ? 10000 : 30000),
-    retryAttempts: retryAttempts ?? 3,
-    headers: headers ?? {},
-  );
+}) =>
+    ConnectionConfig(
+      rpcUrl: getDefaultRpcUrl(network),
+      websocketUrl: getDefaultWebSocketUrl(network),
+      commitment: commitment ??
+          (network == SolanaNetwork.mainnet
+              ? CommitmentConfigs.finalized
+              : CommitmentConfigs.confirmed),
+      timeoutMs:
+          timeoutMs ?? (network == SolanaNetwork.localhost ? 10000 : 30000),
+      retryAttempts: retryAttempts ?? 3,
+      headers: headers ?? {},
+    );
 
 /// Batch RPC requests to improve performance
 class RpcBatcher {
-
   RpcBatcher(
     this._client, {
     int batchSize = 10,
@@ -662,12 +666,14 @@ class RpcBatcher {
   Future<void> _processBatch(List<_BatchedRequest> requests) async {
     try {
       final batchRequest = requests
-          .map((req) => {
-                'jsonrpc': '2.0',
-                'id': req.hashCode,
-                'method': req.method,
-                'params': req.params,
-              },)
+          .map(
+            (req) => {
+              'jsonrpc': '2.0',
+              'id': req.hashCode,
+              'method': req.method,
+              'params': req.params,
+            },
+          )
           .toList();
 
       final result = await _client.makeRequest('batch', [batchRequest]);
@@ -679,11 +685,13 @@ class RpcBatcher {
 
           if (response.containsKey('error')) {
             final error = response['error'] as Map<String, dynamic>;
-            request.completer.completeError(RpcException(
-              'RPC Error ${error['code']}: ${error['message']}',
-              code: error['code'] as int?,
-              data: error['data'],
-            ),);
+            request.completer.completeError(
+              RpcException(
+                'RPC Error ${error['code']}: ${error['message']}',
+                code: error['code'] as int?,
+                data: error['data'],
+              ),
+            );
           } else {
             request.completer.complete(response['result']);
           }
@@ -717,7 +725,6 @@ class RpcBatcher {
 
 /// Internal class for batched requests
 class _BatchedRequest {
-
   _BatchedRequest(this.method, this.params, this.completer);
   final String method;
   final List<dynamic> params;

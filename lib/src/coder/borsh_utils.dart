@@ -45,7 +45,8 @@ class BorshUtils {
   }
 
   /// Deserialize a Solana PublicKey (32 bytes)
-  static Uint8List readPublicKey(BorshDeserializer deserializer) => deserializer.readFixedArray(publicKeySize);
+  static Uint8List readPublicKey(BorshDeserializer deserializer) =>
+      deserializer.readFixedArray(publicKeySize);
 
   /// Calculate the size needed for a Vec<T> where each T has a known size
   static int vecSize(int itemSize, int itemCount) {

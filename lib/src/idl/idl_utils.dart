@@ -131,8 +131,7 @@ class IdlUtils {
     const keysToConvert = ['name', 'path', 'account', 'relations', 'generic'];
 
     // Convert a single string to camelCase, handling dot notation
-    String toCamelCase(String s) =>
-        s.split('.').map((part) => _toCamelCase(part)).join('.');
+    String toCamelCase(String s) => s.split('.').map(_toCamelCase).join('.');
 
     // Recursively convert field names in objects
     dynamic convertObject(dynamic obj) {

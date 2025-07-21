@@ -1,9 +1,9 @@
 import 'package:test/test.dart';
 
+import 'cross_program_test.dart' as cross_program;
 // Import all integration test files
 import 'end_to_end_test.dart' as end_to_end;
 import 'performance_benchmarks_test.dart' as performance;
-import 'cross_program_test.dart' as cross_program;
 import 'typescript_compatibility_test.dart' as typescript_compat;
 
 /// Integration test suite runner
@@ -15,7 +15,8 @@ void main() {
     setUpAll(() async {
       print('Starting Anchor Dart Integration Test Suite...');
       print(
-          'Note: These tests require a local Solana test validator for full functionality',);
+        'Note: These tests require a local Solana test validator for full functionality',
+      );
     });
 
     tearDownAll(() async {
@@ -79,7 +80,8 @@ void main() {
       expect(results.length, equals(iterations));
 
       print(
-          'Stress test completed: average time ${averageTime.inMicroseconds}μs',);
+        'Stress test completed: average time ${averageTime.inMicroseconds}μs',
+      );
     });
 
     test('memory efficiency scenario', () async {

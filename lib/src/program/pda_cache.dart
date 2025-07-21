@@ -21,7 +21,9 @@ class PdaCache {
 
   /// Generate cache key for resolved accounts
   static String _generateAccountsKey(
-      Map<String, dynamic> accounts, PublicKey programId,) {
+    Map<String, dynamic> accounts,
+    PublicKey programId,
+  ) {
     final accountsJson = jsonEncode(accounts);
     final accountsHash = accountsJson.hashCode;
     return '${programId.toBase58()}:$accountsHash';
@@ -35,21 +37,29 @@ class PdaCache {
 
   /// Cache a computed PDA
   static void setCachedPda(
-      List<List<int>> seeds, PublicKey programId, PublicKey pda,) {
+    List<List<int>> seeds,
+    PublicKey programId,
+    PublicKey pda,
+  ) {
     final key = _generatePdaKey(seeds, programId);
     _cache[key] = pda;
   }
 
   /// Get cached resolved accounts
   static Map<String, dynamic>? getCachedResults(
-      Map<String, dynamic> accounts, PublicKey programId,) {
+    Map<String, dynamic> accounts,
+    PublicKey programId,
+  ) {
     final key = _generateAccountsKey(accounts, programId);
     return _resolvedAccountsCache[key];
   }
 
   /// Cache resolved accounts
-  static void setCachedResults(Map<String, dynamic> accounts,
-      PublicKey programId, Map<String, dynamic> resolved,) {
+  static void setCachedResults(
+    Map<String, dynamic> accounts,
+    PublicKey programId,
+    Map<String, dynamic> resolved,
+  ) {
     final key = _generateAccountsKey(accounts, programId);
     _resolvedAccountsCache[key] = Map<String, dynamic>.from(resolved);
   }
@@ -72,9 +82,9 @@ class PdaCache {
 
   /// Get cache statistics
   static CacheStatistics getStatistics() => CacheStatistics(
-      pdaCacheSize: _cache.length,
-      accountsCacheSize: _resolvedAccountsCache.length,
-    );
+        pdaCacheSize: _cache.length,
+        accountsCacheSize: _resolvedAccountsCache.length,
+      );
 
   /// Remove old entries from cache (simple LRU-like cleanup)
   static void cleanup({int maxPdaEntries = 1000, int maxAccountEntries = 500}) {
@@ -97,7 +107,6 @@ class PdaCache {
 
 /// PDA cache statistics
 class CacheStatistics {
-
   const CacheStatistics({
     required this.pdaCacheSize,
     required this.accountsCacheSize,
@@ -106,5 +115,6 @@ class CacheStatistics {
   final int accountsCacheSize;
 
   @override
-  String toString() => 'CacheStatistics(pdaCacheSize: $pdaCacheSize, accountsCacheSize: $accountsCacheSize)';
+  String toString() =>
+      'CacheStatistics(pdaCacheSize: $pdaCacheSize, accountsCacheSize: $accountsCacheSize)';
 }

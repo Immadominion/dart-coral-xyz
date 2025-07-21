@@ -86,14 +86,7 @@ class PerformanceOptimizationValidator {
   static Future<ValidationResult> _validateConnectionPooling() async {
     try {
       // Test connection pool creation and configuration
-      final config = ConnectionPoolConfig(
-        minConnections: 2,
-        maxConnections: 10,
-        maxIdleTime: Duration(minutes: 5),
-        healthCheckInterval: Duration(seconds: 30),
-        connectionTimeout: Duration(seconds: 10),
-        loadBalancingStrategy: LoadBalancingStrategy.roundRobin,
-      );
+      final config = const ConnectionPoolConfig();
 
       final pool = ConnectionPool(
         ['https://api.mainnet-beta.solana.com'],
@@ -164,13 +157,7 @@ class PerformanceOptimizationValidator {
   static Future<ValidationResult> _validateLazyLoading() async {
     try {
       // Test lazy IDL loader configuration
-      final config = LazyIdlConfig(
-        cacheSize: 10,
-        preloadInstructions: true,
-        preloadAccounts: false,
-        enableCompression: true,
-        maxConcurrentLoads: 3,
-      );
+      final config = const LazyIdlConfig();
 
       final loader = LazyIdlLoader(config: config);
 
@@ -297,7 +284,8 @@ class PerformanceOptimizationValidator {
 
   /// Generate performance recommendations
   static List<String> _generateRecommendations(
-      PerformanceValidationResult result) {
+    PerformanceValidationResult result,
+  ) {
     final recommendations = <String>[];
 
     if (!result.success) {
@@ -342,7 +330,7 @@ class PerformanceValidationResult {
 
   /// Get success rate
   double get successRate {
-    if (testCount == 0) return 0.0;
+    if (testCount == 0) return 0;
     final successCount = results.values.where((v) => v).length;
     return successCount / testCount;
   }
@@ -394,29 +382,30 @@ class PerformanceReport {
 
     buffer.writeln('🚀 PERFORMANCE OPTIMIZATION REPORT');
     buffer.writeln('Generated: ${timestamp.toIso8601String()}');
-    buffer.writeln('');
+    buffer.writeln();
 
     buffer.writeln('📊 RESULTS:');
     buffer.writeln(
-        '  Success Rate: ${(validationResult.successRate * 100).toStringAsFixed(1)}%');
+      '  Success Rate: ${(validationResult.successRate * 100).toStringAsFixed(1)}%',
+    );
     buffer.writeln('  Grade: ${validationResult.grade}');
     buffer.writeln('  Duration: ${validationResult.duration.inMilliseconds}ms');
     buffer.writeln('  Tests: ${validationResult.testCount}');
-    buffer.writeln('');
+    buffer.writeln();
 
     buffer.writeln('✅ COMPONENT STATUS:');
     for (final result in validationResult.results.entries) {
       final status = result.value ? '✅' : '❌';
       buffer.writeln('  $status ${result.key}');
     }
-    buffer.writeln('');
+    buffer.writeln();
 
     if (validationResult.errors.isNotEmpty) {
       buffer.writeln('❌ ERRORS:');
       for (final error in validationResult.errors.entries) {
         buffer.writeln('  - ${error.key}: ${error.value}');
       }
-      buffer.writeln('');
+      buffer.writeln();
     }
 
     buffer.writeln('💡 RECOMMENDATIONS:');
@@ -441,6 +430,25 @@ class PerformanceOptimizationConfig {
     this.batchTimeout = const Duration(milliseconds: 100),
   });
 
+  /// Create optimized configuration for production
+  factory PerformanceOptimizationConfig.production() =>
+      const PerformanceOptimizationConfig(
+        maxCacheSize: 5000,
+        maxPoolSize: 25,
+        batchTimeout: Duration(milliseconds: 50),
+      );
+
+  /// Create configuration for development
+  factory PerformanceOptimizationConfig.development() =>
+      const PerformanceOptimizationConfig(
+        enableConnectionPooling: false,
+        enableLazyLoading: false,
+        enableMobileOptimization: false,
+        maxCacheSize: 100,
+        maxPoolSize: 5,
+        batchTimeout: Duration(milliseconds: 200),
+      );
+
   final bool enableConnectionPooling;
   final bool enableIntelligentCaching;
   final bool enableLazyLoading;
@@ -449,32 +457,4 @@ class PerformanceOptimizationConfig {
   final int maxCacheSize;
   final int maxPoolSize;
   final Duration batchTimeout;
-
-  /// Create optimized configuration for production
-  factory PerformanceOptimizationConfig.production() {
-    return PerformanceOptimizationConfig(
-      enableConnectionPooling: true,
-      enableIntelligentCaching: true,
-      enableLazyLoading: true,
-      enableMobileOptimization: true,
-      enablePerformanceBatching: true,
-      maxCacheSize: 5000,
-      maxPoolSize: 25,
-      batchTimeout: Duration(milliseconds: 50),
-    );
-  }
-
-  /// Create configuration for development
-  factory PerformanceOptimizationConfig.development() {
-    return PerformanceOptimizationConfig(
-      enableConnectionPooling: false,
-      enableIntelligentCaching: true,
-      enableLazyLoading: false,
-      enableMobileOptimization: false,
-      enablePerformanceBatching: true,
-      maxCacheSize: 100,
-      maxPoolSize: 5,
-      batchTimeout: Duration(milliseconds: 200),
-    );
-  }
 }

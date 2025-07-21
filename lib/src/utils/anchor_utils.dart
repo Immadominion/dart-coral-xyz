@@ -9,7 +9,8 @@ import 'package:coral_xyz_anchor/src/external/encoding_wrapper.dart';
 /// Anchor utility functions similar to TypeScript @coral-xyz/anchor utils
 class AnchorUtils {
   /// Convert a string to bytes (similar to TypeScript Buffer.from)
-  static Uint8List stringToBytes(String input) => Uint8List.fromList(input.codeUnits);
+  static Uint8List stringToBytes(String input) =>
+      Uint8List.fromList(input.codeUnits);
 
   /// Convert bytes to string (similar to TypeScript Buffer.toString)
   static String bytesToString(Uint8List bytes) => String.fromCharCodes(bytes);
@@ -26,16 +27,20 @@ class AnchorUtils {
   }
 
   /// Convert bytes to hex string
-  static String bytesToHex(Uint8List bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+  static String bytesToHex(Uint8List bytes) =>
+      bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Convert base58 string to bytes
-  static Uint8List base58ToBytes(String base58) => EncodingWrapper.decodeBase58(base58);
+  static Uint8List base58ToBytes(String base58) =>
+      EncodingWrapper.decodeBase58(base58);
 
   /// Convert bytes to base58 string
-  static String bytesToBase58(Uint8List bytes) => EncodingWrapper.encodeBase58(bytes);
+  static String bytesToBase58(Uint8List bytes) =>
+      EncodingWrapper.encodeBase58(bytes);
 
   /// TypeScript-like sleep function
-  static Future<void> sleep(int milliseconds) => Future.delayed(Duration(milliseconds: milliseconds));
+  static Future<void> sleep(int milliseconds) =>
+      Future.delayed(Duration(milliseconds: milliseconds));
 
   /// Generate a random keypair (for testing)
   static Future<PublicKey> generateRandomPublicKey() async {
@@ -81,13 +86,15 @@ class AnchorUtils {
   static List<T> arrayUnique<T>(List<T> array) => array.toSet().toList();
 
   /// TypeScript-like array flatten
-  static List<T> arrayFlatten<T>(List<List<T>> arrays) => arrays.expand((array) => array).toList();
+  static List<T> arrayFlatten<T>(List<List<T>> arrays) =>
+      arrays.expand((array) => array).toList();
 
   /// TypeScript-like object merge
   static Map<String, dynamic> mergeObjects(
     Map<String, dynamic> obj1,
     Map<String, dynamic> obj2,
-  ) => {...obj1, ...obj2};
+  ) =>
+      {...obj1, ...obj2};
 
   /// Deep clone an object (simplified version)
   static Map<String, dynamic> deepClone(Map<String, dynamic> original) {
@@ -160,19 +167,21 @@ class AnchorUtils {
   }
 
   /// TypeScript-like Promise.all
-  static Future<List<T>> promiseAll<T>(List<Future<T>> futures) => Future.wait(futures);
+  static Future<List<T>> promiseAll<T>(List<Future<T>> futures) =>
+      Future.wait(futures);
 
   /// TypeScript-like Promise.allSettled
-  static Future<List<dynamic>> promiseAllSettled<T>(List<Future<T>> futures) => Future.wait(
-      futures.map((future) async {
-        try {
-          final result = await future;
-          return {'status': 'fulfilled', 'value': result};
-        } catch (error) {
-          return {'status': 'rejected', 'reason': error};
-        }
-      }),
-    );
+  static Future<List<dynamic>> promiseAllSettled<T>(List<Future<T>> futures) =>
+      Future.wait(
+        futures.map((future) async {
+          try {
+            final result = await future;
+            return {'status': 'fulfilled', 'value': result};
+          } catch (error) {
+            return {'status': 'rejected', 'reason': error};
+          }
+        }),
+      );
 
   /// Chunk array into smaller arrays
   static List<List<T>> chunk<T>(List<T> array, int size) {

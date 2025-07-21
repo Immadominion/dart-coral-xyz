@@ -1,10 +1,9 @@
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/program_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/instruction_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/account_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/error_generator.dart';
 import 'package:build/build.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/codegen/generators/account_generator.dart';
+import 'package:coral_xyz_anchor/src/codegen/generators/instruction_generator.dart';
+import 'package:coral_xyz_anchor/src/codegen/generators/program_generator.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('Test updated generators', () {

@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:test/test.dart';
 
-import 'package:coral_xyz_anchor/src/event/event_log_parser.dart';
 import 'package:coral_xyz_anchor/src/event/event_definition.dart';
+import 'package:coral_xyz_anchor/src/event/event_log_parser.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('EventLogParser', () {
@@ -50,12 +50,8 @@ void main() {
             hasNestedStructures: false,
             estimatedSize: 40,
             complexity: EventComplexity.low,
-            tags: [],
           ),
-          validationRules: EventValidationRules(
-            typeStrictness: TypeValidationStrictness.strict,
-            customValidators: [],
-          ),
+          validationRules: EventValidationRules(),
         ),
         const EventDefinition(
           name: 'SimpleEvent',
@@ -79,12 +75,8 @@ void main() {
             hasNestedStructures: false,
             estimatedSize: 1,
             complexity: EventComplexity.low,
-            tags: [],
           ),
-          validationRules: EventValidationRules(
-            typeStrictness: TypeValidationStrictness.strict,
-            customValidators: [],
-          ),
+          validationRules: EventValidationRules(),
         ),
       ];
 
@@ -313,8 +305,11 @@ void main() {
           final data = Uint8List.fromList(testCase['data'] as List<int>);
           final result = parser.parseFieldValue(field, data, 0);
 
-          expect(result.value, equals(testCase['expected']),
-              reason: 'Failed for type ${testCase['type']}',);
+          expect(
+            result.value,
+            equals(testCase['expected']),
+            reason: 'Failed for type ${testCase['type']}',
+          );
         }
       });
 
@@ -576,13 +571,19 @@ void main() {
               EventLogParser.invokeRegex.firstMatch(testCase['log'] as String);
 
           if (testCase['shouldMatch'] as bool) {
-            expect(match, isNotNull,
-                reason: 'Should match: ${testCase['log']}',);
+            expect(
+              match,
+              isNotNull,
+              reason: 'Should match: ${testCase['log']}',
+            );
             expect(match!.group(1), equals(testCase['programId']));
             expect(match.group(2), equals(testCase['depth']));
           } else {
-            expect(match, isNull,
-                reason: 'Should not match: ${testCase['log']}',);
+            expect(
+              match,
+              isNull,
+              reason: 'Should not match: ${testCase['log']}',
+            );
           }
         }
       });

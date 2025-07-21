@@ -5,10 +5,11 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('BorshDeserializer Complex Types', () {
@@ -133,33 +134,56 @@ void main() {
         // Create test PublicKey with different pattern
         final testKeyBytes = Uint8List(32);
         testKeyBytes.fillRange(
-            0, 32, 42,); // Fill with 42s instead of incrementing pattern
+          0,
+          32,
+          42,
+        ); // Fill with 42s instead of incrementing pattern
         for (int i = 0; i < 32; i++) {
           serializer.writeU8(testKeyBytes[i]);
         }
 
         deserializer = BorshDeserializer(serializer.toBytes());
 
-        expect(deserializer.readIdlType(const IdlType(kind: 'bool')),
-            equals(true),);
         expect(
-            deserializer.readIdlType(const IdlType(kind: 'u8')), equals(255),);
-        expect(deserializer.readIdlType(const IdlType(kind: 'u16')),
-            equals(65535),);
-        expect(deserializer.readIdlType(const IdlType(kind: 'u32')),
-            equals(4294967295),);
-        expect(deserializer.readIdlType(const IdlType(kind: 'u64')),
-            equals(9223372036854775807),);
+          deserializer.readIdlType(const IdlType(kind: 'bool')),
+          equals(true),
+        );
         expect(
-            deserializer.readIdlType(const IdlType(kind: 'i8')), equals(-128),);
-        expect(deserializer.readIdlType(const IdlType(kind: 'i16')),
-            equals(-32768),);
-        expect(deserializer.readIdlType(const IdlType(kind: 'i32')),
-            equals(-2147483648),);
-        expect(deserializer.readIdlType(const IdlType(kind: 'i64')),
-            equals(-9223372036854775808),);
-        expect(deserializer.readIdlType(const IdlType(kind: 'string')),
-            equals('test string'),);
+          deserializer.readIdlType(const IdlType(kind: 'u8')),
+          equals(255),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'u16')),
+          equals(65535),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'u32')),
+          equals(4294967295),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'u64')),
+          equals(9223372036854775807),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'i8')),
+          equals(-128),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'i16')),
+          equals(-32768),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'i32')),
+          equals(-2147483648),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'i64')),
+          equals(-9223372036854775808),
+        );
+        expect(
+          deserializer.readIdlType(const IdlType(kind: 'string')),
+          equals('test string'),
+        );
 
         final publicKey =
             deserializer.readIdlType(const IdlType(kind: 'publicKey'));
@@ -289,7 +313,8 @@ void main() {
       test('should throw error for defined type without IDL context', () {
         deserializer = BorshDeserializer(Uint8List(0));
 
-        final definedType = const IdlType(kind: 'defined', defined: 'CustomStruct');
+        final definedType =
+            const IdlType(kind: 'defined', defined: 'CustomStruct');
 
         expect(
           () => deserializer.readIdlType(definedType),
@@ -352,14 +377,18 @@ void main() {
         // Simulate reading complex event fields
         final simpleField =
             deserializer.readIdlType(const IdlType(kind: 'u32'));
-        final vecField = deserializer.readIdlType(const IdlType(
-          kind: 'vec',
-          inner: IdlType(kind: 'u32'),
-        ),);
-        final optionField = deserializer.readIdlType(const IdlType(
-          kind: 'option',
-          inner: IdlType(kind: 'string'),
-        ),);
+        final vecField = deserializer.readIdlType(
+          const IdlType(
+            kind: 'vec',
+            inner: IdlType(kind: 'u32'),
+          ),
+        );
+        final optionField = deserializer.readIdlType(
+          const IdlType(
+            kind: 'option',
+            inner: IdlType(kind: 'string'),
+          ),
+        );
 
         expect(simpleField, equals(42));
         expect(vecField, equals([100, 200]));

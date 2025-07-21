@@ -7,10 +7,11 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:test/test.dart';
-import 'package:path/path.dart' as path;
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart' as types;
+import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 
 void main() {
   group('ProgramManager', () {
@@ -628,7 +629,8 @@ class MockWallet extends Wallet {
 
   @override
   Future<types.Transaction> signTransaction(
-          types.Transaction transaction) async =>
+    types.Transaction transaction,
+  ) async =>
       transaction;
 
   @override

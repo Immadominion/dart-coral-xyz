@@ -21,7 +21,6 @@ import 'package:coral_xyz_anchor/src/program/context.dart';
 /// - Resolving account relationships
 /// - Validating account constraints
 class AccountsResolver {
-
   AccountsResolver({
     required List<dynamic> args,
     required Map<String, dynamic> accounts,
@@ -91,7 +90,9 @@ class AccountsResolver {
 
   /// Resolve a single account item (handles both single accounts and groups)
   void _resolveConstantAccount(
-      IdlInstructionAccountItem accountItem, Map<String, PublicKey> resolved,) {
+    IdlInstructionAccountItem accountItem,
+    Map<String, PublicKey> resolved,
+  ) {
     if (accountItem is IdlInstructionAccount) {
       final name = accountItem.name;
 
@@ -146,7 +147,8 @@ class AccountsResolver {
 
     if (missingAccounts.isNotEmpty) {
       throw StateError(
-          'Failed to resolve required accounts: ${missingAccounts.join(', ')}',);
+        'Failed to resolve required accounts: ${missingAccounts.join(', ')}',
+      );
     }
   }
 
@@ -161,7 +163,9 @@ class AccountsResolver {
       } else if (accountItem is IdlInstructionAccounts) {
         // Recursively resolve account groups
         await _resolvePdasForAccountItems(
-            accountItem.accounts.cast<IdlInstructionAccountItem>(), resolved,);
+          accountItem.accounts.cast<IdlInstructionAccountItem>(),
+          resolved,
+        );
       }
     }
   }
@@ -201,7 +205,9 @@ class AccountsResolver {
 
   /// Derive a PDA from the IDL specification
   Future<PublicKey?> _derivePda(
-      IdlPda pda, Map<String, PublicKey> resolved,) async {
+    IdlPda pda,
+    Map<String, PublicKey> resolved,
+  ) async {
     final seeds = <Uint8List>[];
 
     // Convert all seeds to byte arrays
@@ -235,7 +241,9 @@ class AccountsResolver {
 
   /// Convert a seed specification to bytes
   Future<List<int>?> _seedToBytes(
-      IdlSeed seed, Map<String, PublicKey> resolved,) async {
+    IdlSeed seed,
+    Map<String, PublicKey> resolved,
+  ) async {
     if (seed is IdlSeedConst) {
       return seed.value;
     } else if (seed is IdlSeedArg) {
@@ -273,7 +281,9 @@ class AccountsResolver {
 
   /// Convert account reference to bytes
   List<int>? _accountToBytes(
-      String accountPath, Map<String, PublicKey> resolved,) {
+    String accountPath,
+    Map<String, PublicKey> resolved,
+  ) {
     final pathParts = accountPath.split('.');
     final accountName = pathParts.first;
 
@@ -342,9 +352,10 @@ class AccountsResolver {
         }
       } else if (accountItem is IdlInstructionAccounts) {
         _findMissingAccounts(
-            accountItem.accounts.cast<IdlInstructionAccountItem>(),
-            resolved,
-            missing,);
+          accountItem.accounts.cast<IdlInstructionAccountItem>(),
+          resolved,
+          missing,
+        );
       }
     }
   }
@@ -364,10 +375,11 @@ class AccountsResolver {
   }
 
   /// Validate resolved accounts against IDL constraints
-  Future<bool> validateAccounts(Map<String, PublicKey> accounts) async => AddressValidator.validateAccountRelationships(
-      accounts.map((k, v) => MapEntry(k, v.toBase58())),
-      _idlInstruction.accounts,
-    );
+  Future<bool> validateAccounts(Map<String, PublicKey> accounts) async =>
+      AddressValidator.validateAccountRelationships(
+        accounts.map((k, v) => MapEntry(k, v.toBase58())),
+        _idlInstruction.accounts,
+      );
 
   /// Get account metas for instruction building
   List<AccountMeta> getAccountMetas(Map<String, PublicKey> accounts) {
@@ -382,19 +394,23 @@ class AccountsResolver {
           if (pubkey == null) {
             if (nestedSpec is IdlInstructionAccount && !nestedSpec.optional) {
               throw StateError(
-                  'Required account \\${nestedSpec.name} not found',);
+                'Required account \\${nestedSpec.name} not found',
+              );
             }
             continue;
           }
 
-          metas.add(AccountMeta(
-            pubkey: pubkey,
-            isSigner:
-                nestedSpec is IdlInstructionAccount ? nestedSpec.signer : false,
-            isWritable: nestedSpec is IdlInstructionAccount
-                ? nestedSpec.writable
-                : false,
-          ),);
+          metas.add(
+            AccountMeta(
+              pubkey: pubkey,
+              isSigner: nestedSpec is IdlInstructionAccount
+                  ? nestedSpec.signer
+                  : false,
+              isWritable: nestedSpec is IdlInstructionAccount
+                  ? nestedSpec.writable
+                  : false,
+            ),
+          );
         }
       } else if (accountSpec is IdlInstructionAccount) {
         final pubkey = accounts[accountSpec.name];
@@ -405,11 +421,13 @@ class AccountsResolver {
           continue;
         }
 
-        metas.add(AccountMeta(
-          pubkey: pubkey,
-          isSigner: accountSpec.signer,
-          isWritable: accountSpec.writable,
-        ),);
+        metas.add(
+          AccountMeta(
+            pubkey: pubkey,
+            isSigner: accountSpec.signer,
+            isWritable: accountSpec.writable,
+          ),
+        );
       }
     }
 
@@ -429,14 +447,15 @@ class AccountResolverFactory {
     required PublicKey programId,
     required IdlInstruction idlInstruction,
     required List<IdlTypeDef> idlTypes,
-  }) => AccountsResolver(
-      args: args,
-      accounts: accounts,
-      provider: provider,
-      programId: programId,
-      idlInstruction: idlInstruction,
-      idlTypes: idlTypes,
-    );
+  }) =>
+      AccountsResolver(
+        args: args,
+        accounts: accounts,
+        provider: provider,
+        programId: programId,
+        idlInstruction: idlInstruction,
+        idlTypes: idlTypes,
+      );
 }
 
 /// Utility for resolving accounts from context
@@ -481,19 +500,23 @@ class ContextAccountResolver {
           if (pubkey == null) {
             if (nestedSpec is IdlInstructionAccount && !nestedSpec.optional) {
               throw StateError(
-                  'Required account \\${nestedSpec.name} not found',);
+                'Required account \\${nestedSpec.name} not found',
+              );
             }
             continue;
           }
 
-          metas.add(AccountMeta(
-            pubkey: pubkey,
-            isSigner:
-                nestedSpec is IdlInstructionAccount ? nestedSpec.signer : false,
-            isWritable: nestedSpec is IdlInstructionAccount
-                ? nestedSpec.writable
-                : false,
-          ),);
+          metas.add(
+            AccountMeta(
+              pubkey: pubkey,
+              isSigner: nestedSpec is IdlInstructionAccount
+                  ? nestedSpec.signer
+                  : false,
+              isWritable: nestedSpec is IdlInstructionAccount
+                  ? nestedSpec.writable
+                  : false,
+            ),
+          );
         }
       } else if (accountSpec is IdlInstructionAccount) {
         final pubkey = resolvedAccounts[accountSpec.name];
@@ -504,11 +527,13 @@ class ContextAccountResolver {
           continue;
         }
 
-        metas.add(AccountMeta(
-          pubkey: pubkey,
-          isSigner: accountSpec.signer,
-          isWritable: accountSpec.writable,
-        ),);
+        metas.add(
+          AccountMeta(
+            pubkey: pubkey,
+            isSigner: accountSpec.signer,
+            isWritable: accountSpec.writable,
+          ),
+        );
       }
     }
 

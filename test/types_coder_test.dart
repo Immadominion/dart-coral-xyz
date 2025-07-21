@@ -1,6 +1,7 @@
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'dart:typed_data';
+
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('TypesCoder Tests', () {
@@ -66,7 +67,11 @@ void main() {
                 ),
                 IdlField(
                   name: 'fixedArray',
-                  type: IdlType(kind: 'array', inner: IdlType(kind: 'u8'), size: 4),
+                  type: IdlType(
+                    kind: 'array',
+                    inner: IdlType(kind: 'u8'),
+                    size: 4,
+                  ),
                 ),
               ],
             ),

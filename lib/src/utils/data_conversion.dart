@@ -13,9 +13,10 @@
 
 library;
 
-import 'dart:typed_data';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:bs58/bs58.dart' as bs58_lib;
 
 /// Exception thrown by data conversion utilities
@@ -320,7 +321,9 @@ class DataConverter {
   /// Convert 16-bit unsigned integer to little-endian bytes
   static Uint8List u16ToBytes(int value) {
     if (value < 0 || value > 65535) {
-      throw const DataConversionException('u16 value must be between 0 and 65535');
+      throw const DataConversionException(
+        'u16 value must be between 0 and 65535',
+      );
     }
     return Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.little);
   }
@@ -337,7 +340,8 @@ class DataConverter {
   static Uint8List u32ToBytes(int value) {
     if (value < 0 || value > 4294967295) {
       throw const DataConversionException(
-          'u32 value must be between 0 and 4294967295',);
+        'u32 value must be between 0 and 4294967295',
+      );
     }
     return Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.little);
   }
@@ -369,7 +373,9 @@ class DataConverter {
   /// Convert 8-bit signed integer to bytes
   static Uint8List i8ToBytes(int value) {
     if (value < -128 || value > 127) {
-      throw const DataConversionException('i8 value must be between -128 and 127');
+      throw const DataConversionException(
+        'i8 value must be between -128 and 127',
+      );
     }
     return Uint8List(1)..buffer.asByteData().setInt8(0, value);
   }
@@ -386,7 +392,8 @@ class DataConverter {
   static Uint8List i16ToBytes(int value) {
     if (value < -32768 || value > 32767) {
       throw const DataConversionException(
-          'i16 value must be between -32768 and 32767',);
+        'i16 value must be between -32768 and 32767',
+      );
     }
     return Uint8List(2)..buffer.asByteData().setInt16(0, value, Endian.little);
   }
@@ -403,7 +410,8 @@ class DataConverter {
   static Uint8List i32ToBytes(int value) {
     if (value < -2147483648 || value > 2147483647) {
       throw const DataConversionException(
-          'i32 value must be between -2147483648 and 2147483647',);
+        'i32 value must be between -2147483648 and 2147483647',
+      );
     }
     return Uint8List(4)..buffer.asByteData().setInt32(0, value, Endian.little);
   }
@@ -417,7 +425,8 @@ class DataConverter {
   }
 
   /// Convert 64-bit signed integer to little-endian bytes
-  static Uint8List i64ToBytes(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.little);
+  static Uint8List i64ToBytes(int value) =>
+      Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.little);
 
   /// Convert little-endian bytes to 64-bit signed integer
   static int bytesToI64(Uint8List bytes) {
@@ -428,8 +437,8 @@ class DataConverter {
   }
 
   /// Convert double to little-endian bytes (IEEE 754 format)
-  static Uint8List f64ToBytes(double value) => Uint8List(8)
-      ..buffer.asByteData().setFloat64(0, value, Endian.little);
+  static Uint8List f64ToBytes(double value) =>
+      Uint8List(8)..buffer.asByteData().setFloat64(0, value, Endian.little);
 
   /// Convert little-endian bytes to double (IEEE 754 format)
   static double bytesToF64(Uint8List bytes) {
@@ -440,8 +449,8 @@ class DataConverter {
   }
 
   /// Convert float to little-endian bytes (IEEE 754 format)
-  static Uint8List f32ToBytes(double value) => Uint8List(4)
-      ..buffer.asByteData().setFloat32(0, value, Endian.little);
+  static Uint8List f32ToBytes(double value) =>
+      Uint8List(4)..buffer.asByteData().setFloat32(0, value, Endian.little);
 
   /// Convert little-endian bytes to float (IEEE 754 format)
   static double bytesToF32(Uint8List bytes) {
@@ -463,7 +472,8 @@ class DataConverter {
 
     if (value.isNegative) {
       throw const DataConversionException(
-          'BigInt must be non-negative for unsigned conversion',);
+        'BigInt must be non-negative for unsigned conversion',
+      );
     }
 
     final bytes = Uint8List(byteLength);
@@ -477,7 +487,8 @@ class DataConverter {
     // Check for overflow
     if (tempValue > BigInt.zero) {
       throw DataConversionException(
-          'BigInt value too large for $byteLength bytes',);
+        'BigInt value too large for $byteLength bytes',
+      );
     }
 
     return bytes;
@@ -507,7 +518,8 @@ class DataConverter {
 
     if (value > maxPositive || value < minNegative) {
       throw DataConversionException(
-          'BigInt value out of range for signed $byteLength bytes',);
+        'BigInt value out of range for signed $byteLength bytes',
+      );
     }
 
     BigInt tempValue = value;
@@ -554,7 +566,8 @@ class DataConverter {
   // ============================================================================
 
   /// Reverse the byte order of a byte array
-  static Uint8List reverseBytes(Uint8List bytes) => Uint8List.fromList(bytes.reversed.toList());
+  static Uint8List reverseBytes(Uint8List bytes) =>
+      Uint8List.fromList(bytes.reversed.toList());
 
   /// Convert little-endian bytes to big-endian
   static Uint8List littleToBigEndian(Uint8List bytes) => reverseBytes(bytes);
@@ -563,55 +576,88 @@ class DataConverter {
   static Uint8List bigToLittleEndian(Uint8List bytes) => reverseBytes(bytes);
 
   /// Read a 16-bit value from bytes with specified endianness
-  static int read16(Uint8List bytes,
-      {Endian endian = Endian.little, int offset = 0,}) {
+  static int read16(
+    Uint8List bytes, {
+    Endian endian = Endian.little,
+    int offset = 0,
+  }) {
     if (offset + 2 > bytes.length) {
-      throw const DataConversionException('Not enough bytes to read 16-bit value');
+      throw const DataConversionException(
+        'Not enough bytes to read 16-bit value',
+      );
     }
     return bytes.buffer.asByteData().getUint16(offset, endian);
   }
 
   /// Read a 32-bit value from bytes with specified endianness
-  static int read32(Uint8List bytes,
-      {Endian endian = Endian.little, int offset = 0,}) {
+  static int read32(
+    Uint8List bytes, {
+    Endian endian = Endian.little,
+    int offset = 0,
+  }) {
     if (offset + 4 > bytes.length) {
-      throw const DataConversionException('Not enough bytes to read 32-bit value');
+      throw const DataConversionException(
+        'Not enough bytes to read 32-bit value',
+      );
     }
     return bytes.buffer.asByteData().getUint32(offset, endian);
   }
 
   /// Read a 64-bit value from bytes with specified endianness
-  static int read64(Uint8List bytes,
-      {Endian endian = Endian.little, int offset = 0,}) {
+  static int read64(
+    Uint8List bytes, {
+    Endian endian = Endian.little,
+    int offset = 0,
+  }) {
     if (offset + 8 > bytes.length) {
-      throw const DataConversionException('Not enough bytes to read 64-bit value');
+      throw const DataConversionException(
+        'Not enough bytes to read 64-bit value',
+      );
     }
     return bytes.buffer.asByteData().getUint64(offset, endian);
   }
 
   /// Write a 16-bit value to bytes with specified endianness
-  static void write16(Uint8List bytes, int value,
-      {Endian endian = Endian.little, int offset = 0,}) {
+  static void write16(
+    Uint8List bytes,
+    int value, {
+    Endian endian = Endian.little,
+    int offset = 0,
+  }) {
     if (offset + 2 > bytes.length) {
-      throw const DataConversionException('Not enough bytes to write 16-bit value');
+      throw const DataConversionException(
+        'Not enough bytes to write 16-bit value',
+      );
     }
     bytes.buffer.asByteData().setUint16(offset, value, endian);
   }
 
   /// Write a 32-bit value to bytes with specified endianness
-  static void write32(Uint8List bytes, int value,
-      {Endian endian = Endian.little, int offset = 0,}) {
+  static void write32(
+    Uint8List bytes,
+    int value, {
+    Endian endian = Endian.little,
+    int offset = 0,
+  }) {
     if (offset + 4 > bytes.length) {
-      throw const DataConversionException('Not enough bytes to write 32-bit value');
+      throw const DataConversionException(
+        'Not enough bytes to write 32-bit value',
+      );
     }
     bytes.buffer.asByteData().setUint32(offset, value, endian);
   }
 
   /// Write a 64-bit value to bytes with specified endianness
-  static void write64(Uint8List bytes, int value,
-      {Endian endian = Endian.little, int offset = 0,}) {
+  static void write64(
+    Uint8List bytes,
+    int value, {
+    Endian endian = Endian.little,
+    int offset = 0,
+  }) {
     if (offset + 8 > bytes.length) {
-      throw const DataConversionException('Not enough bytes to write 64-bit value');
+      throw const DataConversionException(
+        'Not enough bytes to write 64-bit value',
+      );
     }
     bytes.buffer.asByteData().setUint64(offset, value, endian);
   }
@@ -621,22 +667,30 @@ class DataConverter {
   // ============================================================================
 
   /// Validate that bytes array has expected length
-  static void validateLength(Uint8List bytes, int expectedLength,
-      [String? context,]) {
+  static void validateLength(
+    Uint8List bytes,
+    int expectedLength, [
+    String? context,
+  ]) {
     if (bytes.length != expectedLength) {
       final contextStr = context != null ? ' for $context' : '';
       throw DataConversionException(
-          'Expected $expectedLength bytes$contextStr, got ${bytes.length}',);
+        'Expected $expectedLength bytes$contextStr, got ${bytes.length}',
+      );
     }
   }
 
   /// Validate that bytes array has minimum length
-  static void validateMinLength(Uint8List bytes, int minLength,
-      [String? context,]) {
+  static void validateMinLength(
+    Uint8List bytes,
+    int minLength, [
+    String? context,
+  ]) {
     if (bytes.length < minLength) {
       final contextStr = context != null ? ' for $context' : '';
       throw DataConversionException(
-          'Expected at least $minLength bytes$contextStr, got ${bytes.length}',);
+        'Expected at least $minLength bytes$contextStr, got ${bytes.length}',
+      );
     }
   }
 
@@ -645,17 +699,23 @@ class DataConverter {
     if (value < min || value > max) {
       final contextStr = context != null ? ' for $context' : '';
       throw DataConversionException(
-          'Value $value out of range [$min, $max]$contextStr',);
+        'Value $value out of range [$min, $max]$contextStr',
+      );
     }
   }
 
   /// Validate BigInt is within range
-  static void validateBigIntRange(BigInt value, BigInt min, BigInt max,
-      [String? context,]) {
+  static void validateBigIntRange(
+    BigInt value,
+    BigInt min,
+    BigInt max, [
+    String? context,
+  ]) {
     if (value < min || value > max) {
       final contextStr = context != null ? ' for $context' : '';
       throw DataConversionException(
-          'Value $value out of range [$min, $max]$contextStr',);
+        'Value $value out of range [$min, $max]$contextStr',
+      );
     }
   }
 

@@ -4,8 +4,8 @@
 /// matches TypeScript Anchor's exact API behavior.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Critical Iteration 1: Event System API Compatibility', () {
@@ -80,8 +80,10 @@ void main() {
       );
 
       // TypeScript: removeEventListener takes numeric ID
-      expect(() async => eventManager.removeEventListener(listenerId),
-          returnsNormally,);
+      expect(
+        () async => eventManager.removeEventListener(listenerId),
+        returnsNormally,
+      );
     });
 
     test('removeEventListener throws for invalid ID like TypeScript', () async {

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('PDA Cache System', () {
@@ -14,8 +15,14 @@ void main() {
 
     group('Cache Key Generation', () {
       test('should generate consistent keys for same seeds', () {
-        final seeds1 = [const StringSeed('test'), const NumberSeed(42, byteLength: 8)];
-        final seeds2 = [const StringSeed('test'), const NumberSeed(42, byteLength: 8)];
+        final seeds1 = [
+          const StringSeed('test'),
+          const NumberSeed(42, byteLength: 8),
+        ];
+        final seeds2 = [
+          const StringSeed('test'),
+          const NumberSeed(42, byteLength: 8),
+        ];
 
         final key1 = PdaCacheKey.fromSeeds(seeds1, programId);
         final key2 = PdaCacheKey.fromSeeds(seeds2, programId);
@@ -126,7 +133,8 @@ void main() {
         expect(cache.size, equals(3));
 
         // First entry should be evicted
-        final oldKey = PdaCacheKey.fromSeeds([const StringSeed('test_0')], programId);
+        final oldKey =
+            PdaCacheKey.fromSeeds([const StringSeed('test_0')], programId);
         expect(cache.get(oldKey), isNull);
 
         // New entry should be present

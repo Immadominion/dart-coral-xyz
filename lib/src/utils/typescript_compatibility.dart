@@ -19,13 +19,15 @@ class TSUtils {
   static List<T> values<T>(Map<String, T> object) => object.values.toList();
 
   /// TypeScript-like Object.entries() equivalent
-  static List<MapEntry<String, T>> entries<T>(Map<String, T> object) => object.entries.toList();
+  static List<MapEntry<String, T>> entries<T>(Map<String, T> object) =>
+      object.entries.toList();
 
   /// TypeScript-like Object.assign() equivalent
   static Map<String, dynamic> assign(
     Map<String, dynamic> target,
     Map<String, dynamic> source,
-  ) => {...target, ...source};
+  ) =>
+      {...target, ...source};
 
   /// TypeScript-like Object.freeze() equivalent (returns unmodifiable view)
   static Map<K, V> freeze<K, V>(Map<K, V> object) => Map.unmodifiable(object);
@@ -34,7 +36,8 @@ class TSUtils {
   static List<T> arrayFrom<T>(Iterable<T> iterable) => List<T>.from(iterable);
 
   /// TypeScript-like array includes() method
-  static bool includes<T>(List<T> array, T searchElement) => array.contains(searchElement);
+  static bool includes<T>(List<T> array, T searchElement) =>
+      array.contains(searchElement);
 
   /// TypeScript-like array find() method
   static T? find<T>(List<T> array, bool Function(T) predicate) {
@@ -46,24 +49,28 @@ class TSUtils {
   }
 
   /// TypeScript-like array filter() method
-  static List<T> filter<T>(List<T> array, bool Function(T) predicate) => array.where(predicate).toList();
+  static List<T> filter<T>(List<T> array, bool Function(T) predicate) =>
+      array.where(predicate).toList();
 
   /// TypeScript-like array map() method
-  static List<R> map<T, R>(List<T> array, R Function(T) mapper) => array.map(mapper).toList();
+  static List<R> map<T, R>(List<T> array, R Function(T) mapper) =>
+      array.map(mapper).toList();
 
   /// TypeScript-like array reduce() method
   static R reduce<T, R>(
     List<T> array,
     R Function(R accumulator, T current) reducer,
     R initialValue,
-  ) => array.fold(initialValue, reducer);
+  ) =>
+      array.fold(initialValue, reducer);
 }
 
 /// TypeScript-like Promise simulation using Future
 typedef Promise<T> = Future<T>;
 
 /// TypeScript-like setTimeout simulation
-Future<void> setTimeout(void Function() callback, int milliseconds) => Future.delayed(Duration(milliseconds: milliseconds), callback);
+Future<void> setTimeout(void Function() callback, int milliseconds) =>
+    Future.delayed(Duration(milliseconds: milliseconds), callback);
 
 /// TypeScript-like console object simulation
 class Console {
@@ -148,7 +155,6 @@ class RangeError extends Error {
 
 /// TypeScript-like Error base class
 class Error implements Exception {
-
   Error(this.message, {this.name, this.stack});
   final String message;
   final String? name;

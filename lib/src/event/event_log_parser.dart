@@ -16,7 +16,6 @@ const int programDataStartIndex = programData.length;
 /// Event log parser for extracting events from transaction logs
 /// Matches TypeScript's EventParser functionality with discriminator validation
 class EventLogParser {
-
   const EventLogParser({
     required this.programId,
     required this.eventsByDiscriminator,
@@ -99,9 +98,9 @@ class EventLogParser {
       eventsByDiscriminator: eventsByDiscriminator,
       eventsByName: eventsByName,
       config: config,
-      eventCoder: null, // No IDL-based coder available
     );
   }
+
   /// Program ID for filtering events
   final PublicKey programId;
 
@@ -515,18 +514,19 @@ class EventLogParser {
   Iterable<ParsedEvent> filterEventsByName(
     Iterable<ParsedEvent> events,
     Set<String> eventNames,
-  ) => events.where((event) => eventNames.contains(event.name));
+  ) =>
+      events.where((event) => eventNames.contains(event.name));
 
   /// Filter events by custom criteria
   Iterable<ParsedEvent> filterEvents(
     Iterable<ParsedEvent> events,
     bool Function(ParsedEvent) predicate,
-  ) => events.where(predicate);
+  ) =>
+      events.where(predicate);
 }
 
 /// Configuration for event log parsing
 class EventLogParserConfig {
-
   const EventLogParserConfig({
     this.strictParsing = false,
     this.strictValidation = false,
@@ -535,29 +535,19 @@ class EventLogParserConfig {
   });
 
   /// Default configuration
-  factory EventLogParserConfig.defaultConfig() {
-    return const EventLogParserConfig();
-  }
+  factory EventLogParserConfig.defaultConfig() => const EventLogParserConfig();
 
   /// Strict configuration for production
-  factory EventLogParserConfig.strict() {
-    return const EventLogParserConfig(
-      strictParsing: true,
-      strictValidation: true,
-      allowUnknownEvents: false,
-      recoverFromErrors: false,
-    );
-  }
+  factory EventLogParserConfig.strict() => const EventLogParserConfig(
+        strictParsing: true,
+        strictValidation: true,
+        allowUnknownEvents: false,
+        recoverFromErrors: false,
+      );
 
   /// Lenient configuration for development
-  factory EventLogParserConfig.lenient() {
-    return const EventLogParserConfig(
-      strictParsing: false,
-      strictValidation: false,
-      allowUnknownEvents: true,
-      recoverFromErrors: true,
-    );
-  }
+  factory EventLogParserConfig.lenient() => const EventLogParserConfig();
+
   /// Whether to use strict parsing (throw errors on malformed data)
   final bool strictParsing;
 
@@ -573,7 +563,6 @@ class EventLogParserConfig {
 
 /// Result of parsing a single event
 class ParsedEvent {
-
   const ParsedEvent({
     required this.name,
     required this.data,
@@ -609,6 +598,7 @@ class ParsedEvent {
       isValid: validate, // Assume valid if decoded successfully
     );
   }
+
   /// Event name
   final String name;
 
@@ -633,12 +623,12 @@ class ParsedEvent {
 
 /// Result of handling a log line
 class LogHandleResult {
-
   const LogHandleResult({
+    required this.didPop,
     this.event,
     this.newProgram,
-    required this.didPop,
   });
+
   /// Parsed event (if any)
   final ParsedEvent? event;
 
@@ -651,11 +641,11 @@ class LogHandleResult {
 
 /// Result of handling a system log
 class SystemLogResult {
-
   const SystemLogResult({
-    this.newProgram,
     required this.didPop,
+    this.newProgram,
   });
+
   /// New program to push to execution stack
   final String? newProgram;
 
@@ -665,11 +655,11 @@ class SystemLogResult {
 
 /// Result of parsing a field value
 class FieldParseResult {
-
   const FieldParseResult({
     required this.value,
     required this.bytesConsumed,
   });
+
   /// Parsed value
   final dynamic value;
 
@@ -679,10 +669,9 @@ class FieldParseResult {
 
 /// Log scanner for iterating through log lines
 class LogScanner {
-
   LogScanner(this.logs) {
     // Filter out logs that don't start with "Program" to match TypeScript behavior
-    logs = logs.where((log) => log.startsWith("Program ")).toList();
+    logs = logs.where((log) => log.startsWith('Program ')).toList();
   }
   List<String> logs;
 
@@ -721,7 +710,6 @@ class ExecutionContext {
 
 /// Exception thrown during event parsing
 class EventParsingException implements Exception {
-
   const EventParsingException(
     this.message, {
     this.eventName,
@@ -733,6 +721,6 @@ class EventParsingException implements Exception {
 
   @override
   String toString() => eventName != null
-        ? 'EventParsingException ($eventName): $message'
-        : 'EventParsingException: $message';
+      ? 'EventParsingException ($eventName): $message'
+      : 'EventParsingException: $message';
 }

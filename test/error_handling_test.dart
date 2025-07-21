@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 /// Test suite for Anchor error handling system
 ///
@@ -31,12 +31,18 @@ void main() {
       final stack = ProgramErrorStack.parse(logs);
 
       expect(stack.stack.length, equals(2));
-      expect(stack.stack[0].toBase58(),
-          equals('11111111111111111111111111111112'),);
-      expect(stack.stack[1].toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
-      expect(stack.currentProgram?.toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
+      expect(
+        stack.stack[0].toBase58(),
+        equals('11111111111111111111111111111112'),
+      );
+      expect(
+        stack.stack[1].toBase58(),
+        equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),
+      );
+      expect(
+        stack.currentProgram?.toBase58(),
+        equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),
+      );
     });
 
     test('AnchorError.parse handles basic error format', () {
@@ -55,8 +61,10 @@ void main() {
       expect(error.errorMessage, equals('A mut constraint was violated.'));
       expect(error.origin, isNull);
       expect(error.comparedValues, isNull);
-      expect(error.program.toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
+      expect(
+        error.program.toBase58(),
+        equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),
+      );
     });
 
     test('AnchorError.parse handles file location format', () {
@@ -114,10 +122,14 @@ void main() {
       expect(error.comparedValues, isNotNull);
       expect(error.comparedValues!.publicKeys, isNotNull);
       expect(error.comparedValues!.publicKeys!.length, equals(2));
-      expect(error.comparedValues!.publicKeys![0].toBase58(),
-          equals('11111111111111111111111111111111'),);
-      expect(error.comparedValues!.publicKeys![1].toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
+      expect(
+        error.comparedValues!.publicKeys![0].toBase58(),
+        equals('11111111111111111111111111111111'),
+      );
+      expect(
+        error.comparedValues!.publicKeys![1].toBase58(),
+        equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),
+      );
     });
 
     test('AnchorError.parse handles compared values', () {
@@ -169,8 +181,10 @@ void main() {
       expect(error, isNotNull);
       expect(error!.code, equals(6000));
       expect(error.message, equals('Custom user error message'));
-      expect(error.program?.toBase58(),
-          equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),);
+      expect(
+        error.program?.toBase58(),
+        equals('J2XMGdW2qQLx7rAdwWtSZpTXDgAQ988BLP9QTgUZvm54'),
+      );
     });
 
     test('ProgramError.parse handles JSON error format', () {
@@ -208,8 +222,10 @@ void main() {
       final translatedError = translateError(mockError, {});
 
       expect(translatedError, isA<AnchorError>());
-      expect((translatedError as AnchorError).errorCode.code,
-          equals('ConstraintMut'),);
+      expect(
+        (translatedError as AnchorError).errorCode.code,
+        equals('ConstraintMut'),
+      );
     });
 
     test('translateError falls back to ProgramError when no AnchorError', () {
@@ -240,9 +256,15 @@ void main() {
         instructions: [],
         errors: [
           IdlErrorCode(
-              code: 6000, name: 'CustomError1', msg: 'First custom error',),
+            code: 6000,
+            name: 'CustomError1',
+            msg: 'First custom error',
+          ),
           IdlErrorCode(
-              code: 6001, name: 'CustomError2', msg: 'Second custom error',),
+            code: 6001,
+            name: 'CustomError2',
+            msg: 'Second custom error',
+          ),
           IdlErrorCode(code: 6002, name: 'CustomError3'), // No message
         ],
       );
@@ -272,25 +294,28 @@ void main() {
     test('LangErrorMessage contains all framework error codes', () {
       // Test a few key framework error messages
       expect(
-          LangErrorMessage
-              .langErrorMessages[LangErrorMessage.instructionMissing],
-          equals('Instruction discriminator not provided'),);
-      expect(LangErrorMessage.langErrorMessages[LangErrorMessage.constraintMut],
-          equals('A mut constraint was violated'),);
+        LangErrorMessage.langErrorMessages[LangErrorMessage.instructionMissing],
+        equals('Instruction discriminator not provided'),
+      );
       expect(
-          LangErrorMessage
-              .langErrorMessages[LangErrorMessage.accountDidNotDeserialize],
-          equals('Failed to deserialize the account'),);
+        LangErrorMessage.langErrorMessages[LangErrorMessage.constraintMut],
+        equals('A mut constraint was violated'),
+      );
       expect(
-          LangErrorMessage.langErrorMessages[LangErrorMessage.requireViolated],
-          equals('A require expression was violated'),);
+        LangErrorMessage
+            .langErrorMessages[LangErrorMessage.accountDidNotDeserialize],
+        equals('Failed to deserialize the account'),
+      );
+      expect(
+        LangErrorMessage.langErrorMessages[LangErrorMessage.requireViolated],
+        equals('A require expression was violated'),
+      );
     });
   });
 }
 
 /// Mock error class for testing error parsing
 class MockError {
-
   MockError(this.message, this.logs);
   final String message;
   final List<String> logs;

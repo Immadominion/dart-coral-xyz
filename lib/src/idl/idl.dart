@@ -9,14 +9,13 @@ library;
 
 /// The main IDL structure that defines an Anchor program interface
 class Idl {
-
   const Idl({
+    required this.instructions,
     this.address,
     this.name,
     this.version,
     this.metadata,
     this.docs,
-    required this.instructions,
     this.accounts,
     this.events,
     this.errors,
@@ -25,35 +24,34 @@ class Idl {
   });
 
   /// Parse IDL from JSON
-  factory Idl.fromJson(Map<String, dynamic> json) {
-    return Idl(
-      address: json['address'] as String?,
-      name: json['name'] as String?,
-      version: json['version'] as String?,
-      metadata: json['metadata'] != null
-          ? IdlMetadata.fromJson(json['metadata'] as Map<String, dynamic>)
-          : null,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      instructions: (json['instructions'] as List<dynamic>)
-          .map((e) => IdlInstruction.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      accounts: (json['accounts'] as List<dynamic>?)
-          ?.map((e) => IdlAccount.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      events: (json['events'] as List<dynamic>?)
-          ?.map((e) => IdlEvent.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      errors: (json['errors'] as List<dynamic>?)
-          ?.map((e) => IdlErrorCode.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      types: (json['types'] as List<dynamic>?)
-          ?.map((e) => IdlTypeDef.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      constants: (json['constants'] as List<dynamic>?)
-          ?.map((e) => IdlConst.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
+  factory Idl.fromJson(Map<String, dynamic> json) => Idl(
+        address: json['address'] as String?,
+        name: json['name'] as String?,
+        version: json['version'] as String?,
+        metadata: json['metadata'] != null
+            ? IdlMetadata.fromJson(json['metadata'] as Map<String, dynamic>)
+            : null,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        instructions: (json['instructions'] as List<dynamic>)
+            .map((e) => IdlInstruction.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        accounts: (json['accounts'] as List<dynamic>?)
+            ?.map((e) => IdlAccount.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        events: (json['events'] as List<dynamic>?)
+            ?.map((e) => IdlEvent.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        errors: (json['errors'] as List<dynamic>?)
+            ?.map((e) => IdlErrorCode.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        types: (json['types'] as List<dynamic>?)
+            ?.map((e) => IdlTypeDef.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        constants: (json['constants'] as List<dynamic>?)
+            ?.map((e) => IdlConst.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+
   /// Program address (optional - can be provided separately)
   final String? address;
 
@@ -89,20 +87,20 @@ class Idl {
 
   /// Convert IDL to JSON
   Map<String, dynamic> toJson() => {
-      if (address != null) 'address': address,
-      if (name != null) 'name': name,
-      if (version != null) 'version': version,
-      if (metadata != null) 'metadata': metadata!.toJson(),
-      if (docs != null) 'docs': docs,
-      'instructions': instructions.map((e) => e.toJson()).toList(),
-      if (accounts != null)
-        'accounts': accounts!.map((e) => e.toJson()).toList(),
-      if (events != null) 'events': events!.map((e) => e.toJson()).toList(),
-      if (errors != null) 'errors': errors!.map((e) => e.toJson()).toList(),
-      if (types != null) 'types': types!.map((e) => e.toJson()).toList(),
-      if (constants != null)
-        'constants': constants!.map((e) => e.toJson()).toList(),
-    };
+        if (address != null) 'address': address,
+        if (name != null) 'name': name,
+        if (version != null) 'version': version,
+        if (metadata != null) 'metadata': metadata!.toJson(),
+        if (docs != null) 'docs': docs,
+        'instructions': instructions.map((e) => e.toJson()).toList(),
+        if (accounts != null)
+          'accounts': accounts!.map((e) => e.toJson()).toList(),
+        if (events != null) 'events': events!.map((e) => e.toJson()).toList(),
+        if (errors != null) 'errors': errors!.map((e) => e.toJson()).toList(),
+        if (types != null) 'types': types!.map((e) => e.toJson()).toList(),
+        if (constants != null)
+          'constants': constants!.map((e) => e.toJson()).toList(),
+      };
 
   /// Find instruction by name
   IdlInstruction? findInstruction(String name) {
@@ -138,7 +136,6 @@ class Idl {
 
 /// IDL metadata containing program information
 class IdlMetadata {
-
   const IdlMetadata({
     required this.name,
     required this.version,
@@ -150,22 +147,22 @@ class IdlMetadata {
     this.deployments,
   });
 
-  factory IdlMetadata.fromJson(Map<String, dynamic> json) {
-    return IdlMetadata(
-      name: json['name'] as String,
-      version: json['version'] as String,
-      spec: json['spec'] as String,
-      description: json['description'] as String?,
-      repository: json['repository'] as String?,
-      dependencies: (json['dependencies'] as List<dynamic>?)
-          ?.map((e) => IdlDependency.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      contact: json['contact'] as String?,
-      deployments: json['deployments'] != null
-          ? IdlDeployments.fromJson(json['deployments'] as Map<String, dynamic>)
-          : null,
-    );
-  }
+  factory IdlMetadata.fromJson(Map<String, dynamic> json) => IdlMetadata(
+        name: json['name'] as String,
+        version: json['version'] as String,
+        spec: json['spec'] as String,
+        description: json['description'] as String?,
+        repository: json['repository'] as String?,
+        dependencies: (json['dependencies'] as List<dynamic>?)
+            ?.map((e) => IdlDependency.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        contact: json['contact'] as String?,
+        deployments: json['deployments'] != null
+            ? IdlDeployments.fromJson(
+                json['deployments'] as Map<String, dynamic>,
+              )
+            : null,
+      );
   final String name;
   final String version;
   final String spec;
@@ -176,16 +173,16 @@ class IdlMetadata {
   final IdlDeployments? deployments;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      'version': version,
-      'spec': spec,
-      if (description != null) 'description': description,
-      if (repository != null) 'repository': repository,
-      if (dependencies != null)
-        'dependencies': dependencies!.map((e) => e.toJson()).toList(),
-      if (contact != null) 'contact': contact,
-      if (deployments != null) 'deployments': deployments!.toJson(),
-    };
+        'name': name,
+        'version': version,
+        'spec': spec,
+        if (description != null) 'description': description,
+        if (repository != null) 'repository': repository,
+        if (dependencies != null)
+          'dependencies': dependencies!.map((e) => e.toJson()).toList(),
+        if (contact != null) 'contact': contact,
+        if (deployments != null) 'deployments': deployments!.toJson(),
+      };
 
   @override
   String toString() => 'IdlMetadata(name: $name, version: $version)';
@@ -193,22 +190,19 @@ class IdlMetadata {
 
 /// Program dependency information
 class IdlDependency {
-
   const IdlDependency({required this.name, required this.version});
 
-  factory IdlDependency.fromJson(Map<String, dynamic> json) {
-    return IdlDependency(
-      name: json['name'] as String,
-      version: json['version'] as String,
-    );
-  }
+  factory IdlDependency.fromJson(Map<String, dynamic> json) => IdlDependency(
+        name: json['name'] as String,
+        version: json['version'] as String,
+      );
   final String name;
   final String version;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      'version': version,
-    };
+        'name': name,
+        'version': version,
+      };
 
   @override
   String toString() => 'IdlDependency(name: $name, version: $version)';
@@ -216,7 +210,6 @@ class IdlDependency {
 
 /// Program deployment addresses for different networks
 class IdlDeployments {
-
   const IdlDeployments({
     this.mainnet,
     this.testnet,
@@ -224,25 +217,23 @@ class IdlDeployments {
     this.localnet,
   });
 
-  factory IdlDeployments.fromJson(Map<String, dynamic> json) {
-    return IdlDeployments(
-      mainnet: json['mainnet'] as String?,
-      testnet: json['testnet'] as String?,
-      devnet: json['devnet'] as String?,
-      localnet: json['localnet'] as String?,
-    );
-  }
+  factory IdlDeployments.fromJson(Map<String, dynamic> json) => IdlDeployments(
+        mainnet: json['mainnet'] as String?,
+        testnet: json['testnet'] as String?,
+        devnet: json['devnet'] as String?,
+        localnet: json['localnet'] as String?,
+      );
   final String? mainnet;
   final String? testnet;
   final String? devnet;
   final String? localnet;
 
   Map<String, dynamic> toJson() => {
-      if (mainnet != null) 'mainnet': mainnet,
-      if (testnet != null) 'testnet': testnet,
-      if (devnet != null) 'devnet': devnet,
-      if (localnet != null) 'localnet': localnet,
-    };
+        if (mainnet != null) 'mainnet': mainnet,
+        if (testnet != null) 'testnet': testnet,
+        if (devnet != null) 'devnet': devnet,
+        if (localnet != null) 'localnet': localnet,
+      };
 
   @override
   String toString() => 'IdlDeployments(mainnet: $mainnet, devnet: $devnet)';
@@ -250,33 +241,32 @@ class IdlDeployments {
 
 /// Program instruction definition
 class IdlInstruction {
-
   const IdlInstruction({
     required this.name,
-    this.docs,
     required this.args,
     required this.accounts,
+    this.docs,
     this.discriminator,
     this.returns,
   });
 
-  factory IdlInstruction.fromJson(Map<String, dynamic> json) {
-    return IdlInstruction(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      args: (json['args'] as List<dynamic>? ??
-              []) // Handle cases where args might be missing
-          .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      accounts: (json['accounts'] as List<dynamic>? ??
-              []) // Handle cases where accounts might be missing
-          .map((e) =>
-              IdlInstructionAccountItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
-      returns: json['returns'] as String?,
-    );
-  }
+  factory IdlInstruction.fromJson(Map<String, dynamic> json) => IdlInstruction(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        args: (json['args'] as List<dynamic>? ??
+                []) // Handle cases where args might be missing
+            .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        accounts: (json['accounts'] as List<dynamic>? ??
+                []) // Handle cases where accounts might be missing
+            .map(
+              (e) =>
+                  IdlInstructionAccountItem.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(),
+        discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
+        returns: json['returns'] as String?,
+      );
   final String name;
   final List<String>? docs;
   final List<IdlField> args;
@@ -285,13 +275,13 @@ class IdlInstruction {
   final String? returns;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (docs != null) 'docs': docs,
-      'args': args.map((e) => e.toJson()).toList(),
-      'accounts': accounts.map((e) => e.toJson()).toList(),
-      if (discriminator != null) 'discriminator': discriminator,
-      if (returns != null) 'returns': returns,
-    };
+        'name': name,
+        if (docs != null) 'docs': docs,
+        'args': args.map((e) => e.toJson()).toList(),
+        'accounts': accounts.map((e) => e.toJson()).toList(),
+        if (discriminator != null) 'discriminator': discriminator,
+        if (returns != null) 'returns': returns,
+      };
 
   @override
   String toString() => 'IdlInstruction(name: $name)';
@@ -299,33 +289,30 @@ class IdlInstruction {
 
 /// Program account definition
 class IdlAccount {
-
   const IdlAccount({
     required this.name,
-    this.docs,
     required this.type,
+    this.docs,
     this.discriminator,
   });
 
-  factory IdlAccount.fromJson(Map<String, dynamic> json) {
-    return IdlAccount(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      type: IdlTypeDefType.fromJson(json['type'] as Map<String, dynamic>),
-      discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
-    );
-  }
+  factory IdlAccount.fromJson(Map<String, dynamic> json) => IdlAccount(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        type: IdlTypeDefType.fromJson(json['type'] as Map<String, dynamic>),
+        discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
+      );
   final String name;
   final List<String>? docs;
   final IdlTypeDefType type;
   final IdlDiscriminator? discriminator;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (docs != null) 'docs': docs,
-      'type': type.toJson(),
-      if (discriminator != null) 'discriminator': discriminator,
-    };
+        'name': name,
+        if (docs != null) 'docs': docs,
+        'type': type.toJson(),
+        if (discriminator != null) 'discriminator': discriminator,
+      };
 
   @override
   String toString() => 'IdlAccount(name: $name)';
@@ -333,35 +320,32 @@ class IdlAccount {
 
 /// Program event definition
 class IdlEvent {
-
   const IdlEvent({
     required this.name,
-    this.docs,
     required this.fields,
+    this.docs,
     this.discriminator,
   });
 
-  factory IdlEvent.fromJson(Map<String, dynamic> json) {
-    return IdlEvent(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      fields: (json['fields'] as List<dynamic>)
-          .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
-    );
-  }
+  factory IdlEvent.fromJson(Map<String, dynamic> json) => IdlEvent(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        fields: (json['fields'] as List<dynamic>)
+            .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
+      );
   final String name;
   final List<String>? docs;
   final List<IdlField> fields;
   final IdlDiscriminator? discriminator;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (docs != null) 'docs': docs,
-      'fields': fields.map((e) => e.toJson()).toList(),
-      if (discriminator != null) 'discriminator': discriminator,
-    };
+        'name': name,
+        if (docs != null) 'docs': docs,
+        'fields': fields.map((e) => e.toJson()).toList(),
+        if (discriminator != null) 'discriminator': discriminator,
+      };
 
   @override
   String toString() => 'IdlEvent(name: $name)';
@@ -369,29 +353,26 @@ class IdlEvent {
 
 /// Program error code definition
 class IdlErrorCode {
-
   const IdlErrorCode({
     required this.code,
     required this.name,
     this.msg,
   });
 
-  factory IdlErrorCode.fromJson(Map<String, dynamic> json) {
-    return IdlErrorCode(
-      code: json['code'] as int,
-      name: json['name'] as String,
-      msg: json['msg'] as String?,
-    );
-  }
+  factory IdlErrorCode.fromJson(Map<String, dynamic> json) => IdlErrorCode(
+        code: json['code'] as int,
+        name: json['name'] as String,
+        msg: json['msg'] as String?,
+      );
   final int code;
   final String name;
   final String? msg;
 
   Map<String, dynamic> toJson() => {
-      'code': code,
-      'name': name,
-      if (msg != null) 'msg': msg,
-    };
+        'code': code,
+        'name': name,
+        if (msg != null) 'msg': msg,
+      };
 
   @override
   String toString() => 'IdlErrorCode(code: $code, name: $name)';
@@ -402,25 +383,22 @@ typedef IdlDiscriminator = List<int>;
 
 /// Field definition for structs, enums, and instruction arguments
 class IdlField {
+  const IdlField({required this.name, required this.type, this.docs});
 
-  const IdlField({required this.name, this.docs, required this.type});
-
-  factory IdlField.fromJson(Map<String, dynamic> json) {
-    return IdlField(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      type: IdlType.fromJson(json['type']), // type can be string or map
-    );
-  }
+  factory IdlField.fromJson(Map<String, dynamic> json) => IdlField(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        type: IdlType.fromJson(json['type']), // type can be string or map
+      );
   final String name;
   final List<String>? docs;
   final IdlType type;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (docs != null) 'docs': docs,
-      'type': type.toJson(),
-    };
+        'name': name,
+        if (docs != null) 'docs': docs,
+        'type': type.toJson(),
+      };
 
   @override
   String toString() => 'IdlField(name: $name, type: ${type.kind})';
@@ -428,7 +406,6 @@ class IdlField {
 
 /// Base class for PDA seeds
 abstract class IdlSeed {
-
   const IdlSeed({required this.kind});
 
   factory IdlSeed.fromJson(Map<String, dynamic> json) {
@@ -451,23 +428,20 @@ abstract class IdlSeed {
 
 /// Constant seed for PDA derivation
 class IdlSeedConst extends IdlSeed {
-
   const IdlSeedConst({required this.value}) : super(kind: 'const');
 
-  factory IdlSeedConst.fromJson(Map<String, dynamic> json) {
-    return IdlSeedConst(
-      value: (json['value'] as List<dynamic>).cast<int>(),
-    );
-  }
+  factory IdlSeedConst.fromJson(Map<String, dynamic> json) => IdlSeedConst(
+        value: (json['value'] as List<dynamic>).cast<int>(),
+      );
   final String type = 'bytes';
   final List<int> value;
 
   @override
   Map<String, dynamic> toJson() => {
-      'kind': kind,
-      'type': type,
-      'value': value,
-    };
+        'kind': kind,
+        'type': type,
+        'value': value,
+      };
 
   @override
   String toString() => 'IdlSeedConst(value: $value)';
@@ -475,25 +449,22 @@ class IdlSeedConst extends IdlSeed {
 
 /// Argument-based seed for PDA derivation
 class IdlSeedArg extends IdlSeed {
-
   const IdlSeedArg({required this.type, required this.path})
       : super(kind: 'arg');
 
-  factory IdlSeedArg.fromJson(Map<String, dynamic> json) {
-    return IdlSeedArg(
-      type: IdlType.fromJson(json['type']),
-      path: json['path'] as String,
-    );
-  }
+  factory IdlSeedArg.fromJson(Map<String, dynamic> json) => IdlSeedArg(
+        type: IdlType.fromJson(json['type']),
+        path: json['path'] as String,
+      );
   final IdlType type;
   final String path;
 
   @override
   Map<String, dynamic> toJson() => {
-      'kind': kind,
-      'type': type.toJson(),
-      'path': path,
-    };
+        'kind': kind,
+        'type': type.toJson(),
+        'path': path,
+      };
 
   @override
   String toString() => 'IdlSeedArg(path: $path)';
@@ -501,25 +472,22 @@ class IdlSeedArg extends IdlSeed {
 
 /// Account-based seed for PDA derivation
 class IdlSeedAccount extends IdlSeed {
-
   const IdlSeedAccount({required this.type, required this.path})
       : super(kind: 'account');
 
-  factory IdlSeedAccount.fromJson(Map<String, dynamic> json) {
-    return IdlSeedAccount(
-      type: IdlType.fromJson(json['type']),
-      path: json['path'] as String,
-    );
-  }
+  factory IdlSeedAccount.fromJson(Map<String, dynamic> json) => IdlSeedAccount(
+        type: IdlType.fromJson(json['type']),
+        path: json['path'] as String,
+      );
   final IdlType type;
   final String path;
 
   @override
   Map<String, dynamic> toJson() => {
-      'kind': kind,
-      'type': type.toJson(),
-      'path': path,
-    };
+        'kind': kind,
+        'type': type.toJson(),
+        'path': path,
+      };
 
   @override
   String toString() => 'IdlSeedAccount(path: $path)';
@@ -527,26 +495,23 @@ class IdlSeedAccount extends IdlSeed {
 
 /// PDA (Program Derived Address) specification
 class IdlPda {
-
   const IdlPda({required this.seeds, this.programId});
 
-  factory IdlPda.fromJson(Map<String, dynamic> json) {
-    return IdlPda(
-      seeds: (json['seeds'] as List<dynamic>)
-          .map((e) => IdlSeed.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      programId: json['programId'] != null
-          ? IdlSeedAccount.fromJson(json['programId'] as Map<String, dynamic>)
-          : null,
-    );
-  }
+  factory IdlPda.fromJson(Map<String, dynamic> json) => IdlPda(
+        seeds: (json['seeds'] as List<dynamic>)
+            .map((e) => IdlSeed.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        programId: json['programId'] != null
+            ? IdlSeedAccount.fromJson(json['programId'] as Map<String, dynamic>)
+            : null,
+      );
   final List<IdlSeed> seeds;
   final IdlSeedAccount? programId;
 
   Map<String, dynamic> toJson() => {
-      'seeds': seeds.map((e) => e.toJson()).toList(),
-      if (programId != null) 'programId': programId!.toJson(),
-    };
+        'seeds': seeds.map((e) => e.toJson()).toList(),
+        if (programId != null) 'programId': programId!.toJson(),
+      };
 
   @override
   String toString() => 'IdlPda(seeds: ${seeds.length})';
@@ -554,7 +519,6 @@ class IdlPda {
 
 /// Base class for instruction account items (supports both single accounts and account groups)
 abstract class IdlInstructionAccountItem {
-
   const IdlInstructionAccountItem({required this.name, this.docs});
 
   factory IdlInstructionAccountItem.fromJson(Map<String, dynamic> json) {
@@ -572,7 +536,6 @@ abstract class IdlInstructionAccountItem {
 
 /// Single instruction account with PDA support
 class IdlInstructionAccount extends IdlInstructionAccountItem {
-
   const IdlInstructionAccount({
     required super.name,
     super.docs,
@@ -584,20 +547,19 @@ class IdlInstructionAccount extends IdlInstructionAccountItem {
     this.relations,
   });
 
-  factory IdlInstructionAccount.fromJson(Map<String, dynamic> json) {
-    return IdlInstructionAccount(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      writable: json['writable'] as bool? ?? json['isMut'] as bool? ?? false,
-      signer: json['signer'] as bool? ?? json['isSigner'] as bool? ?? false,
-      optional: json['optional'] as bool? ?? false,
-      address: json['address'] as String?,
-      pda: json['pda'] != null
-          ? IdlPda.fromJson(json['pda'] as Map<String, dynamic>)
-          : null,
-      relations: (json['relations'] as List<dynamic>?)?.cast<String>(),
-    );
-  }
+  factory IdlInstructionAccount.fromJson(Map<String, dynamic> json) =>
+      IdlInstructionAccount(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        writable: json['writable'] as bool? ?? json['isMut'] as bool? ?? false,
+        signer: json['signer'] as bool? ?? json['isSigner'] as bool? ?? false,
+        optional: json['optional'] as bool? ?? false,
+        address: json['address'] as String?,
+        pda: json['pda'] != null
+            ? IdlPda.fromJson(json['pda'] as Map<String, dynamic>)
+            : null,
+        relations: (json['relations'] as List<dynamic>?)?.cast<String>(),
+      );
   final bool writable;
   final bool signer;
   final bool optional;
@@ -607,15 +569,15 @@ class IdlInstructionAccount extends IdlInstructionAccountItem {
 
   @override
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (docs != null) 'docs': docs,
-      'writable': writable,
-      'signer': signer,
-      'optional': optional,
-      if (address != null) 'address': address,
-      if (pda != null) 'pda': pda!.toJson(),
-      if (relations != null) 'relations': relations,
-    };
+        'name': name,
+        if (docs != null) 'docs': docs,
+        'writable': writable,
+        'signer': signer,
+        'optional': optional,
+        if (address != null) 'address': address,
+        if (pda != null) 'pda': pda!.toJson(),
+        if (relations != null) 'relations': relations,
+      };
 
   bool get isMut => writable;
   bool get isSigner => signer;
@@ -627,31 +589,31 @@ class IdlInstructionAccount extends IdlInstructionAccountItem {
 
 /// Group of instruction accounts (composite accounts)
 class IdlInstructionAccounts extends IdlInstructionAccountItem {
-
   const IdlInstructionAccounts({
     required super.name,
-    super.docs,
     required this.accounts,
+    super.docs,
   });
 
-  factory IdlInstructionAccounts.fromJson(Map<String, dynamic> json) {
-    return IdlInstructionAccounts(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      accounts: (json['accounts'] as List<dynamic>)
-          .map((e) =>
-              IdlInstructionAccountItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
+  factory IdlInstructionAccounts.fromJson(Map<String, dynamic> json) =>
+      IdlInstructionAccounts(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        accounts: (json['accounts'] as List<dynamic>)
+            .map(
+              (e) =>
+                  IdlInstructionAccountItem.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(),
+      );
   final List<IdlInstructionAccountItem> accounts;
 
   @override
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (docs != null) 'docs': docs,
-      'accounts': accounts.map((e) => e.toJson()).toList(),
-    };
+        'name': name,
+        if (docs != null) 'docs': docs,
+        'accounts': accounts.map((e) => e.toJson()).toList(),
+      };
 
   @override
   String toString() =>
@@ -660,25 +622,22 @@ class IdlInstructionAccounts extends IdlInstructionAccountItem {
 
 /// Constant definition
 class IdlConst {
-
   const IdlConst({required this.name, required this.type, required this.value});
 
-  factory IdlConst.fromJson(Map<String, dynamic> json) {
-    return IdlConst(
-      name: json['name'] as String,
-      type: json['type'],
-      value: json['value'] as String,
-    );
-  }
+  factory IdlConst.fromJson(Map<String, dynamic> json) => IdlConst(
+        name: json['name'] as String,
+        type: json['type'],
+        value: json['value'] as String,
+      );
   final String name;
   final dynamic type;
   final String value;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      'type': type,
-      'value': value,
-    };
+        'name': name,
+        'type': type,
+        'value': value,
+      };
 
   @override
   String toString() => 'IdlConst(name: $name, value: $value)';
@@ -686,25 +645,22 @@ class IdlConst {
 
 /// Type definition
 class IdlTypeDef {
+  const IdlTypeDef({required this.name, required this.type, this.docs});
 
-  const IdlTypeDef({required this.name, this.docs, required this.type});
-
-  factory IdlTypeDef.fromJson(Map<String, dynamic> json) {
-    return IdlTypeDef(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      type: IdlTypeDefType.fromJson(json['type'] as Map<String, dynamic>),
-    );
-  }
+  factory IdlTypeDef.fromJson(Map<String, dynamic> json) => IdlTypeDef(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        type: IdlTypeDefType.fromJson(json['type'] as Map<String, dynamic>),
+      );
   final String name;
   final List<String>? docs;
   final IdlTypeDefType type;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (docs != null) 'docs': docs,
-      'type': type.toJson(),
-    };
+        'name': name,
+        if (docs != null) 'docs': docs,
+        'type': type.toJson(),
+      };
 
   @override
   String toString() => 'IdlTypeDef(name: $name)';
@@ -712,67 +668,60 @@ class IdlTypeDef {
 
 /// Type definition type (struct, enum, etc.)
 class IdlTypeDefType {
-
   const IdlTypeDefType({
     required this.kind,
     this.fields,
     this.variants,
   });
 
-  factory IdlTypeDefType.fromJson(Map<String, dynamic> json) {
-    return IdlTypeDefType(
-      kind: json['kind'] as String,
-      fields: json['fields'] != null
-          ? (json['fields'] as List<dynamic>)
-              .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : null,
-      variants: json['variants'] != null
-          ? (json['variants'] as List<dynamic>)
-              .map((e) => IdlEnumVariant.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : null,
-    );
-  }
+  factory IdlTypeDefType.fromJson(Map<String, dynamic> json) => IdlTypeDefType(
+        kind: json['kind'] as String,
+        fields: json['fields'] != null
+            ? (json['fields'] as List<dynamic>)
+                .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : null,
+        variants: json['variants'] != null
+            ? (json['variants'] as List<dynamic>)
+                .map((e) => IdlEnumVariant.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : null,
+      );
   final String kind;
   final List<IdlField>? fields;
   final List<IdlEnumVariant>? variants;
 
   Map<String, dynamic> toJson() => {
-      'kind': kind,
-      if (fields != null) 'fields': fields!.map((e) => e.toJson()).toList(),
-      if (variants != null)
-        'variants': variants!.map((e) => e.toJson()).toList(),
-    };
+        'kind': kind,
+        if (fields != null) 'fields': fields!.map((e) => e.toJson()).toList(),
+        if (variants != null)
+          'variants': variants!.map((e) => e.toJson()).toList(),
+      };
 }
 
 /// Enum variant definition
 class IdlEnumVariant {
-
   const IdlEnumVariant({required this.name, this.fields});
 
-  factory IdlEnumVariant.fromJson(Map<String, dynamic> json) {
-    return IdlEnumVariant(
-      name: json['name'] as String,
-      fields: json['fields'] != null
-          ? (json['fields'] as List<dynamic>)
-              .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : null,
-    );
-  }
+  factory IdlEnumVariant.fromJson(Map<String, dynamic> json) => IdlEnumVariant(
+        name: json['name'] as String,
+        fields: json['fields'] != null
+            ? (json['fields'] as List<dynamic>)
+                .map((e) => IdlField.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : null,
+      );
   final String name;
   final List<IdlField>? fields;
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (fields != null) 'fields': fields!.map((e) => e.toJson()).toList(),
-    };
+        'name': name,
+        if (fields != null) 'fields': fields!.map((e) => e.toJson()).toList(),
+      };
 }
 
 /// Type specification for fields and arguments
 class IdlType {
-
   const IdlType({
     required this.kind,
     this.inner,
@@ -801,14 +750,19 @@ class IdlType {
           final list = json[kind] as List;
           if (list.length == 2) {
             return IdlType(
-                kind: kind,
-                inner: IdlType.fromJson(list[0]),
-                size: list[1] as int,
-                defined: definedName);
+              kind: kind,
+              inner: IdlType.fromJson(list[0]),
+              size: list[1] as int,
+              defined: definedName,
+            );
           }
         }
         return IdlType(
-            kind: kind, inner: inner, size: size, defined: definedName);
+          kind: kind,
+          inner: inner,
+          size: size,
+          defined: definedName,
+        );
       }
 
       if (json.keys.length == 1) {
@@ -839,7 +793,8 @@ class IdlType {
         }
       }
       throw ArgumentError(
-          'Ambiguous or invalid IDL type map: $json. Expected a single key for complex types or an explicit "kind" field.');
+        'Ambiguous or invalid IDL type map: $json. Expected a single key for complex types or an explicit "kind" field.',
+      );
     } else {
       throw ArgumentError('Invalid type definition format: $json');
     }
@@ -909,4 +864,5 @@ IdlType idlTypeArray(IdlType inner, int size) =>
 IdlType idlTypeDefined(String name) => IdlType(kind: 'defined', defined: name);
 
 /// Utility function to check if an account item is a composite accounts group
-bool isCompositeAccounts(IdlInstructionAccountItem accountItem) => accountItem is IdlInstructionAccounts;
+bool isCompositeAccounts(IdlInstructionAccountItem accountItem) =>
+    accountItem is IdlInstructionAccounts;

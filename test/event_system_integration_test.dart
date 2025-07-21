@@ -5,8 +5,8 @@
 /// TypeScript compatibility patterns.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Event System Integration', () {
@@ -302,9 +302,12 @@ void main() {
 
         // All components integrate seamlessly
         expect(
-            () => manager.subscribe(
-                eventName: 'TransferEvent', onEvent: (event) {},),
-            returnsNormally,);
+          () => manager.subscribe(
+            eventName: 'TransferEvent',
+            onEvent: (event) {},
+          ),
+          returnsNormally,
+        );
       });
 
       test('event configuration patterns match TypeScript', () {
@@ -317,7 +320,6 @@ void main() {
         final customConfig = const EventSubscriptionConfig(
           maxBufferSize: 2000,
           maxReconnectAttempts: 10,
-          reconnectTimeout: Duration(seconds: 30),
         );
         expect(customConfig.maxBufferSize, equals(2000));
         expect(customConfig.maxReconnectAttempts, equals(10));

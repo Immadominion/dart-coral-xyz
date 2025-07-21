@@ -6,10 +6,10 @@ import 'package:coral_xyz_anchor/src/transaction/enhanced_simulation_analyzer.da
 
 /// Simulation caching and replay system for enhanced debugging and development
 class SimulationCacheManager {
-
   SimulationCacheManager({
     this.config = const CachingConfig(),
   });
+
   /// Cache for simulation results
   final Map<String, CachedSimulation> _simulationCache = {};
 
@@ -186,15 +186,17 @@ class SimulationCacheManager {
           stepResult.comparison = comparison;
         }
       } catch (e) {
-        replayResults.add(ReplayStepResult(
-          stepIndex: i,
-          simulationKey: simulation.key,
-          simulation: simulation.simulation,
-          success: false,
-          error: e.toString(),
-          processingTime: DateTime.now().difference(stepStartTime),
-          metadata: simulation.metadata,
-        ),);
+        replayResults.add(
+          ReplayStepResult(
+            stepIndex: i,
+            simulationKey: simulation.key,
+            simulation: simulation.simulation,
+            success: false,
+            error: e.toString(),
+            processingTime: DateTime.now().difference(stepStartTime),
+            metadata: simulation.metadata,
+          ),
+        );
       }
     }
 
@@ -212,47 +214,48 @@ class SimulationCacheManager {
   }
 
   /// Find simulations by criteria
-  List<CachedSimulation> findSimulations(SearchCriteria criteria) => _simulationCache.values.where((cached) {
-      // Filter by timestamp range
-      if (criteria.startTime != null &&
-          cached.timestamp.isBefore(criteria.startTime!)) {
-        return false;
-      }
-      if (criteria.endTime != null &&
-          cached.timestamp.isAfter(criteria.endTime!)) {
-        return false;
-      }
+  List<CachedSimulation> findSimulations(SearchCriteria criteria) =>
+      _simulationCache.values.where((cached) {
+        // Filter by timestamp range
+        if (criteria.startTime != null &&
+            cached.timestamp.isBefore(criteria.startTime!)) {
+          return false;
+        }
+        if (criteria.endTime != null &&
+            cached.timestamp.isAfter(criteria.endTime!)) {
+          return false;
+        }
 
-      // Filter by compute units range
-      final computeUnits = cached.simulation.unitsConsumed ?? 0;
-      if (criteria.minComputeUnits != null &&
-          computeUnits < criteria.minComputeUnits!) {
-        return false;
-      }
-      if (criteria.maxComputeUnits != null &&
-          computeUnits > criteria.maxComputeUnits!) {
-        return false;
-      }
+        // Filter by compute units range
+        final computeUnits = cached.simulation.unitsConsumed ?? 0;
+        if (criteria.minComputeUnits != null &&
+            computeUnits < criteria.minComputeUnits!) {
+          return false;
+        }
+        if (criteria.maxComputeUnits != null &&
+            computeUnits > criteria.maxComputeUnits!) {
+          return false;
+        }
 
-      // Filter by success/failure
-      if (criteria.successOnly == true && !cached.simulation.success) {
-        return false;
-      }
-      if (criteria.failuresOnly == true && cached.simulation.success) {
-        return false;
-      }
+        // Filter by success/failure
+        if (criteria.successOnly == true && !cached.simulation.success) {
+          return false;
+        }
+        if (criteria.failuresOnly == true && cached.simulation.success) {
+          return false;
+        }
 
-      // Filter by metadata
-      if (criteria.metadata != null) {
-        for (final entry in criteria.metadata!.entries) {
-          if (cached.metadata[entry.key] != entry.value) {
-            return false;
+        // Filter by metadata
+        if (criteria.metadata != null) {
+          for (final entry in criteria.metadata!.entries) {
+            if (cached.metadata[entry.key] != entry.value) {
+              return false;
+            }
           }
         }
-      }
 
-      return true;
-    }).toList();
+        return true;
+      }).toList();
 
   /// Get cache performance metrics
   CachePerformanceMetrics getPerformanceMetrics() {
@@ -461,7 +464,8 @@ class SimulationCacheManager {
     // Check success status change
     if (previous.success != current.success) {
       changes.add(
-          'Success status changed: ${previous.success} → ${current.success}',);
+        'Success status changed: ${previous.success} → ${current.success}',
+      );
     }
 
     // Check compute units change
@@ -469,7 +473,8 @@ class SimulationCacheManager {
         (previous.simulation.unitsConsumed ?? 0);
     if (computeDiff.abs() > 10000) {
       changes.add(
-          'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}',);
+        'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}',
+      );
     }
 
     return changes;
@@ -546,7 +551,8 @@ class SimulationCacheManager {
       'version': '1.0',
       'timestamp': DateTime.now().toIso8601String(),
       'simulations': options.includeSimulations
-          ? _simulationCache.map((k, v) => MapEntry(k, {
+          ? _simulationCache.map(
+              (k, v) => MapEntry(k, {
                 'key': v.key,
                 'timestamp': v.timestamp.toIso8601String(),
                 'metadata': v.metadata,
@@ -556,16 +562,19 @@ class SimulationCacheManager {
                   'logs': v.simulation.logs,
                   'unitsConsumed': v.simulation.unitsConsumed,
                 },
-              }),)
+              }),
+            )
           : <String, dynamic>{},
       'analyses': options.includeAnalyses
-          ? _analysisCache.map((k, v) => MapEntry(k, {
+          ? _analysisCache.map(
+              (k, v) => MapEntry(k, {
                 'key': v.key,
                 'timestamp': v.timestamp.toIso8601String(),
                 'metadata': v.metadata,
                 'accessCount': v.accessCount,
                 'analysisId': v.analysis.simulationId,
-              }),)
+              }),
+            )
           : <String, dynamic>{},
     };
 
@@ -708,7 +717,6 @@ class SimulationCacheManager {
 
 /// Configuration for caching behavior
 class CachingConfig {
-
   const CachingConfig({
     this.maxCacheSize = 1000,
     this.defaultTtl = const Duration(hours: 24),
@@ -723,7 +731,6 @@ class CachingConfig {
 
 /// Options for replay operations
 class ReplayOptions {
-
   const ReplayOptions({
     this.reanalyze = false,
     this.enableComparison = true,
@@ -740,7 +747,6 @@ class ReplayOptions {
 
 /// Search criteria for finding cached simulations
 class SearchCriteria {
-
   const SearchCriteria({
     this.startTime,
     this.endTime,
@@ -761,7 +767,6 @@ class SearchCriteria {
 
 /// Criteria for clearing cache
 class ClearCriteria {
-
   const ClearCriteria({
     this.clearSimulations = true,
     this.clearAnalyses = true,
@@ -784,7 +789,6 @@ class ClearCriteria {
 
 /// Export options for cache data
 class CacheExportOptions {
-
   const CacheExportOptions({
     this.includeSimulations = true,
     this.includeAnalyses = true,
@@ -801,7 +805,6 @@ class CacheExportOptions {
 
 /// Import options for cache data
 class CacheImportOptions {
-
   const CacheImportOptions({
     this.importSimulations = true,
     this.importAnalyses = true,
@@ -820,7 +823,6 @@ class CacheImportOptions {
 
 /// Cached simulation result
 class CachedSimulation {
-
   CachedSimulation({
     required this.key,
     required this.simulation,
@@ -839,7 +841,6 @@ class CachedSimulation {
 
 /// Cached analysis result
 class CachedAnalysis {
-
   CachedAnalysis({
     required this.key,
     required this.analysis,
@@ -858,7 +859,6 @@ class CachedAnalysis {
 
 /// Replay session definition
 class ReplaySession {
-
   const ReplaySession({
     required this.id,
     required this.name,
@@ -877,7 +877,6 @@ class ReplaySession {
 
 /// Result of a replay session
 class ReplayResult {
-
   const ReplayResult({
     required this.sessionId,
     required this.session,
@@ -896,16 +895,15 @@ class ReplayResult {
 
 /// Result of a single replay step
 class ReplayStepResult {
-
   ReplayStepResult({
     required this.stepIndex,
     required this.simulationKey,
     required this.simulation,
-    this.analysis,
     required this.success,
-    this.error,
     required this.processingTime,
     required this.metadata,
+    this.analysis,
+    this.error,
     this.comparison,
   });
   final int stepIndex;
@@ -921,7 +919,6 @@ class ReplayStepResult {
 
 /// Comparison between replay steps
 class StepComparison {
-
   const StepComparison({
     required this.computeUnitsDifference,
     required this.logCountDifference,
@@ -934,7 +931,6 @@ class StepComparison {
 
 /// Summary of replay session
 class ReplaySummary {
-
   const ReplaySummary({
     required this.totalSteps,
     required this.successfulSteps,
@@ -951,7 +947,6 @@ class ReplaySummary {
 
 /// Cache performance metrics
 class CachePerformanceMetrics {
-
   const CachePerformanceMetrics({
     required this.simulationCacheSize,
     required this.analysisCacheSize,
@@ -974,7 +969,6 @@ class CachePerformanceMetrics {
 
 /// Cache export result
 class CacheExportResult {
-
   const CacheExportResult({
     required this.format,
     required this.data,
@@ -989,7 +983,6 @@ class CacheExportResult {
 
 /// Cache import result
 class CacheImportResult {
-
   const CacheImportResult({
     required this.success,
     required this.itemsImported,

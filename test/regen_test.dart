@@ -1,57 +1,58 @@
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/program_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/account_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/instruction_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/error_generator.dart';
-import 'package:build/build.dart';
 import 'dart:io';
+
+import 'package:build/build.dart';
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz_anchor/src/codegen/generators/account_generator.dart';
+import 'package:coral_xyz_anchor/src/codegen/generators/error_generator.dart';
+import 'package:coral_xyz_anchor/src/codegen/generators/instruction_generator.dart';
+import 'package:coral_xyz_anchor/src/codegen/generators/program_generator.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('Generate correct code from IDL', () async {
     // Load the test IDL
     final idlJson = {
-      "version": "0.1.0",
-      "name": "test_program",
-      "address": "11111111111111111111111111111112",
-      "instructions": [
+      'version': '0.1.0',
+      'name': 'test_program',
+      'address': '11111111111111111111111111111112',
+      'instructions': [
         {
-          "name": "initialize",
-          "accounts": [
-            {"name": "user", "isMut": true, "isSigner": true},
-            {"name": "systemProgram", "isMut": false, "isSigner": false}
+          'name': 'initialize',
+          'accounts': [
+            {'name': 'user', 'isMut': true, 'isSigner': true},
+            {'name': 'systemProgram', 'isMut': false, 'isSigner': false},
           ],
-          "args": [
-            {"name": "amount", "type": "u64"}
-          ]
+          'args': [
+            {'name': 'amount', 'type': 'u64'},
+          ],
         },
         {
-          "name": "update",
-          "accounts": [
-            {"name": "user", "isMut": true, "isSigner": true},
-            {"name": "account", "isMut": true, "isSigner": false}
+          'name': 'update',
+          'accounts': [
+            {'name': 'user', 'isMut': true, 'isSigner': true},
+            {'name': 'account', 'isMut': true, 'isSigner': false},
           ],
-          "args": [
-            {"name": "newValue", "type": "string"}
-          ]
+          'args': [
+            {'name': 'newValue', 'type': 'string'},
+          ],
         }
       ],
-      "accounts": [
+      'accounts': [
         {
-          "name": "TestAccount",
-          "type": {
-            "kind": "struct",
-            "fields": [
-              {"name": "authority", "type": "publicKey"},
-              {"name": "value", "type": "u64"},
-              {"name": "name", "type": "string"}
-            ]
-          }
+          'name': 'TestAccount',
+          'type': {
+            'kind': 'struct',
+            'fields': [
+              {'name': 'authority', 'type': 'publicKey'},
+              {'name': 'value', 'type': 'u64'},
+              {'name': 'name', 'type': 'string'},
+            ],
+          },
         }
       ],
-      "errors": [
-        {"code": 6000, "name": "InvalidAmount", "msg": "The amount is invalid"}
-      ]
+      'errors': [
+        {'code': 6000, 'name': 'InvalidAmount', 'msg': 'The amount is invalid'},
+      ],
     };
 
     final idl = Idl.fromJson(idlJson);
@@ -106,9 +107,11 @@ void _generateHeader(StringBuffer buffer, Idl idl) {
   buffer.writeln('import \'dart:typed_data\';');
   buffer.writeln('import \'package:coral_xyz_anchor/coral_xyz_anchor.dart\';');
   buffer.writeln(
-      'import \'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart\';');
+    'import \'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart\';',
+  );
   buffer.writeln(
-      'import \'package:coral_xyz_anchor/src/types/transaction.dart\' as tx;');
+    'import \'package:coral_xyz_anchor/src/types/transaction.dart\' as tx;',
+  );
   buffer.writeln('import \'package:solana/solana.dart\' as solana;');
   buffer.writeln();
 

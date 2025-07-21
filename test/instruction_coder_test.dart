@@ -1,7 +1,8 @@
-import 'package:test/test.dart';
+import 'dart:typed_data';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
-import 'dart:typed_data';
+import 'package:test/test.dart';
 
 void main() {
   group('InstructionCoder Tests', () {

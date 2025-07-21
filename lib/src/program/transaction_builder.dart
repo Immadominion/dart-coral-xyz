@@ -11,7 +11,8 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    as transaction_types;
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
@@ -19,7 +20,6 @@ import 'package:coral_xyz_anchor/src/error/rpc_error_parser.dart';
 
 /// Builds and manages Solana transactions
 class TransactionBuilder {
-
   /// Create a new transaction builder
   TransactionBuilder({
     required AnchorProvider provider,
@@ -64,7 +64,8 @@ class TransactionBuilder {
 
   /// Ensure accounts are ordered correctly
   List<transaction_types.AccountMeta> _orderAccounts(
-      List<transaction_types.AccountMeta> accounts,) {
+    List<transaction_types.AccountMeta> accounts,
+  ) {
     final writableSigners =
         accounts.where((acc) => acc.isSigner && acc.isWritable).toList();
     final readonlySigners =
@@ -99,17 +100,23 @@ class TransactionBuilder {
       feePayer: _provider.publicKey,
       recentBlockhash: _recentBlockhash,
       instructions: _instructions
-          .map((ix) => transaction_types.TransactionInstruction(
-                programId: ix.programId,
-                accounts: _orderAccounts(ix.accounts
-                    .map((acc) => transaction_types.AccountMeta(
-                          pubkey: acc.publicKey,
-                          isSigner: acc.isSigner,
-                          isWritable: acc.isWritable,
-                        ),)
-                    .toList(),),
-                data: Uint8List.fromList(ix.data),
-              ),)
+          .map(
+            (ix) => transaction_types.TransactionInstruction(
+              programId: ix.programId,
+              accounts: _orderAccounts(
+                ix.accounts
+                    .map(
+                      (acc) => transaction_types.AccountMeta(
+                        pubkey: acc.publicKey,
+                        isSigner: acc.isSigner,
+                        isWritable: acc.isWritable,
+                      ),
+                    )
+                    .toList(),
+              ),
+              data: Uint8List.fromList(ix.data),
+            ),
+          )
           .toList(),
     );
 

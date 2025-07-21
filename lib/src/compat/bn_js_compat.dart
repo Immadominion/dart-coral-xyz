@@ -7,7 +7,6 @@ import 'dart:typed_data';
 /// BN.js compatible BigNumber class for Dart
 /// Provides TypeScript/JavaScript-like APIs for working with large integers
 class BN {
-
   /// Create a BN from various input types
   BN(dynamic value, {int? base}) : _value = _parseValue(value, base);
 
@@ -49,7 +48,8 @@ class BN {
   String toHex() => '0x${_value.toRadixString(16)}';
 
   /// Convert to bytes (big-endian by default)
-  Uint8List toBytes({int? length, bool littleEndian = false}) => _toBytes(_value, length: length, littleEndian: littleEndian);
+  Uint8List toBytes({int? length, bool littleEndian = false}) =>
+      _toBytes(_value, length: length, littleEndian: littleEndian);
 
   /// TypeScript-like arithmetic operations
   BN add(dynamic other) => BN.fromBigInt(_value + _toBigInt(other));
@@ -125,8 +125,11 @@ class BN {
     return result;
   }
 
-  static Uint8List _toBytes(BigInt value,
-      {int? length, bool littleEndian = false,}) {
+  static Uint8List _toBytes(
+    BigInt value, {
+    int? length,
+    bool littleEndian = false,
+  }) {
     if (value == BigInt.zero) {
       return Uint8List(length ?? 1);
     }

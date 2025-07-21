@@ -1,10 +1,10 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 // Test account data structure
 class TestAccount implements BorshSerializable {
-
   const TestAccount({
     required this.value,
     required this.name,
@@ -127,9 +127,11 @@ void main() {
 
         // Should start with 8-byte discriminator
         expect(
-            serialized.length,
-            equals(
-                8 + 4 + 4 + 4,),); // discriminator + u32 + string length + string
+          serialized.length,
+          equals(
+            8 + 4 + 4 + 4,
+          ),
+        ); // discriminator + u32 + string length + string
 
         // Verify discriminator
         final expectedDiscriminator =
@@ -236,9 +238,13 @@ void main() {
         expect(disc1.length, equals(8));
         expect(disc1, equals(disc2)); // Same input should produce same output
         expect(
-            disc1,
-            isNot(equals(
-                disc3,),),); // Different input should produce different output
+          disc1,
+          isNot(
+            equals(
+              disc3,
+            ),
+          ),
+        ); // Different input should produce different output
       });
     });
 
@@ -251,8 +257,10 @@ void main() {
         serializer.writeInstructionDiscriminator('initialize');
 
         final result = serializer.toBytes();
-        expect(result.length,
-            equals(8 + 32 + 8),); // account disc + pubkey + instruction disc
+        expect(
+          result.length,
+          equals(8 + 32 + 8),
+        ); // account disc + pubkey + instruction disc
       });
 
       test('should use deserializer extension methods', () {
@@ -271,7 +279,9 @@ void main() {
         // Test incorrect discriminator verification with fresh deserializer
         final deserializer2 = BorshDeserializer(data);
         expect(
-            deserializer2.verifyAccountDiscriminator('WrongAccount'), isFalse,);
+          deserializer2.verifyAccountDiscriminator('WrongAccount'),
+          isFalse,
+        );
       });
     });
 

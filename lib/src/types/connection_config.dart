@@ -10,7 +10,6 @@ import 'package:coral_xyz_anchor/src/types/commitment.dart';
 
 /// Configuration for Solana RPC connection
 class ConnectionConfig {
-
   const ConnectionConfig({
     required this.rpcUrl,
     this.websocketUrl,
@@ -29,77 +28,73 @@ class ConnectionConfig {
   factory ConnectionConfig.devnet({
     CommitmentConfig? commitment,
     int? timeoutMs,
-  }) {
-    return ConnectionConfig(
-      rpcUrl: 'https://api.devnet.solana.com',
-      websocketUrl: 'wss://api.devnet.solana.com',
-      commitment: commitment ?? CommitmentConfigs.confirmed,
-      timeoutMs: timeoutMs ?? 30000,
-    );
-  }
+  }) =>
+      ConnectionConfig(
+        rpcUrl: 'https://api.devnet.solana.com',
+        websocketUrl: 'wss://api.devnet.solana.com',
+        commitment: commitment ?? CommitmentConfigs.confirmed,
+        timeoutMs: timeoutMs ?? 30000,
+      );
 
   /// Create a connection config for testnet
   factory ConnectionConfig.testnet({
     CommitmentConfig? commitment,
     int? timeoutMs,
-  }) {
-    return ConnectionConfig(
-      rpcUrl: 'https://api.testnet.solana.com',
-      websocketUrl: 'wss://api.testnet.solana.com',
-      commitment: commitment ?? CommitmentConfigs.confirmed,
-      timeoutMs: timeoutMs ?? 30000,
-    );
-  }
+  }) =>
+      ConnectionConfig(
+        rpcUrl: 'https://api.testnet.solana.com',
+        websocketUrl: 'wss://api.testnet.solana.com',
+        commitment: commitment ?? CommitmentConfigs.confirmed,
+        timeoutMs: timeoutMs ?? 30000,
+      );
 
   /// Create a connection config for mainnet-beta
   factory ConnectionConfig.mainnet({
     CommitmentConfig? commitment,
     int? timeoutMs,
-  }) {
-    return ConnectionConfig(
-      rpcUrl: 'https://api.mainnet-beta.solana.com',
-      websocketUrl: 'wss://api.mainnet-beta.solana.com',
-      commitment: commitment ?? CommitmentConfigs.finalized,
-      timeoutMs: timeoutMs ?? 30000,
-    );
-  }
+  }) =>
+      ConnectionConfig(
+        rpcUrl: 'https://api.mainnet-beta.solana.com',
+        websocketUrl: 'wss://api.mainnet-beta.solana.com',
+        commitment: commitment ?? CommitmentConfigs.finalized,
+        timeoutMs: timeoutMs ?? 30000,
+      );
 
   /// Create a connection config for localhost
   factory ConnectionConfig.localhost({
     int port = 8899,
     CommitmentConfig? commitment,
     int? timeoutMs,
-  }) {
-    return ConnectionConfig(
-      rpcUrl: 'http://localhost:$port',
-      websocketUrl: 'ws://localhost:${port + 1}',
-      commitment: commitment ?? CommitmentConfigs.processed,
-      timeoutMs: timeoutMs ?? 30000,
-    );
-  }
+  }) =>
+      ConnectionConfig(
+        rpcUrl: 'http://localhost:$port',
+        websocketUrl: 'ws://localhost:${port + 1}',
+        commitment: commitment ?? CommitmentConfigs.processed,
+        timeoutMs: timeoutMs ?? 30000,
+      );
 
   /// Create from JSON
-  factory ConnectionConfig.fromJson(Map<String, dynamic> json) {
-    return ConnectionConfig(
-      rpcUrl: json['rpcUrl'] as String,
-      websocketUrl: json['websocketUrl'] as String?,
-      commitment: CommitmentConfig.fromJson(
-        json['commitment'] as Map<String, dynamic>? ?? {},
-      ),
-      timeoutMs: json['timeoutMs'] as int? ?? 30000,
-      retryAttempts: json['retryAttempts'] as int? ?? 3,
-      retryDelayMs: json['retryDelayMs'] as int? ?? 1000,
-      confirmTransactions: json['confirmTransactions'] as bool? ?? true,
-      skipPreflight: json['skipPreflight'] as bool? ?? false,
-      preflightCommitment: CommitmentConfig.fromJson(
-        json['preflightCommitment'] as Map<String, dynamic>? ?? {},
-      ),
-      maxRetries: json['maxRetries'] as int? ?? 30,
-      headers: Map<String, String>.from(
-        json['headers'] as Map<String, dynamic>? ?? {},
-      ),
-    );
-  }
+  factory ConnectionConfig.fromJson(Map<String, dynamic> json) =>
+      ConnectionConfig(
+        rpcUrl: json['rpcUrl'] as String,
+        websocketUrl: json['websocketUrl'] as String?,
+        commitment: CommitmentConfig.fromJson(
+          json['commitment'] as Map<String, dynamic>? ?? {},
+        ),
+        timeoutMs: json['timeoutMs'] as int? ?? 30000,
+        retryAttempts: json['retryAttempts'] as int? ?? 3,
+        retryDelayMs: json['retryDelayMs'] as int? ?? 1000,
+        confirmTransactions: json['confirmTransactions'] as bool? ?? true,
+        skipPreflight: json['skipPreflight'] as bool? ?? false,
+        preflightCommitment: CommitmentConfig.fromJson(
+          json['preflightCommitment'] as Map<String, dynamic>? ?? {},
+        ),
+        maxRetries: json['maxRetries'] as int? ?? 30,
+        headers: Map<String, String>.from(
+          json['headers'] as Map<String, dynamic>? ?? {},
+        ),
+      );
+
   /// The RPC endpoint URL
   final String rpcUrl;
 
@@ -146,37 +141,39 @@ class ConnectionConfig {
     CommitmentConfig? preflightCommitment,
     int? maxRetries,
     Map<String, String>? headers,
-  }) => ConnectionConfig(
-      rpcUrl: rpcUrl ?? this.rpcUrl,
-      websocketUrl: websocketUrl ?? this.websocketUrl,
-      commitment: commitment ?? this.commitment,
-      timeoutMs: timeoutMs ?? this.timeoutMs,
-      retryAttempts: retryAttempts ?? this.retryAttempts,
-      retryDelayMs: retryDelayMs ?? this.retryDelayMs,
-      confirmTransactions: confirmTransactions ?? this.confirmTransactions,
-      skipPreflight: skipPreflight ?? this.skipPreflight,
-      preflightCommitment: preflightCommitment ?? this.preflightCommitment,
-      maxRetries: maxRetries ?? this.maxRetries,
-      headers: headers ?? this.headers,
-    );
+  }) =>
+      ConnectionConfig(
+        rpcUrl: rpcUrl ?? this.rpcUrl,
+        websocketUrl: websocketUrl ?? this.websocketUrl,
+        commitment: commitment ?? this.commitment,
+        timeoutMs: timeoutMs ?? this.timeoutMs,
+        retryAttempts: retryAttempts ?? this.retryAttempts,
+        retryDelayMs: retryDelayMs ?? this.retryDelayMs,
+        confirmTransactions: confirmTransactions ?? this.confirmTransactions,
+        skipPreflight: skipPreflight ?? this.skipPreflight,
+        preflightCommitment: preflightCommitment ?? this.preflightCommitment,
+        maxRetries: maxRetries ?? this.maxRetries,
+        headers: headers ?? this.headers,
+      );
 
   /// Convert to JSON representation
   Map<String, dynamic> toJson() => {
-      'rpcUrl': rpcUrl,
-      'websocketUrl': websocketUrl,
-      'commitment': commitment.toJson(),
-      'timeoutMs': timeoutMs,
-      'retryAttempts': retryAttempts,
-      'retryDelayMs': retryDelayMs,
-      'confirmTransactions': confirmTransactions,
-      'skipPreflight': skipPreflight,
-      'preflightCommitment': preflightCommitment.toJson(),
-      'maxRetries': maxRetries,
-      'headers': headers,
-    };
+        'rpcUrl': rpcUrl,
+        'websocketUrl': websocketUrl,
+        'commitment': commitment.toJson(),
+        'timeoutMs': timeoutMs,
+        'retryAttempts': retryAttempts,
+        'retryDelayMs': retryDelayMs,
+        'confirmTransactions': confirmTransactions,
+        'skipPreflight': skipPreflight,
+        'preflightCommitment': preflightCommitment.toJson(),
+        'maxRetries': maxRetries,
+        'headers': headers,
+      };
 
   @override
-  String toString() => 'ConnectionConfig(rpcUrl: $rpcUrl, commitment: ${commitment.commitment.value})';
+  String toString() =>
+      'ConnectionConfig(rpcUrl: $rpcUrl, commitment: ${commitment.commitment.value})';
 
   @override
   bool operator ==(Object other) {
@@ -196,28 +193,28 @@ class ConnectionConfig {
 
   @override
   int get hashCode => Object.hash(
-      rpcUrl,
-      websocketUrl,
-      commitment,
-      timeoutMs,
-      retryAttempts,
-      retryDelayMs,
-      confirmTransactions,
-      skipPreflight,
-      preflightCommitment,
-      maxRetries,
-    );
+        rpcUrl,
+        websocketUrl,
+        commitment,
+        timeoutMs,
+        retryAttempts,
+        retryDelayMs,
+        confirmTransactions,
+        skipPreflight,
+        preflightCommitment,
+        maxRetries,
+      );
 }
 
 /// Configuration for transaction sending
 class SendTransactionConfig {
-
   const SendTransactionConfig({
     this.skipPreflight = false,
     this.preflightCommitment = CommitmentConfigs.processed,
     this.maxRetries = 3,
     this.minContextSlot = 0,
   });
+
   /// Skip preflight transaction verification
   final bool skipPreflight;
 
@@ -232,12 +229,13 @@ class SendTransactionConfig {
 
   /// Convert to JSON for RPC calls
   Map<String, dynamic> toJson() => {
-      'skipPreflight': skipPreflight,
-      'preflightCommitment': preflightCommitment.commitment.value,
-      'maxRetries': maxRetries,
-      'minContextSlot': minContextSlot,
-    };
+        'skipPreflight': skipPreflight,
+        'preflightCommitment': preflightCommitment.commitment.value,
+        'maxRetries': maxRetries,
+        'minContextSlot': minContextSlot,
+      };
 
   @override
-  String toString() => 'SendTransactionConfig(skipPreflight: $skipPreflight, maxRetries: $maxRetries)';
+  String toString() =>
+      'SendTransactionConfig(skipPreflight: $skipPreflight, maxRetries: $maxRetries)';
 }

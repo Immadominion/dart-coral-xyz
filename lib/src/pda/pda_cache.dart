@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/pda/pda_derivation_engine.dart' as pda;
 
 /// Cache entry for storing PDA derivation results with metadata
 class PdaCacheEntry {
-
   PdaCacheEntry({
     required this.address,
     required this.bump,
@@ -31,12 +30,12 @@ class PdaCacheEntry {
 
   /// Create a copy with updated access information
   PdaCacheEntry copyWithAccess() => PdaCacheEntry(
-      address: address,
-      bump: bump,
-      createdAt: createdAt,
-      lastAccessed: DateTime.now(),
-      accessCount: accessCount + 1,
-    );
+        address: address,
+        bump: bump,
+        createdAt: createdAt,
+        lastAccessed: DateTime.now(),
+        accessCount: accessCount + 1,
+      );
 
   /// Get the age of this cache entry in milliseconds
   int get ageMs => DateTime.now().difference(createdAt).inMilliseconds;
@@ -48,7 +47,6 @@ class PdaCacheEntry {
 
 /// Cache key for PDA derivation results
 class PdaCacheKey {
-
   PdaCacheKey({
     required this.programId,
     required this.seedBytes,
@@ -74,8 +72,7 @@ class PdaCacheKey {
     buffer.write(programId.toBase58());
     for (final seed in seedBytes) {
       buffer.write(':');
-      buffer
-          .write(seed.map((b) => b.toRadixString(16).padLeft(2, '0')).join());
+      buffer.write(seed.map((b) => b.toRadixString(16).padLeft(2, '0')).join());
     }
     return buffer.toString();
   }
@@ -142,17 +139,16 @@ class PdaCacheStats {
 
   @override
   String toString() => 'PdaCacheStats('
-        'hits: $hits, '
-        'misses: $misses, '
-        'hitRate: ${hitRate.toStringAsFixed(2)}%, '
-        'evictions: $evictions, '
-        'entries: $totalEntries'
-        ')';
+      'hits: $hits, '
+      'misses: $misses, '
+      'hitRate: ${hitRate.toStringAsFixed(2)}%, '
+      'evictions: $evictions, '
+      'entries: $totalEntries'
+      ')';
 }
 
 /// High-performance LRU cache for PDA derivation results
 class PdaCache {
-
   PdaCache({
     this.maxSize = 1000,
     this.maxAge = const Duration(minutes: 30),
@@ -338,7 +334,8 @@ class PdaCache {
 
     if (_stats.totalOperations > 0) {
       buffer.writeln(
-          'Operations/Eviction: ${(_stats.totalOperations / math.max(1, _stats.evictions)).toStringAsFixed(2)}',);
+        'Operations/Eviction: ${(_stats.totalOperations / math.max(1, _stats.evictions)).toStringAsFixed(2)}',
+      );
     }
 
     return buffer.toString();
@@ -371,7 +368,8 @@ class PdaCache {
   }
 
   @override
-  String toString() => 'PdaCache(size: $size/$maxSize, hitRate: ${_stats.hitRate.toStringAsFixed(1)}%)';
+  String toString() =>
+      'PdaCache(size: $size/$maxSize, hitRate: ${_stats.hitRate.toStringAsFixed(1)}%)';
 }
 
 /// Global PDA cache instance for performance optimization

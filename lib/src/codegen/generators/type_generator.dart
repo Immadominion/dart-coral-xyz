@@ -170,7 +170,8 @@ class TypeGenerator {
       }
     }
     buffer.writeln(
-        'typedef $className = dynamic; // TODO: Implement proper type mapping');
+      'typedef $className = dynamic; // TODO: Implement proper type mapping',
+    );
     buffer.writeln();
   }
 
@@ -435,14 +436,14 @@ class TypeGenerator {
   }
 
   /// Convert string to PascalCase
-  String _toPascalCase(String input) {
-    return input
-        .split('_')
-        .map((word) => word.isNotEmpty
+  String _toPascalCase(String input) => input
+      .split('_')
+      .map(
+        (word) => word.isNotEmpty
             ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : '')
-        .join('');
-  }
+            : '',
+      )
+      .join();
 
   /// Convert string to camelCase
   String _toCamelCase(String input) {

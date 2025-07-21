@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart' hide Transaction;
 import 'package:coral_xyz_anchor/src/types/transaction.dart' show Transaction;
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:test/test.dart';
 
 // Mock classes for testing
 class MockConnection extends Connection {
@@ -351,9 +351,7 @@ void main() {
 
       test('should enforce cache size limits', () {
         final config = const AccountCacheConfig(
-          ttl: Duration(minutes: 5),
           maxEntries: 2,
-          cleanupInterval: Duration(minutes: 1),
         );
 
         final cacheManagerWithLimit =

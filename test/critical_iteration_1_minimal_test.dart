@@ -3,8 +3,8 @@
 /// This test focuses purely on API contracts without real network connections
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Critical Iteration 1: Event API Compatibility (Minimal)', () {
@@ -17,7 +17,8 @@ void main() {
       try {
         // Create dummy objects for testing
         final programId = PublicKey.fromBase58(
-            '11111111111111111111111111111112',); // System program ID
+          '11111111111111111111111111111112',
+        ); // System program ID
 
         // This will fail with network errors, but that's okay - we just want to test the API
         final provider = AnchorProvider.defaultProvider();

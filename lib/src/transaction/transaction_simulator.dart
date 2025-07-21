@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    as transaction_types;
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/utils/rpc_utils.dart';
@@ -12,7 +13,6 @@ import 'package:coral_xyz_anchor/src/transaction/simulation_result_processor.dar
 
 /// Transaction simulation configuration
 class TransactionSimulationConfig {
-
   const TransactionSimulationConfig({
     this.commitment,
     this.includeAccounts = false,
@@ -24,24 +24,22 @@ class TransactionSimulationConfig {
   });
 
   /// Create default configuration
-  factory TransactionSimulationConfig.defaultConfig() {
-    return const TransactionSimulationConfig();
-  }
+  factory TransactionSimulationConfig.defaultConfig() =>
+      const TransactionSimulationConfig();
 
   /// Create configuration for account inclusion
-  factory TransactionSimulationConfig.withAccounts(List<PublicKey> accounts) {
-    return TransactionSimulationConfig(
-      includeAccounts: true,
-      accountsToInclude: accounts,
-    );
-  }
+  factory TransactionSimulationConfig.withAccounts(List<PublicKey> accounts) =>
+      TransactionSimulationConfig(
+        includeAccounts: true,
+        accountsToInclude: accounts,
+      );
 
   /// Create configuration with signature verification
-  factory TransactionSimulationConfig.withSigVerify() {
-    return const TransactionSimulationConfig(
-      sigVerify: true,
-    );
-  }
+  factory TransactionSimulationConfig.withSigVerify() =>
+      const TransactionSimulationConfig(
+        sigVerify: true,
+      );
+
   /// Commitment level for simulation
   final String? commitment;
 
@@ -98,7 +96,6 @@ class TransactionSimulationConfig {
 
 /// Transaction simulation result with comprehensive error analysis
 class TransactionSimulationResult {
-
   const TransactionSimulationResult({
     required this.success,
     required this.logs,
@@ -111,11 +108,12 @@ class TransactionSimulationResult {
 
   /// Create from RPC response
   factory TransactionSimulationResult.fromRpcResponse(
-      Map<String, dynamic> response) {
+    Map<String, dynamic> response,
+  ) {
     final value = response['value'] as Map<String, dynamic>;
     final err = value['err'];
 
-    Iterable<String> _parseLogs(dynamic logs) {
+    Iterable<String> parseLogs(dynamic logs) {
       if (logs is Iterable) {
         return logs.map((e) => e.toString());
       } else if (logs is String) {
@@ -125,17 +123,17 @@ class TransactionSimulationResult {
       }
     }
 
-    Map<String, dynamic>? _parseAccounts(dynamic accounts) {
+    Map<String, dynamic>? parseAccounts(dynamic accounts) {
       if (accounts is Map<String, dynamic>) return accounts;
       return null;
     }
 
-    Map<String, dynamic> _parseReturnData(dynamic data) {
+    Map<String, dynamic> parseReturnData(dynamic data) {
       if (data is Map<String, dynamic>) return data;
       return {};
     }
 
-    List<Map<String, dynamic>>? _parseInnerInstructions(dynamic inner) {
+    List<Map<String, dynamic>>? parseInnerInstructions(dynamic inner) {
       if (inner is Iterable) {
         return inner.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       }
@@ -145,27 +143,29 @@ class TransactionSimulationResult {
     if (err != null) {
       return TransactionSimulationResult(
         success: false,
-        logs: List<String>.from(_parseLogs(value['logs'])),
+        logs: List<String>.from(parseLogs(value['logs'])),
         error: TransactionSimulationError.fromRpcError(err),
         unitsConsumed: value['unitsConsumed'] as int?,
-        accounts: _parseAccounts(value['accounts']),
+        accounts: parseAccounts(value['accounts']),
       );
     }
 
     return TransactionSimulationResult(
       success: true,
-      logs: List<String>.from(_parseLogs(value['logs'])),
+      logs: List<String>.from(parseLogs(value['logs'])),
       unitsConsumed: value['unitsConsumed'] as int?,
-      accounts: _parseAccounts(value['accounts']),
+      accounts: parseAccounts(value['accounts']),
       returnData: value['returnData'] != null
           ? TransactionReturnData.fromJson(
-              _parseReturnData(value['returnData']))
+              parseReturnData(value['returnData']),
+            )
           : null,
       innerInstructions: value['innerInstructions'] != null
-          ? _parseInnerInstructions(value['innerInstructions'])
+          ? parseInnerInstructions(value['innerInstructions'])
           : null,
     );
   }
+
   /// Whether the simulation was successful
   final bool success;
 
@@ -189,12 +189,11 @@ class TransactionSimulationResult {
 
   @override
   String toString() => 'TransactionSimulationResult(success: $success, '
-        'logs: ${logs.length}, error: $error, unitsConsumed: $unitsConsumed)';
+      'logs: ${logs.length}, error: $error, unitsConsumed: $unitsConsumed)';
 }
 
 /// Transaction simulation error with detailed context
 class TransactionSimulationError {
-
   const TransactionSimulationError({
     required this.type,
     this.details,
@@ -242,6 +241,7 @@ class TransactionSimulationError {
       details: error.toString(),
     );
   }
+
   /// Error type (e.g., InstructionError, InvalidAccountData)
   final String type;
 
@@ -266,19 +266,18 @@ class TransactionSimulationError {
 
 /// Return data from program execution
 class TransactionReturnData {
-
   const TransactionReturnData({
     required this.programId,
     required this.data,
   });
 
   /// Create from JSON
-  factory TransactionReturnData.fromJson(Map<String, dynamic> json) {
-    return TransactionReturnData(
-      programId: json['programId'] as String,
-      data: json['data'] as String,
-    );
-  }
+  factory TransactionReturnData.fromJson(Map<String, dynamic> json) =>
+      TransactionReturnData(
+        programId: json['programId'] as String,
+        data: json['data'] as String,
+      );
+
   /// Program ID that returned the data
   final String programId;
 
@@ -289,12 +288,12 @@ class TransactionReturnData {
   Uint8List get decodedData => base64Decode(data);
 
   @override
-  String toString() => 'TransactionReturnData(programId: $programId, data: ${data.length} bytes)';
+  String toString() =>
+      'TransactionReturnData(programId: $programId, data: ${data.length} bytes)';
 }
 
 /// Core transaction simulation engine matching TypeScript's capabilities
 class TransactionSimulator {
-
   TransactionSimulator(this._provider)
       : _preflightValidator = PreflightValidator(_provider);
   final AnchorProvider _provider;
@@ -457,9 +456,9 @@ class TransactionSimulator {
 
   /// Get cache statistics
   Map<String, int> getCacheStats() => {
-      'size': _cache.length,
-      'maxSize': _maxCacheSize,
-    };
+        'size': _cache.length,
+        'maxSize': _maxCacheSize,
+      };
 
   /// Prepare transaction for simulation
   Future<transaction_types.Transaction> _prepareTransaction(
@@ -618,7 +617,9 @@ class TransactionSimulator {
 
     // Process the result with comprehensive analysis
     final cacheKey = _generateCacheKey(
-        transaction, config ?? TransactionSimulationConfig.defaultConfig(),);
+      transaction,
+      config ?? TransactionSimulationConfig.defaultConfig(),
+    );
     return processor.processResult(
       simulationResult,
       cacheKey: cacheKey,
@@ -647,7 +648,9 @@ class TransactionSimulator {
 
     // Process the result with comprehensive analysis
     final cacheKey = _generateCacheKey(
-        transaction, config ?? TransactionSimulationConfig.defaultConfig(),);
+      transaction,
+      config ?? TransactionSimulationConfig.defaultConfig(),
+    );
     return processor.processResult(
       simulationResult,
       cacheKey: '${cacheKey}_preflight',
@@ -690,7 +693,6 @@ class TransactionSimulator {
 
 /// Simulation optimization settings
 class SimulationOptimization {
-
   const SimulationOptimization({
     this.enableCaching = true,
     this.cacheSize = 1000,
@@ -700,31 +702,24 @@ class SimulationOptimization {
   });
 
   /// Create default optimization settings
-  factory SimulationOptimization.defaultSettings() {
-    return const SimulationOptimization();
-  }
+  factory SimulationOptimization.defaultSettings() =>
+      const SimulationOptimization();
 
   /// Create performance-optimized settings
-  factory SimulationOptimization.performance() {
-    return const SimulationOptimization(
-      enableCaching: true,
-      cacheSize: 2000,
-      enableBatching: true,
-      maxBatchSize: 20,
-      parallelLimit: 10,
-    );
-  }
+  factory SimulationOptimization.performance() => const SimulationOptimization(
+        cacheSize: 2000,
+        maxBatchSize: 20,
+        parallelLimit: 10,
+      );
 
   /// Create memory-conservative settings
-  factory SimulationOptimization.conservative() {
-    return const SimulationOptimization(
-      enableCaching: true,
-      cacheSize: 100,
-      enableBatching: false,
-      maxBatchSize: 5,
-      parallelLimit: 2,
-    );
-  }
+  factory SimulationOptimization.conservative() => const SimulationOptimization(
+        cacheSize: 100,
+        enableBatching: false,
+        maxBatchSize: 5,
+        parallelLimit: 2,
+      );
+
   /// Enable result caching
   final bool enableCaching;
 

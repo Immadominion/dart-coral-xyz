@@ -23,7 +23,6 @@ import 'package:coral_xyz_anchor/src/program/method_validator.dart';
 /// This class automatically creates method builders and validators for each
 /// instruction in an IDL, providing TypeScript-like method access patterns.
 class MethodInterfaceGenerator {
-
   MethodInterfaceGenerator({
     required Idl idl,
     required AnchorProvider provider,
@@ -157,10 +156,12 @@ class MethodInterfaceGenerator {
           .map((arg) => _generateExampleValue(arg.type))
           .join(', ');
       buffer.writeln(
-          '/// final result = await program.methods.${instruction.name}([$argsList])',);
+        '/// final result = await program.methods.${instruction.name}([$argsList])',
+      );
     } else {
       buffer.writeln(
-          '/// final result = await program.methods.${instruction.name}()',);
+        '/// final result = await program.methods.${instruction.name}()',
+      );
     }
     buffer.writeln('///     .accounts({...})');
     buffer.writeln('///     .rpc();');
@@ -269,19 +270,22 @@ class MethodInterfaceGenerator {
       // Validate instruction name follows Dart naming conventions
       if (!_isValidDartMethodName(instruction.name)) {
         warnings.add(
-            'Instruction name "${instruction.name}" may not follow Dart naming conventions',);
+          'Instruction name "${instruction.name}" may not follow Dart naming conventions',
+        );
       }
 
       // Validate arguments
       for (final arg in instruction.args) {
         if (arg.name.isEmpty) {
           errors.add(
-              'Argument in instruction "${instruction.name}" has empty name',);
+            'Argument in instruction "${instruction.name}" has empty name',
+          );
         }
 
         if (!_isValidDartParameterName(arg.name)) {
           warnings.add(
-              'Argument name "${arg.name}" in "${instruction.name}" may not follow Dart naming conventions',);
+            'Argument name "${arg.name}" in "${instruction.name}" may not follow Dart naming conventions',
+          );
         }
       }
 
@@ -289,12 +293,14 @@ class MethodInterfaceGenerator {
       for (final account in instruction.accounts) {
         if (account.name.isEmpty) {
           errors.add(
-              'Account in instruction "${instruction.name}" has empty name',);
+            'Account in instruction "${instruction.name}" has empty name',
+          );
         }
 
         if (!_isValidDartParameterName(account.name)) {
           warnings.add(
-              'Account name "${account.name}" in "${instruction.name}" may not follow Dart naming conventions',);
+            'Account name "${account.name}" in "${instruction.name}" may not follow Dart naming conventions',
+          );
         }
       }
     }
@@ -406,7 +412,6 @@ class MethodInterfaceGenerator {
 
 /// Result of method interface validation
 class ValidationResult {
-
   const ValidationResult({
     required this.isValid,
     required this.errors,

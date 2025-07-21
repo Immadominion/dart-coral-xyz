@@ -10,7 +10,6 @@ import 'dart:math' as math;
 
 /// Event aggregation service
 class EventAggregationService {
-
   EventAggregationService({this.config = const EventAggregationConfig()}) {
     _startProcessing();
   }
@@ -33,7 +32,8 @@ class EventAggregationService {
     final controller = _aggregationStreams[eventPattern];
     if (controller == null) {
       throw ArgumentError(
-          'No aggregator registered for pattern: $eventPattern',);
+        'No aggregator registered for pattern: $eventPattern',
+      );
     }
     return controller.stream;
   }
@@ -56,16 +56,19 @@ class EventAggregationService {
 
   /// Create a time-based aggregation window
   StreamTransformer<ProcessedEvent, List<ProcessedEvent>> timeWindow(
-      Duration window,) => StreamTransformer.fromHandlers(
-      handleData: (event, sink) {
-        // Implementation of time-based windowing
-        // This would collect events over the specified time window
-      },
-    );
+    Duration window,
+  ) =>
+      StreamTransformer.fromHandlers(
+        handleData: (event, sink) {
+          // Implementation of time-based windowing
+          // This would collect events over the specified time window
+        },
+      );
 
   /// Create a count-based aggregation window
   StreamTransformer<ProcessedEvent, List<ProcessedEvent>> countWindow(
-      int count,) {
+    int count,
+  ) {
     final buffer = <ProcessedEvent>[];
 
     return StreamTransformer.fromHandlers(
@@ -156,7 +159,6 @@ class EventAggregationService {
 
 /// Event processing pipeline
 class EventProcessingPipeline {
-
   EventProcessingPipeline() {
     _subscription = _inputController.stream.listen(_processEvent);
   }
@@ -267,7 +269,6 @@ class CountAggregator extends EventAggregator {
 
 /// Sum-based event aggregator
 class SumAggregator extends EventAggregator {
-
   SumAggregator({required this.fieldName});
   final String fieldName;
   double _sum = 0;
@@ -314,7 +315,6 @@ class SumAggregator extends EventAggregator {
 
 /// Average-based event aggregator
 class AverageAggregator extends EventAggregator {
-
   AverageAggregator({required this.fieldName});
   final String fieldName;
   final List<double> _values = [];
@@ -373,27 +373,26 @@ abstract class EventPipelineProcessor {
 
 /// Filter processor that removes events based on criteria
 class FilterProcessor extends EventPipelineProcessor {
-
   FilterProcessor(this.predicate);
   final bool Function(ProcessedEvent) predicate;
 
   @override
-  Future<ProcessedEvent?> process(ProcessedEvent event) async => predicate(event) ? event : null;
+  Future<ProcessedEvent?> process(ProcessedEvent event) async =>
+      predicate(event) ? event : null;
 }
 
 /// Transform processor that modifies event data
 class TransformProcessor extends EventPipelineProcessor {
-
   TransformProcessor(this.transformer);
   final ProcessedEvent Function(ProcessedEvent) transformer;
 
   @override
-  Future<ProcessedEvent?> process(ProcessedEvent event) async => transformer(event);
+  Future<ProcessedEvent?> process(ProcessedEvent event) async =>
+      transformer(event);
 }
 
 /// Enrichment processor that adds metadata to events
 class EnrichmentProcessor extends EventPipelineProcessor {
-
   EnrichmentProcessor(this.enricher);
   final Map<String, dynamic> Function(ProcessedEvent) enricher;
 
@@ -411,7 +410,6 @@ class EnrichmentProcessor extends EventPipelineProcessor {
 
 /// Processed event with metadata
 class ProcessedEvent {
-
   const ProcessedEvent({
     required this.eventName,
     required this.data,
@@ -428,17 +426,17 @@ class ProcessedEvent {
     dynamic data,
     DateTime? timestamp,
     Map<String, dynamic>? metadata,
-  }) => ProcessedEvent(
-      eventName: eventName ?? this.eventName,
-      data: data ?? this.data,
-      timestamp: timestamp ?? this.timestamp,
-      metadata: metadata ?? this.metadata,
-    );
+  }) =>
+      ProcessedEvent(
+        eventName: eventName ?? this.eventName,
+        data: data ?? this.data,
+        timestamp: timestamp ?? this.timestamp,
+        metadata: metadata ?? this.metadata,
+      );
 }
 
 /// Aggregated event result
 class AggregatedEvent {
-
   const AggregatedEvent({
     required this.type,
     required this.data,
@@ -455,7 +453,6 @@ class AggregatedEvent {
 
 /// Event aggregation configuration
 class EventAggregationConfig {
-
   const EventAggregationConfig({
     this.processingInterval = const Duration(seconds: 1),
     this.flushInterval = const Duration(seconds: 10),

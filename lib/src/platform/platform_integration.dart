@@ -29,7 +29,6 @@ import 'package:coral_xyz_anchor/src/platform/mobile_optimization.dart';
 
 /// Unified platform manager for the Coral XYZ Anchor client
 class PlatformManager {
-
   PlatformManager._(this._configuration);
   static PlatformManager? _instance;
 
@@ -146,7 +145,9 @@ class PlatformManager {
 
   /// Create optimized provider
   AnchorProvider createOptimizedProvider(
-      Connection connection, Wallet? wallet,) {
+    Connection connection,
+    Wallet? wallet,
+  ) {
     final provider = AnchorProvider(connection, wallet);
 
     if (PlatformOptimization.isMobile) {
@@ -254,7 +255,6 @@ class PlatformManager {
 
 /// Platform configuration for the Coral XYZ Anchor client
 class PlatformConfiguration {
-
   const PlatformConfiguration({
     this.enableOptimizations = true,
     this.enableBackgroundProcessing = true,
@@ -265,6 +265,7 @@ class PlatformConfiguration {
     this.performanceConfig,
     this.storageConfig = const {},
   });
+
   /// Whether to enable platform-specific optimizations
   final bool enableOptimizations;
 
@@ -291,14 +292,14 @@ class PlatformConfiguration {
 
   /// Get current platform configuration based on detected platform
   static PlatformConfiguration get current => PlatformConfiguration.forPlatform(
-        PlatformOptimization.currentPlatform);
+        PlatformOptimization.currentPlatform,
+      );
 
   /// Create configuration for specific platform
   static PlatformConfiguration forPlatform(PlatformType platform) {
     switch (platform) {
       case PlatformType.mobile:
         return const PlatformConfiguration(
-          enableBackgroundProcessing: true,
           enableWebWalletDiscovery: false,
           enablePerformanceMonitoring: false,
         );
@@ -312,7 +313,6 @@ class PlatformConfiguration {
 
       case PlatformType.desktop:
         return const PlatformConfiguration(
-          enableBackgroundProcessing: true,
           enableSecureStorage: false,
           enableDeepLinks: false,
           enableWebWalletDiscovery: false,
@@ -332,25 +332,23 @@ class PlatformConfiguration {
   }
 
   /// Create development configuration with all features enabled
-  static PlatformConfiguration get development => const PlatformConfiguration(
-      enableOptimizations: true,
-      enableBackgroundProcessing: true,
-      enableSecureStorage: true,
-      enableDeepLinks: true,
-      enableWebWalletDiscovery: true,
-      enablePerformanceMonitoring: true,
-    );
+  static PlatformConfiguration get development => const PlatformConfiguration();
 
   /// Create production configuration with conservative settings
-  static PlatformConfiguration get production => PlatformConfiguration.forPlatform(
-        PlatformOptimization.currentPlatform);
+  static PlatformConfiguration get production =>
+      PlatformConfiguration.forPlatform(
+        PlatformOptimization.currentPlatform,
+      );
 }
 
 /// Convenience class for quick platform-specific operations
 class PlatformUtils {
   /// Get user-friendly error message for current platform
-  static String getErrorMessage(Exception error) => PlatformErrorHandler.getErrorMessage(
-        error, PlatformOptimization.currentPlatform);
+  static String getErrorMessage(Exception error) =>
+      PlatformErrorHandler.getErrorMessage(
+        error,
+        PlatformOptimization.currentPlatform,
+      );
 
   /// Check if feature is supported on current platform
   static bool isFeatureSupported(PlatformFeature feature) {

@@ -31,7 +31,6 @@ bool _bytesEquals(Uint8List a, Uint8List b) {
 
 /// Helper class for account information during transaction compilation
 class _AccountInfo {
-
   const _AccountInfo({
     required this.pubkey,
     required this.isSigner,
@@ -44,7 +43,6 @@ class _AccountInfo {
 
 /// Solana transaction instruction
 class TransactionInstruction {
-
   const TransactionInstruction({
     required this.programId,
     required this.accounts,
@@ -56,22 +54,20 @@ class TransactionInstruction {
     PublicKey programId,
     List<AccountMeta> accounts,
     Uint8List data,
-  ) {
-    return TransactionInstruction(
-      programId: programId,
-      accounts: accounts,
-      data: data,
-    );
-  }
+  ) =>
+      TransactionInstruction(
+        programId: programId,
+        accounts: accounts,
+        data: data,
+      );
 
   /// Create an empty instruction (for testing)
-  factory TransactionInstruction.empty() {
-    return TransactionInstruction(
-      programId: PublicKey.systemProgram,
-      accounts: [],
-      data: Uint8List(0),
-    );
-  }
+  factory TransactionInstruction.empty() => TransactionInstruction(
+        programId: PublicKey.systemProgram,
+        accounts: [],
+        data: Uint8List(0),
+      );
+
   /// Program ID that will process this instruction
   final PublicKey programId;
 
@@ -82,7 +78,8 @@ class TransactionInstruction {
   final Uint8List data;
 
   @override
-  String toString() => 'TransactionInstruction(programId: $programId, accounts: ${accounts.length}, data: ${data.length} bytes)';
+  String toString() =>
+      'TransactionInstruction(programId: $programId, accounts: ${accounts.length}, data: ${data.length} bytes)';
 
   @override
   bool operator ==(Object other) {
@@ -99,7 +96,6 @@ class TransactionInstruction {
 
 /// Account metadata for transaction instructions
 class AccountMeta {
-
   const AccountMeta({
     required this.pubkey,
     required this.isSigner,
@@ -107,19 +103,17 @@ class AccountMeta {
   });
 
   /// Create a signer account meta
-  factory AccountMeta.signer(PublicKey pubkey, {bool isWritable = false}) {
-    return AccountMeta(pubkey: pubkey, isSigner: true, isWritable: isWritable);
-  }
+  factory AccountMeta.signer(PublicKey pubkey, {bool isWritable = false}) =>
+      AccountMeta(pubkey: pubkey, isSigner: true, isWritable: isWritable);
 
   /// Create a writable account meta
-  factory AccountMeta.writable(PublicKey pubkey, {bool isSigner = false}) {
-    return AccountMeta(pubkey: pubkey, isSigner: isSigner, isWritable: true);
-  }
+  factory AccountMeta.writable(PublicKey pubkey, {bool isSigner = false}) =>
+      AccountMeta(pubkey: pubkey, isSigner: isSigner, isWritable: true);
 
   /// Create a read-only account meta
-  factory AccountMeta.readonly(PublicKey pubkey) {
-    return AccountMeta(pubkey: pubkey, isSigner: false, isWritable: false);
-  }
+  factory AccountMeta.readonly(PublicKey pubkey) =>
+      AccountMeta(pubkey: pubkey, isSigner: false, isWritable: false);
+
   /// The account's public key
   final PublicKey pubkey;
 
@@ -157,7 +151,6 @@ typedef TransactionSignature = String;
 
 /// Transaction simulation result
 class BasicTransactionSimulationResult {
-
   const BasicTransactionSimulationResult({
     required this.success,
     required this.logs,
@@ -174,7 +167,6 @@ class BasicTransactionSimulationResult {
 
 /// Transaction confirmation status
 class TransactionConfirmation {
-
   const TransactionConfirmation({
     required this.success,
     this.error,
@@ -187,7 +179,6 @@ class TransactionConfirmation {
 
 /// Status of a transaction confirmation
 class TransactionStatus {
-
   const TransactionStatus({
     required this.confirmed,
     this.error,
@@ -195,9 +186,8 @@ class TransactionStatus {
     this.confirmations = 0,
   });
 
-  factory TransactionStatus.unconfirmed() {
-    return const TransactionStatus(confirmed: false);
-  }
+  factory TransactionStatus.unconfirmed() =>
+      const TransactionStatus(confirmed: false);
   final bool confirmed;
   final String? error;
   final int? slot;
@@ -206,7 +196,6 @@ class TransactionStatus {
 
 /// Log message from transaction simulation or execution
 class LogMessage {
-
   const LogMessage(this.message, {this.isError = false});
   final String message;
   final bool isError;
@@ -217,7 +206,6 @@ class LogMessage {
 
 /// Transaction error information
 class TransactionError {
-
   const TransactionError(
     this.message, {
     this.code,
@@ -233,7 +221,6 @@ class TransactionError {
 
 /// Record of a completed transaction
 class TransactionRecord {
-
   const TransactionRecord(
     this.signature, {
     this.slot,
@@ -255,7 +242,6 @@ class TransactionRecord {
 
 /// A Solana transaction
 class Transaction {
-
   Transaction({
     required this.instructions,
     this.feePayer,
@@ -349,7 +335,8 @@ class Transaction {
     final blockhashBytes = base58.decode(recentBlockhash!);
     if (blockhashBytes.length != 32) {
       throw StateError(
-          'Invalid blockhash: expected 32 bytes, got ${blockhashBytes.length}',);
+        'Invalid blockhash: expected 32 bytes, got ${blockhashBytes.length}',
+      );
     }
     writer.write(blockhashBytes);
 
@@ -459,7 +446,8 @@ class Transaction {
     print('DEBUG: Account ordering and privileges:');
     for (final account in sortedAccounts) {
       print(
-          'DEBUG:   ${account.pubkey.toBase58()}: signer=${account.isSigner}, writable=${account.isWritable}',);
+        'DEBUG:   ${account.pubkey.toBase58()}: signer=${account.isSigner}, writable=${account.isWritable}',
+      );
       if (account.isSigner) {
         numRequiredSignatures++;
         if (!account.isWritable) {
@@ -471,7 +459,8 @@ class Transaction {
     }
 
     print(
-        'DEBUG: Header values - required: $numRequiredSignatures, readonly signed: $numReadonlySignedAccounts, readonly unsigned: $numReadonlyUnsignedAccounts',);
+      'DEBUG: Header values - required: $numRequiredSignatures, readonly signed: $numReadonlySignedAccounts, readonly unsigned: $numReadonlyUnsignedAccounts',
+    );
 
     return {
       'keys': sortedAccounts.map((a) => a.pubkey).toList(),
@@ -482,8 +471,11 @@ class Transaction {
   }
 
   /// Serialize an individual instruction
-  void _serializeInstruction(BinaryWriter writer, TransactionInstruction ix,
-      List<PublicKey> accountKeys,) {
+  void _serializeInstruction(
+    BinaryWriter writer,
+    TransactionInstruction ix,
+    List<PublicKey> accountKeys,
+  ) {
     // Program ID index
     final programIndex = accountKeys.indexOf(ix.programId);
     if (programIndex < 0) {
@@ -553,28 +545,31 @@ class Transaction {
 
   /// Create a transaction that can be used with the solana package
   Map<String, dynamic> toSolanaTransaction() => {
-      'instructions': instructions
-          .map((ix) => {
+        'instructions': instructions
+            .map(
+              (ix) => {
                 'programId': ix.programId.toBase58(),
                 'accounts': ix.accounts
-                    .map((acc) => {
-                          'pubkey': acc.pubkey.toBase58(),
-                          'isSigner': acc.isSigner,
-                          'isWritable': acc.isWritable,
-                        })
+                    .map(
+                      (acc) => {
+                        'pubkey': acc.pubkey.toBase58(),
+                        'isSigner': acc.isSigner,
+                        'isWritable': acc.isWritable,
+                      },
+                    )
                     .toList(),
                 'data': ix.data,
-              })
-          .toList(),
-      'recentBlockhash': recentBlockhash,
-      'feePayer': feePayer?.toBase58(),
-      'signatures': _signatures.map((key, sig) => MapEntry(key, sig)),
-    };
+              },
+            )
+            .toList(),
+        'recentBlockhash': recentBlockhash,
+        'feePayer': feePayer?.toBase58(),
+        'signatures': _signatures.map(MapEntry.new),
+      };
 }
 
 /// Solana transaction signature
 class Signature {
-
   const Signature._(this.bytes);
 
   /// Create a signature from bytes
@@ -591,7 +586,8 @@ class Signature {
       final bytes = base58.decode(signature);
       if (bytes.length != 64) {
         throw ArgumentError(
-            'Invalid signature length: expected 64 bytes, got ${bytes.length}');
+          'Invalid signature length: expected 64 bytes, got ${bytes.length}',
+        );
       }
       return Signature.fromBytes(bytes);
     } catch (e) {

@@ -30,7 +30,6 @@ abstract class EventSubscription {
 
 /// Basic implementation of EventSubscription
 class BasicEventSubscription implements EventSubscription {
-
   BasicEventSubscription({
     required this.id,
     required Future<void> Function() cancelFunction,
@@ -66,7 +65,6 @@ class BasicEventSubscription implements EventSubscription {
 
 /// Subscription handle that manages multiple child subscriptions
 class CompositeEventSubscription implements EventSubscription {
-
   CompositeEventSubscription({
     required this.id,
     this.filter,
@@ -187,10 +185,11 @@ class EventSubscriptionBuilder {
   BasicEventSubscription build({
     required Future<void> Function() cancelFunction,
     required EventStats Function() statsFunction,
-  }) => BasicEventSubscription(
-      id: _id ?? 'subscription_${DateTime.now().millisecondsSinceEpoch}',
-      cancelFunction: cancelFunction,
-      statsFunction: statsFunction,
-      filter: _filter,
-    );
+  }) =>
+      BasicEventSubscription(
+        id: _id ?? 'subscription_${DateTime.now().millisecondsSinceEpoch}',
+        cancelFunction: cancelFunction,
+        statsFunction: statsFunction,
+        filter: _filter,
+      );
 }

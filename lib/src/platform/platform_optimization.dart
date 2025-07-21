@@ -69,7 +69,8 @@ class PlatformOptimization {
     switch (currentPlatform) {
       case PlatformType.mobile:
         return const Duration(
-            seconds: 15,); // Longer timeout for mobile networks
+          seconds: 15,
+        ); // Longer timeout for mobile networks
       case PlatformType.web:
         return const Duration(seconds: 10); // Standard web timeout
       case PlatformType.desktop:
@@ -84,7 +85,8 @@ class PlatformOptimization {
     switch (currentPlatform) {
       case PlatformType.mobile:
         return const Duration(
-            seconds: 2,); // Account for mobile network variability
+          seconds: 2,
+        ); // Account for mobile network variability
       case PlatformType.web:
         return const Duration(milliseconds: 1500);
       case PlatformType.desktop:
@@ -153,7 +155,6 @@ class PlatformOptimization {
 
 /// Platform-specific performance optimization configuration
 class PlatformPerformanceConfig {
-
   const PlatformPerformanceConfig({
     required this.connectionPoolSize,
     required this.requestTimeout,
@@ -237,6 +238,7 @@ class PlatformPerformanceConfig {
         );
     }
   }
+
   /// Connection pool size
   final int connectionPoolSize;
 
@@ -264,7 +266,8 @@ class PlatformPerformanceConfig {
   /// Get current platform configuration
   static PlatformPerformanceConfig get current =>
       PlatformPerformanceConfig.forPlatform(
-          PlatformOptimization.currentPlatform,);
+        PlatformOptimization.currentPlatform,
+      );
 }
 
 /// Platform-specific error handling utilities
@@ -321,7 +324,8 @@ class PlatformErrorHandler {
     }
   }
 
-  static String _getGenericErrorMessage(String baseMessage) => 'Operation failed. Please try again';
+  static String _getGenericErrorMessage(String baseMessage) =>
+      'Operation failed. Please try again';
 }
 
 /// Background task management for mobile platforms

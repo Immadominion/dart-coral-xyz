@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/workspace/workspace_config.dart';
 
 /// Exception thrown during program management operations
 class ProgramManagerException implements Exception {
-
   const ProgramManagerException(
     this.message, {
     this.programName,
@@ -40,7 +39,6 @@ class ProgramManagerException implements Exception {
 
 /// Program dependency definition with version constraints
 class ProgramDependency {
-
   const ProgramDependency({
     required this.name,
     this.programId,
@@ -49,17 +47,16 @@ class ProgramDependency {
     this.features = const [],
   });
 
-  factory ProgramDependency.fromMap(Map<String, dynamic> map) {
-    return ProgramDependency(
-      name: map['name'] as String,
-      programId: map['programId'] != null
-          ? PublicKey.fromBase58(map['programId'] as String)
-          : null,
-      version: map['version'] as String?,
-      required: map['required'] as bool? ?? true,
-      features: (map['features'] as List<dynamic>?)?.cast<String>() ?? [],
-    );
-  }
+  factory ProgramDependency.fromMap(Map<String, dynamic> map) =>
+      ProgramDependency(
+        name: map['name'] as String,
+        programId: map['programId'] != null
+            ? PublicKey.fromBase58(map['programId'] as String)
+            : null,
+        version: map['version'] as String?,
+        required: map['required'] as bool? ?? true,
+        features: (map['features'] as List<dynamic>?)?.cast<String>() ?? [],
+      );
   final String name;
   final PublicKey? programId;
   final String? version;
@@ -67,17 +64,16 @@ class ProgramDependency {
   final List<String> features;
 
   Map<String, dynamic> toMap() => {
-      'name': name,
-      if (programId != null) 'programId': programId!.toBase58(),
-      if (version != null) 'version': version,
-      'required': required,
-      if (features.isNotEmpty) 'features': features,
-    };
+        'name': name,
+        if (programId != null) 'programId': programId!.toBase58(),
+        if (version != null) 'version': version,
+        'required': required,
+        if (features.isNotEmpty) 'features': features,
+      };
 }
 
 /// Program metadata with dependency information
 class ProgramMetadata {
-
   const ProgramMetadata({
     required this.name,
     required this.programId,
@@ -93,17 +89,16 @@ class ProgramMetadata {
     Program program, {
     List<ProgramDependency>? dependencies,
     Map<String, dynamic>? metadata,
-  }) {
-    return ProgramMetadata(
-      name: name,
-      programId: program.programId,
-      idl: program.idl,
-      version: program.idl.version,
-      dependencies: dependencies ?? [],
-      metadata: metadata ?? {},
-      loadedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      ProgramMetadata(
+        name: name,
+        programId: program.programId,
+        idl: program.idl,
+        version: program.idl.version,
+        dependencies: dependencies ?? [],
+        metadata: metadata ?? {},
+        loadedAt: DateTime.now(),
+      );
   final String name;
   final PublicKey programId;
   final Idl idl;
@@ -120,15 +115,16 @@ class ProgramMetadata {
     List<ProgramDependency>? dependencies,
     Map<String, dynamic>? metadata,
     DateTime? loadedAt,
-  }) => ProgramMetadata(
-      name: name ?? this.name,
-      programId: programId ?? this.programId,
-      idl: idl ?? this.idl,
-      version: version ?? this.version,
-      dependencies: dependencies ?? this.dependencies,
-      metadata: metadata ?? this.metadata,
-      loadedAt: loadedAt ?? this.loadedAt,
-    );
+  }) =>
+      ProgramMetadata(
+        name: name ?? this.name,
+        programId: programId ?? this.programId,
+        idl: idl ?? this.idl,
+        version: version ?? this.version,
+        dependencies: dependencies ?? this.dependencies,
+        metadata: metadata ?? this.metadata,
+        loadedAt: loadedAt ?? this.loadedAt,
+      );
 }
 
 /// Program lifecycle state tracking
@@ -144,7 +140,6 @@ enum ProgramLifecycleState {
 
 /// Program lifecycle information
 class ProgramLifecycleInfo {
-
   const ProgramLifecycleInfo({
     required this.state,
     this.stateChangedAt,
@@ -152,12 +147,10 @@ class ProgramLifecycleInfo {
     this.stateData = const {},
   });
 
-  factory ProgramLifecycleInfo.initial() {
-    return ProgramLifecycleInfo(
-      state: ProgramLifecycleState.unloaded,
-      stateChangedAt: DateTime.now(),
-    );
-  }
+  factory ProgramLifecycleInfo.initial() => ProgramLifecycleInfo(
+        state: ProgramLifecycleState.unloaded,
+        stateChangedAt: DateTime.now(),
+      );
   final ProgramLifecycleState state;
   final DateTime? stateChangedAt;
   final String? errorMessage;
@@ -167,12 +160,13 @@ class ProgramLifecycleInfo {
     ProgramLifecycleState newState, {
     String? errorMessage,
     Map<String, dynamic>? stateData,
-  }) => ProgramLifecycleInfo(
-      state: newState,
-      stateChangedAt: DateTime.now(),
-      errorMessage: errorMessage,
-      stateData: stateData ?? this.stateData,
-    );
+  }) =>
+      ProgramLifecycleInfo(
+        state: newState,
+        stateChangedAt: DateTime.now(),
+        errorMessage: errorMessage,
+        stateData: stateData ?? this.stateData,
+      );
 
   bool get isReady => state == ProgramLifecycleState.ready;
   bool get isLoaded =>
@@ -320,10 +314,12 @@ class ProgramRegistry {
   bool hasProgram(String name) => _programs.containsKey(name);
 
   /// Get program dependencies
-  List<ProgramDependency> getDependencies(String name) => _metadata[name]?.dependencies ?? [];
+  List<ProgramDependency> getDependencies(String name) =>
+      _metadata[name]?.dependencies ?? [];
 
   /// Get programs that depend on the given program
-  List<String> getDependents(String name) => _reverseDependencyGraph[name]?.toList() ?? [];
+  List<String> getDependents(String name) =>
+      _reverseDependencyGraph[name]?.toList() ?? [];
 
   /// Resolve dependency order for initialization
   List<String> resolveDependencyOrder([List<String>? programNames]) {
@@ -376,7 +372,8 @@ class ProgramRegistry {
       for (final dep in metadata.dependencies) {
         if (dep.required && !hasProgram(dep.name)) {
           errors.add(
-              'Program $programName requires missing dependency: ${dep.name}',);
+            'Program $programName requires missing dependency: ${dep.name}',
+          );
         }
 
         if (dep.programId != null) {
@@ -474,13 +471,13 @@ class SharedResourceManager {
 
   /// Get resource usage statistics
   Map<String, dynamic> getStats() => {
-      'providers': _providers.length,
-      'cachedEntries': _sharedCache.length,
-      'eventStreams': _eventStreams.length,
-      'activeStreams': _eventStreams.values
-          .where((controller) => !controller.isClosed)
-          .length,
-    };
+        'providers': _providers.length,
+        'cachedEntries': _sharedCache.length,
+        'eventStreams': _eventStreams.length,
+        'activeStreams': _eventStreams.values
+            .where((controller) => !controller.isClosed)
+            .length,
+      };
 }
 
 /// Multi-program coordination manager with shared resources and lifecycle management
@@ -672,10 +669,10 @@ class ProgramManager {
 
   /// Get coordination statistics
   Map<String, dynamic> getStats() => {
-      'registry': _registry.getStats(),
-      'resources': _resourceManager.getStats(),
-      'loadingPrograms': _loadingPrograms.length,
-    };
+        'registry': _registry.getStats(),
+        'resources': _resourceManager.getStats(),
+        'loadingPrograms': _loadingPrograms.length,
+      };
 
   /// Dispose all programs and cleanup resources
   Future<void> dispose() async {

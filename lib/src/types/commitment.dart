@@ -75,7 +75,6 @@ enum Commitment {
 
 /// Configuration for commitment in RPC requests
 class CommitmentConfig {
-
   const CommitmentConfig(this.commitment);
 
   /// Create from JSON

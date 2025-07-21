@@ -204,11 +204,14 @@ class ErrorMonitor {
 
     _metrics.add(metric);
 
-    _logger.debug('Error recorded', context: {
-      'errorType': metric.errorType,
-      'severity': metric.severity.name,
-      'category': metric.category.name,
-    });
+    _logger.debug(
+      'Error recorded',
+      context: {
+        'errorType': metric.errorType,
+        'severity': metric.severity.name,
+        'category': metric.category.name,
+      },
+    );
 
     // Check for alerting
     if (_config.enableAlerting) {
@@ -285,10 +288,13 @@ class ErrorMonitor {
     final cutoff = DateTime.now().subtract(_config.metricRetentionDuration);
     _metrics.removeWhere((metric) => metric.timestamp.isBefore(cutoff));
 
-    _logger.debug('Cleaned up old metrics', context: {
-      'retained': _metrics.length,
-      'cutoff': cutoff.toIso8601String(),
-    });
+    _logger.debug(
+      'Cleaned up old metrics',
+      context: {
+        'retained': _metrics.length,
+        'cutoff': cutoff.toIso8601String(),
+      },
+    );
   }
 
   /// Check if error rate exceeds thresholds
@@ -420,9 +426,7 @@ class ErrorStatistics {
 ErrorMonitor? _globalErrorMonitor;
 
 /// Get global error monitor
-ErrorMonitor get globalErrorMonitor {
-  return _globalErrorMonitor ??= ErrorMonitor();
-}
+ErrorMonitor get globalErrorMonitor => _globalErrorMonitor ??= ErrorMonitor();
 
 /// Configure global error monitor
 void configureErrorMonitor({

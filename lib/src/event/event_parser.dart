@@ -18,11 +18,11 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart';
 /// to track which program is currently executing, enabling proper event
 /// attribution across CPI boundaries.
 class EventParser {
-
   const EventParser({
     required this.programId,
     required this.coder,
   });
+
   /// The program ID this parser is configured for
   final PublicKey programId;
 
@@ -217,7 +217,8 @@ class _ExecutionContext {
   String currentProgram() {
     if (stack.isEmpty) {
       throw const EventParseException(
-          'Expected the execution stack to have elements',);
+        'Expected the execution stack to have elements',
+      );
     }
     return stack.last;
   }
@@ -231,7 +232,8 @@ class _ExecutionContext {
   void pop() {
     if (stack.isEmpty) {
       throw const EventParseException(
-          'Expected the execution stack to have elements',);
+        'Expected the execution stack to have elements',
+      );
     }
     stack.removeLast();
   }
@@ -239,7 +241,6 @@ class _ExecutionContext {
 
 /// Scanner for processing log messages
 class _LogScanner {
-
   _LogScanner(List<String> logs)
       : _logs = logs.where((log) => log.startsWith('Program ')).toList();
   final List<String> _logs;
@@ -256,7 +257,6 @@ class _LogScanner {
 
 /// Result of handling a log message
 class _LogHandleResult {
-
   const _LogHandleResult({
     required this.event,
     required this.newProgram,
@@ -269,7 +269,6 @@ class _LogHandleResult {
 
 /// Result of handling a system log
 class _SystemLogResult {
-
   const _SystemLogResult({
     required this.newProgram,
     required this.didPop,

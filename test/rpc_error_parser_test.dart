@@ -4,8 +4,8 @@
 /// and ensuring compatibility with TypeScript Anchor client behavior.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('RpcErrorParser', () {
@@ -63,11 +63,15 @@ void main() {
         final result = RpcErrorParser.parse(error);
 
         expect(result.anchorError, isNotNull);
-        expect(result.anchorError!.errorCode.code,
-            equals('AccountDiscriminatorMismatch'),);
+        expect(
+          result.anchorError!.errorCode.code,
+          equals('AccountDiscriminatorMismatch'),
+        );
         expect(result.anchorError!.errorCode.number, equals(3002));
-        expect(result.anchorError!.message,
-            equals('Account discriminator did not match what was expected'),);
+        expect(
+          result.anchorError!.message,
+          equals('Account discriminator did not match what was expected'),
+        );
         expect(result.anchorError!.origin, isNull);
         expect(result.anchorError!.comparedValues, isNull);
         expect(result.anchorError!.errorLogs, hasLength(1));
@@ -87,13 +91,17 @@ void main() {
         expect(result.anchorError, isNotNull);
         expect(result.anchorError!.errorCode.code, equals('ConstraintSigner'));
         expect(result.anchorError!.errorCode.number, equals(3012));
-        expect(result.anchorError!.message,
-            equals('A signer constraint was violated'),);
+        expect(
+          result.anchorError!.message,
+          equals('A signer constraint was violated'),
+        );
 
         expect(result.anchorError!.origin, isA<FileLineOrigin>());
         final fileLineOrigin = result.anchorError!.origin as FileLineOrigin;
         expect(
-            fileLineOrigin.fileLine!.file, equals('programs/test/src/lib.rs'),);
+          fileLineOrigin.fileLine!.file,
+          equals('programs/test/src/lib.rs'),
+        );
         expect(fileLineOrigin.fileLine!.line, equals(42));
 
         expect(result.anchorError!.comparedValues, isNull);
@@ -111,13 +119,17 @@ void main() {
         final result = RpcErrorParser.parse(error);
 
         expect(result.anchorError, isNotNull);
-        expect(result.anchorError!.errorCode.code,
-            equals('AccountOwnedByWrongProgram'),);
+        expect(
+          result.anchorError!.errorCode.code,
+          equals('AccountOwnedByWrongProgram'),
+        );
         expect(result.anchorError!.errorCode.number, equals(3007));
         expect(
-            result.anchorError!.message,
-            equals(
-                'The given account is owned by a different program than expected',),);
+          result.anchorError!.message,
+          equals(
+            'The given account is owned by a different program than expected',
+          ),
+        );
 
         expect(result.anchorError!.origin, isA<AccountNameOrigin>());
         final accountNameOrigin =
@@ -148,10 +160,14 @@ void main() {
 
         final comparedPubkeys =
             result.anchorError!.comparedValues as ComparedPublicKeys;
-        expect(comparedPubkeys.publicKeys![0].toBase58(),
-            equals('So11111111111111111111111111111111111111112'),);
-        expect(comparedPubkeys.publicKeys![1].toBase58(),
-            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),);
+        expect(
+          comparedPubkeys.publicKeys![0].toBase58(),
+          equals('So11111111111111111111111111111111111111112'),
+        );
+        expect(
+          comparedPubkeys.publicKeys![1].toBase58(),
+          equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        );
         expect(result.anchorError!.errorLogs, hasLength(5));
       });
 
@@ -229,7 +245,9 @@ void main() {
         expect(result.programError, isNotNull);
         expect(result.programError!.code, equals(42));
         expect(
-            result.programError!.msg, equals('Custom error message from IDL'),);
+          result.programError!.msg,
+          equals('Custom error message from IDL'),
+        );
         expect(result.programError!.logs, isNotNull);
       });
 
@@ -291,8 +309,10 @@ void main() {
         expect(enhancedError.originalError, equals(originalError));
         expect(enhancedError.logs, equals(logs));
         expect(enhancedError.programStack, hasLength(1));
-        expect(enhancedError.program?.toBase58(),
-            equals('So11111111111111111111111111111111111111112'),);
+        expect(
+          enhancedError.program?.toBase58(),
+          equals('So11111111111111111111111111111111111111112'),
+        );
         expect(enhancedError.toString(), equals(originalError.toString()));
 
         final detailedString = enhancedError.toDetailedString();
@@ -380,7 +400,9 @@ void main() {
 
         // Should not throw in debug mode
         expect(
-            () => translateRpcError(error, debugMode: true), returnsNormally,);
+          () => translateRpcError(error, debugMode: true),
+          returnsNormally,
+        );
       });
     });
 

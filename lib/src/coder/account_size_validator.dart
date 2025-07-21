@@ -10,7 +10,6 @@ import 'dart:typed_data';
 
 /// Validation result for account size validation
 class AccountSizeValidationResult {
-
   const AccountSizeValidationResult._({
     required this.isValid,
     this.errorMessage,
@@ -51,6 +50,7 @@ class AccountSizeValidationResult {
               : null,
           context: context,
         );
+
   /// Whether the validation passed
   final bool isValid;
 
@@ -77,7 +77,6 @@ class AccountSizeValidationResult {
 
 /// Exception thrown when account size validation fails
 class AccountSizeValidationException implements Exception {
-
   const AccountSizeValidationException(
     this.message, {
     this.expectedSize,
@@ -96,7 +95,6 @@ class AccountSizeValidationException implements Exception {
 
 /// Configuration for account size validation
 class AccountSizeValidationConfig {
-
   const AccountSizeValidationConfig({
     this.includeContext = true,
     this.allowPartialData = false,
@@ -106,6 +104,7 @@ class AccountSizeValidationConfig {
     this.maximumSizeTolerance = 0,
     this.bypassValidation = false,
   });
+
   /// Whether to include detailed context in results
   final bool includeContext;
 
@@ -154,7 +153,6 @@ class AccountSizeValidationConfig {
 
 /// Account structure definition for size calculation
 class AccountStructureDefinition {
-
   const AccountStructureDefinition({
     required this.name,
     required this.minimumSize,
@@ -163,6 +161,7 @@ class AccountStructureDefinition {
     this.fields = const [],
     this.hasDiscriminator = true,
   });
+
   /// Account type name
   final String name;
 
@@ -191,13 +190,13 @@ class AccountStructureDefinition {
 
 /// Individual field definition for size calculation
 class AccountFieldDefinition {
-
   const AccountFieldDefinition({
     required this.name,
     required this.size,
     this.isVariableLength = false,
     this.isOptional = false,
   });
+
   /// Field name
   final String name;
 
@@ -424,7 +423,8 @@ class AccountSizeValidator {
   static int calculateExpectedSize({
     required int baseFieldsSize,
     bool includeDiscriminator = true,
-  }) => baseFieldsSize + (includeDiscriminator ? discriminatorSize : 0);
+  }) =>
+      baseFieldsSize + (includeDiscriminator ? discriminatorSize : 0);
 
   /// Validate batch of accounts
   ///
@@ -439,20 +439,24 @@ class AccountSizeValidator {
               AccountSizeValidationConfig? config,
             })>
         validations,
-  ) => validations
-        .map((v) => validateAccountSize(
+  ) =>
+      validations
+          .map(
+            (v) => validateAccountSize(
               accountData: v.accountData,
               structureDefinition: v.structureDefinition,
               config: v.config ?? AccountSizeValidationConfig.strict,
-            ))
-        .toList();
+            ),
+          )
+          .toList();
 
   /// Check if account data meets discriminator requirements
   ///
   /// [accountData] - Raw account data bytes
   ///
   /// Returns true if account has space for 8-byte discriminator
-  static bool hasDiscriminatorSpace(Uint8List accountData) => accountData.length >= discriminatorSize;
+  static bool hasDiscriminatorSpace(Uint8List accountData) =>
+      accountData.length >= discriminatorSize;
 
   /// Extract account payload (data after discriminator)
   ///
@@ -503,12 +507,14 @@ class AccountSizeValidator {
       'is_within_bounds': actualSize >= expectedMinSize &&
           (expectedMaxSize == null || actualSize <= expectedMaxSize),
       'field_definitions': structureDefinition.fields
-          .map((f) => {
-                'name': f.name,
-                'size': f.size,
-                'is_variable': f.isVariableLength,
-                'is_optional': f.isOptional,
-              },)
+          .map(
+            (f) => {
+              'name': f.name,
+              'size': f.size,
+              'is_variable': f.isVariableLength,
+              'is_optional': f.isOptional,
+            },
+          )
           .toList(),
     };
   }

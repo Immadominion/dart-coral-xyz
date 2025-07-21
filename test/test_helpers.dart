@@ -1,9 +1,10 @@
-import 'package:test/test.dart';
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'
     hide Transaction, TransactionInstruction, AccountMeta;
 import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'dart:typed_data';
-import 'dart:math';
+import 'package:test/test.dart';
 
 /// Mock provider for testing with configurable behavior
 class MockProvider extends AnchorProvider {
@@ -19,7 +20,7 @@ class MockProvider extends AnchorProvider {
 
 /// Mock connection for testing with configurable responses
 class MockConnection extends Connection {
-  MockConnection(String endpoint) : super(endpoint);
+  MockConnection(super.endpoint);
   final Map<String, dynamic> _mockResponses = {};
   final List<String> _callLog = [];
   bool _shouldThrow = false;
@@ -79,7 +80,8 @@ class MockWallet implements Wallet {
   MockWallet([Keypair? keypair])
       : _keypair = keypair ??
             Keypair.fromSecretKey(
-                Uint8List.fromList(List.generate(32, (i) => i + 1)));
+              Uint8List.fromList(List.generate(32, (i) => i + 1)),
+            );
   final Keypair _keypair;
   bool _shouldThrowOnSign = false;
   Exception? _signException;
@@ -149,7 +151,7 @@ class MockWallet implements Wallet {
 }
 
 /// Utility to create a test keypair and public key
-Future<Keypair> createTestKeypair() async => await Keypair.generate();
+Future<Keypair> createTestKeypair() async => Keypair.generate();
 
 /// Create a deterministic test keypair from seed for reproducible tests
 Future<Keypair> createDeterministicTestKeypair(int seed) async {
@@ -214,7 +216,7 @@ Idl createTestIdl({
               name: 'initialize',
               discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
               accounts: [
-                IdlInstructionAccount(
+                const IdlInstructionAccount(
                   name: 'user',
                   writable: true,
                   signer: true,

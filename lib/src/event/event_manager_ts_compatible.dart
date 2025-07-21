@@ -21,12 +21,11 @@ typedef EventCallback<T> = void Function(T event, int slot, String signature);
 
 /// Logs notification data structure
 class LogsNotification {
-
   LogsNotification({
     required this.signature,
     required this.logs,
-    this.err,
     required this.slot,
+    this.err,
     this.blockTime,
   });
   final String signature;
@@ -40,11 +39,11 @@ class LogsNotification {
 
 /// Event management system matching TypeScript Anchor's EventManager exactly
 class EventManager {
-
   EventManager(PublicKey programId, AnchorProvider provider, BorshCoder coder)
       : _programId = programId,
         _provider = provider,
         _eventParser = EventParser(programId: programId, coder: coder);
+
   /// Program ID for event subscriptions.
   final PublicKey _programId;
 
@@ -131,7 +130,8 @@ class EventManager {
     if (_eventCallbacks.isEmpty) {
       if (_eventListeners.isNotEmpty) {
         throw StateError(
-            'Expected event listeners size to be 0 but got ${_eventListeners.length}',);
+          'Expected event listeners size to be 0 but got ${_eventListeners.length}',
+        );
       }
 
       if (_onLogsSubscriptionId != null) {

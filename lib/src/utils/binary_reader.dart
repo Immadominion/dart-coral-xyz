@@ -97,9 +97,7 @@ class BinaryReader {
   }
 
   /// Read raw bytes
-  List<int> readBytes(int length) {
-    return _readBuffer(length);
-  }
+  List<int> readBytes(int length) => _readBuffer(length);
 
   /// Read a vector with a length prefix
   List<T> readVec<T>(T Function() readElement) {

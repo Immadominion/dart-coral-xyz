@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('PDA Definition and Metadata System', () {
@@ -361,8 +362,10 @@ void main() {
 
         final programDefs = registry.getDefinitionsForProgram(testProgramId);
         expect(programDefs.length, equals(2));
-        expect(programDefs.map((d) => d.name),
-            containsAll(['account1', 'account2']),);
+        expect(
+          programDefs.map((d) => d.name),
+          containsAll(['account1', 'account2']),
+        );
       });
 
       test('should register from IDL', () {
@@ -423,7 +426,9 @@ void main() {
         final userDefs = registry.findDefinitionsByTag('user');
         expect(userDefs.length, equals(2));
         expect(
-            userDefs.map((d) => d.name), containsAll(['account1', 'account2']),);
+          userDefs.map((d) => d.name),
+          containsAll(['account1', 'account2']),
+        );
 
         final primaryDefs = registry.findDefinitionsByTag('primary');
         expect(primaryDefs.length, equals(1));

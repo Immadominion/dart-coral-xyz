@@ -11,7 +11,8 @@ void main() {
   final existingInstruction =
       BorshUtils.createInstructionDiscriminator('initialize');
   print(
-      'BorshUtils instruction discriminator for "initialize": $existingInstruction',);
+    'BorshUtils instruction discriminator for "initialize": $existingInstruction',
+  );
 
   // Test with new DiscriminatorComputer
   final newAccount = DiscriminatorComputer.computeAccountDiscriminator('Data');
@@ -20,11 +21,14 @@ void main() {
   final newInstruction =
       DiscriminatorComputer.computeInstructionDiscriminator('initialize');
   print(
-      'DiscriminatorComputer instruction discriminator for "initialize": $newInstruction',);
+    'DiscriminatorComputer instruction discriminator for "initialize": $newInstruction',
+  );
 
   // Test hex representation
   print(
-      'BorshUtils account hex: ${BorshUtils.createAccountDiscriminator('Data').map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',);
+    'BorshUtils account hex: ${BorshUtils.createAccountDiscriminator('Data').map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+  );
   print(
-      'DiscriminatorComputer account hex: ${DiscriminatorComputer.discriminatorToHex(newAccount)}',);
+    'DiscriminatorComputer account hex: ${DiscriminatorComputer.discriminatorToHex(newAccount)}',
+  );
 }

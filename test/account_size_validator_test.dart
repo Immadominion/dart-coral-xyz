@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AccountSizeValidator', () {
@@ -109,13 +110,21 @@ void main() {
 
       test('checks discriminator space utility', () {
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(8)), isTrue,);
+          AccountSizeValidator.hasDiscriminatorSpace(Uint8List(8)),
+          isTrue,
+        );
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(10)), isTrue,);
+          AccountSizeValidator.hasDiscriminatorSpace(Uint8List(10)),
+          isTrue,
+        );
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(7)), isFalse,);
+          AccountSizeValidator.hasDiscriminatorSpace(Uint8List(7)),
+          isFalse,
+        );
         expect(
-            AccountSizeValidator.hasDiscriminatorSpace(Uint8List(0)), isFalse,);
+          AccountSizeValidator.hasDiscriminatorSpace(Uint8List(0)),
+          isFalse,
+        );
       });
     });
 
@@ -129,7 +138,8 @@ void main() {
           hasVariableLengthFields: true,
         );
 
-        final config = const AccountSizeValidationConfig(strictValidation: false);
+        final config =
+            const AccountSizeValidationConfig(strictValidation: false);
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -159,7 +169,9 @@ void main() {
         );
 
         expect(
-            result.isValid, isTrue,); // Should pass since it has variable fields
+          result.isValid,
+          isTrue,
+        ); // Should pass since it has variable fields
       });
 
       test('strict validation fails for fixed-size account with wrong size',
@@ -214,7 +226,8 @@ void main() {
           maximumSize: 24, // 32 total with discriminator
         );
 
-        final config = const AccountSizeValidationConfig(maximumSizeTolerance: 4);
+        final config =
+            const AccountSizeValidationConfig(maximumSizeTolerance: 4);
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -232,7 +245,8 @@ void main() {
           minimumSize: 16,
         );
 
-        final config = const AccountSizeValidationConfig(minimumSizeTolerance: 4);
+        final config =
+            const AccountSizeValidationConfig(minimumSizeTolerance: 4);
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
@@ -537,7 +551,6 @@ void main() {
         final result = AccountSizeValidator.validateAccountSize(
           accountData: accountData,
           structureDefinition: structureDefinition,
-          config: const AccountSizeValidationConfig(),
         );
 
         expect(result.isValid, isFalse);

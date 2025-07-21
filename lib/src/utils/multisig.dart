@@ -19,7 +19,8 @@ class MultisigUtils {
   ///
   /// This creates the standard seeds used for multisig PDA derivation.
   /// The pattern follows: [multisig_pubkey]
-  static List<Uint8List> createMultisigSeeds(PublicKey multisigKey) => [multisigKey.bytes];
+  static List<Uint8List> createMultisigSeeds(PublicKey multisigKey) =>
+      [multisigKey.bytes];
 
   /// Find the multisig signer PDA
   ///
@@ -36,7 +37,8 @@ class MultisigUtils {
   /// Validate multisig threshold
   ///
   /// Ensures the threshold is valid (between 1 and the number of owners).
-  static bool validateThreshold(int threshold, int ownerCount) => threshold >= 1 && threshold <= ownerCount;
+  static bool validateThreshold(int threshold, int ownerCount) =>
+      threshold >= 1 && threshold <= ownerCount;
 
   /// Check if enough owners have signed
   ///
@@ -59,14 +61,15 @@ class MultisigUtils {
     required List<TransactionAccount> accounts,
     required Uint8List data,
     required int ownerCount,
-  }) => MultisigTransaction(
-      multisig: multisig,
-      programId: programId,
-      accounts: accounts,
-      data: data,
-      signers: List.filled(ownerCount, false),
-      didExecute: false,
-    );
+  }) =>
+      MultisigTransaction(
+        multisig: multisig,
+        programId: programId,
+        accounts: accounts,
+        data: data,
+        signers: List.filled(ownerCount, false),
+        didExecute: false,
+      );
 
   /// Mark an owner as having signed the transaction
   ///
@@ -98,8 +101,9 @@ class MultisigUtils {
   static bool canExecuteTransaction(
     MultisigTransaction transaction,
     int threshold,
-  ) => !transaction.didExecute &&
-        hasThresholdSignatures(transaction.signers, threshold);
+  ) =>
+      !transaction.didExecute &&
+      hasThresholdSignatures(transaction.signers, threshold);
 
   /// Get the owner index for a given public key
   ///
@@ -114,7 +118,8 @@ class MultisigUtils {
   }
 
   /// Validate that a public key is one of the multisig owners
-  static bool isValidOwner(List<PublicKey> owners, PublicKey potentialOwner) => getOwnerIndex(owners, potentialOwner) >= 0;
+  static bool isValidOwner(List<PublicKey> owners, PublicKey potentialOwner) =>
+      getOwnerIndex(owners, potentialOwner) >= 0;
 
   /// Create account metas for a multisig execution
   ///
@@ -123,22 +128,23 @@ class MultisigUtils {
   static List<AccountMeta> createExecutionAccountMetas(
     List<TransactionAccount> accounts,
     PublicKey multisigSigner,
-  ) => accounts.map((account) {
-      if (account.pubkey == multisigSigner) {
-        // The multisig signer is signed by the program, not the client
-        return AccountMeta(
-          pubkey: account.pubkey,
-          isSigner: false,
-          isWritable: account.isWritable,
-        );
-      } else {
-        return AccountMeta(
-          pubkey: account.pubkey,
-          isSigner: account.isSigner,
-          isWritable: account.isWritable,
-        );
-      }
-    }).toList();
+  ) =>
+      accounts.map((account) {
+        if (account.pubkey == multisigSigner) {
+          // The multisig signer is signed by the program, not the client
+          return AccountMeta(
+            pubkey: account.pubkey,
+            isSigner: false,
+            isWritable: account.isWritable,
+          );
+        } else {
+          return AccountMeta(
+            pubkey: account.pubkey,
+            isSigner: account.isSigner,
+            isWritable: account.isWritable,
+          );
+        }
+      }).toList();
 
   /// Create seeds for transaction account derivation
   ///
@@ -146,10 +152,11 @@ class MultisigUtils {
   static List<Uint8List> createTransactionSeeds(
     PublicKey multisig,
     String transactionId,
-  ) => [
-      multisig.bytes,
-      Uint8List.fromList(transactionId.codeUnits),
-    ];
+  ) =>
+      [
+        multisig.bytes,
+        Uint8List.fromList(transactionId.codeUnits),
+      ];
 
   /// Encode instruction data for multisig use
   ///
@@ -175,7 +182,6 @@ class MultisigUtils {
 
 /// Represents a transaction account in a multisig context
 class TransactionAccount {
-
   const TransactionAccount({
     required this.pubkey,
     required this.isSigner,
@@ -187,13 +193,14 @@ class TransactionAccount {
 
   /// Convert to AccountMeta for instruction building
   AccountMeta toAccountMeta() => AccountMeta(
-      pubkey: pubkey,
-      isSigner: isSigner,
-      isWritable: isWritable,
-    );
+        pubkey: pubkey,
+        isSigner: isSigner,
+        isWritable: isWritable,
+      );
 
   @override
-  String toString() => 'TransactionAccount(pubkey: $pubkey, isSigner: $isSigner, isWritable: $isWritable)';
+  String toString() =>
+      'TransactionAccount(pubkey: $pubkey, isSigner: $isSigner, isWritable: $isWritable)';
 
   @override
   bool operator ==(Object other) {
@@ -210,7 +217,6 @@ class TransactionAccount {
 
 /// Represents a multisig transaction
 class MultisigTransaction {
-
   const MultisigTransaction({
     required this.multisig,
     required this.programId,
@@ -249,14 +255,14 @@ class MultisigTransaction {
   }
 
   @override
-  String toString() => 'MultisigTransaction(multisig: $multisig, programId: $programId, '
-        'accounts: ${accounts.length}, signatures: $signatureCount/${signers.length}, '
-        'executed: $didExecute)';
+  String toString() =>
+      'MultisigTransaction(multisig: $multisig, programId: $programId, '
+      'accounts: ${accounts.length}, signatures: $signatureCount/${signers.length}, '
+      'executed: $didExecute)';
 }
 
 /// Configuration for a multisig account
 class MultisigConfig {
-
   const MultisigConfig({
     required this.owners,
     required this.threshold,
@@ -273,15 +279,16 @@ class MultisigConfig {
   Future<PdaResult> getSignerPda(
     PublicKey multisigKey,
     PublicKey programId,
-  ) async => MultisigUtils.findMultisigSigner(multisigKey, programId);
+  ) async =>
+      MultisigUtils.findMultisigSigner(multisigKey, programId);
 
   @override
-  String toString() => 'MultisigConfig(owners: ${owners.length}, threshold: $threshold, nonce: $nonce)';
+  String toString() =>
+      'MultisigConfig(owners: ${owners.length}, threshold: $threshold, nonce: $nonce)';
 }
 
 /// Helper for building multisig-related account constraints
 class MultisigAccountBuilder {
-
   const MultisigAccountBuilder({
     required this.multisigKey,
     required this.programId,
@@ -291,28 +298,30 @@ class MultisigAccountBuilder {
 
   /// Build accounts for creating a multisig
   Map<String, dynamic> createMultisigAccounts() => {
-      'multisig': multisigKey,
-    };
+        'multisig': multisigKey,
+      };
 
   /// Build accounts for creating a transaction
   Map<String, dynamic> createTransactionAccounts({
     required PublicKey transaction,
     required PublicKey proposer,
-  }) => {
-      'multisig': multisigKey,
-      'transaction': transaction,
-      'proposer': proposer,
-    };
+  }) =>
+      {
+        'multisig': multisigKey,
+        'transaction': transaction,
+        'proposer': proposer,
+      };
 
   /// Build accounts for approving a transaction
   Map<String, dynamic> approveAccounts({
     required PublicKey transaction,
     required PublicKey owner,
-  }) => {
-      'multisig': multisigKey,
-      'transaction': transaction,
-      'owner': owner,
-    };
+  }) =>
+      {
+        'multisig': multisigKey,
+        'transaction': transaction,
+        'owner': owner,
+      };
 
   /// Build accounts for executing a transaction
   Future<Map<String, dynamic>> executeAccounts({

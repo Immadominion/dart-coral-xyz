@@ -5,8 +5,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('DiscriminatorValidator', () {
@@ -61,9 +62,10 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-            result.errorMessage!
-                .contains('Expected discriminator must be exactly 8 bytes'),
-            isTrue,);
+          result.errorMessage!
+              .contains('Expected discriminator must be exactly 8 bytes'),
+          isTrue,
+        );
       });
 
       test('rejects invalid actual discriminator size', () {
@@ -72,9 +74,10 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-            result.errorMessage!
-                .contains('Actual discriminator must be exactly 8 bytes'),
-            isTrue,);
+          result.errorMessage!
+              .contains('Actual discriminator must be exactly 8 bytes'),
+          isTrue,
+        );
       });
     });
 
@@ -122,7 +125,9 @@ void main() {
         expect(result.isValid, isFalse);
         expect(result.errorMessage!.contains('Account data too short'), isTrue);
         expect(
-            result.errorMessage!.contains('Expected at least 8 bytes'), isTrue,);
+          result.errorMessage!.contains('Expected at least 8 bytes'),
+          isTrue,
+        );
         expect(result.errorMessage!.contains('got 3 bytes'), isTrue);
       });
 
@@ -199,13 +204,21 @@ void main() {
       });
 
       test('cache considers context in key generation', () {
-        validator.validate(validDiscriminator1, validDiscriminator2,
-            context: 'Account1',);
-        validator.validate(validDiscriminator1, validDiscriminator2,
-            context: 'Account2',);
+        validator.validate(
+          validDiscriminator1,
+          validDiscriminator2,
+          context: 'Account1',
+        );
+        validator.validate(
+          validDiscriminator1,
+          validDiscriminator2,
+          context: 'Account2',
+        );
 
-        expect(validator.cacheSize,
-            equals(2),); // Different contexts = different cache entries
+        expect(
+          validator.cacheSize,
+          equals(2),
+        ); // Different contexts = different cache entries
       });
 
       test('clears cache correctly', () {
@@ -388,13 +401,19 @@ void main() {
       final discriminator3 = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 9]);
 
       expect(
-          DiscriminatorValidationUtils.quickValidate(
-              discriminator1, discriminator2,),
-          isTrue,);
+        DiscriminatorValidationUtils.quickValidate(
+          discriminator1,
+          discriminator2,
+        ),
+        isTrue,
+      );
       expect(
-          DiscriminatorValidationUtils.quickValidate(
-              discriminator1, discriminator3,),
-          isFalse,);
+        DiscriminatorValidationUtils.quickValidate(
+          discriminator1,
+          discriminator3,
+        ),
+        isFalse,
+      );
     });
 
     test('quickValidate rejects wrong size', () {
@@ -402,9 +421,12 @@ void main() {
       final invalidDiscriminator = Uint8List.fromList([1, 2, 3]);
 
       expect(
-          DiscriminatorValidationUtils.quickValidate(
-              validDiscriminator, invalidDiscriminator,),
-          isFalse,);
+        DiscriminatorValidationUtils.quickValidate(
+          validDiscriminator,
+          invalidDiscriminator,
+        ),
+        isFalse,
+      );
     });
 
     test('extractDiscriminator works correctly', () {
@@ -443,13 +465,15 @@ void main() {
       final result = validator.validate(expected, actual);
 
       expect(
-          result.errorMessage!
-              .contains('Expected discriminator: 0102030405060708'),
-          isTrue,);
+        result.errorMessage!
+            .contains('Expected discriminator: 0102030405060708'),
+        isTrue,
+      );
       expect(
-          result.errorMessage!
-              .contains('Actual discriminator:   0102030405060709'),
-          isTrue,);
+        result.errorMessage!
+            .contains('Actual discriminator:   0102030405060709'),
+        isTrue,
+      );
     });
   });
 

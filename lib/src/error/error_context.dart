@@ -27,6 +27,26 @@ class ErrorContext {
     this.additionalContext,
   });
 
+  /// Create from JSON
+  factory ErrorContext.fromJson(Map<String, dynamic> json) => ErrorContext(
+        operation: json['operation'] as String,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        transactionSignature: json['transactionSignature'] as String?,
+        programId: json['programId'] != null
+            ? PublicKey.fromBase58(json['programId'] as String)
+            : null,
+        accountAddresses: (json['accountAddresses'] as List<dynamic>?)
+            ?.map((a) => PublicKey.fromBase58(a as String))
+            .toList(),
+        instructionIndex: json['instructionIndex'] as int?,
+        stackTrace: json['stackTrace'] as String?,
+        userAgent: json['userAgent'] as String?,
+        environment: json['environment'] as String?,
+        networkEndpoint: json['networkEndpoint'] as String?,
+        commitmentLevel: json['commitmentLevel'] as String?,
+        additionalContext: json['additionalContext'] as Map<String, dynamic>?,
+      );
+
   /// The operation being performed when the error occurred
   final String operation;
 
@@ -78,28 +98,6 @@ class ErrorContext {
         'commitmentLevel': commitmentLevel,
         'additionalContext': additionalContext,
       };
-
-  /// Create from JSON
-  factory ErrorContext.fromJson(Map<String, dynamic> json) {
-    return ErrorContext(
-      operation: json['operation'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      transactionSignature: json['transactionSignature'] as String?,
-      programId: json['programId'] != null
-          ? PublicKey.fromBase58(json['programId'] as String)
-          : null,
-      accountAddresses: (json['accountAddresses'] as List<dynamic>?)
-          ?.map((a) => PublicKey.fromBase58(a as String))
-          .toList(),
-      instructionIndex: json['instructionIndex'] as int?,
-      stackTrace: json['stackTrace'] as String?,
-      userAgent: json['userAgent'] as String?,
-      environment: json['environment'] as String?,
-      networkEndpoint: json['networkEndpoint'] as String?,
-      commitmentLevel: json['commitmentLevel'] as String?,
-      additionalContext: json['additionalContext'] as Map<String, dynamic>?,
-    );
-  }
 
   @override
   String toString() {
@@ -303,12 +301,20 @@ class ErrorReporter {
         effectiveLogger.warn('Error occurred: $error', context: logContext);
         break;
       case ErrorSeverity.high:
-        effectiveLogger.error('Error occurred: $error',
-            context: logContext, error: error, stackTrace: stackTrace);
+        effectiveLogger.error(
+          'Error occurred: $error',
+          context: logContext,
+          error: error,
+          stackTrace: stackTrace,
+        );
         break;
       case ErrorSeverity.critical:
-        effectiveLogger.fatal('Critical error occurred: $error',
-            context: logContext, error: error, stackTrace: stackTrace);
+        effectiveLogger.fatal(
+          'Critical error occurred: $error',
+          context: logContext,
+          error: error,
+          stackTrace: stackTrace,
+        );
         break;
     }
   }
@@ -324,14 +330,17 @@ class ErrorReporter {
     // For now, we'll just log metric information
     final metricsLogger = logger ?? AnchorLoggers.performance;
 
-    metricsLogger.info('Error metric', context: {
-      'metric_type': 'error_count',
-      'error_type': error.runtimeType.toString(),
-      'severity': severity.name,
-      'category': category.name,
-      'environment': context?.environment ?? 'unknown',
-      'operation': context?.operation ?? 'unknown',
-    });
+    metricsLogger.info(
+      'Error metric',
+      context: {
+        'metric_type': 'error_count',
+        'error_type': error.runtimeType.toString(),
+        'severity': severity.name,
+        'category': category.name,
+        'environment': context?.environment ?? 'unknown',
+        'operation': context?.operation ?? 'unknown',
+      },
+    );
   }
 
   /// Truncate context to prevent excessive logging
@@ -534,26 +543,25 @@ class ErrorHandlingUtils {
     String? networkEndpoint,
     String? commitmentLevel,
     Map<String, dynamic>? additionalContext,
-  }) {
-    return ErrorContext(
-      operation: operation,
-      timestamp: DateTime.now(),
-      transactionSignature: transactionSignature,
-      programId: programId,
-      accountAddresses: accountAddresses,
-      instructionIndex: instructionIndex,
-      stackTrace: StackTrace.current.toString(),
-      environment: environment,
-      networkEndpoint: networkEndpoint,
-      commitmentLevel: commitmentLevel,
-      additionalContext: additionalContext,
-    );
-  }
+  }) =>
+      ErrorContext(
+        operation: operation,
+        timestamp: DateTime.now(),
+        transactionSignature: transactionSignature,
+        programId: programId,
+        accountAddresses: accountAddresses,
+        instructionIndex: instructionIndex,
+        stackTrace: StackTrace.current.toString(),
+        environment: environment,
+        networkEndpoint: networkEndpoint,
+        commitmentLevel: commitmentLevel,
+        additionalContext: additionalContext,
+      );
 
   /// Extract program ID from error logs
   static PublicKey? extractProgramId(List<String> logs) {
     for (final log in logs) {
-      final match = RegExp(r'Program ([A-Za-z0-9]{32,44})').firstMatch(log);
+      final match = RegExp('Program ([A-Za-z0-9]{32,44})').firstMatch(log);
       if (match != null) {
         try {
           return PublicKey.fromBase58(match.group(1)!);
@@ -568,8 +576,8 @@ class ErrorHandlingUtils {
   /// Extract transaction signature from error logs
   static String? extractTransactionSignature(List<String> logs) {
     for (final log in logs) {
-      final match = RegExp(r'Transaction signature: ([A-Za-z0-9]{64,88})')
-          .firstMatch(log);
+      final match =
+          RegExp('Transaction signature: ([A-Za-z0-9]{64,88})').firstMatch(log);
       if (match != null) {
         return match.group(1);
       }

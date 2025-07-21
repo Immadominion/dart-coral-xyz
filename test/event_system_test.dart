@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/event/types.dart' as event_types;
+import 'package:test/test.dart';
 
 /// Comprehensive test suite for the event system
 ///
@@ -89,7 +89,10 @@ void main() {
         final mockIdl = Idl(
           address: '11111111111111111111111111111112',
           metadata: const IdlMetadata(
-              name: 'test_program', version: '0.1.0', spec: '0.1.0',),
+            name: 'test_program',
+            version: '0.1.0',
+            spec: '0.1.0',
+          ),
           instructions: [],
           accounts: [],
           events: [testEventDef],
@@ -123,7 +126,10 @@ void main() {
         final mockIdl = Idl(
           address: '11111111111111111111111111111112',
           metadata: const IdlMetadata(
-              name: 'test_program', version: '0.1.0', spec: '0.1.0',),
+            name: 'test_program',
+            version: '0.1.0',
+            spec: '0.1.0',
+          ),
           instructions: [],
           accounts: [],
           events: [testEventDef],

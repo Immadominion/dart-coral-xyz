@@ -18,7 +18,6 @@ import 'package:coral_xyz_anchor/src/external/encoding_wrapper.dart';
 /// - Key serialization and deserialization
 /// - Secure key management
 class Keypair {
-
   /// Private constructor to ensure proper validation
   Keypair._(this._secretKey, this._publicKey);
 
@@ -99,10 +98,12 @@ class Keypair {
   List<int> secretKeyToJson() => _secretKey.toList();
 
   /// Sign a message with this keypair
-  Future<Uint8List> sign(Uint8List message) async => await CryptoWrapper.sign(message, _secretKey);
+  Future<Uint8List> sign(Uint8List message) async =>
+      CryptoWrapper.sign(message, _secretKey);
 
   /// Verify a signature against this keypair's public key
-  Future<bool> verify(Uint8List message, Uint8List signature) async => await CryptoWrapper.verify(message, signature, _publicKey.bytes);
+  Future<bool> verify(Uint8List message, Uint8List signature) async =>
+      CryptoWrapper.verify(message, signature, _publicKey.bytes);
 
   @override
   String toString() => 'Keypair(publicKey: ${_publicKey.toBase58()})';

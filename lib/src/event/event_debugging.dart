@@ -10,7 +10,6 @@ import 'dart:math' as math;
 
 /// Event debugging and monitoring service
 class EventDebugMonitor {
-
   EventDebugMonitor({this.config = const EventMonitorConfig()}) {
     _statsCollector = EventStatisticsCollector(config);
     _startTime = DateTime.now();
@@ -58,13 +57,15 @@ class EventDebugMonitor {
     _eventCounts[eventName] = (_eventCounts[eventName] ?? 0) + 1;
 
     if (config.enableDetailedLogging) {
-      _addDebugEntry(EventDebugEntry(
-        timestamp: DateTime.now(),
-        level: DebugLevel.info,
-        eventName: eventName,
-        message: 'Event processing started',
-        metadata: metadata,
-      ),);
+      _addDebugEntry(
+        EventDebugEntry(
+          timestamp: DateTime.now(),
+          level: DebugLevel.info,
+          eventName: eventName,
+          message: 'Event processing started',
+          metadata: metadata,
+        ),
+      );
     }
 
     return id;
@@ -103,49 +104,61 @@ class EventDebugMonitor {
     _statsCollector.recordEventProcessing(tracker.eventName, duration, success);
 
     if (config.enableDetailedLogging) {
-      _addDebugEntry(EventDebugEntry(
-        timestamp: DateTime.now(),
-        level: success ? DebugLevel.info : DebugLevel.error,
-        eventName: tracker.eventName,
-        message:
-            success ? 'Event processing completed' : 'Event processing failed',
-        metadata: {'duration': duration.inMicroseconds, 'error': error},
-      ),);
+      _addDebugEntry(
+        EventDebugEntry(
+          timestamp: DateTime.now(),
+          level: success ? DebugLevel.info : DebugLevel.error,
+          eventName: tracker.eventName,
+          message: success
+              ? 'Event processing completed'
+              : 'Event processing failed',
+          metadata: {'duration': duration.inMicroseconds, 'error': error},
+        ),
+      );
     }
   }
 
   /// Record event parsing performance
   void recordEventParsingPerformance(
-      String eventName, Duration parseTime, bool success,) {
+    String eventName,
+    Duration parseTime,
+    bool success,
+  ) {
     _statsCollector.recordEventParsing(eventName, parseTime, success);
 
     if (!success || parseTime > config.parseTimeAlertThreshold) {
-      _alertController.add(EventAlert(
-        type: success ? AlertType.performance : AlertType.error,
-        severity: success ? AlertSeverity.warning : AlertSeverity.error,
-        message: success
-            ? 'Slow event parsing detected for $eventName: ${parseTime.inMilliseconds}ms'
-            : 'Event parsing failed for $eventName',
-        eventName: eventName,
-        timestamp: DateTime.now(),
-        metadata: {'parseTime': parseTime.inMicroseconds, 'success': success},
-      ),);
+      _alertController.add(
+        EventAlert(
+          type: success ? AlertType.performance : AlertType.error,
+          severity: success ? AlertSeverity.warning : AlertSeverity.error,
+          message: success
+              ? 'Slow event parsing detected for $eventName: ${parseTime.inMilliseconds}ms'
+              : 'Event parsing failed for $eventName',
+          eventName: eventName,
+          timestamp: DateTime.now(),
+          metadata: {'parseTime': parseTime.inMicroseconds, 'success': success},
+        ),
+      );
     }
   }
 
   /// Record subscription activity
   void recordSubscriptionActivity(
-      String eventName, SubscriptionActivity activity,) {
+    String eventName,
+    SubscriptionActivity activity,
+  ) {
     _statsCollector.recordSubscriptionActivity(eventName, activity);
 
     if (config.enableDetailedLogging) {
-      _addDebugEntry(EventDebugEntry(
-        timestamp: DateTime.now(),
-        level: DebugLevel.debug,
-        eventName: eventName,
-        message: 'Subscription activity: ${activity.name}',
-        metadata: {'activity': activity.name},
-      ),);
+      _addDebugEntry(
+        EventDebugEntry(
+          timestamp: DateTime.now(),
+          level: DebugLevel.debug,
+          eventName: eventName,
+          message: 'Subscription activity: ${activity.name}',
+          metadata: {'activity': activity.name},
+        ),
+      );
     }
   }
 
@@ -195,7 +208,8 @@ class EventDebugMonitor {
   }
 
   /// Get active performance trackers
-  Map<String, EventPerformanceTracker> getActiveTrackers() => Map.unmodifiable(_performanceTrackers);
+  Map<String, EventPerformanceTracker> getActiveTrackers() =>
+      Map.unmodifiable(_performanceTrackers);
 
   /// Generate performance report
   EventPerformanceReport generatePerformanceReport() {
@@ -248,31 +262,35 @@ class EventDebugMonitor {
   /// Check for performance alerts
   void _checkPerformanceAlerts(String eventName, Duration processingTime) {
     if (processingTime > config.slowProcessingThreshold) {
-      _alertController.add(EventAlert(
-        type: AlertType.performance,
-        severity: processingTime > config.slowProcessingThreshold * 2
-            ? AlertSeverity.error
-            : AlertSeverity.warning,
-        message:
-            'Slow event processing detected for $eventName: ${processingTime.inMilliseconds}ms',
-        eventName: eventName,
-        timestamp: DateTime.now(),
-        metadata: {'processingTime': processingTime.inMicroseconds},
-      ),);
+      _alertController.add(
+        EventAlert(
+          type: AlertType.performance,
+          severity: processingTime > config.slowProcessingThreshold * 2
+              ? AlertSeverity.error
+              : AlertSeverity.warning,
+          message:
+              'Slow event processing detected for $eventName: ${processingTime.inMilliseconds}ms',
+          eventName: eventName,
+          timestamp: DateTime.now(),
+          metadata: {'processingTime': processingTime.inMicroseconds},
+        ),
+      );
     }
 
     // Check error rate
     final recentFailures = _statsCollector.getRecentFailureRate(eventName);
     if (recentFailures > config.errorRateThreshold) {
-      _alertController.add(EventAlert(
-        type: AlertType.error,
-        severity: AlertSeverity.error,
-        message:
-            'High error rate detected for $eventName: ${(recentFailures * 100).toStringAsFixed(1)}%',
-        eventName: eventName,
-        timestamp: DateTime.now(),
-        metadata: {'errorRate': recentFailures},
-      ),);
+      _alertController.add(
+        EventAlert(
+          type: AlertType.error,
+          severity: AlertSeverity.error,
+          message:
+              'High error rate detected for $eventName: ${(recentFailures * 100).toStringAsFixed(1)}%',
+          eventName: eventName,
+          timestamp: DateTime.now(),
+          metadata: {'errorRate': recentFailures},
+        ),
+      );
     }
   }
 
@@ -287,7 +305,8 @@ class EventDebugMonitor {
   }
 
   /// Generate unique ID
-  String _generateId() => '${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
+  String _generateId() =>
+      '${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
 
   /// Dispose resources
   Future<void> dispose() async {
@@ -299,7 +318,6 @@ class EventDebugMonitor {
 
 /// Event performance tracker
 class EventPerformanceTracker {
-
   EventPerformanceTracker({
     required this.id,
     required this.eventName,
@@ -329,7 +347,6 @@ class EventPerformanceTracker {
 
 /// Debug entry for event processing
 class EventDebugEntry {
-
   const EventDebugEntry({
     required this.timestamp,
     required this.level,
@@ -346,7 +363,6 @@ class EventDebugEntry {
 
 /// Event debug information
 class EventDebugInfo {
-
   EventDebugInfo({
     required this.eventName,
     required this.processingTime,
@@ -356,18 +372,17 @@ class EventDebugInfo {
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
-  factory EventDebugInfo.fromReport(EventPerformanceReport report) {
-    return EventDebugInfo(
-      eventName: 'SYSTEM',
-      processingTime: Duration.zero,
-      success: true,
-      metadata: {
-        'uptime': report.uptime.inSeconds,
-        'totalEvents': report.totalEventsProcessed,
-        'activeTrackers': report.activeTrackers,
-      },
-    );
-  }
+  factory EventDebugInfo.fromReport(EventPerformanceReport report) =>
+      EventDebugInfo(
+        eventName: 'SYSTEM',
+        processingTime: Duration.zero,
+        success: true,
+        metadata: {
+          'uptime': report.uptime.inSeconds,
+          'totalEvents': report.totalEventsProcessed,
+          'activeTrackers': report.activeTrackers,
+        },
+      );
   final String eventName;
   final Duration processingTime;
   final bool success;
@@ -378,7 +393,6 @@ class EventDebugInfo {
 
 /// Event alert
 class EventAlert {
-
   const EventAlert({
     required this.type,
     required this.severity,
@@ -397,7 +411,6 @@ class EventAlert {
 
 /// Event performance metrics
 class EventPerformanceMetrics {
-
   const EventPerformanceMetrics({
     required this.eventName,
     required this.totalProcessed,
@@ -420,7 +433,6 @@ class EventPerformanceMetrics {
 
 /// Event performance report
 class EventPerformanceReport {
-
   const EventPerformanceReport({
     required this.generatedAt,
     required this.uptime,
@@ -441,7 +453,6 @@ class EventPerformanceReport {
 
 /// Event monitoring configuration
 class EventMonitorConfig {
-
   const EventMonitorConfig({
     this.enableDetailedLogging = true,
     this.enablePeriodicReporting = false,
@@ -453,7 +464,6 @@ class EventMonitorConfig {
   });
 
   factory EventMonitorConfig.development() => const EventMonitorConfig(
-        enableDetailedLogging: true,
         enablePeriodicReporting: true,
         reportingInterval: Duration(minutes: 1),
         slowProcessingThreshold: Duration(milliseconds: 50),
@@ -494,7 +504,6 @@ enum SubscriptionActivity { subscribe, unsubscribe, reconnect, error }
 
 /// Statistics collector
 class EventStatisticsCollector {
-
   EventStatisticsCollector(this.config);
   final EventMonitorConfig config;
   final Map<String, List<bool>> _recentResults = {};
@@ -503,7 +512,10 @@ class EventStatisticsCollector {
   final Map<String, int> _errorCounts = {};
 
   void recordEventProcessing(
-      String eventName, Duration duration, bool success,) {
+    String eventName,
+    Duration duration,
+    bool success,
+  ) {
     _eventCounts[eventName] = (_eventCounts[eventName] ?? 0) + 1;
     if (!success) {
       _errorCounts[eventName] = (_errorCounts[eventName] ?? 0) + 1;
@@ -528,7 +540,9 @@ class EventStatisticsCollector {
   }
 
   void recordSubscriptionActivity(
-      String eventName, SubscriptionActivity activity,) {
+    String eventName,
+    SubscriptionActivity activity,
+  ) {
     // Track subscription activities
   }
 
@@ -541,11 +555,11 @@ class EventStatisticsCollector {
   }
 
   EventMonitoringStats getStats() => EventMonitoringStats(
-      totalEvents: _eventCounts.values.fold(0, (a, b) => a + b),
-      totalErrors: _errorCounts.values.fold(0, (a, b) => a + b),
-      eventBreakdown: Map.from(_eventCounts),
-      errorBreakdown: Map.from(_errorCounts),
-    );
+        totalEvents: _eventCounts.values.fold(0, (a, b) => a + b),
+        totalErrors: _errorCounts.values.fold(0, (a, b) => a + b),
+        eventBreakdown: Map.from(_eventCounts),
+        errorBreakdown: Map.from(_errorCounts),
+      );
 
   void reset() {
     _recentResults.clear();
@@ -557,7 +571,6 @@ class EventStatisticsCollector {
 
 /// Event monitoring statistics
 class EventMonitoringStats {
-
   const EventMonitoringStats({
     required this.totalEvents,
     required this.totalErrors,

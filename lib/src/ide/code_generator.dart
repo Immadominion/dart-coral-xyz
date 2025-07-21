@@ -9,7 +9,6 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Configuration for code generation
 class CodeGenerationConfig {
-
   const CodeGenerationConfig({
     this.outputDirectory = 'lib/generated',
     this.packageName = 'generated_anchor',
@@ -22,26 +21,13 @@ class CodeGenerationConfig {
   });
 
   /// Create a development-friendly configuration
-  factory CodeGenerationConfig.development() {
-    return const CodeGenerationConfig(
-      generateInterfaces: true,
-      generateMethodBuilders: true,
-      generateAccountClasses: true,
-      generateErrorClasses: true,
-      namingConvention: 'camelCase',
-    );
-  }
+  factory CodeGenerationConfig.development() => const CodeGenerationConfig();
 
   /// Create a production-optimized configuration
-  factory CodeGenerationConfig.production() {
-    return const CodeGenerationConfig(
-      generateInterfaces: false,
-      generateMethodBuilders: true,
-      generateAccountClasses: true,
-      generateErrorClasses: true,
-      namingConvention: 'camelCase',
-    );
-  }
+  factory CodeGenerationConfig.production() => const CodeGenerationConfig(
+        generateInterfaces: false,
+      );
+
   /// Output directory for generated files
   final String outputDirectory;
 
@@ -69,7 +55,6 @@ class CodeGenerationConfig {
 
 /// Result of code generation operation
 class CodeGenerationResult {
-
   const CodeGenerationResult({
     required this.success,
     required this.generatedFiles,
@@ -81,17 +66,16 @@ class CodeGenerationResult {
   /// Create a successful result
   factory CodeGenerationResult.success({
     required Map<String, String> generatedFiles,
-    List<String> warnings = const [],
     required CodeGenerationStats stats,
-  }) {
-    return CodeGenerationResult(
-      success: true,
-      generatedFiles: generatedFiles,
-      warnings: warnings,
-      errors: const [],
-      stats: stats,
-    );
-  }
+    List<String> warnings = const [],
+  }) =>
+      CodeGenerationResult(
+        success: true,
+        generatedFiles: generatedFiles,
+        warnings: warnings,
+        errors: const [],
+        stats: stats,
+      );
 
   /// Create a failed result
   factory CodeGenerationResult.failure({
@@ -99,15 +83,15 @@ class CodeGenerationResult {
     List<String> warnings = const [],
     Map<String, String> generatedFiles = const {},
     CodeGenerationStats? stats,
-  }) {
-    return CodeGenerationResult(
-      success: false,
-      generatedFiles: generatedFiles,
-      warnings: warnings,
-      errors: errors,
-      stats: stats ?? CodeGenerationStats.empty(),
-    );
-  }
+  }) =>
+      CodeGenerationResult(
+        success: false,
+        generatedFiles: generatedFiles,
+        warnings: warnings,
+        errors: errors,
+        stats: stats ?? CodeGenerationStats.empty(),
+      );
+
   /// Whether the generation was successful
   final bool success;
 
@@ -126,7 +110,6 @@ class CodeGenerationResult {
 
 /// Statistics for code generation
 class CodeGenerationStats {
-
   const CodeGenerationStats({
     required this.filesGenerated,
     required this.linesGenerated,
@@ -138,17 +121,16 @@ class CodeGenerationStats {
   });
 
   /// Create empty stats
-  factory CodeGenerationStats.empty() {
-    return const CodeGenerationStats(
-      filesGenerated: 0,
-      linesGenerated: 0,
-      interfacesGenerated: 0,
-      methodBuildersGenerated: 0,
-      accountClassesGenerated: 0,
-      errorClassesGenerated: 0,
-      generationTimeMs: 0,
-    );
-  }
+  factory CodeGenerationStats.empty() => const CodeGenerationStats(
+        filesGenerated: 0,
+        linesGenerated: 0,
+        interfacesGenerated: 0,
+        methodBuildersGenerated: 0,
+        accountClassesGenerated: 0,
+        errorClassesGenerated: 0,
+        generationTimeMs: 0,
+      );
+
   /// Number of generated files
   final int filesGenerated;
 
@@ -173,7 +155,6 @@ class CodeGenerationStats {
 
 /// Main code generator for IDL-based types and interfaces
 class AnchorCodeGenerator {
-
   const AnchorCodeGenerator(this.config);
   final CodeGenerationConfig config;
 
@@ -260,7 +241,8 @@ class AnchorCodeGenerator {
     // Program interface
     final className = _formatClassName(idl.name ?? 'Unknown');
     buffer.writeln(
-        '/// Generated program interface for ${idl.name ?? 'Unknown'}',);
+      '/// Generated program interface for ${idl.name ?? 'Unknown'}',
+    );
     buffer.writeln('abstract class I$className {');
 
     // Method signatures
@@ -311,7 +293,8 @@ class AnchorCodeGenerator {
       }
       buffer.writeln('  ) async {');
       buffer.writeln(
-          "    return await _program.methods['${instruction.name}']([",);
+        "    return await _program.methods['${instruction.name}']([",
+      );
 
       // Method arguments
       for (final arg in instruction.args) {
@@ -552,16 +535,18 @@ class AnchorCodeGenerator {
     // Split by underscores, spaces, or camelCase boundaries
     final words = input
         .replaceAllMapped(
-            RegExp('([a-z])([A-Z])'),
-            (match) =>
-                '${match.group(1)}_${match.group(2)}',) // Insert underscore before caps
+          RegExp('([a-z])([A-Z])'),
+          (match) => '${match.group(1)}_${match.group(2)}',
+        ) // Insert underscore before caps
         .split(RegExp(r'[_\s]+'))
         .where((word) => word.isNotEmpty);
 
     return words
-        .map((word) => word.isNotEmpty
-            ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : '',)
+        .map(
+          (word) => word.isNotEmpty
+              ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+              : '',
+        )
         .join();
   }
 
@@ -575,9 +560,9 @@ class AnchorCodeGenerator {
 
   /// Convert to snake_case
   String _toSnakeCase(String input) => input
-        .replaceAll(RegExp(r'[A-Z]'), '_\$0')
-        .toLowerCase()
-        .replaceAll(RegExp(r'^_'), '');
+      .replaceAll(RegExp('[A-Z]'), r'_$0')
+      .toLowerCase()
+      .replaceAll(RegExp('^_'), '');
 
   /// Convert IDL type to Dart type
   String _dartTypeFromIdlType(dynamic idlType) {
@@ -679,7 +664,9 @@ class AnchorCodeGenerator {
         return '$innerType?';
       } else if (idlType.containsKey('defined')) {
         final defined = idlType['defined'];
-        return _formatClassName(defined is String ? defined : defined.toString());
+        return _formatClassName(
+          defined is String ? defined : defined.toString(),
+        );
       }
     }
     return 'dynamic';
@@ -687,5 +674,7 @@ class AnchorCodeGenerator {
 
   /// Count total lines in generated files
   int _countLines(Iterable<String> contents) => contents.fold(
-        0, (total, content) => total + content.split('\n').length);
+        0,
+        (total, content) => total + content.split('\n').length,
+      );
 }

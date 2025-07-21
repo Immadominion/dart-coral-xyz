@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 /// Tests for address and key utilities
 void main() {
@@ -120,14 +121,16 @@ void main() {
       // Valid hex address (32 bytes = 64 hex chars)
       expect(
         AddressValidator.isValidHex(
-            '0000000000000000000000000000000000000000000000000000000000000000',),
+          '0000000000000000000000000000000000000000000000000000000000000000',
+        ),
         isTrue,
       );
 
       // Valid hex address with 0x prefix
       expect(
         AddressValidator.isValidHex(
-            '0x0000000000000000000000000000000000000000000000000000000000000000',),
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        ),
         isTrue,
       );
 
@@ -146,7 +149,8 @@ void main() {
 
       expect(
         AddressValidator.isSystemProgram(
-            PublicKey.fromBase58('11111111111111111111111111111113'),),
+          PublicKey.fromBase58('11111111111111111111111111111113'),
+        ),
         isFalse,
       );
     });
@@ -170,7 +174,8 @@ void main() {
 
     setUp(() {
       testAddress = PublicKey.fromBase58(
-          '11111111111111111111111111111114',); // Different from system program
+        '11111111111111111111111111111114',
+      ); // Different from system program
     });
 
     test('should shorten long addresses', () {

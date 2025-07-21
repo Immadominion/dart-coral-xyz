@@ -6,13 +6,13 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:test/test.dart';
-import 'package:http/http.dart' as http;
 
-import 'package:coral_xyz_anchor/src/provider/enhanced_connection.dart';
 import 'package:coral_xyz_anchor/src/provider/connection_pool.dart';
+import 'package:coral_xyz_anchor/src/provider/enhanced_connection.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 /// Mock HTTP client for testing
 class MockHttpClient extends http.BaseClient {
@@ -57,7 +57,8 @@ class MockHttpClient extends http.BaseClient {
     return http.StreamedResponse(
       Stream.fromIterable([
         utf8.encode(
-            '{"jsonrpc":"2.0","result":{"context":{"slot":1},"value":1000},"id":1}')
+          '{"jsonrpc":"2.0","result":{"context":{"slot":1},"value":1000},"id":1}',
+        ),
       ]),
       200,
       headers: {'content-type': 'application/json'},
@@ -207,9 +208,12 @@ void main() {
     test('should retry on retryable errors', () async {
       // First call fails, second succeeds
       mockClient.addException(http.ClientException('Network error'));
-      mockClient.addResponse(http.Response(
+      mockClient.addResponse(
+        http.Response(
           '{"jsonrpc":"2.0","result":{"context":{"apiVersion":"2.3.4","slot":394846359},"value":1000},"id":123456789}',
-          200));
+          200,
+        ),
+      );
 
       final publicKey =
           PublicKey.fromBase58('11111111111111111111111111111112');
@@ -255,7 +259,8 @@ void main() {
       mockClient.addException(http.ClientException('Network error'));
       mockClient.addException(http.ClientException('Network error'));
       mockClient.addException(
-          http.ClientException('Network error')); // Extra to be sure
+        http.ClientException('Network error'),
+      ); // Extra to be sure
 
       final publicKey =
           PublicKey.fromBase58('11111111111111111111111111111112');
@@ -276,9 +281,7 @@ void main() {
     });
 
     test('should calculate exponential backoff with jitter', () {
-      final retryConfig = const RetryConfig(
-        backoffMultiplier: 2,
-      );
+      final retryConfig = const RetryConfig();
 
       final conn = EnhancedConnection(
         'https://api.devnet.solana.com',
@@ -297,10 +300,12 @@ void main() {
     });
 
     test('should track connection metrics', () async {
-      mockClient.addResponse(http.Response(
-        '{"jsonrpc":"2.0","result":{"context":{"slot":1},"value":1000},"id":1}',
-        200,
-      ));
+      mockClient.addResponse(
+        http.Response(
+          '{"jsonrpc":"2.0","result":{"context":{"slot":1},"value":1000},"id":1}',
+          200,
+        ),
+      );
       mockClient.addException(http.ClientException('Network error'));
 
       final publicKey =
@@ -325,10 +330,12 @@ void main() {
 
     test('should check health status', () async {
       // Healthy response
-      mockClient.addResponse(http.Response(
-        '{"jsonrpc":"2.0","result":"ok","id":1}',
-        200,
-      ));
+      mockClient.addResponse(
+        http.Response(
+          '{"jsonrpc":"2.0","result":"ok","id":1}',
+          200,
+        ),
+      );
       expect(await connection.isHealthy(), isTrue);
 
       // Unhealthy response

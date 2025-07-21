@@ -76,11 +76,14 @@ void main() async {
     print('📊 Generated ${codeResult.stats.filesGenerated} files');
     print('📊 Generated ${codeResult.stats.linesGenerated} lines of code');
     print(
-        '📊 Created ${codeResult.stats.interfacesGenerated} program interfaces',);
+      '📊 Created ${codeResult.stats.interfacesGenerated} program interfaces',
+    );
     print(
-        '📊 Created ${codeResult.stats.accountClassesGenerated} account classes',);
+      '📊 Created ${codeResult.stats.accountClassesGenerated} account classes',
+    );
     print(
-        '📊 Created ${codeResult.stats.methodBuildersGenerated} method builders',);
+      '📊 Created ${codeResult.stats.methodBuildersGenerated} method builders',
+    );
     print('📊 Created ${codeResult.stats.errorClassesGenerated} error classes');
 
     // Show a sample of generated code
@@ -121,8 +124,10 @@ void main() async {
 
     // Show a snippet of markdown documentation
     final markdownDoc = docResult.generatedDocs.entries
-        .firstWhere((e) => e.key.endsWith('.md'),
-            orElse: () => const MapEntry('', ''),)
+        .firstWhere(
+          (e) => e.key.endsWith('.md'),
+          orElse: () => const MapEntry('', ''),
+        )
         .value;
 
     if (markdownDoc.isNotEmpty) {
@@ -186,7 +191,8 @@ void main() async {
     print('✅ Complete development package generated!');
     print('📊 Code files: ${packageResult.codeResult.generatedFiles.length}');
     print(
-        '📊 Documentation files: ${packageResult.documentationResult.generatedDocs.length}',);
+      '📊 Documentation files: ${packageResult.documentationResult.generatedDocs.length}',
+    );
 
     // Show summary
     final summary = packageResult.generateSummary();
@@ -210,7 +216,8 @@ void main() async {
   print('');
   print('The Dart Coral XYZ SDK now provides comprehensive IDE integration');
   print(
-      'and developer experience features that match and exceed TypeScript\'s',);
+    'and developer experience features that match and exceed TypeScript\'s',
+  );
   print('capabilities, including:');
   print('');
   print('✅ Smart code generation with proper type mapping');

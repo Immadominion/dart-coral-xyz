@@ -83,7 +83,8 @@ void main() {
     'Structure total minimum size: ${structureDefinition2.totalMinimumSize}',
   );
   print(
-      'Structure total maximum size: ${structureDefinition2.totalMaximumSize}',);
+    'Structure total maximum size: ${structureDefinition2.totalMaximumSize}',
+  );
 
   final config2 = const AccountSizeValidationConfig(maximumSizeTolerance: 4);
   print('Maximum size tolerance: ${config2.maximumSizeTolerance}');
@@ -96,7 +97,8 @@ void main() {
   print('Expected max size: $expectedMaxSize');
   print('Actual size: $actualSize2');
   print(
-      'Max tolerance check: $actualSize2 > ($expectedMaxSize + ${config2.maximumSizeTolerance}) = $actualSize2 > ${expectedMaxSize + config2.maximumSizeTolerance} = $maxToleranceCheck',);
+    'Max tolerance check: $actualSize2 > ($expectedMaxSize + ${config2.maximumSizeTolerance}) = $actualSize2 > ${expectedMaxSize + config2.maximumSizeTolerance} = $maxToleranceCheck',
+  );
 
   final result2 = AccountSizeValidator.validateAccountSize(
     accountData: accountData2,

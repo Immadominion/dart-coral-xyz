@@ -13,7 +13,8 @@ void main() async {
   try {
     // 1. Load and parse your IDL
     final idlFile = File(
-        '/Users/immadominion/codes/opensauce/anchor/example/assets/idl.json',);
+      '/Users/immadominion/codes/opensauce/anchor/example/assets/idl.json',
+    );
     final idlJson = await idlFile.readAsString();
     final idlMap = jsonDecode(idlJson) as Map<String, dynamic>;
 

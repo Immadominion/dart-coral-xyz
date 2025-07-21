@@ -21,12 +21,12 @@ abstract class EventCoder {
 
 /// Represents a decoded program event
 class Event<E extends IdlEvent, T> {
-
   const Event({
     required this.name,
     required this.data,
     required this.eventDef,
   });
+
   /// The event name
   final String name;
 
@@ -42,11 +42,11 @@ class Event<E extends IdlEvent, T> {
 
 /// Borsh-based implementation of EventCoder
 class BorshEventCoder implements EventCoder {
-
   /// Create a new BorshEventCoder
   BorshEventCoder(this.idl) {
     _eventLayouts = _buildEventLayouts();
   }
+
   /// The IDL containing event definitions
   final Idl idl;
 
@@ -216,19 +216,20 @@ class BorshEventCoder implements EventCoder {
         return null;
       default:
         throw EventCoderException(
-            'Unsupported type for decoding: ${type.kind}',);
+          'Unsupported type for decoding: ${type.kind}',
+        );
     }
   }
 }
 
 /// Internal event layout information
 class EventLayout {
-
   const EventLayout({
     required this.discriminator,
     required this.event,
     required this.typeDef,
   });
+
   /// The event discriminator bytes
   final List<int> discriminator;
 

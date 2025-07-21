@@ -32,11 +32,13 @@ class AnchorLogging {
     _includePerformanceMetrics = includePerformanceMetrics;
 
     // Configure underlying logger
-    AnchorLogger.configure(LoggerConfig(
-      level: level,
-      includeStackTrace: includeStackTraces,
-      maxContextLength: maxLogSize,
-    ));
+    AnchorLogger.configure(
+      LoggerConfig(
+        level: level,
+        includeStackTrace: includeStackTraces,
+        maxContextLength: maxLogSize,
+      ),
+    );
   }
 
   /// Enable debug logging for development
@@ -52,8 +54,6 @@ class AnchorLogging {
   static void enableProduction() {
     configure(
       level: LogLevel.warn,
-      includeStackTraces: false,
-      includePerformanceMetrics: false,
     );
   }
 
@@ -63,9 +63,8 @@ class AnchorLogging {
   }
 
   /// Check if logging is enabled for a given level
-  static bool isEnabled(LogLevel level) {
-    return _enabled && level.value >= _globalLevel.value;
-  }
+  static bool isEnabled(LogLevel level) =>
+      _enabled && level.value >= _globalLevel.value;
 
   /// Log program initialization
   static void logProgramInit({
@@ -401,18 +400,16 @@ class AnchorLogging {
   }
 
   /// Sanitize arguments for logging (remove sensitive data)
-  static List<dynamic> _sanitizeArgs(List<dynamic> args) {
-    return args.map((arg) {
-      if (arg is String && arg.length > 100) {
-        return '${arg.substring(0, 100)}...[truncated]';
-      } else if (arg is List && arg.length > 10) {
-        return '[${arg.length} items]';
-      } else if (arg is Map && arg.length > 10) {
-        return '{${arg.length} entries}';
-      }
-      return arg;
-    }).toList();
-  }
+  static List<dynamic> _sanitizeArgs(List<dynamic> args) => args.map((arg) {
+        if (arg is String && arg.length > 100) {
+          return '${arg.substring(0, 100)}...[truncated]';
+        } else if (arg is List && arg.length > 10) {
+          return '[${arg.length} items]';
+        } else if (arg is Map && arg.length > 10) {
+          return '{${arg.length} entries}';
+        }
+        return arg;
+      }).toList();
 }
 
 /// Performance monitoring utilities for Anchor operations
@@ -476,12 +473,10 @@ class AnchorPerformanceMonitor {
   }
 
   /// Get statistics about operation timings
-  static Map<String, dynamic> getStats() {
-    return {
-      'active_timers': _timers.length,
-      'active_operations': _timers.keys.toList(),
-    };
-  }
+  static Map<String, dynamic> getStats() => {
+        'active_timers': _timers.length,
+        'active_operations': _timers.keys.toList(),
+      };
 
   /// Clear all active timers
   static void clearTimers() {
@@ -495,11 +490,14 @@ class AnchorDebugUtils {
   static void enableDebugMode() {
     AnchorLogging.enableDebug();
 
-    AnchorLoggers.transaction.info('Debug mode enabled', context: {
-      'timestamp': DateTime.now().toIso8601String(),
-      'stack_traces': true,
-      'performance_metrics': true,
-    });
+    AnchorLoggers.transaction.info(
+      'Debug mode enabled',
+      context: {
+        'timestamp': DateTime.now().toIso8601String(),
+        'stack_traces': true,
+        'performance_metrics': true,
+      },
+    );
   }
 
   /// Log detailed account information

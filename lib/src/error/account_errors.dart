@@ -11,12 +11,11 @@ import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Base class for all account-specific errors
 abstract class AccountError extends AnchorError {
-
   AccountError({
     required ErrorCode errorCode,
     required String errorMessage,
-    required List<String> errorLogs,
-    required List<String> logs,
+    required super.errorLogs,
+    required super.logs,
     this.accountAddress,
     this.accountName,
     Origin? origin,
@@ -28,9 +27,8 @@ abstract class AccountError extends AnchorError {
             origin: origin,
             comparedValues: comparedValues,
           ),
-          errorLogs: errorLogs,
-          logs: logs,
         );
+
   /// The account address associated with the error
   final PublicKey? accountAddress;
 
@@ -53,27 +51,21 @@ abstract class AccountError extends AnchorError {
 
 /// Account discriminator mismatch error (3002)
 class AccountDiscriminatorMismatchError extends AccountError {
-
   AccountDiscriminatorMismatchError({
     required this.expectedDiscriminator,
     required this.actualDiscriminator,
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
+    required super.errorLogs,
+    required super.logs,
+    super.accountAddress,
+    super.accountName,
+    super.origin,
   }) : super(
-          errorCode: ErrorCode(
+          errorCode: const ErrorCode(
             code: 'AccountDiscriminatorMismatch',
             number: LangErrorCode.accountDiscriminatorMismatch,
           ),
           errorMessage:
               getErrorMessage(LangErrorCode.accountDiscriminatorMismatch),
-          errorLogs: errorLogs,
-          logs: logs,
-          accountAddress: accountAddress,
-          accountName: accountName,
-          origin: origin,
         );
 
   /// Create from discriminator comparison
@@ -85,17 +77,17 @@ class AccountDiscriminatorMismatchError extends AccountError {
     PublicKey? accountAddress,
     String? accountName,
     Origin? origin,
-  }) {
-    return AccountDiscriminatorMismatchError(
-      expectedDiscriminator: expected,
-      actualDiscriminator: actual,
-      errorLogs: errorLogs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
-  }
+  }) =>
+      AccountDiscriminatorMismatchError(
+        expectedDiscriminator: expected,
+        actualDiscriminator: actual,
+        errorLogs: errorLogs,
+        logs: logs,
+        accountAddress: accountAddress,
+        accountName: accountName,
+        origin: origin,
+      );
+
   /// Expected discriminator bytes
   final List<int> expectedDiscriminator;
 
@@ -136,27 +128,21 @@ class AccountDiscriminatorMismatchError extends AccountError {
 
 /// Account owned by wrong program error (3007)
 class AccountOwnedByWrongProgramError extends AccountError {
-
   AccountOwnedByWrongProgramError({
     required this.expectedOwner,
     required this.actualOwner,
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
+    required super.errorLogs,
+    required super.logs,
+    super.accountAddress,
+    super.accountName,
+    super.origin,
   }) : super(
-          errorCode: ErrorCode(
+          errorCode: const ErrorCode(
             code: 'AccountOwnedByWrongProgram',
             number: LangErrorCode.accountOwnedByWrongProgram,
           ),
           errorMessage:
               getErrorMessage(LangErrorCode.accountOwnedByWrongProgram),
-          errorLogs: errorLogs,
-          logs: logs,
-          accountAddress: accountAddress,
-          accountName: accountName,
-          origin: origin,
           comparedValues:
               ComparedValues.publicKeys([expectedOwner, actualOwner]),
         );
@@ -170,17 +156,17 @@ class AccountOwnedByWrongProgramError extends AccountError {
     PublicKey? accountAddress,
     String? accountName,
     Origin? origin,
-  }) {
-    return AccountOwnedByWrongProgramError(
-      expectedOwner: expected,
-      actualOwner: actual,
-      errorLogs: errorLogs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
-  }
+  }) =>
+      AccountOwnedByWrongProgramError(
+        expectedOwner: expected,
+        actualOwner: actual,
+        errorLogs: errorLogs,
+        logs: logs,
+        accountAddress: accountAddress,
+        accountName: accountName,
+        origin: origin,
+      );
+
   /// Expected owner program ID
   final PublicKey expectedOwner;
 
@@ -231,13 +217,14 @@ class AccountNotInitializedError extends AccountError {
     required List<String> logs,
     String? accountName,
     Origin? origin,
-  }) => AccountNotInitializedError(
-      errorLogs: errorLogs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
+  }) =>
+      AccountNotInitializedError(
+        errorLogs: errorLogs,
+        logs: logs,
+        accountAddress: accountAddress,
+        accountName: accountName,
+        origin: origin,
+      );
 
   @override
   String toString() {
@@ -264,26 +251,20 @@ class AccountNotInitializedError extends AccountError {
 
 /// Account did not deserialize error (3003)
 class AccountDidNotDeserializeError extends AccountError {
-
   AccountDidNotDeserializeError({
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
+    required super.errorLogs,
+    required super.logs,
+    super.accountAddress,
+    super.accountName,
     this.accountDataSize,
     this.expectedStructure,
-    Origin? origin,
+    super.origin,
   }) : super(
-          errorCode: ErrorCode(
+          errorCode: const ErrorCode(
             code: 'AccountDidNotDeserialize',
             number: LangErrorCode.accountDidNotDeserialize,
           ),
           errorMessage: getErrorMessage(LangErrorCode.accountDidNotDeserialize),
-          errorLogs: errorLogs,
-          logs: logs,
-          accountAddress: accountAddress,
-          accountName: accountName,
-          origin: origin,
         );
 
   /// Create from deserialization failure
@@ -295,17 +276,17 @@ class AccountDidNotDeserializeError extends AccountError {
     int? dataSize,
     String? structure,
     Origin? origin,
-  }) {
-    return AccountDidNotDeserializeError(
-      errorLogs: errorLogs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      accountDataSize: dataSize,
-      expectedStructure: structure,
-      origin: origin,
-    );
-  }
+  }) =>
+      AccountDidNotDeserializeError(
+        errorLogs: errorLogs,
+        logs: logs,
+        accountAddress: accountAddress,
+        accountName: accountName,
+        accountDataSize: dataSize,
+        expectedStructure: structure,
+        origin: origin,
+      );
+
   /// Size of the account data
   final int? accountDataSize;
 
@@ -341,25 +322,19 @@ class AccountDidNotDeserializeError extends AccountError {
 
 /// Account not system owned error (3011)
 class AccountNotSystemOwnedError extends AccountError {
-
   AccountNotSystemOwnedError({
     required this.actualOwner,
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
+    required super.errorLogs,
+    required super.logs,
+    super.accountAddress,
+    super.accountName,
+    super.origin,
   }) : super(
-          errorCode: ErrorCode(
+          errorCode: const ErrorCode(
             code: 'AccountNotSystemOwned',
             number: LangErrorCode.accountNotSystemOwned,
           ),
           errorMessage: getErrorMessage(LangErrorCode.accountNotSystemOwned),
-          errorLogs: errorLogs,
-          logs: logs,
-          accountAddress: accountAddress,
-          accountName: accountName,
-          origin: origin,
         );
 
   /// Create from system ownership validation
@@ -370,16 +345,16 @@ class AccountNotSystemOwnedError extends AccountError {
     PublicKey? accountAddress,
     String? accountName,
     Origin? origin,
-  }) {
-    return AccountNotSystemOwnedError(
-      actualOwner: actualOwner,
-      errorLogs: errorLogs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
-  }
+  }) =>
+      AccountNotSystemOwnedError(
+        actualOwner: actualOwner,
+        errorLogs: errorLogs,
+        logs: logs,
+        accountAddress: accountAddress,
+        accountName: accountName,
+        origin: origin,
+      );
+
   /// The actual owner of the account
   final PublicKey actualOwner;
 
@@ -426,13 +401,14 @@ class AccountNotSignerError extends AccountError {
     required List<String> logs,
     String? accountName,
     Origin? origin,
-  }) => AccountNotSignerError(
-      errorLogs: errorLogs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
+  }) =>
+      AccountNotSignerError(
+        errorLogs: errorLogs,
+        logs: logs,
+        accountAddress: accountAddress,
+        accountName: accountName,
+        origin: origin,
+      );
 
   @override
   String toString() {
@@ -480,13 +456,14 @@ class AccountNotMutableError extends AccountError {
     required List<String> logs,
     String? accountName,
     Origin? origin,
-  }) => AccountNotMutableError(
-      errorLogs: errorLogs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
+  }) =>
+      AccountNotMutableError(
+        errorLogs: errorLogs,
+        logs: logs,
+        accountAddress: accountAddress,
+        accountName: accountName,
+        origin: origin,
+      );
 
   @override
   String toString() {

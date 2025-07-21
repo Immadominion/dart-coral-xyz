@@ -1,7 +1,8 @@
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('EventCoder Tests', () {
@@ -43,11 +44,17 @@ void main() {
               kind: 'struct',
               fields: [
                 IdlField(
-                    name: 'from', type: IdlType(kind: 'pubkey'),), // Fixed
+                  name: 'from',
+                  type: IdlType(kind: 'pubkey'),
+                ), // Fixed
                 IdlField(
-                    name: 'to', type: IdlType(kind: 'pubkey'),), // Fixed
+                  name: 'to',
+                  type: IdlType(kind: 'pubkey'),
+                ), // Fixed
                 IdlField(
-                    name: 'amount', type: IdlType(kind: 'u64'),), // Fixed
+                  name: 'amount',
+                  type: IdlType(kind: 'u64'),
+                ), // Fixed
               ],
             ),
           ),
@@ -58,12 +65,17 @@ void main() {
               kind: 'struct',
               fields: [
                 IdlField(
-                    name: 'user', type: IdlType(kind: 'pubkey'),), // Fixed
+                  name: 'user',
+                  type: IdlType(kind: 'pubkey'),
+                ), // Fixed
                 IdlField(
-                    name: 'amount', type: IdlType(kind: 'u64'),), // Fixed
+                  name: 'amount',
+                  type: IdlType(kind: 'u64'),
+                ), // Fixed
                 IdlField(
-                    name: 'timestamp',
-                    type: IdlType(kind: 'i64'),), // Fixed
+                  name: 'timestamp',
+                  type: IdlType(kind: 'i64'),
+                ), // Fixed
               ],
             ),
           ),
@@ -76,21 +88,24 @@ void main() {
                 IdlField(
                   name: 'data',
                   type: IdlType(
-                      kind: 'vec',
-                      inner: IdlType(kind: 'u32'),), // Fixed complex type
+                    kind: 'vec',
+                    inner: IdlType(kind: 'u32'),
+                  ), // Fixed complex type
                 ),
                 IdlField(
                   name: 'optionalMessage',
                   type: IdlType(
-                      kind: 'option',
-                      inner: IdlType(kind: 'string'),), // Fixed complex type
+                    kind: 'option',
+                    inner: IdlType(kind: 'string'),
+                  ), // Fixed complex type
                 ),
                 IdlField(
                   name: 'flags',
                   type: IdlType(
-                      kind: 'array',
-                      inner: IdlType(kind: 'bool'),
-                      size: 3,), // Fixed complex type
+                    kind: 'array',
+                    inner: IdlType(kind: 'bool'),
+                    size: 3,
+                  ), // Fixed complex type
                 ),
               ],
             ),
@@ -109,7 +124,8 @@ void main() {
         // Manually create borsh-encoded event data
         final serializer = BorshSerializer();
         serializer.writeString(
-            'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',); // from
+          'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        ); // from
         serializer
             .writeString('So11111111111111111111111111111111111111112'); // to
         serializer.writeU64(1000000); // amount
@@ -122,10 +138,14 @@ void main() {
 
         expect(event, isNotNull);
         expect(event!.name, equals('transferEvent'));
-        expect(event.data['from'],
-            equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),);
-        expect(event.data['to'],
-            equals('So11111111111111111111111111111111111111112'),);
+        expect(
+          event.data['from'],
+          equals('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        );
+        expect(
+          event.data['to'],
+          equals('So11111111111111111111111111111111111111112'),
+        );
         expect(event.data['amount'], equals(1000000));
       });
 
@@ -332,7 +352,9 @@ void main() {
                 kind: 'struct',
                 fields: [
                   IdlField(
-                      name: 'data', type: IdlType(kind: 'u32'),), // Fixed
+                    name: 'data',
+                    type: IdlType(kind: 'u32'),
+                  ), // Fixed
                 ],
               ),
             ),
@@ -440,7 +462,8 @@ void main() {
         transferSerializer.writeString('To1');
         transferSerializer.writeU64(100);
         final transferData = Uint8List.fromList(
-            [...transferDiscriminator, ...transferSerializer.toBytes()],);
+          [...transferDiscriminator, ...transferSerializer.toBytes()],
+        );
         logs.add(base64.encode(transferData));
 
         // Create deposit event
@@ -450,12 +473,14 @@ void main() {
         depositSerializer.writeU64(200);
         depositSerializer.writeI64(1640995200);
         final depositData = Uint8List.fromList(
-            [...depositDiscriminator, ...depositSerializer.toBytes()],);
+          [...depositDiscriminator, ...depositSerializer.toBytes()],
+        );
         logs.add(base64.encode(depositData));
 
         // Create unknown event
         final unknownData = Uint8List.fromList(
-            [255, 254, 253, 252, 251, 250, 249, 248, 1, 2, 3],);
+          [255, 254, 253, 252, 251, 250, 249, 248, 1, 2, 3],
+        );
         logs.add(base64.encode(unknownData));
 
         final decodedEvents = logs

@@ -6,8 +6,10 @@
 
 library;
 
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:bs58/bs58.dart' as bs58;
 import 'package:bs58/bs58.dart' as bs58_lib;
 
 /// Wrapper around encoding operations with Anchor-specific enhancements
@@ -37,7 +39,8 @@ class EncodingWrapper {
   static Uint8List decodeBase64(String encoded) => base64.decode(encoded);
 
   /// Encode bytes to hexadecimal string
-  static String encodeHex(Uint8List bytes) => bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+  static String encodeHex(Uint8List bytes) =>
+      bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Decode hexadecimal string to bytes
   static Uint8List decodeHex(String hex) {
@@ -54,21 +57,40 @@ class EncodingWrapper {
   }
 
   /// Convert string to UTF-8 bytes
-  static Uint8List stringToBytes(String str) => Uint8List.fromList(utf8.encode(str));
+  static Uint8List stringToBytes(String str) =>
+      Uint8List.fromList(utf8.encode(str));
 
   /// Convert UTF-8 bytes to string
   static String bytesToString(Uint8List bytes) => utf8.decode(bytes);
 
   /// Validate Base58 string format
   static bool isValidBase58(String str) {
-    // TODO: Implement proper Base58 validation
-    return str.isNotEmpty && !str.contains(RegExp('[0OIl]')); // Basic check
+    if (str.isEmpty) return false;
+
+    // Base58 alphabet: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+    // Excludes: 0 (zero), O (capital o), I (capital i) and l (lower case L)
+    const base58Alphabet =
+        '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+    for (int i = 0; i < str.length; i++) {
+      if (!base58Alphabet.contains(str[i])) {
+        return false;
+      }
+    }
+
+    // Try to decode to validate format
+    try {
+      // Use bs58 package decode to validate the string can be properly decoded
+      bs58.base58.decode(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
 
 /// Exception thrown by encoding operations
 class EncodingException implements Exception {
-
   const EncodingException(this.message);
   final String message;
 

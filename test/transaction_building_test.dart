@@ -1,17 +1,18 @@
 /// Tests for Transaction Building
 ///
 /// This test suite validates the basic transaction building functionality.
+library;
 
-import 'package:test/test.dart';
 import 'dart:typed_data';
 
+import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
 import 'package:coral_xyz_anchor/src/program/transaction_builder.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/provider/connection.dart';
 import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Transaction Building', () {
@@ -123,7 +124,7 @@ void main() {
         final builder = TransactionBuilder(provider: mockProvider);
 
         expect(
-          () => builder.build(),
+          builder.build,
           throwsA(isA<Exception>()),
         );
       });

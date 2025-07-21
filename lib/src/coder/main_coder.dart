@@ -27,7 +27,6 @@ abstract class Coder<A extends String, T extends String> {
 /// This class provides a concrete implementation of the Coder interface
 /// using Borsh serialization for all operations.
 class BorshCoder<A extends String, T extends String> implements Coder<A, T> {
-
   /// Creates a new BorshCoder from an IDL
   ///
   /// [idl] The IDL definition to create coders from

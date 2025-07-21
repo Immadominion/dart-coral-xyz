@@ -9,7 +9,6 @@ import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
 
 /// Clean RPC wrapper using espresso-cash solana package
 class SolanaRpcClient {
-
   SolanaRpcClient(String rpcUrl)
       : _client = solana.SolanaClient(
           rpcUrl: Uri.parse(rpcUrl),
@@ -68,8 +67,10 @@ class SolanaRpcClient {
   }
 
   /// Get balance
-  Future<int> getBalance(String address,
-      [solana.Commitment? commitment,]) async {
+  Future<int> getBalance(
+    String address, [
+    solana.Commitment? commitment,
+  ]) async {
     try {
       final result = await _client.rpcClient.getBalance(
         address,

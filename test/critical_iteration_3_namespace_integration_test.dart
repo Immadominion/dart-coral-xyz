@@ -8,9 +8,10 @@
 /// 5. Error propagation is consistent across namespaces
 library;
 
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'dart:typed_data';
+
+import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Critical Iteration 3: Namespace Integration', () {

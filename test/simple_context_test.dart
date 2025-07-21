@@ -1,11 +1,13 @@
 /// Simple test to check basic imports and functionality
 library;
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('simple context test', () {
-    const context = Context<DynamicAccounts>();
-    expect(context.accounts, isNull);
+    final accounts = DynamicAccounts();
+    final context = Context<DynamicAccounts>(accounts: accounts);
+    expect(context.accounts, isNotNull);
   });
 }

@@ -11,7 +11,6 @@ import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Account metadata for transaction building
 class AccountMeta {
-
   const AccountMeta({
     required this.publicKey,
     required this.isSigner,
@@ -28,7 +27,6 @@ class AccountMeta {
 
 /// Transaction instruction
 class TransactionInstruction {
-
   const TransactionInstruction({
     required this.programId,
     required this.accounts,
@@ -45,7 +43,6 @@ class TransactionInstruction {
 
 /// Transaction implementation using espresso-cash solana package
 class Transaction {
-
   Transaction({
     required this.instructions,
     this.feePayer,
@@ -66,10 +63,9 @@ class Transaction {
     for (final instruction in instructions) {
       final workingInstruction = encoder.Instruction(
         programId: solana.Ed25519HDPublicKey.fromBase58(
-            instruction.programId.toBase58(),),
-        accounts: instruction.accounts
-            .map(_convertAccountMeta)
-            .toList(),
+          instruction.programId.toBase58(),
+        ),
+        accounts: instruction.accounts.map(_convertAccountMeta).toList(),
         data: encoder.ByteArray(instruction.data),
       );
       workingInstructions.add(workingInstruction);

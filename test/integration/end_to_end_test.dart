@@ -1,8 +1,7 @@
-import 'package:test/test.dart';
-
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/transaction/transaction.dart' as tx;
 import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx_types;
+import 'package:test/test.dart';
 
 import '../test_helpers.dart';
 import 'integration_test_utils.dart';
@@ -136,11 +135,13 @@ void main() {
           tx.TransactionInstruction(
             programId: instruction.programId,
             accounts: instruction.accounts
-                .map((acc) => tx.AccountMeta(
-                      publicKey: acc.pubkey,
-                      isWritable: acc.isWritable,
-                      isSigner: acc.isSigner,
-                    ))
+                .map(
+                  (acc) => tx.AccountMeta(
+                    publicKey: acc.pubkey,
+                    isWritable: acc.isWritable,
+                    isSigner: acc.isSigner,
+                  ),
+                )
                 .toList(),
             data: instruction.data,
           ),

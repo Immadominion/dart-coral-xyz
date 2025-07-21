@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
 /// Provides comprehensive type checking and validation for method calls,
 /// ensuring arguments and accounts match IDL requirements.
 class MethodValidator {
-
   MethodValidator({
     required IdlInstruction instruction,
     required List<IdlTypeDef> idlTypes,
@@ -56,7 +55,8 @@ class MethodValidator {
         await _validateArgumentType(arg, expectedArg.type, expectedArg.name);
       } catch (e) {
         throw MethodValidationError(
-            'Invalid argument "${expectedArg.name}" at position $i in method "${_instruction.name}": $e',);
+          'Invalid argument "${expectedArg.name}" at position $i in method "${_instruction.name}": $e',
+        );
       }
     }
   }
@@ -85,7 +85,8 @@ class MethodValidator {
       case 'i16':
         if (value is! int || value < -32768 || value > 65535) {
           throw ArgumentError(
-              'Expected int in range -32768 to 65535, got $value',);
+            'Expected int in range -32768 to 65535, got $value',
+          );
         }
         break;
 
@@ -104,7 +105,8 @@ class MethodValidator {
       case 'i256':
         if (value is! BigInt && value is! int) {
           throw ArgumentError(
-              'Expected BigInt or int for ${expectedType.kind}, got ${value.runtimeType}',);
+            'Expected BigInt or int for ${expectedType.kind}, got ${value.runtimeType}',
+          );
         }
         break;
 
@@ -112,7 +114,8 @@ class MethodValidator {
       case 'f64':
         if (value is! double && value is! int) {
           throw ArgumentError(
-              'Expected double or int for ${expectedType.kind}, got ${value.runtimeType}',);
+            'Expected double or int for ${expectedType.kind}, got ${value.runtimeType}',
+          );
         }
         break;
 
@@ -125,7 +128,8 @@ class MethodValidator {
       case 'pubkey':
         if (value is! PublicKey && value is! String) {
           throw ArgumentError(
-              'Expected PublicKey or String, got ${value.runtimeType}',);
+            'Expected PublicKey or String, got ${value.runtimeType}',
+          );
         }
         // Additional validation for string format if it's a string
         if (value is String) {
@@ -140,14 +144,16 @@ class MethodValidator {
       case 'bytes':
         if (value is! List<int>) {
           throw ArgumentError(
-              'Expected List<int> for bytes, got ${value.runtimeType}',);
+            'Expected List<int> for bytes, got ${value.runtimeType}',
+          );
         }
         break;
 
       case 'vec':
         if (value is! List) {
           throw ArgumentError(
-              'Expected List for vec, got ${value.runtimeType}',);
+            'Expected List for vec, got ${value.runtimeType}',
+          );
         }
         // Validate each element in the vector
         for (int i = 0; i < value.length; i++) {
@@ -168,11 +174,13 @@ class MethodValidator {
       case 'array':
         if (value is! List) {
           throw ArgumentError(
-              'Expected List for array, got ${value.runtimeType}',);
+            'Expected List for array, got ${value.runtimeType}',
+          );
         }
         if (expectedType.size != null && value.length != expectedType.size) {
           throw ArgumentError(
-              'Expected array of length ${expectedType.size}, got ${value.length}',);
+            'Expected array of length ${expectedType.size}, got ${value.length}',
+          );
         }
         // Validate each element in the array
         for (int i = 0; i < value.length; i++) {
@@ -211,7 +219,8 @@ class MethodValidator {
       case 'struct':
         if (value is! Map<String, dynamic>) {
           throw ArgumentError(
-              'Expected Map for struct $typeName, got ${value.runtimeType}',);
+            'Expected Map for struct $typeName, got ${value.runtimeType}',
+          );
         }
         await _validateStructFields(value, typeDef.type.fields!, typeName);
         break;
@@ -219,7 +228,8 @@ class MethodValidator {
       case 'enum':
         if (value is! Map<String, dynamic>) {
           throw ArgumentError(
-              'Expected Map for enum $typeName, got ${value.runtimeType}',);
+            'Expected Map for enum $typeName, got ${value.runtimeType}',
+          );
         }
         await _validateEnumVariant(value, typeDef.type.variants!, typeName);
         break;
@@ -239,7 +249,8 @@ class MethodValidator {
     for (final field in fields) {
       if (!value.containsKey(field.name)) {
         throw ArgumentError(
-            'Missing required field "${field.name}" in struct $typeName',);
+          'Missing required field "${field.name}" in struct $typeName',
+        );
       }
 
       await _validateArgumentType(
@@ -265,7 +276,8 @@ class MethodValidator {
   ) async {
     if (value.length != 1) {
       throw ArgumentError(
-          'Enum $typeName must have exactly one variant, got ${value.length}',);
+        'Enum $typeName must have exactly one variant, got ${value.length}',
+      );
     }
 
     final variantName = value.keys.first;
@@ -274,20 +286,23 @@ class MethodValidator {
     final variant = variants.firstWhere(
       (v) => v.name == variantName,
       orElse: () => throw ArgumentError(
-          'Unknown variant "$variantName" in enum $typeName',),
+        'Unknown variant "$variantName" in enum $typeName',
+      ),
     );
 
     // Validate variant fields if they exist
     if (variant.fields != null && variant.fields!.isNotEmpty) {
       if (variantValue is! Map<String, dynamic>) {
         throw ArgumentError(
-            'Expected Map for enum variant "$variantName" fields, got ${variantValue.runtimeType}',);
+          'Expected Map for enum variant "$variantName" fields, got ${variantValue.runtimeType}',
+        );
       }
 
       for (final field in variant.fields!) {
         if (!variantValue.containsKey(field.name)) {
           throw ArgumentError(
-              'Missing required field "${field.name}" in enum variant "$variantName"',);
+            'Missing required field "${field.name}" in enum variant "$variantName"',
+          );
         }
 
         await _validateArgumentType(
@@ -309,7 +324,8 @@ class MethodValidator {
 
       if (!isOptional && !accounts.containsKey(accountSpec.name)) {
         throw MethodValidationError(
-            'Missing required account "${accountSpec.name}" for method "${_instruction.name}"',);
+          'Missing required account "${accountSpec.name}" for method "${_instruction.name}"',
+        );
       }
 
       // Validate account type if present
@@ -336,7 +352,8 @@ class MethodValidator {
     if (account == null) {
       if (!_isAccountOptional(accountSpec)) {
         throw MethodValidationError(
-            'Account "${accountSpec.name}" cannot be null',);
+          'Account "${accountSpec.name}" cannot be null',
+        );
       }
       return;
     }
@@ -344,7 +361,8 @@ class MethodValidator {
     // Validate account is a PublicKey or string
     if (account is! PublicKey && account is! String) {
       throw MethodValidationError(
-          'Account "${accountSpec.name}" must be PublicKey or String, got ${account.runtimeType}',);
+        'Account "${accountSpec.name}" must be PublicKey or String, got ${account.runtimeType}',
+      );
     }
 
     // Additional account-specific validations can be added here
@@ -381,29 +399,30 @@ class MethodValidator {
 
   /// Get detailed validation information for debugging
   ValidationInfo getValidationInfo() => ValidationInfo(
-      instruction: _instruction,
-      isViewEligible: isViewEligible(),
-      requiredAccounts: _instruction.accounts
-          .where((account) => !_isAccountOptional(account))
-          .map((account) => account.name)
-          .toList(),
-      optionalAccounts: _instruction.accounts
-          .where((account) => _isAccountOptional(account))
-          .map((account) => account.name)
-          .toList(),
-      argumentTypes: _instruction.args
-          .map((arg) => ArgumentTypeInfo(
+        instruction: _instruction,
+        isViewEligible: isViewEligible(),
+        requiredAccounts: _instruction.accounts
+            .where((account) => !_isAccountOptional(account))
+            .map((account) => account.name)
+            .toList(),
+        optionalAccounts: _instruction.accounts
+            .where(_isAccountOptional)
+            .map((account) => account.name)
+            .toList(),
+        argumentTypes: _instruction.args
+            .map(
+              (arg) => ArgumentTypeInfo(
                 name: arg.name,
                 type: arg.type.kind,
                 isOptional: arg.type.kind == 'option',
-              ))
-          .toList(),
-    );
+              ),
+            )
+            .toList(),
+      );
 }
 
 /// Exception thrown during method validation
 class MethodValidationError extends Error {
-
   MethodValidationError(this.message);
   final String message;
 
@@ -413,7 +432,6 @@ class MethodValidationError extends Error {
 
 /// Information about method validation requirements
 class ValidationInfo {
-
   const ValidationInfo({
     required this.instruction,
     required this.isViewEligible,
@@ -429,17 +447,16 @@ class ValidationInfo {
 
   @override
   String toString() => 'ValidationInfo(\n'
-        '  method: ${instruction.name}\n'
-        '  viewEligible: $isViewEligible\n'
-        '  requiredAccounts: $requiredAccounts\n'
-        '  optionalAccounts: $optionalAccounts\n'
-        '  arguments: ${argumentTypes.map((a) => '${a.name}:${a.type}').join(', ')}\n'
-        ')';
+      '  method: ${instruction.name}\n'
+      '  viewEligible: $isViewEligible\n'
+      '  requiredAccounts: $requiredAccounts\n'
+      '  optionalAccounts: $optionalAccounts\n'
+      '  arguments: ${argumentTypes.map((a) => '${a.name}:${a.type}').join(', ')}\n'
+      ')';
 }
 
 /// Information about argument types for validation
 class ArgumentTypeInfo {
-
   const ArgumentTypeInfo({
     required this.name,
     required this.type,

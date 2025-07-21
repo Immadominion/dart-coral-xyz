@@ -4,12 +4,11 @@
 /// method interfaces from IDL definitions.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 /// Mock AccountsResolver for testing
 class MockAccountsResolver {
-
   MockAccountsResolver({
     required this.args,
     required this.accounts,
@@ -25,7 +24,8 @@ class MockAccountsResolver {
   final IdlInstruction idlInstruction;
   final List<IdlTypeDef> idlTypes;
 
-  Future<Map<String, PublicKey>> resolve() async => accounts.map((key, value) => MapEntry(key, value as PublicKey));
+  Future<Map<String, PublicKey>> resolve() async =>
+      accounts.map((key, value) => MapEntry(key, value as PublicKey));
 }
 
 void main() {

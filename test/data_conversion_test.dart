@@ -11,9 +11,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
 
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('DataConverter', () {
@@ -35,8 +35,10 @@ void main() {
       });
 
       test('createBuffer throws on negative size', () {
-        expect(() => DataConverter.createBuffer(-1),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.createBuffer(-1),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('concat combines multiple arrays', () {
@@ -70,8 +72,13 @@ void main() {
         final source = Uint8List.fromList([1, 2, 3, 4, 5]);
         final dest = Uint8List(10);
 
-        DataConverter.copyBytes(source, dest,
-            sourceStart: 1, sourceEnd: 4, destinationStart: 2,);
+        DataConverter.copyBytes(
+          source,
+          dest,
+          sourceStart: 1,
+          sourceEnd: 4,
+          destinationStart: 2,
+        );
 
         expect(dest.sublist(2, 5), equals([2, 3, 4]));
       });
@@ -149,15 +156,19 @@ void main() {
 
       test('validates Base58 strings', () {
         expect(
-            DataConverter.isValidBase58(
-                '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz',),
-            isTrue,);
+          DataConverter.isValidBase58(
+            '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz',
+          ),
+          isTrue,
+        );
         expect(DataConverter.isValidBase58('invalid0OIl'), isFalse);
       });
 
       test('throws on invalid Base58', () {
-        expect(() => DataConverter.decodeBase58('0OIl'),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.decodeBase58('0OIl'),
+          throwsA(isA<DataConversionException>()),
+        );
       });
     });
 
@@ -231,10 +242,14 @@ void main() {
       });
 
       test('throws on invalid hex', () {
-        expect(() => DataConverter.decodeHex('invalid'),
-            throwsA(isA<DataConversionException>()),);
-        expect(() => DataConverter.decodeHex('12G'),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.decodeHex('invalid'),
+          throwsA(isA<DataConversionException>()),
+        );
+        expect(
+          () => DataConverter.decodeHex('12G'),
+          throwsA(isA<DataConversionException>()),
+        );
       });
     });
 
@@ -270,10 +285,14 @@ void main() {
         expect(DataConverter.u8ToBytes(255), equals([255]));
         expect(DataConverter.bytesToU8(Uint8List.fromList([128])), equals(128));
 
-        expect(() => DataConverter.u8ToBytes(-1),
-            throwsA(isA<DataConversionException>()),);
-        expect(() => DataConverter.u8ToBytes(256),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.u8ToBytes(-1),
+          throwsA(isA<DataConversionException>()),
+        );
+        expect(
+          () => DataConverter.u8ToBytes(256),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('u16 little endian conversion', () {
@@ -281,8 +300,10 @@ void main() {
         expect(bytes, equals([0x34, 0x12])); // Little endian
         expect(DataConverter.bytesToU16(bytes), equals(0x1234));
 
-        expect(DataConverter.bytesToU16(Uint8List.fromList([0xFF, 0xFF])),
-            equals(65535),);
+        expect(
+          DataConverter.bytesToU16(Uint8List.fromList([0xFF, 0xFF])),
+          equals(65535),
+        );
       });
 
       test('u32 little endian conversion', () {
@@ -300,7 +321,9 @@ void main() {
       test('signed integer conversions', () {
         expect(DataConverter.i8ToBytes(-128), equals([128]));
         expect(
-            DataConverter.bytesToI8(Uint8List.fromList([128])), equals(-128),);
+          DataConverter.bytesToI8(Uint8List.fromList([128])),
+          equals(-128),
+        );
 
         final i16Bytes = DataConverter.i16ToBytes(-1);
         expect(DataConverter.bytesToI16(i16Bytes), equals(-1));
@@ -340,8 +363,10 @@ void main() {
 
       test('throws on overflow', () {
         final tooBig = BigInt.one << 64;
-        expect(() => DataConverter.bigIntToBytes(tooBig, 8),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.bigIntToBytes(tooBig, 8),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('signed BigInt conversion', () {
@@ -420,23 +445,31 @@ void main() {
         final data = Uint8List(10);
 
         expect(() => DataConverter.validateLength(data, 10), returnsNormally);
-        expect(() => DataConverter.validateLength(data, 5),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.validateLength(data, 5),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('validateMinLength works correctly', () {
         final data = Uint8List(10);
 
         expect(() => DataConverter.validateMinLength(data, 5), returnsNormally);
-        expect(() => DataConverter.validateMinLength(data, 15),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.validateMinLength(data, 15),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('validateIntRange works correctly', () {
         expect(
-            () => DataConverter.validateIntRange(50, 0, 100), returnsNormally,);
-        expect(() => DataConverter.validateIntRange(150, 0, 100),
-            throwsA(isA<DataConversionException>()),);
+          () => DataConverter.validateIntRange(50, 0, 100),
+          returnsNormally,
+        );
+        expect(
+          () => DataConverter.validateIntRange(150, 0, 100),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('validateBigIntRange works correctly', () {
@@ -444,19 +477,26 @@ void main() {
         final min = BigInt.zero;
         final max = BigInt.from(100);
 
-        expect(() => DataConverter.validateBigIntRange(value, min, max),
-            returnsNormally,);
         expect(
-            () => DataConverter.validateBigIntRange(BigInt.from(150), min, max),
-            throwsA(isA<DataConversionException>()),);
+          () => DataConverter.validateBigIntRange(value, min, max),
+          returnsNormally,
+        );
+        expect(
+          () => DataConverter.validateBigIntRange(BigInt.from(150), min, max),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('isZeroBytes detects zero arrays', () {
         expect(DataConverter.isZeroBytes(Uint8List(10)), isTrue);
         expect(
-            DataConverter.isZeroBytes(Uint8List.fromList([0, 0, 0])), isTrue,);
+          DataConverter.isZeroBytes(Uint8List.fromList([0, 0, 0])),
+          isTrue,
+        );
         expect(
-            DataConverter.isZeroBytes(Uint8List.fromList([0, 1, 0])), isFalse,);
+          DataConverter.isZeroBytes(Uint8List.fromList([0, 1, 0])),
+          isFalse,
+        );
       });
 
       test('isValidEncoding validates formats', () {
@@ -465,8 +505,10 @@ void main() {
         expect(DataConverter.isValidEncoding('Hello', 'utf8'), isTrue);
 
         // Test that unknown encoding throws an exception
-        expect(() => DataConverter.isValidEncoding('invalid', 'unknown'),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.isValidEncoding('invalid', 'unknown'),
+          throwsA(isA<DataConversionException>()),
+        );
       });
 
       test('bytesToDebugString creates readable output', () {
@@ -498,14 +540,22 @@ void main() {
 
       test('invalid operations throw appropriate exceptions', () {
         // Test various invalid operations to ensure proper error handling
-        expect(() => DataConverter.createBuffer(-1),
-            throwsA(isA<DataConversionException>()),);
-        expect(() => DataConverter.decodeHex('invalid'),
-            throwsA(isA<DataConversionException>()),);
-        expect(() => DataConverter.u8ToBytes(256),
-            throwsA(isA<DataConversionException>()),);
-        expect(() => DataConverter.bytesToU16(Uint8List(1)),
-            throwsA(isA<DataConversionException>()),);
+        expect(
+          () => DataConverter.createBuffer(-1),
+          throwsA(isA<DataConversionException>()),
+        );
+        expect(
+          () => DataConverter.decodeHex('invalid'),
+          throwsA(isA<DataConversionException>()),
+        );
+        expect(
+          () => DataConverter.u8ToBytes(256),
+          throwsA(isA<DataConversionException>()),
+        );
+        expect(
+          () => DataConverter.bytesToU16(Uint8List(1)),
+          throwsA(isA<DataConversionException>()),
+        );
       });
     });
 

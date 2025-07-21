@@ -17,7 +17,6 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Main IDE integration facade
 class AnchorIdeIntegration {
-
   const AnchorIdeIntegration({
     required this.codeGenerator,
     required this.documentationGenerator,
@@ -45,10 +44,7 @@ class AnchorIdeIntegration {
   }
 
   /// Create IDE integration for production
-  factory AnchorIdeIntegration.production({
-    String outputDirectory = 'lib/generated',
-    String packageName = 'anchor_client',
-  }) {
+  factory AnchorIdeIntegration.production() {
     final codeConfig = CodeGenerationConfig.production();
     final docConfig = DocumentationConfig.minimal();
     final debugConfig = DebugConfig.production();
@@ -59,6 +55,7 @@ class AnchorIdeIntegration {
       debugger: AnchorDebugger(debugConfig),
     );
   }
+
   /// Code generator instance
   final AnchorCodeGenerator codeGenerator;
 
@@ -88,10 +85,13 @@ class AnchorIdeIntegration {
         errors.addAll(codeResult.errors);
       } else {
         warnings.addAll(codeResult.warnings);
-        debugger.info('Code generation completed', context: {
-          'files': codeResult.generatedFiles.length,
-          'lines': codeResult.stats.linesGenerated,
-        },);
+        debugger.info(
+          'Code generation completed',
+          context: {
+            'files': codeResult.generatedFiles.length,
+            'lines': codeResult.stats.linesGenerated,
+          },
+        );
       }
 
       // Generate documentation
@@ -103,9 +103,12 @@ class AnchorIdeIntegration {
         errors.addAll(docResult.errors);
       } else {
         warnings.addAll(docResult.warnings);
-        debugger.info('Documentation generation completed', context: {
-          'files': docResult.generatedDocs.length,
-        },);
+        debugger.info(
+          'Documentation generation completed',
+          context: {
+            'files': docResult.generatedDocs.length,
+          },
+        );
       }
 
       // Analyze IDL for potential issues
@@ -130,8 +133,10 @@ class AnchorIdeIntegration {
         debugSession: debugger.currentSession,
       );
     } catch (e) {
-      debugger.error('Development package generation failed',
-          context: {'error': e.toString()},);
+      debugger.error(
+        'Development package generation failed',
+        context: {'error': e.toString()},
+      );
       errors.add('Package generation failed: $e');
 
       return DevelopmentPackageResult(
@@ -156,7 +161,8 @@ class AnchorIdeIntegration {
     buffer.writeln('# ${idl.name ?? 'Anchor Program'} API Reference');
     buffer.writeln();
     buffer.writeln(
-        'This document provides a complete API reference for the ${idl.name ?? 'Anchor program'}.',);
+      'This document provides a complete API reference for the ${idl.name ?? 'Anchor program'}.',
+    );
     buffer.writeln();
 
     // Program interface
@@ -234,7 +240,8 @@ class AnchorIdeIntegration {
         buffer.writeln();
         buffer.writeln('```dart');
         buffer.writeln(
-            'final accountData = await program.account.${account.name}.fetch(accountAddress);',);
+          'final accountData = await program.account.${account.name}.fetch(accountAddress);',
+        );
         buffer.writeln('```');
         buffer.writeln();
 
@@ -242,7 +249,8 @@ class AnchorIdeIntegration {
         buffer.writeln();
         buffer.writeln('```dart');
         buffer.writeln(
-            'final accounts = await program.account.${account.name}.all();',);
+          'final accounts = await program.account.${account.name}.all();',
+        );
         buffer.writeln('```');
         buffer.writeln();
       }
@@ -254,9 +262,13 @@ class AnchorIdeIntegration {
 
   /// Create development workspace structure
   Future<void> createWorkspaceStructure(
-      String projectPath, String projectName,) async {
-    debugger.info('Creating workspace structure',
-        context: {'path': projectPath, 'name': projectName},);
+    String projectPath,
+    String projectName,
+  ) async {
+    debugger.info(
+      'Creating workspace structure',
+      context: {'path': projectPath, 'name': projectName},
+    );
 
     final projectDir = Directory(projectPath);
     if (!projectDir.existsSync()) {
@@ -411,7 +423,6 @@ Run `dart pub get` to install dependencies.
 
 /// Result of development package generation
 class DevelopmentPackageResult {
-
   const DevelopmentPackageResult({
     required this.success,
     required this.codeResult,
@@ -420,6 +431,7 @@ class DevelopmentPackageResult {
     required this.errors,
     this.debugSession,
   });
+
   /// Whether generation was successful
   final bool success;
 
@@ -455,11 +467,14 @@ class DevelopmentPackageResult {
       buffer.writeln('- Lines of code: ${codeResult.stats.linesGenerated}');
       buffer.writeln('- Interfaces: ${codeResult.stats.interfacesGenerated}');
       buffer.writeln(
-          '- Method builders: ${codeResult.stats.methodBuildersGenerated}',);
+        '- Method builders: ${codeResult.stats.methodBuildersGenerated}',
+      );
       buffer.writeln(
-          '- Account classes: ${codeResult.stats.accountClassesGenerated}',);
+        '- Account classes: ${codeResult.stats.accountClassesGenerated}',
+      );
       buffer.writeln(
-          '- Error classes: ${codeResult.stats.errorClassesGenerated}',);
+        '- Error classes: ${codeResult.stats.errorClassesGenerated}',
+      );
     } else {
       buffer.writeln('❌ **Failed**');
       for (final error in codeResult.errors) {
@@ -473,7 +488,8 @@ class DevelopmentPackageResult {
     if (documentationResult.success) {
       buffer.writeln('✅ **Success**');
       buffer.writeln(
-          '- Documentation files: ${documentationResult.generatedDocs.length}',);
+        '- Documentation files: ${documentationResult.generatedDocs.length}',
+      );
     } else {
       buffer.writeln('❌ **Failed**');
       for (final error in documentationResult.errors) {

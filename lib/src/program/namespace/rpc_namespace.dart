@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    as transaction_types;
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
@@ -16,14 +17,14 @@ import 'package:coral_xyz_anchor/src/error/rpc_error_parser.dart';
 /// final signature = await program.rpc.methodName(...args, ctx);
 /// ```
 class RpcNamespace {
-
   RpcNamespace._({
-    required Idl idl,
     required TransactionNamespace transactionNamespace,
     required AnchorProvider provider,
   })  : _transactionNamespace = transactionNamespace,
         _provider = provider;
+  // ignore: unused_field
   final TransactionNamespace _transactionNamespace;
+  // ignore: unused_field
   final AnchorProvider _provider;
   final Map<String, RpcFunction> _functions = {};
 
@@ -34,7 +35,6 @@ class RpcNamespace {
     required AnchorProvider provider,
   }) {
     final namespace = RpcNamespace._(
-      idl: idl,
       transactionNamespace: transactionNamespace,
       provider: provider,
     );
@@ -61,12 +61,12 @@ class RpcNamespace {
   bool contains(String name) => _functions.containsKey(name);
 
   @override
-  String toString() => 'RpcNamespace(instructions: ${_functions.keys.toList()})';
+  String toString() =>
+      'RpcNamespace(instructions: ${_functions.keys.toList()})';
 }
 
 /// Function for sending a signed transaction for a specific instruction
 class RpcFunction {
-
   RpcFunction({
     required IdlInstruction instruction,
     required TransactionNamespace transactionNamespace,
@@ -90,12 +90,16 @@ class RpcFunction {
     // Convert TransactionInstructions from namespace types to transaction types
     final convertedInstructions = anchorTransaction.instructions.map((ix) {
       // Convert AccountMeta from namespace type to transaction type
-      final convertedAccounts = ix.accounts.map((account) => transaction_types.AccountMeta(
-          pubkey: account
-              .publicKey, // namespace uses 'publicKey', transaction uses 'pubkey'
-          isSigner: account.isSigner,
-          isWritable: account.isWritable,
-        )).toList();
+      final convertedAccounts = ix.accounts
+          .map(
+            (account) => transaction_types.AccountMeta(
+              pubkey: account
+                  .publicKey, // namespace uses 'publicKey', transaction uses 'pubkey'
+              isSigner: account.isSigner,
+              isWritable: account.isWritable,
+            ),
+          )
+          .toList();
 
       return transaction_types.TransactionInstruction(
         programId: ix.programId,

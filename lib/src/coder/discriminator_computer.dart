@@ -136,8 +136,8 @@ class DiscriminatorComputer {
   ///
   /// Returns hexadecimal string representation
   static String discriminatorToHex(Uint8List discriminator) => discriminator
-        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-        .join('');
+      .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+      .join();
 
   /// Create discriminator from hexadecimal string.
   ///

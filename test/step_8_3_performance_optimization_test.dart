@@ -6,12 +6,11 @@
 library;
 
 import 'dart:async';
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'
-    hide OptimizationRecommendation, OptimizationType;
+
 // Import the performance module directly to access hidden types
 import 'package:coral_xyz_anchor/src/performance/performance_optimization.dart'
     as perf;
+import 'package:test/test.dart';
 
 void main() {
   group('Step 8.3: Performance Optimization and Monitoring', () {
@@ -111,12 +110,13 @@ void main() {
 
         // Submit same request multiple times
         final futures = List.generate(
-            3,
-            (_) => batcher.batchRequest(
-                  'getAccountInfo',
-                  ['same_pubkey'],
-                  (response) => response,
-                ),);
+          3,
+          (_) => batcher.batchRequest(
+            'getAccountInfo',
+            ['same_pubkey'],
+            (response) => response,
+          ),
+        );
 
         // All should complete successfully
         await Future.wait(futures);
@@ -209,17 +209,20 @@ void main() {
         // Record some measurements
         monitor.recordMeasurement('fast_op', const Duration(milliseconds: 10));
         monitor.recordMeasurement(
-            'slow_op', const Duration(milliseconds: 1000),);
+          'slow_op',
+          const Duration(milliseconds: 1000),
+        );
 
         final metrics = monitor.getMetrics();
         expect(
-            metrics.systemHealth,
-            isIn([
-              perf.SystemHealth.excellent,
-              perf.SystemHealth.good,
-              perf.SystemHealth.degraded,
-              perf.SystemHealth.critical,
-            ]),);
+          metrics.systemHealth,
+          isIn([
+            perf.SystemHealth.excellent,
+            perf.SystemHealth.good,
+            perf.SystemHealth.degraded,
+            perf.SystemHealth.critical,
+          ]),
+        );
       });
 
       test('should generate performance recommendations', () async {
@@ -375,7 +378,9 @@ void main() {
         final perfConfig = perf.PerformanceConfig.highPerformance();
         expect(perfConfig.batchingConfig.maxBatchSize, equals(200));
         expect(
-            perfConfig.batchingConfig.batchTimeout.inMilliseconds, equals(25),);
+          perfConfig.batchingConfig.batchTimeout.inMilliseconds,
+          equals(25),
+        );
       });
 
       test('should create development configurations', () {
@@ -433,20 +438,23 @@ void main() {
 
         // Multiple batch requests
         for (int i = 0; i < 20; i++) {
-          futures.add(optimizer.batcher.batchRequest(
-            'high_load_method',
-            ['param_$i'],
-            (response) => response,
-          ),);
+          futures.add(
+            optimizer.batcher.batchRequest(
+              'high_load_method',
+              ['param_$i'],
+              (response) => response,
+            ),
+          );
         }
 
         // Multiple performance measurements
         for (int i = 0; i < 50; i++) {
           final timer = optimizer.monitor.startTimer('load_test_$i');
-          futures
-              .add(Future.delayed(Duration(milliseconds: i % 10 + 1)).then((_) {
-            timer.stop();
-          }),);
+          futures.add(
+            Future.delayed(Duration(milliseconds: i % 10 + 1)).then((_) {
+              timer.stop();
+            }),
+          );
         }
 
         // Multiple resource tracking
@@ -490,7 +498,9 @@ void main() {
         final metrics = optimizer.getMetrics();
         expect(metrics.batchMetrics.averageBatchSize, isA<double>());
         expect(
-            metrics.monitoringMetrics.systemHealth, isA<perf.SystemHealth>(),);
+          metrics.monitoringMetrics.systemHealth,
+          isA<perf.SystemHealth>(),
+        );
         expect(metrics.resourceMetrics.totalMemoryUsage, isA<int>());
         expect(metrics.adaptiveMetrics.optimizationScore, isA<double>());
       });

@@ -5,9 +5,9 @@
 
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart' as rpc_errors;
+import 'package:test/test.dart';
 
 void main() {
   group('Connection', () {
@@ -37,8 +37,10 @@ void main() {
 
       final customConnection = Connection.fromConfig(customConfig);
 
-      expect(customConnection.rpcUrl,
-          equals('https://api.mainnet-beta.solana.com'),);
+      expect(
+        customConnection.rpcUrl,
+        equals('https://api.mainnet-beta.solana.com'),
+      );
       expect(customConnection.commitment, equals('confirmed'));
 
       customConnection.close();
@@ -166,7 +168,8 @@ void main() {
     });
 
     test('should handle RpcException with code', () {
-      final exception = const rpc_errors.RpcException('Test error', code: -32600);
+      final exception =
+          const rpc_errors.RpcException('Test error', code: -32600);
       expect(exception.message, equals('Test error'));
       expect(exception.code, equals(-32600));
       expect(exception.toString(), equals('RpcException(-32600): Test error'));
@@ -177,8 +180,10 @@ void main() {
           const rpc_errors.ConnectionException('Connection failed');
       final transactionException =
           const rpc_errors.TransactionException('Transaction failed');
-      final accountException = const rpc_errors.AccountException('Account not found');
-      final timeoutException = const rpc_errors.TimeoutException('Request timed out');
+      final accountException =
+          const rpc_errors.AccountException('Account not found');
+      final timeoutException =
+          const rpc_errors.TimeoutException('Request timed out');
 
       expect(connectionException, isA<rpc_errors.RpcException>());
       expect(transactionException, isA<rpc_errors.RpcException>());

@@ -4,15 +4,16 @@
 /// utilities work correctly for Anchor program interactions.
 library;
 
-import 'package:test/test.dart';
 import 'dart:typed_data';
+
+import 'package:coral_xyz_anchor/src/idl/idl.dart';
 import 'package:coral_xyz_anchor/src/program/context.dart';
 import 'package:coral_xyz_anchor/src/program/pda_utils.dart';
+import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/keypair.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Context Tests', () {
@@ -267,9 +268,11 @@ void main() {
       };
       final specs = [
         const IdlInstructionAccount(
-            name: 'account1',),
+          name: 'account1',
+        ),
         const IdlInstructionAccount(
-            name: 'account2',),
+          name: 'account2',
+        ),
       ];
 
       final resolved = await AddressResolver.resolveAccounts(
@@ -300,12 +303,15 @@ void main() {
       final accounts = <String, dynamic>{'account1': 'value'};
       final specs = [
         const IdlInstructionAccount(
-            name: 'account1',),
+          name: 'account1',
+        ),
         const IdlInstructionAccount(
-            name: 'account2',), // Missing
+          name: 'account2',
+        ), // Missing
         const IdlInstructionAccount(
-            name: 'account3',
-            optional: true,), // Optional
+          name: 'account3',
+          optional: true,
+        ), // Optional
       ];
 
       final missing =
@@ -317,14 +323,16 @@ void main() {
 
 /// Helper function to create test IDL instruction
 IdlInstruction _createTestInstruction(List<String> argNames) => IdlInstruction(
-    name: 'testInstruction',
-    discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
-    accounts: [
-      const IdlInstructionAccount(
-          name: 'testAccount', writable: false, signer: false),
-    ],
-    args: argNames
-        .map(
-            (name) => IdlField(name: name, type: const IdlType(kind: 'string')))
-        .toList(),
-  );
+      name: 'testInstruction',
+      discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
+      accounts: [
+        const IdlInstructionAccount(
+          name: 'testAccount',
+        ),
+      ],
+      args: argNames
+          .map(
+            (name) => IdlField(name: name, type: const IdlType(kind: 'string')),
+          )
+          .toList(),
+    );

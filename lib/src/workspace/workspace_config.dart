@@ -42,12 +42,10 @@ class ProviderConfig {
     required this.wallet,
   });
 
-  factory ProviderConfig.fromToml(Map<String, dynamic> toml) {
-    return ProviderConfig(
-      cluster: toml['cluster'] as String? ?? 'localnet',
-      wallet: toml['wallet'] as String? ?? '~/.config/solana/id.json',
-    );
-  }
+  factory ProviderConfig.fromToml(Map<String, dynamic> toml) => ProviderConfig(
+        cluster: toml['cluster'] as String? ?? 'localnet',
+        wallet: toml['wallet'] as String? ?? '~/.config/solana/id.json',
+      );
   final String cluster;
   final String wallet;
 
@@ -109,8 +107,10 @@ class TestConfig {
       final accountList = validatorConfig['account'] as List<dynamic>?;
       if (accountList != null) {
         accounts = accountList
-            .map((account) =>
-                ValidatorAccount.fromToml(account as Map<String, dynamic>))
+            .map(
+              (account) =>
+                  ValidatorAccount.fromToml(account as Map<String, dynamic>),
+            )
             .toList();
       }
     }
@@ -148,12 +148,11 @@ class ValidatorAccount {
     required this.filename,
   });
 
-  factory ValidatorAccount.fromToml(Map<String, dynamic> toml) {
-    return ValidatorAccount(
-      address: toml['address'] as String,
-      filename: toml['filename'] as String,
-    );
-  }
+  factory ValidatorAccount.fromToml(Map<String, dynamic> toml) =>
+      ValidatorAccount(
+        address: toml['address'] as String,
+        filename: toml['filename'] as String,
+      );
   final String address;
   final String filename;
 
@@ -170,12 +169,10 @@ class FeaturesConfig {
     this.skipLint,
   });
 
-  factory FeaturesConfig.fromToml(Map<String, dynamic> toml) {
-    return FeaturesConfig(
-      seeds: toml['seeds'] as bool?,
-      skipLint: toml['skip-lint'] as bool?,
-    );
-  }
+  factory FeaturesConfig.fromToml(Map<String, dynamic> toml) => FeaturesConfig(
+        seeds: toml['seeds'] as bool?,
+        skipLint: toml['skip-lint'] as bool?,
+      );
   final bool? seeds;
   final bool? skipLint;
 
@@ -252,9 +249,8 @@ class WorkspaceConfig {
   }
 
   /// Load workspace configuration from current directory
-  factory WorkspaceConfig.fromCurrentDirectory() {
-    return WorkspaceConfig.fromDirectory(Directory.current.path);
-  }
+  factory WorkspaceConfig.fromCurrentDirectory() =>
+      WorkspaceConfig.fromDirectory(Directory.current.path);
 
   factory WorkspaceConfig._fromToml(
     Map<String, dynamic> toml, {
@@ -520,10 +516,10 @@ class WorkspaceConfig {
   /// Convert camelCase to snake_case
   String _camelToSnakeCase(String camelCase) => camelCase
       .replaceAllMapped(
-        RegExp(r'([A-Z])'),
+        RegExp('([A-Z])'),
         (match) => '_${match.group(1)!.toLowerCase()}',
       )
-      .replaceFirst(RegExp(r'^_'), '');
+      .replaceFirst(RegExp('^_'), '');
 
   /// Convert snake_case to camelCase
   String _snakeToCamelCase(String snakeCase) {
@@ -821,8 +817,6 @@ class WorkspaceInitializationTemplate {
   static WorkspaceInitializationTemplate multiProgram(String name) =>
       WorkspaceInitializationTemplate(
         name: name,
-        createPrograms: true,
-        createTests: true,
         createApp: true,
         additionalDirectories: ['scripts', 'migrations', 'docs'],
       );
@@ -832,7 +826,6 @@ class WorkspaceInitializationTemplate {
       WorkspaceInitializationTemplate(
         name: name,
         createPrograms: false,
-        createTests: true,
         createApp: true,
         additionalDirectories: ['src', 'public'],
       );

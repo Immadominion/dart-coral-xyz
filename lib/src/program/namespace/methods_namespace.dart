@@ -1,7 +1,8 @@
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart' hide SimulationResult;
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart'
+    hide SimulationResult;
 import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
@@ -30,7 +31,6 @@ import 'package:coral_xyz_anchor/src/program/method_validator.dart';
 ///     .rpc();
 /// ```
 class MethodsNamespace {
-
   MethodsNamespace._(this._generator);
   final Map<String, TypeSafeMethodBuilder> _builders = {};
   final MethodInterfaceGenerator _generator;

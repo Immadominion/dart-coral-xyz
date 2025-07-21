@@ -1,10 +1,10 @@
-import 'package:test/test.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/event/event_processor.dart';
 import 'package:coral_xyz_anchor/src/event/event_definition.dart';
 import 'package:coral_xyz_anchor/src/event/event_log_parser.dart';
+import 'package:coral_xyz_anchor/src/event/event_processor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('EventProcessor', () {
@@ -37,23 +37,20 @@ void main() {
             hasNestedStructures: false,
             estimatedSize: 8,
             complexity: EventComplexity.low,
-            tags: [],
           ),
-          validationRules: EventValidationRules(
-            typeStrictness: TypeValidationStrictness.strict,
-            customValidators: [],
-          ),
+          validationRules: EventValidationRules(),
         ),
       ];
 
-      processor = EventProcessor(eventDefinitions: testEvents);
+      processor = EventProcessor();
 
       testEvent = ParsedEvent(
         name: 'TestEvent',
         data: {'value': 12345},
         definition: testEvents.first,
         rawData: Uint8List.fromList(
-            [1, 2, 3, 4, 5, 6, 7, 8, 57, 48, 0, 0, 0, 0, 0, 0],),
+          [1, 2, 3, 4, 5, 6, 7, 8, 57, 48, 0, 0, 0, 0, 0, 0],
+        ),
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
         isValid: true,
       );
@@ -84,7 +81,8 @@ void main() {
 
       test('removes handlers correctly', () {
         final handler = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
 
         processor.registerHandler('TestEvent', handler);
         expect(processor.metrics.handlersRegistered, equals(1));
@@ -95,9 +93,11 @@ void main() {
 
       test('removes all handlers for an event', () {
         final handler1 = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
         final handler2 = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
 
         processor.registerHandler('TestEvent', handler1);
         processor.registerHandler('TestEvent', handler2);
@@ -109,9 +109,11 @@ void main() {
 
       test('registers multiple handlers', () {
         final handler1 = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
         final handler2 = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
 
         processor.registerHandlers({
           'TestEvent': [handler1, handler2],
@@ -165,7 +167,10 @@ void main() {
 
     group('Event Processing', () {
       test('processes events successfully', () async {
-        final handler = _TestHandler((event, context) async => EventHandlerResult.success(data: {'processed': true}));
+        final handler = _TestHandler(
+          (event, context) async =>
+              EventHandlerResult.success(data: {'processed': true}),
+        );
 
         processor.registerHandler('TestEvent', handler);
 
@@ -180,14 +185,16 @@ void main() {
       test('handles handler errors gracefully with continueOnHandlerError',
           () async {
         final config = const EventProcessingConfig();
-        final processor =
-            EventProcessor(eventDefinitions: testEvents, config: config);
+        final processor = EventProcessor(config: config);
 
         final handler1 = _TestHandler((event, context) async {
           throw Exception('Handler error');
         });
 
-        final handler2 = _TestHandler((event, context) async => EventHandlerResult.success(data: {'processed': true}));
+        final handler2 = _TestHandler(
+          (event, context) async =>
+              EventHandlerResult.success(data: {'processed': true}),
+        );
 
         processor.registerHandler('TestEvent', handler1);
         processor.registerHandler('TestEvent', handler2);
@@ -205,15 +212,17 @@ void main() {
 
       test('stops on handler errors when continueOnHandlerError is false',
           () async {
-        final config = const EventProcessingConfig(continueOnHandlerError: false);
-        final processor =
-            EventProcessor(eventDefinitions: testEvents, config: config);
+        final config =
+            const EventProcessingConfig(continueOnHandlerError: false);
+        final processor = EventProcessor(config: config);
 
         final handler1 = _TestHandler((event, context) async {
           throw Exception('Handler error');
         });
 
-        final handler2 = _TestHandler((event, context) async => EventHandlerResult.success());
+        final handler2 = _TestHandler(
+          (event, context) async => EventHandlerResult.success(),
+        );
 
         processor.registerHandler('TestEvent', handler1);
         processor.registerHandler('TestEvent', handler2);
@@ -221,17 +230,24 @@ void main() {
         final result = await processor.processEvent(testEvent);
 
         expect(result.isSuccess, isTrue);
-        expect(result.handlerResults.length,
-            equals(1),); // Only first handler executed
+        expect(
+          result.handlerResults.length,
+          equals(1),
+        ); // Only first handler executed
         expect(processor.metrics.handlerErrors, equals(1));
 
         processor.dispose();
       });
 
       test('stops propagation when handler requests it', () async {
-        final handler1 = _TestHandler((event, context) async => EventHandlerResult.success(shouldStopPropagation: true));
+        final handler1 = _TestHandler(
+          (event, context) async =>
+              EventHandlerResult.success(shouldStopPropagation: true),
+        );
 
-        final handler2 = _TestHandler((event, context) async => EventHandlerResult.success());
+        final handler2 = _TestHandler(
+          (event, context) async => EventHandlerResult.success(),
+        );
 
         processor.registerHandler('TestEvent', handler1);
         processor.registerHandler('TestEvent', handler2);
@@ -239,8 +255,10 @@ void main() {
         final result = await processor.processEvent(testEvent);
 
         expect(result.isSuccess, isTrue);
-        expect(result.handlerResults.length,
-            equals(1),); // Only first handler executed
+        expect(
+          result.handlerResults.length,
+          equals(1),
+        ); // Only first handler executed
         expect(processor.metrics.handlersExecuted, equals(1));
       });
     });
@@ -249,8 +267,7 @@ void main() {
       test('queues events when batching is enabled', () async {
         final config =
             const EventProcessingConfig(enableBatching: true, maxBatchSize: 5);
-        final processor =
-            EventProcessor(eventDefinitions: testEvents, config: config);
+        final processor = EventProcessor(config: config);
 
         final result = await processor.processEvent(testEvent);
 
@@ -266,8 +283,7 @@ void main() {
           maxBatchSize: 2,
           batchTimeout: 10000, // High timeout to avoid timer triggering
         );
-        final processor =
-            EventProcessor(eventDefinitions: testEvents, config: config);
+        final processor = EventProcessor(config: config);
 
         var handlerCallCount = 0;
         final handler = _TestHandler((event, context) async {
@@ -286,7 +302,7 @@ void main() {
         await processor.processEvent(testEvent);
 
         // Give some time for batch processing
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
 
         expect(processor.metrics.batchesProcessed, greaterThanOrEqualTo(1));
         expect(handlerCallCount, greaterThanOrEqualTo(2));
@@ -310,13 +326,14 @@ void main() {
             processor.processedEvents.listen(streamResults.add);
 
         final handler = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
         processor.registerHandler('TestEvent', handler);
 
         await processor.processEvent(testEvent);
 
         // Give some time for stream to emit
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         expect(streamResults.length, equals(1));
         expect(streamResults.first.isSuccess, isTrue);
@@ -328,7 +345,8 @@ void main() {
     group('Metrics', () {
       test('tracks metrics correctly', () async {
         final handler = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
         final middleware = _TestMiddleware((event, context) async => event);
 
         processor.registerHandler('TestEvent', handler);
@@ -346,7 +364,8 @@ void main() {
 
       test('resets metrics correctly', () async {
         final handler = _TestHandler(
-            (event, context) async => EventHandlerResult.success(),);
+          (event, context) async => EventHandlerResult.success(),
+        );
         processor.registerHandler('TestEvent', handler);
 
         await processor.processEvent(testEvent);
@@ -382,24 +401,28 @@ void main() {
 
 /// Test implementation of EventHandler
 class _TestHandler implements EventHandler {
-
   _TestHandler(this._handler);
   final Future<EventHandlerResult> Function(ParsedEvent, EventProcessingContext)
       _handler;
 
   @override
   Future<EventHandlerResult> handle(
-      ParsedEvent event, EventProcessingContext context,) => _handler(event, context);
+    ParsedEvent event,
+    EventProcessingContext context,
+  ) =>
+      _handler(event, context);
 }
 
 /// Test implementation of EventMiddleware
 class _TestMiddleware implements EventMiddleware {
-
   _TestMiddleware(this._processor);
   final Future<ParsedEvent> Function(ParsedEvent, EventProcessingContext)
       _processor;
 
   @override
   Future<ParsedEvent> process(
-      ParsedEvent event, EventProcessingContext context,) => _processor(event, context);
+    ParsedEvent event,
+    EventProcessingContext context,
+  ) =>
+      _processor(event, context);
 }

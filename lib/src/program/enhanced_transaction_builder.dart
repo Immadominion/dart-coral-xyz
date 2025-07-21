@@ -23,13 +23,6 @@ import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 
 /// Transaction fee configuration
 class TransactionFeeConfig {
-  final int? computeUnitLimit;
-  final int? computeUnitPrice;
-  final int? priorityFee;
-  final bool autoCalculateFee;
-  final int? maxFee;
-  final double? feeMultiplier;
-
   const TransactionFeeConfig({
     this.computeUnitLimit,
     this.computeUnitPrice,
@@ -40,33 +33,24 @@ class TransactionFeeConfig {
   });
 
   /// Create default fee configuration
-  factory TransactionFeeConfig.defaultConfig() {
-    return const TransactionFeeConfig(
-      autoCalculateFee: true,
-      feeMultiplier: 1.0,
-    );
-  }
+  factory TransactionFeeConfig.defaultConfig() => const TransactionFeeConfig();
 
   /// Create configuration with priority fee
-  factory TransactionFeeConfig.withPriority(int priorityFee) {
-    return TransactionFeeConfig(
-      priorityFee: priorityFee,
-      autoCalculateFee: false,
-    );
-  }
+  factory TransactionFeeConfig.withPriority(int priorityFee) =>
+      TransactionFeeConfig(
+        priorityFee: priorityFee,
+        autoCalculateFee: false,
+      );
+  final int? computeUnitLimit;
+  final int? computeUnitPrice;
+  final int? priorityFee;
+  final bool autoCalculateFee;
+  final int? maxFee;
+  final double? feeMultiplier;
 }
 
 /// Transaction composition options
 class TransactionCompositionOptions {
-  final List<TransactionInstruction>? preInstructions;
-  final List<TransactionInstruction>? postInstructions;
-  final List<Keypair>? signers;
-  final String? recentBlockhash;
-  final TransactionFeeConfig? feeConfig;
-  final bool skipPreflight;
-  final Commitment? commitment;
-  final int? maxRetries;
-
   const TransactionCompositionOptions({
     this.preInstructions,
     this.postInstructions,
@@ -77,16 +61,18 @@ class TransactionCompositionOptions {
     this.commitment,
     this.maxRetries,
   });
+  final List<TransactionInstruction>? preInstructions;
+  final List<TransactionInstruction>? postInstructions;
+  final List<Keypair>? signers;
+  final String? recentBlockhash;
+  final TransactionFeeConfig? feeConfig;
+  final bool skipPreflight;
+  final Commitment? commitment;
+  final int? maxRetries;
 }
 
 /// Transaction batch configuration
 class TransactionBatchConfig {
-  final int maxInstructionsPerTransaction;
-  final int maxTransactionSize;
-  final bool parallel;
-  final int maxConcurrentTransactions;
-  final Duration? delay;
-
   const TransactionBatchConfig({
     this.maxInstructionsPerTransaction = 20,
     this.maxTransactionSize = 1232,
@@ -94,35 +80,33 @@ class TransactionBatchConfig {
     this.maxConcurrentTransactions = 5,
     this.delay,
   });
+  final int maxInstructionsPerTransaction;
+  final int maxTransactionSize;
+  final bool parallel;
+  final int maxConcurrentTransactions;
+  final Duration? delay;
 }
 
 /// Transaction simulation result with compute units
 class TransactionSimulationResult {
+  const TransactionSimulationResult({
+    required this.success,
+    required this.logs,
+    this.computeUnitsConsumed,
+    this.error,
+    this.feeRequired,
+    this.accounts,
+  });
   final bool success;
   final int? computeUnitsConsumed;
   final List<String> logs;
   final String? error;
   final int? feeRequired;
   final Map<String, dynamic>? accounts;
-
-  const TransactionSimulationResult({
-    required this.success,
-    this.computeUnitsConsumed,
-    required this.logs,
-    this.error,
-    this.feeRequired,
-    this.accounts,
-  });
 }
 
 /// Transaction priority fee calculation result
 class PriorityFeeCalculation {
-  final int recommendedFee;
-  final int minFee;
-  final int maxFee;
-  final double congestionMultiplier;
-  final List<int> recentFees;
-
   const PriorityFeeCalculation({
     required this.recommendedFee,
     required this.minFee,
@@ -130,6 +114,11 @@ class PriorityFeeCalculation {
     required this.congestionMultiplier,
     required this.recentFees,
   });
+  final int recommendedFee;
+  final int minFee;
+  final int maxFee;
+  final double congestionMultiplier;
+  final List<int> recentFees;
 }
 
 /// Enhanced Transaction Builder with full TypeScript parity
@@ -190,14 +179,16 @@ class EnhancedTransactionBuilder {
 
   /// Set composition options
   EnhancedTransactionBuilder setCompositionOptions(
-      TransactionCompositionOptions options) {
+    TransactionCompositionOptions options,
+  ) {
     _compositionOptions = options;
     return this;
   }
 
   /// Prepend instructions (like TypeScript preInstructions)
   EnhancedTransactionBuilder prepend(
-      List<TransactionInstruction> instructions) {
+    List<TransactionInstruction> instructions,
+  ) {
     _instructions.insertAll(0, instructions);
     return this;
   }
@@ -251,7 +242,9 @@ class EnhancedTransactionBuilder {
         i < instructions.length;
         i += config.maxInstructionsPerTransaction) {
       final end = math.min(
-          i + config.maxInstructionsPerTransaction, instructions.length);
+        i + config.maxInstructionsPerTransaction,
+        instructions.length,
+      );
       batches.add(instructions.sublist(i, end));
     }
 
@@ -290,7 +283,7 @@ class EnhancedTransactionBuilder {
       // Send transactions in parallel
       final futures = transactions.map((tx) async {
         await _signTransaction(tx);
-        return await connection.sendAndConfirmTransaction(tx);
+        return connection.sendAndConfirmTransaction(tx);
       });
 
       final results = await Future.wait(futures);
@@ -370,7 +363,8 @@ class EnhancedTransactionBuilder {
 
   /// Create compute unit limit instruction
   TransactionInstruction _createComputeUnitLimitInstruction(
-      int computeUnitLimit) {
+    int computeUnitLimit,
+  ) {
     // This is a simplified implementation
     // In reality, this would use the ComputeBudgetProgram
     return TransactionInstruction(
@@ -378,13 +372,15 @@ class EnhancedTransactionBuilder {
           PublicKey.fromBase58('ComputeBudget111111111111111111111111111111'),
       accounts: [],
       data: Uint8List.fromList(
-          [0, ...Uint8List(8)..buffer.asUint32List()[0] = computeUnitLimit]),
+        [0, ...Uint8List(8)..buffer.asUint32List()[0] = computeUnitLimit],
+      ),
     );
   }
 
   /// Create compute unit price instruction
   TransactionInstruction _createComputeUnitPriceInstruction(
-      int computeUnitPrice) {
+    int computeUnitPrice,
+  ) {
     // This is a simplified implementation
     // In reality, this would use the ComputeBudgetProgram
     return TransactionInstruction(
@@ -392,7 +388,8 @@ class EnhancedTransactionBuilder {
           PublicKey.fromBase58('ComputeBudget111111111111111111111111111111'),
       accounts: [],
       data: Uint8List.fromList(
-          [1, ...Uint8List(8)..buffer.asUint64List()[0] = computeUnitPrice]),
+        [1, ...Uint8List(8)..buffer.asUint64List()[0] = computeUnitPrice],
+      ),
     );
   }
 
@@ -427,7 +424,6 @@ class EnhancedTransactionBuilder {
         computeUnitsConsumed: result.unitsConsumed,
         logs: result.logs,
         error: result.error?.toString(),
-        feeRequired: null, // Not available in current implementation
         accounts: result.accounts,
       );
     } catch (e) {
@@ -435,7 +431,6 @@ class EnhancedTransactionBuilder {
         success: false,
         error: e.toString(),
         logs: [],
-        computeUnitsConsumed: null,
       );
     }
   }
@@ -488,7 +483,7 @@ class EnhancedTransactionBuilder {
         recommendedFee: 5000,
         minFee: 1000,
         maxFee: 10000,
-        congestionMultiplier: 1.0,
+        congestionMultiplier: 1,
         recentFees: [],
       );
     }
@@ -503,7 +498,7 @@ class EnhancedTransactionBuilder {
 
   /// Calculate network congestion multiplier
   double _calculateCongestionMultiplier(List<int> recentFees) {
-    if (recentFees.isEmpty) return 1.0;
+    if (recentFees.isEmpty) return 1;
 
     // Simple congestion calculation based on fee variance
     final avgFee = recentFees.reduce((a, b) => a + b) / recentFees.length;
@@ -543,7 +538,7 @@ class EnhancedTransactionBuilder {
     }
 
     // Get recent blockhash if not set
-    String blockhash = _recentBlockhash ??
+    final String blockhash = _recentBlockhash ??
         _compositionOptions?.recentBlockhash ??
         (await connection.getLatestBlockhash()).blockhash;
 
@@ -602,7 +597,7 @@ class EnhancedTransactionBuilder {
     final tx = await build();
     final signedTx = await _signTransaction(tx);
 
-    return await connection.sendAndConfirmTransaction(
+    return connection.sendAndConfirmTransaction(
       signedTx,
       // These parameters might need adjustment based on the actual sendAndConfirmTransaction method signature
     );
@@ -617,7 +612,7 @@ class EnhancedTransactionBuilder {
     final tx = await build();
     final signedTx = await _signTransaction(tx);
 
-    return await _provider.sendAndConfirm(signedTx);
+    return _provider.sendAndConfirm(signedTx);
   }
 
   /// Get transaction size estimate

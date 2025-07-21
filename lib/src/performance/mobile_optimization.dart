@@ -68,9 +68,6 @@ class MobileOptimizationConfig {
     maxMemoryUsage: 16 * 1024 * 1024, // 16MB
     maxConcurrentConnections: 1,
     maxCacheSize: 50,
-    compressData: true,
-    preferWebSocket: false,
-    enableBackgroundSync: false,
     lowPowerMode: true,
     networkOptimization: MobileNetworkOptimization.conservative,
     cacheDuration: Duration(minutes: 2),
@@ -87,7 +84,6 @@ class MobileOptimizationConfig {
     compressData: false,
     preferWebSocket: true,
     enableBackgroundSync: true,
-    lowPowerMode: false,
     networkOptimization: MobileNetworkOptimization.aggressive,
     cacheDuration: Duration(minutes: 10),
     connectionTimeout: Duration(seconds: 5),
@@ -137,7 +133,6 @@ class MobileOptimizer {
         cleanupInterval: _config.lowPowerMode
             ? const Duration(minutes: 2)
             : const Duration(minutes: 5),
-        enableAutoCleanup: true,
       ),
     );
 
@@ -164,10 +159,6 @@ class MobileOptimizer {
           ? LazyIdlConfig.mobileConfig
           : const LazyIdlConfig(
               cacheSize: 5,
-              preloadInstructions: true,
-              preloadAccounts: false,
-              preloadEvents: false,
-              enableCompression: true,
               cacheDuration: Duration(minutes: 10),
               maxConcurrentLoads: 2,
             ),
@@ -321,9 +312,9 @@ class MobileOptimizer {
   Future<void> _applyConservativeOptimizations() async {
     // Reduce batch sizes
     _performanceOptimizer?.batcher.updateConfig(
-      BatchingConfig(
+      const BatchingConfig(
         maxBatchSize: 3,
-        batchTimeout: const Duration(seconds: 3),
+        batchTimeout: Duration(seconds: 3),
         enableDeduplication: true,
         maxPendingRequests: 50,
       ),
@@ -335,7 +326,6 @@ class MobileOptimizer {
         maxEntries: 50,
         ttl: const Duration(minutes: 2),
         maxMemoryBytes: (_config.maxMemoryUsage * 0.2).round(),
-        enableAutoCleanup: true,
       ),
     );
   }
@@ -344,9 +334,9 @@ class MobileOptimizer {
   Future<void> _applyBalancedOptimizations() async {
     // Standard batch sizes
     _performanceOptimizer?.batcher.updateConfig(
-      BatchingConfig(
+      const BatchingConfig(
         maxBatchSize: 10,
-        batchTimeout: const Duration(seconds: 1),
+        batchTimeout: Duration(seconds: 1),
         enableDeduplication: true,
         maxPendingRequests: 200,
       ),
@@ -358,7 +348,6 @@ class MobileOptimizer {
         maxEntries: _config.maxCacheSize,
         ttl: _config.cacheDuration,
         maxMemoryBytes: (_config.maxMemoryUsage * 0.3).round(),
-        enableAutoCleanup: true,
       ),
     );
   }
@@ -367,9 +356,9 @@ class MobileOptimizer {
   Future<void> _applyAggressiveOptimizations() async {
     // Larger batch sizes
     _performanceOptimizer?.batcher.updateConfig(
-      BatchingConfig(
+      const BatchingConfig(
         maxBatchSize: 20,
-        batchTimeout: const Duration(milliseconds: 500),
+        batchTimeout: Duration(milliseconds: 500),
         enableDeduplication: true,
         maxPendingRequests: 1000,
       ),
@@ -381,7 +370,6 @@ class MobileOptimizer {
         maxEntries: _config.maxCacheSize * 2,
         ttl: _config.cacheDuration * 2,
         maxMemoryBytes: (_config.maxMemoryUsage * 0.5).round(),
-        enableAutoCleanup: true,
       ),
     );
   }
@@ -395,7 +383,6 @@ class MobileOptimizer {
         ttl: const Duration(minutes: 1),
         maxMemoryBytes: (_config.maxMemoryUsage * 0.15).round(),
         cleanupInterval: const Duration(seconds: 30),
-        enableAutoCleanup: true,
       ),
     );
 
@@ -420,19 +407,17 @@ class MobileOptimizer {
   }
 
   /// Get mobile optimization metrics
-  Map<String, dynamic> getMetrics() {
-    return {
-      'memoryUsage': _getCurrentMemoryUsage(),
-      'maxMemoryUsage': _config.maxMemoryUsage,
-      'memoryUtilization': _getCurrentMemoryUsage() / _config.maxMemoryUsage,
-      'cacheMetrics': _cacheManager?.getStatistics().toJson(),
-      'connectionPoolMetrics': _connectionPool?.getStatistics(),
-      'idlMetrics': _idlLoader?.getMetrics().toJson(),
-      'performanceMetrics': _performanceOptimizer?.getMetrics().toJson(),
-      'isLowPowerMode': _config.lowPowerMode,
-      'networkOptimization': _config.networkOptimization.name,
-    };
-  }
+  Map<String, dynamic> getMetrics() => {
+        'memoryUsage': _getCurrentMemoryUsage(),
+        'maxMemoryUsage': _config.maxMemoryUsage,
+        'memoryUtilization': _getCurrentMemoryUsage() / _config.maxMemoryUsage,
+        'cacheMetrics': _cacheManager?.getStatistics().toJson(),
+        'connectionPoolMetrics': _connectionPool?.getStatistics(),
+        'idlMetrics': _idlLoader?.getMetrics().toJson(),
+        'performanceMetrics': _performanceOptimizer?.getMetrics().toJson(),
+        'isLowPowerMode': _config.lowPowerMode,
+        'networkOptimization': _config.networkOptimization.name,
+      };
 
   /// Shutdown mobile optimizer
   Future<void> shutdown() async {
@@ -476,8 +461,10 @@ class MobileUtils {
   }
 
   /// Optimize data for mobile transmission
-  static Uint8List optimizeDataForMobile(Uint8List data,
-      {bool compress = true}) {
+  static Uint8List optimizeDataForMobile(
+    Uint8List data, {
+    bool compress = true,
+  }) {
     if (!compress || data.length < 1024) {
       return data;
     }
@@ -552,28 +539,24 @@ extension LazyIdlLoaderMobileExtensions on LazyIdlLoader {
 
 extension PerformanceOptimizerMobileExtensions on PerformanceOptimizer {
   /// Get performance optimizer as JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'batchingEnabled': true,
-      'monitoringEnabled': true,
-      'resourceOptimizationEnabled': true,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'batchingEnabled': true,
+        'monitoringEnabled': true,
+        'resourceOptimizationEnabled': true,
+      };
 }
 
 extension CacheStatisticsMobileExtensions on CacheStatistics {
   /// Convert cache statistics to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'totalOperations': totalOperations,
-      'hits': hits,
-      'misses': misses,
-      'hitRate': hitRate,
-      'currentSize': currentSize,
-      'maxSize': maxSize,
-      'memoryUsage': memoryUsage,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'totalOperations': totalOperations,
+        'hits': hits,
+        'misses': misses,
+        'hitRate': hitRate,
+        'currentSize': currentSize,
+        'maxSize': maxSize,
+        'memoryUsage': memoryUsage,
+      };
 }
 
 extension RequestBatcherMobileExtensions on RequestBatcher {
@@ -586,26 +569,22 @@ extension RequestBatcherMobileExtensions on RequestBatcher {
 
 extension LazyIdlMetricsMobileExtensions on LazyIdlMetrics {
   /// Convert IDL metrics to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'totalLoads': totalLoads,
-      'cacheHits': cacheHits,
-      'cacheMisses': cacheMisses,
-      'memoryUsage': memoryUsage,
-      'averageLoadTime': averageLoadTime,
-      'activeIdls': activeIdls,
-      'cacheHitRate': cacheHitRate,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'totalLoads': totalLoads,
+        'cacheHits': cacheHits,
+        'cacheMisses': cacheMisses,
+        'memoryUsage': memoryUsage,
+        'averageLoadTime': averageLoadTime,
+        'activeIdls': activeIdls,
+        'cacheHitRate': cacheHitRate,
+      };
 }
 
 extension PerformanceMetricsMobileExtensions on PerformanceMetrics {
   /// Convert performance metrics to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'requestsProcessed': 0,
-      'averageResponseTime': 0,
-      'errorRate': 0.0,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'requestsProcessed': 0,
+        'averageResponseTime': 0,
+        'errorRate': 0.0,
+      };
 }

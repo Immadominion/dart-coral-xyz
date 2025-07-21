@@ -4,8 +4,8 @@
 /// behavior with comprehensive coverage of all error types and parsing scenarios.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ErrorCode', () {
@@ -320,8 +320,10 @@ void main() {
       final result = AnchorError.parse(logs);
 
       expect(result, isNotNull);
-      expect(result!.error.comparedValues,
-          isNull,); // Should gracefully handle invalid pubkeys
+      expect(
+        result!.error.comparedValues,
+        isNull,
+      ); // Should gracefully handle invalid pubkeys
     });
   });
 
@@ -367,8 +369,10 @@ void main() {
         logs: ['Program 11111111111111111111111111111111 invoke [1]'],
       );
 
-      expect(fileLineError.toString(),
-          contains('AnchorError thrown in src/lib.rs:42'),);
+      expect(
+        fileLineError.toString(),
+        contains('AnchorError thrown in src/lib.rs:42'),
+      );
       expect(fileLineError.toString(), contains('Error Code: TestError'));
       expect(fileLineError.toString(), contains('Error Number: 6000'));
       expect(fileLineError.toString(), contains('Error Message: Test message'));
@@ -384,8 +388,10 @@ void main() {
         logs: ['Program 11111111111111111111111111111111 invoke [1]'],
       );
 
-      expect(accountError.toString(),
-          contains('AnchorError caused by account: test_account'),);
+      expect(
+        accountError.toString(),
+        contains('AnchorError caused by account: test_account'),
+      );
 
       // No origin
       final noOriginError = AnchorError(
@@ -435,10 +441,14 @@ void main() {
     });
 
     test('provides error messages for all codes', () {
-      expect(getErrorMessage(LangErrorCode.instructionMissing),
-          equals('Instruction discriminator not provided'),);
-      expect(getErrorMessage(LangErrorCode.accountDiscriminatorMismatch),
-          equals('Account discriminator did not match what was expected'),);
+      expect(
+        getErrorMessage(LangErrorCode.instructionMissing),
+        equals('Instruction discriminator not provided'),
+      );
+      expect(
+        getErrorMessage(LangErrorCode.accountDiscriminatorMismatch),
+        equals('Account discriminator did not match what was expected'),
+      );
       expect(getErrorMessage(9999), equals('Unknown error code: 9999'));
     });
   });

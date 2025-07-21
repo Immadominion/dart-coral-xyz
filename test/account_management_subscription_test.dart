@@ -5,13 +5,11 @@
 /// account management operations.
 library;
 
-import 'dart:typed_data';
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 // Test helper classes
 class MockAccountData {
-
   const MockAccountData({
     required this.value,
     required this.name,
@@ -190,8 +188,10 @@ void main() {
 
         expect(config.maxEntries, equals(10000));
         expect(config.ttl, equals(const Duration(minutes: 10)));
-        expect(config.strategy,
-            equals(CacheInvalidationStrategy.slotBasedInvalidation),);
+        expect(
+          config.strategy,
+          equals(CacheInvalidationStrategy.slotBasedInvalidation),
+        );
         expect(config.maxMemoryBytes, equals(200 * 1024 * 1024));
         expect(config.memoryPressureThreshold, equals(0.9));
         expect(config.evictionBatchSize, equals(100));
@@ -202,8 +202,10 @@ void main() {
 
         expect(config.maxEntries, equals(100));
         expect(config.ttl, equals(const Duration(minutes: 1)));
-        expect(config.strategy,
-            equals(CacheInvalidationStrategy.timeBasedExpiration),);
+        expect(
+          config.strategy,
+          equals(CacheInvalidationStrategy.timeBasedExpiration),
+        );
         expect(config.maxMemoryBytes, equals(5 * 1024 * 1024));
         expect(config.cleanupInterval, equals(const Duration(seconds: 30)));
         expect(config.enableStatistics, isFalse);
@@ -247,7 +249,8 @@ void main() {
       });
 
       test('checks expiration based on TTL', () {
-        final oldTimestamp = DateTime.now().subtract(const Duration(minutes: 10));
+        final oldTimestamp =
+            DateTime.now().subtract(const Duration(minutes: 10));
         final entry = CacheEntry<String>(
           data: 'test',
           timestamp: oldTimestamp,
@@ -327,8 +330,7 @@ void main() {
       test('handles cache eviction when full', () {
         // Fill cache to capacity
         for (int i = 0; i < 10; i++) {
-          final address =
-              PublicKey.fromBase58(i.toString().padLeft(44, '1'));
+          final address = PublicKey.fromBase58(i.toString().padLeft(44, '1'));
           final data =
               MockAccountData(value: i, name: 'test$i', owner: programId);
           cacheManager.put(address, data);
@@ -336,7 +338,8 @@ void main() {
 
         // Add one more to trigger eviction
         final extraAddress = PublicKey.fromBase58(
-            '99999999999999999999999999999999999999999999',);
+          '99999999999999999999999999999999999999999999',
+        );
         final extraData =
             MockAccountData(value: 99, name: 'extra', owner: programId);
         cacheManager.put(extraAddress, extraData);
@@ -374,7 +377,8 @@ void main() {
         cacheManager.put(accountAddress, testData);
         cacheManager.get(accountAddress); // Hit
         cacheManager.get(
-            PublicKey.fromBase58('33333333333333333333333333333333'),); // Miss
+          PublicKey.fromBase58('33333333333333333333333333333333'),
+        ); // Miss
 
         final stats = cacheManager.getStatistics();
         expect(stats.currentSize, equals(1));
@@ -469,8 +473,10 @@ void main() {
         final cacheConfig = AccountCacheConfig.development();
 
         expect(subscriptionConfig.maxReconnectAttempts, equals(10));
-        expect(cacheConfig.strategy,
-            equals(CacheInvalidationStrategy.writeThrough),);
+        expect(
+          cacheConfig.strategy,
+          equals(CacheInvalidationStrategy.writeThrough),
+        );
 
         // Test that configurations work together
         expect(subscriptionConfig.defaultCommitment, isA<Commitment>());

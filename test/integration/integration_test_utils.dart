@@ -8,12 +8,13 @@ library;
 
 import 'dart:async';
 import 'dart:io';
-import 'package:test/test.dart';
+import 'dart:typed_data';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'
     hide Transaction, TransactionInstruction;
 import 'package:coral_xyz_anchor/src/types/transaction.dart'
     show Transaction, TransactionInstruction;
-import 'dart:typed_data';
+import 'package:test/test.dart';
 
 /// Configuration for integration test environment
 class IntegrationTestConfig {
@@ -255,7 +256,12 @@ class PerformanceBenchmark {
 /// Benchmark statistics
 class BenchmarkStats {
   const BenchmarkStats(
-      this.name, this.min, this.max, this.average, this.sampleCount);
+    this.name,
+    this.min,
+    this.max,
+    this.average,
+    this.sampleCount,
+  );
   final String name;
   final Duration min;
   final Duration max;

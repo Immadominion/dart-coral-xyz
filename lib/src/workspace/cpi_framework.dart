@@ -22,7 +22,8 @@ class CpiException extends AnchorError {
   CpiException(String message, {ErrorCode? errorCode, FileLine? fileLine})
       : super(
           error: ErrorInfo(
-            errorCode: errorCode ?? const ErrorCode(code: 'CpiError', number: 6000),
+            errorCode:
+                errorCode ?? const ErrorCode(code: 'CpiError', number: 6000),
             errorMessage: message,
             origin: fileLine != null ? FileLineOrigin(fileLine) : null,
           ),
@@ -33,7 +34,6 @@ class CpiException extends AnchorError {
 
 /// Authority delegation information for CPI calls.
 class CpiAuthority {
-
   const CpiAuthority({
     required this.publicKey,
     this.isSigner = false,
@@ -43,14 +43,12 @@ class CpiAuthority {
   });
 
   /// Create a signer authority.
-  factory CpiAuthority.signer(PublicKey publicKey) {
-    return CpiAuthority(publicKey: publicKey, isSigner: true);
-  }
+  factory CpiAuthority.signer(PublicKey publicKey) =>
+      CpiAuthority(publicKey: publicKey, isSigner: true);
 
   /// Create a mutable authority.
-  factory CpiAuthority.mutable(PublicKey publicKey) {
-    return CpiAuthority(publicKey: publicKey, isMutable: true);
-  }
+  factory CpiAuthority.mutable(PublicKey publicKey) =>
+      CpiAuthority(publicKey: publicKey, isMutable: true);
 
   /// Create a PDA authority.
   factory CpiAuthority.pda({
@@ -59,15 +57,15 @@ class CpiAuthority {
     required PublicKey programId,
     bool isSigner = false,
     bool isMutable = false,
-  }) {
-    return CpiAuthority(
-      publicKey: publicKey,
-      isSigner: isSigner,
-      isMutable: isMutable,
-      seeds: seeds,
-      programId: programId,
-    );
-  }
+  }) =>
+      CpiAuthority(
+        publicKey: publicKey,
+        isSigner: isSigner,
+        isMutable: isMutable,
+        seeds: seeds,
+        programId: programId,
+      );
+
   /// The authority public key.
   final PublicKey publicKey;
 
@@ -99,7 +97,6 @@ class CpiAuthority {
 
 /// Account dependency information for CPI calls.
 class CpiAccountDependency {
-
   const CpiAccountDependency({
     required this.publicKey,
     this.owner,
@@ -108,6 +105,7 @@ class CpiAccountDependency {
     this.expectedSize,
     this.discriminator,
   });
+
   /// The account public key.
   final PublicKey publicKey;
 
@@ -132,7 +130,6 @@ class CpiAccountDependency {
 
 /// Configuration for CPI operations.
 class CpiConfig {
-
   const CpiConfig({
     this.maxDepth = 10,
     this.enableAccountValidation = true,
@@ -141,6 +138,7 @@ class CpiConfig {
     this.enableDebugging = false,
     this.maxAccountsPerCall = 255,
   });
+
   /// Maximum number of nested CPI calls allowed.
   final int maxDepth;
 
@@ -163,13 +161,10 @@ class CpiConfig {
   static const CpiConfig defaultConfig = CpiConfig();
 
   /// Production configuration with optimizations.
-  static const CpiConfig production = CpiConfig(
-    enableSignerPropagation: true,
-  );
+  static const CpiConfig production = CpiConfig();
 
   /// Development configuration with debugging.
   static const CpiConfig development = CpiConfig(
-    enableSignerPropagation: true,
     enableOptimization: false,
     enableDebugging: true,
   );
@@ -177,7 +172,6 @@ class CpiConfig {
 
 /// CPI invocation context with account and authority information.
 class CpiInvocationContext {
-
   const CpiInvocationContext({
     required this.programId,
     required this.instructionName,
@@ -188,6 +182,7 @@ class CpiInvocationContext {
     this.nestedInvocations = const [],
     this.metadata = const {},
   });
+
   /// The target program for the CPI call.
   final PublicKey programId;
 
@@ -222,16 +217,17 @@ class CpiInvocationContext {
     List<Keypair>? signers,
     List<CpiInvocationContext>? nestedInvocations,
     Map<String, dynamic>? metadata,
-  }) => CpiInvocationContext(
-      programId: programId ?? this.programId,
-      instructionName: instructionName ?? this.instructionName,
-      arguments: arguments ?? this.arguments,
-      accounts: accounts ?? this.accounts,
-      authorities: authorities ?? this.authorities,
-      signers: signers ?? this.signers,
-      nestedInvocations: nestedInvocations ?? this.nestedInvocations,
-      metadata: metadata ?? this.metadata,
-    );
+  }) =>
+      CpiInvocationContext(
+        programId: programId ?? this.programId,
+        instructionName: instructionName ?? this.instructionName,
+        arguments: arguments ?? this.arguments,
+        accounts: accounts ?? this.accounts,
+        authorities: authorities ?? this.authorities,
+        signers: signers ?? this.signers,
+        nestedInvocations: nestedInvocations ?? this.nestedInvocations,
+        metadata: metadata ?? this.metadata,
+      );
 
   /// Get the total depth of nested invocations.
   int get depth {
@@ -270,12 +266,12 @@ class CpiInvocationContext {
   }
 
   @override
-  String toString() => 'CpiInvocationContext(${programId.toBase58()}::$instructionName, depth: $depth)';
+  String toString() =>
+      'CpiInvocationContext(${programId.toBase58()}::$instructionName, depth: $depth)';
 }
 
 /// Result of CPI validation.
 class CpiValidationResult {
-
   const CpiValidationResult({
     required this.isValid,
     this.errors = const [],
@@ -287,27 +283,26 @@ class CpiValidationResult {
   factory CpiValidationResult.success({
     List<String>? warnings,
     Map<String, dynamic>? metadata,
-  }) {
-    return CpiValidationResult(
-      isValid: true,
-      warnings: warnings ?? [],
-      metadata: metadata ?? {},
-    );
-  }
+  }) =>
+      CpiValidationResult(
+        isValid: true,
+        warnings: warnings ?? [],
+        metadata: metadata ?? {},
+      );
 
   /// Create a failed validation result.
   factory CpiValidationResult.failure({
     required List<String> errors,
     List<String>? warnings,
     Map<String, dynamic>? metadata,
-  }) {
-    return CpiValidationResult(
-      isValid: false,
-      errors: errors,
-      warnings: warnings ?? [],
-      metadata: metadata ?? {},
-    );
-  }
+  }) =>
+      CpiValidationResult(
+        isValid: false,
+        errors: errors,
+        warnings: warnings ?? [],
+        metadata: metadata ?? {},
+      );
+
   /// Whether the validation passed.
   final bool isValid;
 
@@ -370,16 +365,17 @@ class CpiStatistics {
   }
 
   @override
-  String toString() => 'CpiStatistics(calls: $totalCalls, success: ${successRate.toStringAsFixed(1)}%, avg: ${averageExecutionTime.toStringAsFixed(2)}ms)';
+  String toString() =>
+      'CpiStatistics(calls: $totalCalls, success: ${successRate.toStringAsFixed(1)}%, avg: ${averageExecutionTime.toStringAsFixed(2)}ms)';
 }
 
 /// CPI instruction builder with dependency tracking and validation.
 class CpiBuilder {
-
   CpiBuilder({
     required this.programManager,
     CpiConfig? config,
   }) : config = config ?? CpiConfig.defaultConfig;
+
   /// Configuration for CPI operations.
   final CpiConfig config;
 
@@ -541,7 +537,8 @@ class CpiBuilder {
 
     if (_contextStack.isNotEmpty) {
       throw CpiException(
-          'Unclosed nested CPI invocations: ${_contextStack.length}',);
+        'Unclosed nested CPI invocations: ${_contextStack.length}',
+      );
     }
 
     return _currentContext!;
@@ -559,12 +556,12 @@ class CpiBuilder {
 
 /// CPI coordinator for managing complex cross-program invocations.
 class CpiCoordinator {
-
   CpiCoordinator({
     required this.programManager,
     required this.provider,
     CpiConfig? config,
   }) : config = config ?? CpiConfig.defaultConfig;
+
   /// Configuration for CPI operations.
   final CpiConfig config;
 
@@ -595,7 +592,8 @@ class CpiCoordinator {
     final totalAccounts = context.allAccounts.length;
     if (totalAccounts > config.maxAccountsPerCall) {
       errors.add(
-          'Total accounts $totalAccounts exceeds maximum ${config.maxAccountsPerCall}',);
+        'Total accounts $totalAccounts exceeds maximum ${config.maxAccountsPerCall}',
+      );
     }
 
     // Validate program exists
@@ -644,12 +642,14 @@ class CpiCoordinator {
     for (final authority in context.allAuthorities) {
       if (authority.isPda && authority.seeds == null) {
         errors.add(
-            'PDA authority missing seeds: ${authority.publicKey.toBase58()}',);
+          'PDA authority missing seeds: ${authority.publicKey.toBase58()}',
+        );
       }
 
       if (authority.isPda && authority.programId == null) {
         errors.add(
-            'PDA authority missing program ID: ${authority.publicKey.toBase58()}',);
+          'PDA authority missing program ID: ${authority.publicKey.toBase58()}',
+        );
       }
     }
 
@@ -660,7 +660,8 @@ class CpiCoordinator {
             account.discriminator != null &&
             account.discriminator!.isEmpty) {
           warnings.add(
-              'Required account has empty discriminator: ${account.publicKey.toBase58()}',);
+            'Required account has empty discriminator: ${account.publicKey.toBase58()}',
+          );
         }
       }
     }
@@ -688,7 +689,8 @@ class CpiCoordinator {
       final validation = validateInvocation(context);
       if (!validation.isValid) {
         throw CpiException(
-            'CPI validation failed: ${validation.errors.join(', ')}',);
+          'CPI validation failed: ${validation.errors.join(', ')}',
+        );
       }
 
       // Update statistics
@@ -703,7 +705,8 @@ class CpiCoordinator {
       final program = _getProgram(context.programId);
       if (program == null) {
         throw CpiException(
-            'Program not found: ${context.programId.toBase58()}',);
+          'Program not found: ${context.programId.toBase58()}',
+        );
       }
 
       // Build the instruction
@@ -748,9 +751,9 @@ class CpiCoordinator {
 
   /// Create a new CPI builder.
   CpiBuilder builder() => CpiBuilder(
-      programManager: programManager,
-      config: config,
-    );
+        programManager: programManager,
+        config: config,
+      );
 
   /// Execute a complex CPI transaction with multiple invocations.
   Future<List<String>> executeBatch(List<CpiInvocationContext> contexts) async {
@@ -804,21 +807,25 @@ class CpiCoordinator {
           .where((auth) => auth.publicKey == account.publicKey)
           .firstOrNull;
 
-      accounts.add(AccountMeta(
-        pubkey: account.publicKey,
-        isSigner: authority?.isSigner ?? false,
-        isWritable: authority?.isMutable ?? false,
-      ),);
+      accounts.add(
+        AccountMeta(
+          pubkey: account.publicKey,
+          isSigner: authority?.isSigner ?? false,
+          isWritable: authority?.isMutable ?? false,
+        ),
+      );
     }
 
     // Add authority account metas
     for (final authority in context.authorities) {
       if (!accounts.any((acc) => acc.pubkey == authority.publicKey)) {
-        accounts.add(AccountMeta(
-          pubkey: authority.publicKey,
-          isSigner: authority.isSigner,
-          isWritable: authority.isMutable,
-        ),);
+        accounts.add(
+          AccountMeta(
+            pubkey: authority.publicKey,
+            isSigner: authority.isSigner,
+            isWritable: authority.isMutable,
+          ),
+        );
       }
     }
 
@@ -835,7 +842,6 @@ class CpiCoordinator {
 
 /// Comprehensive CPI framework for cross-program invocations.
 class CpiFramework {
-
   CpiFramework({
     required this.programManager,
     required this.provider,
@@ -847,6 +853,7 @@ class CpiFramework {
       config: this.config,
     );
   }
+
   /// Program manager for multi-program coordination.
   final ProgramManager programManager;
 
@@ -866,13 +873,16 @@ class CpiFramework {
   CpiBuilder builder() => _coordinator.builder();
 
   /// Execute a CPI invocation.
-  Future<String> execute(CpiInvocationContext context) => _coordinator.executeInvocation(context);
+  Future<String> execute(CpiInvocationContext context) =>
+      _coordinator.executeInvocation(context);
 
   /// Execute multiple CPI invocations.
-  Future<List<String>> executeBatch(List<CpiInvocationContext> contexts) => _coordinator.executeBatch(contexts);
+  Future<List<String>> executeBatch(List<CpiInvocationContext> contexts) =>
+      _coordinator.executeBatch(contexts);
 
   /// Validate a CPI invocation.
-  CpiValidationResult validate(CpiInvocationContext context) => _coordinator.validateInvocation(context);
+  CpiValidationResult validate(CpiInvocationContext context) =>
+      _coordinator.validateInvocation(context);
 
   /// Get CPI statistics.
   CpiStatistics get statistics => _coordinator.statistics;

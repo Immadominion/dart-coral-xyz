@@ -55,7 +55,8 @@ class ErrorGenerator {
         buffer.writeln('  /// Message: ${error.msg}');
       }
       buffer.writeln(
-          '  static final $errorName = $errorClassName._(code: ${error.code}, message: \'${error.msg ?? error.name}\');');
+        '  static final $errorName = $errorClassName._(code: ${error.code}, message: \'${error.msg ?? error.name}\');',
+      );
     }
     buffer.writeln();
 
@@ -89,7 +90,8 @@ class ErrorGenerator {
     buffer.writeln('  @override');
     buffer.writeln('  String toString() {');
     buffer.writeln(
-        '    return \'$errorClassName(code: \$code, message: \$message)\';');
+      '    return \'$errorClassName(code: \$code, message: \$message)\';',
+    );
     buffer.writeln('  }');
     buffer.writeln();
 
@@ -122,14 +124,14 @@ class ErrorGenerator {
   }
 
   /// Convert string to PascalCase
-  String _toPascalCase(String input) {
-    return input
-        .split('_')
-        .map((word) => word.isNotEmpty
+  String _toPascalCase(String input) => input
+      .split('_')
+      .map(
+        (word) => word.isNotEmpty
             ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : '')
-        .join('');
-  }
+            : '',
+      )
+      .join();
 
   /// Convert string to camelCase
   String _toCamelCase(String input) {

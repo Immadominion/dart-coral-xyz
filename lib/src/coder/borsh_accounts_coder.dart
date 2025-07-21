@@ -66,7 +66,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       _buildAccountLayoutsFromInlineTypes();
     } else if (idl.types == null) {
       throw AccountCoderError(
-          'Accounts require `idl.types` or inline account type definitions');
+        'Accounts require `idl.types` or inline account type definitions',
+      );
     } else {
       _buildAccountLayouts();
     }

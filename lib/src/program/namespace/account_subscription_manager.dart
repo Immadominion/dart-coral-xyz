@@ -17,7 +17,6 @@ import 'package:coral_xyz_anchor/src/provider/connection.dart';
 
 /// Configuration for account subscription manager
 class AccountSubscriptionConfig {
-
   const AccountSubscriptionConfig({
     this.autoReconnect = true,
     this.maxReconnectAttempts = 5,
@@ -29,30 +28,26 @@ class AccountSubscriptionConfig {
   });
 
   /// Create development-optimized configuration
-  factory AccountSubscriptionConfig.development() {
-    return const AccountSubscriptionConfig(
-      autoReconnect: true,
-      maxReconnectAttempts: 10,
-      reconnectDelay: Duration(seconds: 1),
-      subscriptionTimeout: Duration(minutes: 10),
-      maxConcurrentSubscriptions: 50,
-      bufferSize: 20,
-      defaultCommitment: Commitment.confirmed,
-    );
-  }
+  factory AccountSubscriptionConfig.development() =>
+      const AccountSubscriptionConfig(
+        maxReconnectAttempts: 10,
+        reconnectDelay: Duration(seconds: 1),
+        subscriptionTimeout: Duration(minutes: 10),
+        maxConcurrentSubscriptions: 50,
+        bufferSize: 20,
+      );
 
   /// Create production-optimized configuration
-  factory AccountSubscriptionConfig.production() {
-    return const AccountSubscriptionConfig(
-      autoReconnect: true,
-      maxReconnectAttempts: 3,
-      reconnectDelay: Duration(seconds: 5),
-      subscriptionTimeout: Duration(hours: 1),
-      maxConcurrentSubscriptions: 200,
-      bufferSize: 100,
-      defaultCommitment: Commitment.finalized,
-    );
-  }
+  factory AccountSubscriptionConfig.production() =>
+      const AccountSubscriptionConfig(
+        maxReconnectAttempts: 3,
+        reconnectDelay: Duration(seconds: 5),
+        subscriptionTimeout: Duration(hours: 1),
+        maxConcurrentSubscriptions: 200,
+        bufferSize: 100,
+        defaultCommitment: Commitment.finalized,
+      );
+
   /// Enable automatic reconnection on connection failures
   final bool autoReconnect;
 
@@ -77,15 +72,14 @@ class AccountSubscriptionConfig {
 
 /// Account change notification
 class AccountChangeNotification {
-
   const AccountChangeNotification({
     required this.publicKey,
-    this.data,
     required this.lamports,
     required this.owner,
     required this.slot,
     required this.executable,
     required this.rentEpoch,
+    this.data,
   });
 
   /// Create from RPC notification data
@@ -117,7 +111,8 @@ class AccountChangeNotification {
       data: accountData,
       lamports: value['lamports'] as int? ?? 0,
       owner: PublicKey.fromBase58(
-          value['owner'] as String? ?? '11111111111111111111111111111111'),
+        value['owner'] as String? ?? '11111111111111111111111111111111',
+      ),
       slot:
           (notification['context'] as Map<String, dynamic>?)?['slot'] as int? ??
               0,
@@ -125,6 +120,7 @@ class AccountChangeNotification {
       rentEpoch: value['rentEpoch'] as int? ?? 0,
     );
   }
+
   /// Account public key
   final PublicKey publicKey;
 
@@ -147,7 +143,8 @@ class AccountChangeNotification {
   final int rentEpoch;
 
   @override
-  String toString() => 'AccountChangeNotification(publicKey: $publicKey, lamports: $lamports, owner: $owner, slot: $slot)';
+  String toString() =>
+      'AccountChangeNotification(publicKey: $publicKey, lamports: $lamports, owner: $owner, slot: $slot)';
 }
 
 /// Subscription state for account monitoring
@@ -162,16 +159,16 @@ enum AccountSubscriptionState {
 
 /// Statistics for account subscription performance
 class AccountSubscriptionStats {
-
   const AccountSubscriptionStats({
     required this.totalNotifications,
     required this.successfulNotifications,
     required this.notificationErrors,
     required this.reconnections,
-    this.lastNotification,
     required this.state,
     required this.averageProcessingTime,
+    this.lastNotification,
   });
+
   /// Total number of notifications received
   final int totalNotifications;
 
@@ -200,17 +197,18 @@ class AccountSubscriptionStats {
   }
 
   @override
-  String toString() => 'AccountSubscriptionStats(notifications: $totalNotifications, success: ${successRate.toStringAsFixed(1)}%, state: $state)';
+  String toString() =>
+      'AccountSubscriptionStats(notifications: $totalNotifications, success: ${successRate.toStringAsFixed(1)}%, state: $state)';
 }
 
 /// Individual account subscription
 class AccountSubscription {
-
   AccountSubscription({
     required this.publicKey,
     required this.config,
     required this.commitment,
   }) : _controller = StreamController<AccountChangeNotification>.broadcast();
+
   /// Account public key being monitored
   final PublicKey publicKey;
 
@@ -470,8 +468,12 @@ class AccountSubscription {
     _timeoutTimer = Timer(config.subscriptionTimeout, () {
       if (_state == AccountSubscriptionState.connected) {
         _setState(AccountSubscriptionState.error);
-        _controller.addError(TimeoutException(
-            'Subscription timed out', config.subscriptionTimeout,),);
+        _controller.addError(
+          TimeoutException(
+            'Subscription timed out',
+            config.subscriptionTimeout,
+          ),
+        );
       }
     });
   }
@@ -482,7 +484,8 @@ class AccountSubscription {
   }
 
   /// Get buffered notifications
-  List<AccountChangeNotification> getBufferedNotifications() => List.unmodifiable(_buffer);
+  List<AccountChangeNotification> getBufferedNotifications() =>
+      List.unmodifiable(_buffer);
 
   /// Clear notification buffer
   void clearBuffer() {
@@ -492,12 +495,12 @@ class AccountSubscription {
 
 /// Manager for account subscriptions with advanced features
 class AccountSubscriptionManager {
-
   AccountSubscriptionManager({
     required Connection connection,
     AccountSubscriptionConfig? config,
   })  : _connection = connection,
         _config = config ?? const AccountSubscriptionConfig();
+
   /// Connection to Solana cluster
   final Connection _connection;
 
@@ -530,7 +533,8 @@ class AccountSubscriptionManager {
     // Check subscription limits
     if (_subscriptions.length >= _config.maxConcurrentSubscriptions) {
       throw StateError(
-          'Maximum concurrent subscriptions reached: ${_config.maxConcurrentSubscriptions}',);
+        'Maximum concurrent subscriptions reached: ${_config.maxConcurrentSubscriptions}',
+      );
     }
 
     // Create new subscription
@@ -559,7 +563,8 @@ class AccountSubscriptionManager {
   }
 
   /// Check if account is being monitored
-  bool isSubscribed(PublicKey publicKey) => _subscriptions.containsKey(publicKey.toBase58());
+  bool isSubscribed(PublicKey publicKey) =>
+      _subscriptions.containsKey(publicKey.toBase58());
 
   /// Get subscription statistics for an account
   AccountSubscriptionStats? getSubscriptionStats(PublicKey publicKey) {
@@ -569,9 +574,9 @@ class AccountSubscriptionManager {
 
   /// Get all active subscriptions
   List<PublicKey> getActiveSubscriptions() => _subscriptions.values
-        .where((sub) => sub.isActive)
-        .map((sub) => sub.publicKey)
-        .toList();
+      .where((sub) => sub.isActive)
+      .map((sub) => sub.publicKey)
+      .toList();
 
   /// Get manager statistics
   Map<String, dynamic> getManagerStats() {

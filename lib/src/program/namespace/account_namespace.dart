@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/program/namespace/account_fetcher.dart';
 /// final account = await program.account.accountType.fetch(address);
 /// ```
 class AccountNamespace {
-
   AccountNamespace._();
   final Map<String, AccountClient> _clients = {};
 
@@ -65,7 +64,6 @@ class AccountNamespace {
 
 /// Client for fetching and managing accounts of a specific type
 class AccountClient<T> {
-
   AccountClient({
     required IdlAccount account,
     required Coder coder,
@@ -88,14 +86,16 @@ class AccountClient<T> {
     PublicKey address, {
     Commitment? commitment,
     bool useCache = true,
-  }) async => _fetcher.fetchNullable(
-      address,
-      commitment: commitment,
-      useCache: useCache,
-    );
+  }) async =>
+      _fetcher.fetchNullable(
+        address,
+        commitment: commitment,
+        useCache: useCache,
+      );
 
   /// Fetch multiple accounts by their public keys
-  Future<List<T?>> fetchMultiple(List<PublicKey> addresses) async => _fetcher.fetchMultiple(addresses);
+  Future<List<T?>> fetchMultiple(List<PublicKey> addresses) async =>
+      _fetcher.fetchMultiple(addresses);
 
   /// Fetch all accounts of this type based on filters
   Future<List<ProgramAccount<T>>> all() async => _fetcher.all();
@@ -106,10 +106,11 @@ class AccountClient<T> {
     Commitment? commitment,
     int?
         limit, // Note: limit parameter is accepted but ignored (for API compatibility)
-  }) async => _fetcher.all(
-      filters: filters,
-      commitment: commitment,
-    );
+  }) async =>
+      _fetcher.all(
+        filters: filters,
+        commitment: commitment,
+      );
 
   /// Get the size of this account type in bytes
   int get size => _fetcher.size;

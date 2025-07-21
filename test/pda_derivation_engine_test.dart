@@ -5,8 +5,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('PdaDerivationEngine', () {
@@ -35,7 +36,9 @@ void main() {
       test('BytesSeed should validate length', () {
         final longBytes = Uint8List(33); // Too long
         expect(
-            () => BytesSeed(longBytes), throwsA(isA<PdaDerivationException>()),);
+          () => BytesSeed(longBytes),
+          throwsA(isA<PdaDerivationException>()),
+        );
       });
 
       test('PublicKeySeed should handle PublicKey correctly', () {
@@ -52,25 +55,29 @@ void main() {
         expect(u8Seed.toBytes(), equals([255]));
 
         // Test u16 little endian
-        final u16Seed =
-            const NumberSeed(0x1234, byteLength: 2);
+        final u16Seed = const NumberSeed(0x1234, byteLength: 2);
         expect(u16Seed.toBytes(), equals([0x34, 0x12]));
 
         // Test u32 little endian
-        final u32Seed =
-            const NumberSeed(0x12345678);
+        final u32Seed = const NumberSeed(0x12345678);
         expect(u32Seed.toBytes(), equals([0x78, 0x56, 0x34, 0x12]));
 
         // Test u64 little endian
-        final u64Seed = const NumberSeed(0x123456789ABCDEF0,
-            byteLength: 8,);
-        expect(u64Seed.toBytes(),
-            equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]),);
+        final u64Seed = const NumberSeed(
+          0x123456789ABCDEF0,
+          byteLength: 8,
+        );
+        expect(
+          u64Seed.toBytes(),
+          equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]),
+        );
       });
 
       test('NumberSeed should throw for invalid byte lengths', () {
-        expect(() => const NumberSeed(42, byteLength: 3).toBytes(),
-            throwsA(isA<PdaDerivationException>()),);
+        expect(
+          () => const NumberSeed(42, byteLength: 3).toBytes(),
+          throwsA(isA<PdaDerivationException>()),
+        );
       });
     });
 
@@ -93,7 +100,8 @@ void main() {
           const StringSeed('test'),
           const NumberSeed(42),
           PublicKeySeed(
-              PublicKey.fromBase58('11111111111111111111111111111111'),),
+            PublicKey.fromBase58('11111111111111111111111111111111'),
+          ),
         ];
         final result =
             PdaDerivationEngine.findProgramAddress(seeds, testProgramId);
@@ -143,9 +151,12 @@ void main() {
       });
 
       test('should throw for seeds that are too long', () {
-        expect(() {
-          BytesSeed(Uint8List(33)); // This will throw in constructor
-        }, throwsA(isA<PdaDerivationException>()),);
+        expect(
+          () {
+            BytesSeed(Uint8List(33)); // This will throw in constructor
+          },
+          throwsA(isA<PdaDerivationException>()),
+        );
       });
 
       test('should throw when total seed length exceeds limit', () {
@@ -172,7 +183,10 @@ void main() {
 
     group('createProgramAddress', () {
       test('should create PDA with known bump seed', () {
-        final seeds = [const StringSeed('test'), const NumberSeed(255, byteLength: 1)];
+        final seeds = [
+          const StringSeed('test'),
+          const NumberSeed(255, byteLength: 1),
+        ];
 
         try {
           final address =
@@ -186,7 +200,9 @@ void main() {
             const NumberSeed(254, byteLength: 1),
           ];
           final address = PdaDerivationEngine.createProgramAddress(
-              seedsWithDifferentBump, testProgramId,);
+            seedsWithDifferentBump,
+            testProgramId,
+          );
           expect(address, isA<PublicKey>());
         }
       });
@@ -201,7 +217,9 @@ void main() {
           NumberSeed(pdaResult.bump, byteLength: 1),
         ];
         final directAddress = PdaDerivationEngine.createProgramAddress(
-            seedsWithBump, testProgramId,);
+          seedsWithBump,
+          testProgramId,
+        );
 
         expect(directAddress, equals(pdaResult.address));
       });
@@ -250,7 +268,9 @@ void main() {
         ];
 
         final results = PdaDerivationEngine.findProgramAddressBatch(
-            seedCombinations, testProgramId,);
+          seedCombinations,
+          testProgramId,
+        );
 
         expect(results.length, equals(3));
         for (final result in results) {
@@ -294,8 +314,10 @@ void main() {
 
         final u64Seed = const NumberSeed(0x123456789ABCDEF0, byteLength: 8);
         expect(u64Seed, isA<NumberSeed>());
-        expect(u64Seed.toBytes(),
-            equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]),);
+        expect(
+          u64Seed.toBytes(),
+          equals([0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12]),
+        );
       });
     });
 

@@ -43,9 +43,7 @@ void main() {
     });
 
     test('should support copyWith', () {
-      const original = ConfirmOptions(
-        skipPreflight: false,
-      );
+      const original = ConfirmOptions();
 
       final modified = original.copyWith(
         commitment: CommitmentConfigs.finalized,

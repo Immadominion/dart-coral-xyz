@@ -197,7 +197,8 @@ class RequestDeduplicator {
       _timeouts.remove(key);
       if (!completer.isCompleted) {
         completer.completeError(
-            const TimeoutException('Request deduplication timeout'));
+          const TimeoutException('Request deduplication timeout'),
+        );
       }
     });
 
@@ -239,7 +240,8 @@ class EnhancedConnection extends Connection {
     CircuitBreakerConfig? circuitBreakerConfig,
   })  : _retryConfig = retryConfig ?? const RetryConfig(),
         _circuitBreaker = CircuitBreaker(
-            circuitBreakerConfig ?? const CircuitBreakerConfig()),
+          circuitBreakerConfig ?? const CircuitBreakerConfig(),
+        ),
         _deduplicator = RequestDeduplicator();
   final RetryConfig _retryConfig;
   final CircuitBreaker _circuitBreaker;
@@ -274,7 +276,8 @@ class EnhancedConnection extends Connection {
     CommitmentConfig? commitment,
   }) async =>
       _executeWithRetry(
-          () => super.getBalance(publicKey, commitment: commitment));
+        () => super.getBalance(publicKey, commitment: commitment),
+      );
 
   /// Enhanced account info fetching with retry
   @override
@@ -283,7 +286,8 @@ class EnhancedConnection extends Connection {
     CommitmentConfig? commitment,
   }) async =>
       _executeWithRetry(
-          () => super.getAccountInfo(publicKey, commitment: commitment));
+        () => super.getAccountInfo(publicKey, commitment: commitment),
+      );
 
   /// Enhanced latest blockhash fetching with retry
   @override
@@ -298,8 +302,9 @@ class EnhancedConnection extends Connection {
     List<PublicKey> publicKeys, {
     CommitmentConfig? commitment,
   }) async =>
-      _executeWithRetry(() =>
-          super.getMultipleAccountsInfo(publicKeys, commitment: commitment));
+      _executeWithRetry(
+        () => super.getMultipleAccountsInfo(publicKeys, commitment: commitment),
+      );
 
   /// Enhanced program accounts fetching with retry
   @override
@@ -308,8 +313,13 @@ class EnhancedConnection extends Connection {
     List<AccountFilter>? filters,
     CommitmentConfig? commitment,
   }) async =>
-      _executeWithRetry(() => super.getProgramAccounts(programId,
-          filters: filters, commitment: commitment));
+      _executeWithRetry(
+        () => super.getProgramAccounts(
+          programId,
+          filters: filters,
+          commitment: commitment,
+        ),
+      );
 
   /// Enhanced minimum balance fetching with retry
   @override
@@ -317,9 +327,12 @@ class EnhancedConnection extends Connection {
     int dataLength, {
     CommitmentConfig? commitment,
   }) async =>
-      _executeWithRetry(() => super.getMinimumBalanceForRentExemption(
+      _executeWithRetry(
+        () => super.getMinimumBalanceForRentExemption(
           dataLength,
-          commitment: commitment));
+          commitment: commitment,
+        ),
+      );
 
   /// Enhanced health check with retry
   @override
@@ -337,7 +350,8 @@ class EnhancedConnection extends Connection {
       // Check circuit breaker
       if (!_circuitBreaker.shouldAllowRequest()) {
         throw const RpcException(
-            'Circuit breaker is open - service unavailable');
+          'Circuit breaker is open - service unavailable',
+        );
       }
 
       try {

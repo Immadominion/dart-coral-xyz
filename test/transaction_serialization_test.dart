@@ -1,7 +1,8 @@
-import 'package:test/test.dart';
+import 'dart:typed_data';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart' as types;
-import 'dart:typed_data';
+import 'package:test/test.dart';
 
 void main() {
   group('Transaction Serialization', () {
@@ -42,7 +43,7 @@ void main() {
 
     test('serialize produces consistent output', () async {
       await wallet.signTransaction(tx);
-      final serialized = await tx.serialize();
+      final serialized = tx.serialize();
       expect(serialized, isA<Uint8List>());
       expect(serialized.length, greaterThan(0));
     });
@@ -52,8 +53,8 @@ void main() {
         instructions: tx.instructions,
         feePayer: wallet.publicKey,
       );
-      expect(() => txNoBlockhash.compileMessage(), throwsA(isA<Exception>()));
-      expect(() => txNoBlockhash.serialize(), throwsA(isA<Exception>()));
+      expect(txNoBlockhash.compileMessage, throwsA(isA<Exception>()));
+      expect(txNoBlockhash.serialize, throwsA(isA<Exception>()));
     });
   });
 

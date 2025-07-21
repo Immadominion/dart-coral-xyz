@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('InstructionDefinition', () {
@@ -70,8 +70,10 @@ void main() {
       final missingArgs = {'amount': 1000};
       final missingResult = definition.validateArguments(missingArgs);
       expect(missingResult.isValid, isFalse);
-      expect(missingResult.errors,
-          contains('Missing required argument: authority'),);
+      expect(
+        missingResult.errors,
+        contains('Missing required argument: authority'),
+      );
 
       // Invalid type
       final invalidArgs = {
@@ -89,9 +91,11 @@ void main() {
       // Valid accounts
       final validAccounts = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
         'systemProgram':
             PublicKey.fromBase58('11111111111111111111111111111111'),
       };
@@ -102,19 +106,24 @@ void main() {
       // Missing required account
       final missingAccounts = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
       };
       final missingResult = definition.validateAccounts(missingAccounts);
       expect(missingResult.isValid, isFalse);
-      expect(missingResult.errors,
-          contains('Missing required account: authority'),);
+      expect(
+        missingResult.errors,
+        contains('Missing required account: authority'),
+      );
 
       // Optional account can be missing
       final withoutOptional = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
       };
       final optionalResult = definition.validateAccounts(withoutOptional);
       expect(optionalResult.isValid, isTrue);
@@ -129,9 +138,11 @@ void main() {
       };
       final validAccounts = {
         'account': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
       };
 
       final result = definition.validate(
@@ -220,12 +231,14 @@ void main() {
   group('TypeValidator', () {
     test('validates basic types correctly', () {
       // Boolean validator
-      final boolValidator = TypeValidator.fromIdlType(const IdlType(kind: 'bool'));
+      final boolValidator =
+          TypeValidator.fromIdlType(const IdlType(kind: 'bool'));
       expect(boolValidator.validate(true).isValid, isTrue);
       expect(boolValidator.validate('not bool').isValid, isFalse);
 
       // Integer validator
-      final u64Validator = TypeValidator.fromIdlType(const IdlType(kind: 'u64'));
+      final u64Validator =
+          TypeValidator.fromIdlType(const IdlType(kind: 'u64'));
       expect(u64Validator.validate(123).isValid, isTrue);
       expect(u64Validator.validate('not int').isValid, isFalse);
 
@@ -239,27 +252,34 @@ void main() {
       final pubkeyValidator =
           TypeValidator.fromIdlType(const IdlType(kind: 'publicKey'));
       expect(
-          pubkeyValidator
-              .validate('GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs')
-              .isValid,
-          isTrue,);
+        pubkeyValidator
+            .validate('GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs')
+            .isValid,
+        isTrue,
+      );
       expect(
-          pubkeyValidator
-              .validate(PublicKey.fromBase58(
-                  'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),)
-              .isValid,
-          isTrue,);
+        pubkeyValidator
+            .validate(
+              PublicKey.fromBase58(
+                'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+              ),
+            )
+            .isValid,
+        isTrue,
+      );
       expect(pubkeyValidator.validate(123).isValid, isFalse);
     });
 
     test('validates complex types correctly', () {
       // Array validator
-      final arrayValidator = TypeValidator.fromIdlType(const IdlType(kind: 'array'));
+      final arrayValidator =
+          TypeValidator.fromIdlType(const IdlType(kind: 'array'));
       expect(arrayValidator.validate([1, 2, 3]).isValid, isTrue);
       expect(arrayValidator.validate('not array').isValid, isFalse);
 
       // Vec validator
-      final vecValidator = TypeValidator.fromIdlType(const IdlType(kind: 'vec'));
+      final vecValidator =
+          TypeValidator.fromIdlType(const IdlType(kind: 'vec'));
       expect(vecValidator.validate([1, 2, 3]).isValid, isTrue);
       expect(vecValidator.validate('not vec').isValid, isFalse);
 
@@ -382,7 +402,9 @@ void main() {
       expect(definition.name, equals('complexInstruction'));
       expect(definition.arguments.length, equals(2));
       expect(
-          definition.accounts.length, equals(2),); // Group + individual account
+        definition.accounts.length,
+        equals(2),
+      ); // Group + individual account
 
       // Validate with proper arguments and accounts
       final args = {
@@ -392,7 +414,8 @@ void main() {
       final accounts = {
         'accounts': 'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
         'authority': PublicKey.fromBase58(
-            'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',),
+          'GjwELjxNsxkopfazDKLo5Pe8eHbznfM7VHuYQ5HxETKs',
+        ),
       };
 
       final result = definition.validate(arguments: args, accounts: accounts);

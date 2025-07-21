@@ -5,10 +5,11 @@
 /// for encoding, decoding, discriminator validation, and error handling.
 library;
 
-import 'package:test/test.dart';
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('BorshAccountsCoder', () {
@@ -78,9 +79,13 @@ void main() {
 
         // Test that basic operations work to verify layouts were built
         expect(
-            () => coder.accountDiscriminator('TestAccount'), returnsNormally,);
+          () => coder.accountDiscriminator('TestAccount'),
+          returnsNormally,
+        );
         expect(
-            () => coder.accountDiscriminator('UserAccount'), returnsNormally,);
+          () => coder.accountDiscriminator('UserAccount'),
+          returnsNormally,
+        );
       });
 
       test('should handle empty accounts in IDL', () {
@@ -156,14 +161,18 @@ void main() {
     group('Account Discriminator', () {
       test('should return correct discriminator for account', () {
         final discriminator = coder.accountDiscriminator('TestAccount');
-        expect(discriminator,
-            equals(Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8])),);
+        expect(
+          discriminator,
+          equals(Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8])),
+        );
       });
 
       test('should return correct discriminator for different account', () {
         final discriminator = coder.accountDiscriminator('UserAccount');
-        expect(discriminator,
-            equals(Uint8List.fromList([9, 10, 11, 12, 13, 14, 15, 16])),);
+        expect(
+          discriminator,
+          equals(Uint8List.fromList([9, 10, 11, 12, 13, 14, 15, 16])),
+        );
       });
 
       test('should throw error for unknown account', () {
@@ -261,8 +270,10 @@ void main() {
           expect(e, isA<AccountDiscriminatorMismatchError>());
           final error = e as AccountDiscriminatorMismatchError;
           expect(error.expectedDiscriminator, equals([1, 2, 3, 4, 5, 6, 7, 8]));
-          expect(error.actualDiscriminator,
-              equals([99, 98, 97, 96, 95, 94, 93, 92]),);
+          expect(
+            error.actualDiscriminator,
+            equals([99, 98, 97, 96, 95, 94, 93, 92]),
+          );
         }
       });
     });
@@ -277,7 +288,9 @@ void main() {
             Uint8List.fromList([...discriminator, ...jsonBytes]);
 
         final decoded = coder.decodeUnchecked<Map<String, dynamic>>(
-            'UserAccount', accountData,);
+          'UserAccount',
+          accountData,
+        );
         expect(decoded, isA<Map<String, dynamic>>());
       });
 

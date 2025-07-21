@@ -1,12 +1,11 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/src/coder/account_ownership_validator.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/provider/connection.dart';
 import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:test/test.dart';
 
 /// Mock connection for testing account ownership validation
 class MockConnection extends Connection {
-
   MockConnection() : super('https://mock.test');
   final Map<String, AccountInfo?> _accounts = {};
 
@@ -18,7 +17,8 @@ class MockConnection extends Connection {
   Future<AccountInfo?> getAccountInfo(
     PublicKey publicKey, {
     CommitmentConfig? commitment,
-  }) async => _accounts[publicKey.toBase58()];
+  }) async =>
+      _accounts[publicKey.toBase58()];
 }
 
 /// Mock account info for testing
@@ -89,10 +89,14 @@ void main() {
         expect(result.isValid, isFalse);
         expect(result.actualOwner, equals(wrongProgramId));
         expect(result.expectedOwner, equals(testProgramId));
-        expect(result.errorMessage,
-            contains('Account ownership validation failed'),);
         expect(
-            result.context?['validation_type'], equals('ownership_mismatch'),);
+          result.errorMessage,
+          contains('Account ownership validation failed'),
+        );
+        expect(
+          result.context?['validation_type'],
+          equals('ownership_mismatch'),
+        );
       });
 
       test('should fail validation for non-existent account', () async {
@@ -147,7 +151,9 @@ void main() {
 
         expect(result.isValid, isTrue);
         expect(
-            result.context?['validation_type'], equals('system_owned_allowed'),);
+          result.context?['validation_type'],
+          equals('system_owned_allowed'),
+        );
       });
 
       test('should allow token program owned accounts when configured',
@@ -163,12 +169,15 @@ void main() {
           expectedProgramId: testProgramId,
           connection: mockConnection,
           config: const AccountOwnershipValidationConfig(
-              allowTokenProgramOwned: true,),
+            allowTokenProgramOwned: true,
+          ),
         );
 
         expect(result.isValid, isTrue);
-        expect(result.context?['validation_type'],
-            equals('token_program_owned_allowed'),);
+        expect(
+          result.context?['validation_type'],
+          equals('token_program_owned_allowed'),
+        );
         expect(result.context?['token_program_variant'], equals('spl_token'));
       });
 
@@ -185,12 +194,15 @@ void main() {
           expectedProgramId: testProgramId,
           connection: mockConnection,
           config: const AccountOwnershipValidationConfig(
-              allowTokenProgramOwned: true,),
+            allowTokenProgramOwned: true,
+          ),
         );
 
         expect(result.isValid, isTrue);
-        expect(result.context?['validation_type'],
-            equals('token_program_owned_allowed'),);
+        expect(
+          result.context?['validation_type'],
+          equals('token_program_owned_allowed'),
+        );
         expect(result.context?['token_program_variant'], equals('token_2022'));
       });
 
@@ -209,14 +221,19 @@ void main() {
           expectedProgramId: testProgramId,
           connection: mockConnection,
           config: AccountOwnershipValidationConfig(
-              customAllowedOwners: {customOwner},),
+            customAllowedOwners: {customOwner},
+          ),
         );
 
         expect(result.isValid, isTrue);
         expect(
-            result.context?['validation_type'], equals('custom_allowed_owner'),);
+          result.context?['validation_type'],
+          equals('custom_allowed_owner'),
+        );
         expect(
-            result.context?['matched_owner'], equals(customOwner.toBase58()),);
+          result.context?['matched_owner'],
+          equals(customOwner.toBase58()),
+        );
       });
 
       test('should allow any ownership when strict validation is disabled',
@@ -236,7 +253,9 @@ void main() {
 
         expect(result.isValid, isTrue);
         expect(
-            result.context?['validation_type'], equals('permissive_allowed'),);
+          result.context?['validation_type'],
+          equals('permissive_allowed'),
+        );
       });
     });
 
@@ -251,9 +270,13 @@ void main() {
 
         // Setup: Mix of valid and invalid accounts
         mockConnection.setAccountInfo(
-            account1, MockAccountInfo(owner: testProgramId),);
+          account1,
+          MockAccountInfo(owner: testProgramId),
+        );
         mockConnection.setAccountInfo(
-            account2, MockAccountInfo(owner: wrongProgramId),);
+          account2,
+          MockAccountInfo(owner: wrongProgramId),
+        );
         mockConnection.setAccountInfo(account3, null); // Non-existent
 
         final results = await AccountOwnershipValidator.validateBatch(
@@ -372,36 +395,52 @@ void main() {
     group('Well-Known Programs', () {
       test('should identify well-known programs correctly', () async {
         expect(
-            AccountOwnershipValidator.isWellKnownProgram(
-                AccountOwnershipValidator.systemProgramId,),
-            isTrue,);
+          AccountOwnershipValidator.isWellKnownProgram(
+            AccountOwnershipValidator.systemProgramId,
+          ),
+          isTrue,
+        );
         expect(
-            AccountOwnershipValidator.isWellKnownProgram(
-                AccountOwnershipValidator.tokenProgramId,),
-            isTrue,);
+          AccountOwnershipValidator.isWellKnownProgram(
+            AccountOwnershipValidator.tokenProgramId,
+          ),
+          isTrue,
+        );
         expect(
-            AccountOwnershipValidator.isWellKnownProgram(
-                AccountOwnershipValidator.token2022ProgramId,),
-            isTrue,);
-        expect(AccountOwnershipValidator.isWellKnownProgram(testProgramId),
-            isFalse,);
+          AccountOwnershipValidator.isWellKnownProgram(
+            AccountOwnershipValidator.token2022ProgramId,
+          ),
+          isTrue,
+        );
+        expect(
+          AccountOwnershipValidator.isWellKnownProgram(testProgramId),
+          isFalse,
+        );
       });
 
       test('should return correct names for well-known programs', () async {
         expect(
-            AccountOwnershipValidator.getWellKnownProgramName(
-                AccountOwnershipValidator.systemProgramId,),
-            equals('System Program'),);
+          AccountOwnershipValidator.getWellKnownProgramName(
+            AccountOwnershipValidator.systemProgramId,
+          ),
+          equals('System Program'),
+        );
         expect(
-            AccountOwnershipValidator.getWellKnownProgramName(
-                AccountOwnershipValidator.tokenProgramId,),
-            equals('SPL Token Program'),);
+          AccountOwnershipValidator.getWellKnownProgramName(
+            AccountOwnershipValidator.tokenProgramId,
+          ),
+          equals('SPL Token Program'),
+        );
         expect(
-            AccountOwnershipValidator.getWellKnownProgramName(
-                AccountOwnershipValidator.token2022ProgramId,),
-            equals('Token-2022 Program'),);
-        expect(AccountOwnershipValidator.getWellKnownProgramName(testProgramId),
-            isNull,);
+          AccountOwnershipValidator.getWellKnownProgramName(
+            AccountOwnershipValidator.token2022ProgramId,
+          ),
+          equals('Token-2022 Program'),
+        );
+        expect(
+          AccountOwnershipValidator.getWellKnownProgramName(testProgramId),
+          isNull,
+        );
       });
     });
 
@@ -419,12 +458,16 @@ void main() {
           connection: mockConnection,
         );
 
-        expect(result.errorMessage,
-            contains('Account ownership validation failed'),);
+        expect(
+          result.errorMessage,
+          contains('Account ownership validation failed'),
+        );
         expect(result.errorMessage, contains(testAccountAddress.toBase58()));
         expect(result.errorMessage, contains(testProgramId.toBase58()));
-        expect(result.errorMessage,
-            contains(AccountOwnershipValidator.systemProgramId.toBase58()),);
+        expect(
+          result.errorMessage,
+          contains(AccountOwnershipValidator.systemProgramId.toBase58()),
+        );
         expect(result.errorMessage, contains('System Program'));
       });
 
@@ -465,8 +508,10 @@ void main() {
       test('should track validation statistics correctly', () async {
         // Reset statistics
         AccountOwnershipValidator.resetStatistics();
-        expect(AccountOwnershipValidator.statistics['totalValidations'],
-            equals(0),);
+        expect(
+          AccountOwnershipValidator.statistics['totalValidations'],
+          equals(0),
+        );
 
         // Setup accounts
         final account1 =
@@ -475,9 +520,13 @@ void main() {
             PublicKey.fromBase58('11111111111111111111111111111113');
 
         mockConnection.setAccountInfo(
-            account1, MockAccountInfo(owner: testProgramId),);
+          account1,
+          MockAccountInfo(owner: testProgramId),
+        );
         mockConnection.setAccountInfo(
-            account2, MockAccountInfo(owner: wrongProgramId),);
+          account2,
+          MockAccountInfo(owner: wrongProgramId),
+        );
 
         // Perform validations
         await AccountOwnershipValidator.validateSingle(
@@ -501,7 +550,9 @@ void main() {
       test('should reset statistics correctly', () async {
         // Perform some validations first
         mockConnection.setAccountInfo(
-            testAccountAddress, MockAccountInfo(owner: testProgramId),);
+          testAccountAddress,
+          MockAccountInfo(owner: testProgramId),
+        );
 
         await AccountOwnershipValidator.validateSingle(
           accountAddress: testAccountAddress,
@@ -509,8 +560,10 @@ void main() {
           connection: mockConnection,
         );
 
-        expect(AccountOwnershipValidator.statistics['totalValidations'],
-            greaterThan(0),);
+        expect(
+          AccountOwnershipValidator.statistics['totalValidations'],
+          greaterThan(0),
+        );
 
         // Reset and verify
         AccountOwnershipValidator.resetStatistics();
@@ -563,7 +616,9 @@ void main() {
 
         expect(successResult.toString(), contains('isValid: true'));
         expect(
-            successResult.toString(), contains(testAccountAddress.toBase58()),);
+          successResult.toString(),
+          contains(testAccountAddress.toBase58()),
+        );
 
         expect(failureResult.toString(), contains('isValid: false'));
         expect(failureResult.toString(), contains('Test error'));
@@ -584,20 +639,31 @@ void main() {
     group('Configuration Classes', () {
       test('should use correct default configurations', () async {
         expect(
-            AccountOwnershipValidationConfig.strict.strictValidation, isTrue,);
+          AccountOwnershipValidationConfig.strict.strictValidation,
+          isTrue,
+        );
         expect(
-            AccountOwnershipValidationConfig.strict.bypassValidation, isFalse,);
-
-        expect(AccountOwnershipValidationConfig.permissive.allowSystemOwned,
-            isTrue,);
-        expect(
-            AccountOwnershipValidationConfig.permissive.allowTokenProgramOwned,
-            isTrue,);
-        expect(AccountOwnershipValidationConfig.permissive.strictValidation,
-            isFalse,);
+          AccountOwnershipValidationConfig.strict.bypassValidation,
+          isFalse,
+        );
 
         expect(
-            AccountOwnershipValidationConfig.testing.bypassValidation, isTrue,);
+          AccountOwnershipValidationConfig.permissive.allowSystemOwned,
+          isTrue,
+        );
+        expect(
+          AccountOwnershipValidationConfig.permissive.allowTokenProgramOwned,
+          isTrue,
+        );
+        expect(
+          AccountOwnershipValidationConfig.permissive.strictValidation,
+          isFalse,
+        );
+
+        expect(
+          AccountOwnershipValidationConfig.testing.bypassValidation,
+          isTrue,
+        );
       });
     });
 

@@ -55,10 +55,6 @@ class LazyIdlConfig {
   /// Configuration optimized for mobile devices
   static const LazyIdlConfig mobileConfig = LazyIdlConfig(
     cacheSize: 5,
-    preloadInstructions: true,
-    preloadAccounts: false,
-    preloadEvents: false,
-    enableCompression: true,
     cacheDuration: Duration(minutes: 30),
     maxConcurrentLoads: 2,
   );
@@ -66,7 +62,6 @@ class LazyIdlConfig {
   /// Configuration optimized for desktop applications
   static const LazyIdlConfig desktopConfig = LazyIdlConfig(
     cacheSize: 20,
-    preloadInstructions: true,
     preloadAccounts: true,
     preloadEvents: true,
     enableCompression: false,
@@ -173,9 +168,7 @@ class LazyIdl {
   }
 
   /// Private method to load IDL from file
-  Future<Idl> _loadIdl() async {
-    return await loader._loadIdlFromFile(idlPath);
-  }
+  Future<Idl> _loadIdl() async => loader._loadIdlFromFile(idlPath);
 
   @override
   String toString() => 'LazyIdl(programId: $programId, loaded: $_isLoaded)';
@@ -304,7 +297,7 @@ class LazyIdlLoader {
       throw Exception('IDL not registered for program: $programId');
     }
 
-    return await lazyIdl.load();
+    return lazyIdl.load();
   }
 
   /// Check if IDL is loaded
@@ -361,50 +354,49 @@ class LazyIdlLoader {
   }
 
   /// Private method to load IDL from file
-  Future<Idl> _loadIdlFromFile(String idlPath) async {
-    return await _loadSemaphore.acquire(() async {
-      final startTime = DateTime.now();
-      _totalLoads++;
+  Future<Idl> _loadIdlFromFile(String idlPath) async =>
+      _loadSemaphore.acquire(() async {
+        final startTime = DateTime.now();
+        _totalLoads++;
 
-      try {
-        // Check memory cache first
-        final programId = _extractProgramIdFromPath(idlPath);
-        if (_memoryCache.containsKey(programId)) {
-          _cacheHits++;
-          // Move to end (LRU)
-          final idl = _memoryCache.remove(programId)!;
-          _memoryCache[programId] = idl;
+        try {
+          // Check memory cache first
+          final programId = _extractProgramIdFromPath(idlPath);
+          if (_memoryCache.containsKey(programId)) {
+            _cacheHits++;
+            // Move to end (LRU)
+            final idl = _memoryCache.remove(programId)!;
+            _memoryCache[programId] = idl;
+            return idl;
+          }
+
+          _cacheMisses++;
+
+          // Load from file
+          final file = File(idlPath);
+          if (!await file.exists()) {
+            throw Exception('IDL file not found: $idlPath');
+          }
+
+          final content = await file.readAsString();
+          final json = jsonDecode(content) as Map<String, dynamic>;
+          final idl = Idl.fromJson(json);
+
+          // Cache in memory
+          _addToMemoryCache(programId, idl);
+
           return idl;
+        } finally {
+          final loadTime =
+              DateTime.now().difference(startTime).inMilliseconds.toDouble();
+          _loadTimes.add(loadTime);
+
+          // Keep only recent load times for averaging
+          if (_loadTimes.length > 100) {
+            _loadTimes.removeAt(0);
+          }
         }
-
-        _cacheMisses++;
-
-        // Load from file
-        final file = File(idlPath);
-        if (!await file.exists()) {
-          throw Exception('IDL file not found: $idlPath');
-        }
-
-        final content = await file.readAsString();
-        final json = jsonDecode(content) as Map<String, dynamic>;
-        final idl = Idl.fromJson(json);
-
-        // Cache in memory
-        _addToMemoryCache(programId, idl);
-
-        return idl;
-      } finally {
-        final loadTime =
-            DateTime.now().difference(startTime).inMilliseconds.toDouble();
-        _loadTimes.add(loadTime);
-
-        // Keep only recent load times for averaging
-        if (_loadTimes.length > 100) {
-          _loadTimes.removeAt(0);
-        }
-      }
-    });
-  }
+      });
 
   /// Add IDL to memory cache with LRU eviction
   void _addToMemoryCache(String programId, Idl idl) {

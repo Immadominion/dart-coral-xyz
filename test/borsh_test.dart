@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Borsh Serialization System', () {
@@ -169,8 +170,10 @@ void main() {
 
         expect(deserializer.readU16, throwsA(isA<BorshException>()));
         expect(deserializer.readU32, throwsA(isA<BorshException>()));
-        expect(() => deserializer.readFixedArray(5),
-            throwsA(isA<BorshException>()),);
+        expect(
+          () => deserializer.readFixedArray(5),
+          throwsA(isA<BorshException>()),
+        );
       });
     });
 
@@ -269,7 +272,9 @@ void main() {
         serializer.writeArray([1, 2, 3], serializer.writeU8);
         serializer.writeBool(true);
         serializer.writeOption(
-            'optional', serializer.writeString,);
+          'optional',
+          serializer.writeString,
+        );
 
         final serialized = serializer.toBytes();
 
@@ -278,8 +283,10 @@ void main() {
 
         expect(deserializer.readString(), equals('test'));
         expect(deserializer.readU32(), equals(12345));
-        expect(deserializer.readArray(deserializer.readU8),
-            equals([1, 2, 3]),);
+        expect(
+          deserializer.readArray(deserializer.readU8),
+          equals([1, 2, 3]),
+        );
         expect(deserializer.readBool(), equals(true));
         expect(
           deserializer.readOption(deserializer.readString),

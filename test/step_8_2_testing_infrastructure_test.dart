@@ -5,14 +5,13 @@
 /// development utilities matching TypeScript's testing capabilities.
 library;
 
-import 'package:test/test.dart';
 import 'dart:typed_data';
+
+import 'package:coral_xyz_anchor/src/provider/connection.dart';
 import 'package:coral_xyz_anchor/src/testing/test_infrastructure.dart';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Step 8.2: Testing Infrastructure and Development Tools', () {
@@ -231,9 +230,7 @@ void main() {
       tearDown(TestFixtures.clear);
 
       test('should register and retrieve program IDL fixtures', () {
-        final testIdl = TestDataGenerator.generateTestIdl(
-          
-        );
+        final testIdl = TestDataGenerator.generateTestIdl();
 
         TestFixtures.registerProgramIdl('test_program', testIdl);
         final retrievedIdl = TestFixtures.getProgramIdl('test_program');
@@ -386,8 +383,7 @@ void main() {
         provider.activateScenario('program_test');
 
         // Register test IDL
-        final programIdl =
-            TestDataGenerator.generateTestIdl();
+        final programIdl = TestDataGenerator.generateTestIdl();
         TestFixtures.registerProgramIdl('test_program', programIdl);
 
         // Create workspace fixture

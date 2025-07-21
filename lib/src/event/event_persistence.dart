@@ -12,7 +12,6 @@ import 'package:coral_xyz_anchor/src/event/types.dart';
 
 /// Service for persisting and restoring events
 class EventPersistenceService {
-
   EventPersistenceService({
     required String storageDirectory,
     bool enableCompression = true,
@@ -63,11 +62,13 @@ class EventPersistenceService {
   /// Persist multiple events in batch
   Future<void> persistEventBatch(List<ParsedEvent<dynamic>> events) async {
     final batch = events
-        .map((event) => PersistedEvent(
-              event: event,
-              timestamp: DateTime.now(),
-              programId: event.name, // This should be the actual program ID
-            ),)
+        .map(
+          (event) => PersistedEvent(
+            event: event,
+            timestamp: DateTime.now(),
+            programId: event.name, // This should be the actual program ID
+          ),
+        )
         .toList();
 
     final batchData = {
@@ -251,7 +252,8 @@ class EventPersistenceService {
               yield PersistedEvent.fromJson(eventData);
             } else if (eventData is Map) {
               yield PersistedEvent.fromJson(
-                  Map<String, dynamic>.from(eventData),);
+                Map<String, dynamic>.from(eventData),
+              );
             }
           }
         } else {
@@ -283,7 +285,6 @@ class EventPersistenceService {
 
 /// Represents a persisted event with metadata
 class PersistedEvent {
-
   PersistedEvent({
     required this.event,
     required this.timestamp,
@@ -338,14 +339,13 @@ class PersistedEvent {
 
 /// Statistics about persisted events
 class EventPersistenceStats {
-
   EventPersistenceStats({
     required this.totalEvents,
     required this.totalSizeBytes,
     required this.fileCount,
+    required this.compressionEnabled,
     this.oldestEvent,
     this.newestEvent,
-    required this.compressionEnabled,
   });
   final int totalEvents;
   final int totalSizeBytes;
@@ -375,7 +375,6 @@ class EventPersistenceStats {
 
 /// Configuration for event persistence
 class EventPersistenceConfig {
-
   const EventPersistenceConfig({
     required this.storageDirectory,
     this.enableCompression = true,
@@ -388,25 +387,24 @@ class EventPersistenceConfig {
   });
 
   /// Development preset with small files and short rotation
-  factory EventPersistenceConfig.development() => EventPersistenceConfig(
+  factory EventPersistenceConfig.development() => const EventPersistenceConfig(
         storageDirectory: './logs/events',
         enableCompression: false,
         maxFileSize: 1024 * 1024, // 1MB
-        rotationInterval: const Duration(hours: 1),
-        retentionPeriod: const Duration(days: 7),
+        rotationInterval: Duration(hours: 1),
+        retentionPeriod: Duration(days: 7),
         batchSize: 10,
-        batchTimeout: const Duration(seconds: 5),
+        batchTimeout: Duration(seconds: 5),
       );
 
   /// Production preset with larger files and compression
-  factory EventPersistenceConfig.production() => EventPersistenceConfig(
+  factory EventPersistenceConfig.production() => const EventPersistenceConfig(
         storageDirectory: '/var/log/anchor-events',
-        enableCompression: true,
         maxFileSize: 50 * 1024 * 1024, // 50MB
-        rotationInterval: const Duration(hours: 12),
-        retentionPeriod: const Duration(days: 30),
+        rotationInterval: Duration(hours: 12),
+        retentionPeriod: Duration(days: 30),
         batchSize: 500,
-        batchTimeout: const Duration(minutes: 2),
+        batchTimeout: Duration(minutes: 2),
       );
   final String storageDirectory;
   final bool enableCompression;

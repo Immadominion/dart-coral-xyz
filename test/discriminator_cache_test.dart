@@ -5,8 +5,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('DiscriminatorCache', () {
@@ -289,22 +290,30 @@ void main() {
 
     group('Cache Key Utilities', () {
       test('generates correct account cache keys', () {
-        expect(DiscriminatorCache.accountKey('MyAccount'),
-            equals('account:MyAccount'),);
+        expect(
+          DiscriminatorCache.accountKey('MyAccount'),
+          equals('account:MyAccount'),
+        );
         expect(DiscriminatorCache.accountKey('Data'), equals('account:Data'));
       });
 
       test('generates correct instruction cache keys', () {
-        expect(DiscriminatorCache.instructionKey('initialize'),
-            equals('global:initialize'),);
-        expect(DiscriminatorCache.instructionKey('transfer'),
-            equals('global:transfer'),);
+        expect(
+          DiscriminatorCache.instructionKey('initialize'),
+          equals('global:initialize'),
+        );
+        expect(
+          DiscriminatorCache.instructionKey('transfer'),
+          equals('global:transfer'),
+        );
       });
 
       test('generates correct event cache keys', () {
         expect(DiscriminatorCache.eventKey('MyEvent'), equals('event:MyEvent'));
         expect(
-            DiscriminatorCache.eventKey('Transfer'), equals('event:Transfer'),);
+          DiscriminatorCache.eventKey('Transfer'),
+          equals('event:Transfer'),
+        );
       });
     });
 

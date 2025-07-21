@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
 
 /// Web-specific storage implementation using browser APIs
 class WebStorage implements PlatformStorage {
-
   WebStorage._();
   static WebStorage? _instance;
 
@@ -80,24 +79,24 @@ class WebStorage implements PlatformStorage {
 class WebConnectionOptimizer {
   /// Optimize connection for web environment
   static Map<String, dynamic> getWebOptimizedConfig() => {
-      'keepAlive': true,
-      'timeout': PlatformOptimization.connectionTimeout.inMilliseconds,
-      'maxConcurrentRequests': PlatformOptimization.maxConcurrentConnections,
-      'enableCompression': true,
-      'userAgent': 'Coral-XYZ-Anchor-Dart-Web/1.0',
-      'headers': {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    };
+        'keepAlive': true,
+        'timeout': PlatformOptimization.connectionTimeout.inMilliseconds,
+        'maxConcurrentRequests': PlatformOptimization.maxConcurrentConnections,
+        'enableCompression': true,
+        'userAgent': 'Coral-XYZ-Anchor-Dart-Web/1.0',
+        'headers': {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      };
 
   /// Get web-specific retry configuration
   static Map<String, dynamic> getRetryConfig() => {
-      'maxRetries': 3,
-      'retryDelay': PlatformOptimization.retryDelay.inMilliseconds,
-      'exponentialBackoff': true,
-      'retryOn': ['timeout', 'network_error', '5xx'],
-    };
+        'maxRetries': 3,
+        'retryDelay': PlatformOptimization.retryDelay.inMilliseconds,
+        'exponentialBackoff': true,
+        'retryOn': ['timeout', 'network_error', '5xx'],
+      };
 }
 
 /// Browser wallet adapter interface
@@ -162,7 +161,8 @@ class PhantomWalletAdapter implements BrowserWalletAdapter {
   Future<void> requestConnection() async {
     if (!isInstalled) {
       throw Exception(
-          'Phantom wallet is not installed. Install from: $installUrl',);
+        'Phantom wallet is not installed. Install from: $installUrl',
+      );
     }
 
     // Mock connection request
@@ -206,7 +206,8 @@ class PhantomWalletAdapter implements BrowserWalletAdapter {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions,) async {
+    List<Transaction> transactions,
+  ) async {
     final signed = <Transaction>[];
     for (final tx in transactions) {
       signed.add(await signTransaction(tx));
@@ -281,7 +282,8 @@ class SolflareWalletAdapter implements BrowserWalletAdapter {
   Future<void> requestConnection() async {
     if (!isInstalled) {
       throw Exception(
-          'Solflare wallet is not installed. Install from: $installUrl',);
+        'Solflare wallet is not installed. Install from: $installUrl',
+      );
     }
 
     // Mock connection request
@@ -322,7 +324,8 @@ class SolflareWalletAdapter implements BrowserWalletAdapter {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions,) async {
+    List<Transaction> transactions,
+  ) async {
     final signed = <Transaction>[];
     for (final tx in transactions) {
       signed.add(await signTransaction(tx));
@@ -410,8 +413,11 @@ class WebPerformanceMonitor {
   static final Map<String, int> _errorCounts = {};
 
   /// Record request performance
-  static void recordRequest(String endpoint, Duration duration,
-      {bool success = true,}) {
+  static void recordRequest(
+    String endpoint,
+    Duration duration, {
+    bool success = true,
+  }) {
     _requestTimes.putIfAbsent(endpoint, () => []).add(duration);
     _requestCounts[endpoint] = (_requestCounts[endpoint] ?? 0) + 1;
 
@@ -470,8 +476,11 @@ class WebCacheManager {
   static int _currentCacheSize = 0;
 
   /// Store data in cache
-  static Future<void> store(String key, dynamic data,
-      {Duration? expiration,}) async {
+  static Future<void> store(
+    String key,
+    dynamic data, {
+    Duration? expiration,
+  }) async {
     final entry = CacheEntry(
       data: data,
       timestamp: DateTime.now(),
@@ -570,7 +579,6 @@ class WebCacheManager {
 
 /// Cache entry for web storage
 class CacheEntry {
-
   const CacheEntry({
     required this.data,
     required this.timestamp,

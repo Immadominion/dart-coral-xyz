@@ -1,6 +1,5 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/program/type_safe_method_builder.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Namespace Generation System Tests', () {

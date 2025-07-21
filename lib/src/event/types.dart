@@ -13,20 +13,23 @@ typedef EventCallback<T> = void Function(T event, int slot, String signature);
 
 /// Generic event callback for any event type
 typedef GenericEventCallback = void Function(
-    dynamic event, int slot, String signature,);
+  dynamic event,
+  int slot,
+  String signature,
+);
 
 /// Callback for raw log events (before parsing)
 typedef LogCallback = void Function(LogsNotification notification);
 
 /// Context information for an event emission
 class EventContext {
-
   const EventContext({
     required this.slot,
     required this.signature,
     this.blockTime,
     this.metadata,
   });
+
   /// The slot number where the event was emitted
   final int slot;
 
@@ -45,13 +48,13 @@ class EventContext {
 
 /// Parsed event with context and metadata
 class ParsedEvent<T> {
-
   const ParsedEvent({
     required this.name,
     required this.data,
     required this.context,
     required this.eventDef,
   });
+
   /// The event name
   final String name;
 
@@ -70,14 +73,14 @@ class ParsedEvent<T> {
 
 /// Log notification from the WebSocket subscription
 class LogsNotification {
-
   const LogsNotification({
     required this.signature,
     required this.logs,
-    this.err,
     required this.slot,
+    this.err,
     this.blockTime,
   });
+
   /// Transaction signature
   final String signature;
 
@@ -103,7 +106,6 @@ class LogsNotification {
 
 /// Configuration for event subscriptions
 class EventSubscriptionConfig {
-
   const EventSubscriptionConfig({
     this.commitment = CommitmentConfigs.confirmed,
     this.includeFailed = false,
@@ -111,6 +113,7 @@ class EventSubscriptionConfig {
     this.reconnectTimeout = const Duration(seconds: 30),
     this.maxReconnectAttempts = 5,
   });
+
   /// Commitment level for the subscription
   final CommitmentConfig commitment;
 
@@ -129,7 +132,6 @@ class EventSubscriptionConfig {
 
 /// Filter criteria for events
 class EventFilter {
-
   const EventFilter({
     this.eventNames,
     this.programIds,
@@ -139,19 +141,17 @@ class EventFilter {
   });
 
   /// Create a filter for specific event names
-  factory EventFilter.byEventNames(Set<String> eventNames) {
-    return EventFilter(eventNames: eventNames);
-  }
+  factory EventFilter.byEventNames(Set<String> eventNames) =>
+      EventFilter(eventNames: eventNames);
 
   /// Create a filter for specific program IDs
-  factory EventFilter.byProgramIds(Set<PublicKey> programIds) {
-    return EventFilter(programIds: programIds);
-  }
+  factory EventFilter.byProgramIds(Set<PublicKey> programIds) =>
+      EventFilter(programIds: programIds);
 
   /// Create a filter for a slot range
-  factory EventFilter.bySlotRange(int minSlot, int? maxSlot) {
-    return EventFilter(minSlot: minSlot, maxSlot: maxSlot);
-  }
+  factory EventFilter.bySlotRange(int minSlot, int? maxSlot) =>
+      EventFilter(minSlot: minSlot, maxSlot: maxSlot);
+
   /// Event names to listen for (null = all events)
   final Set<String>? eventNames;
 
@@ -194,7 +194,6 @@ class EventFilter {
 
 /// Statistics about event processing
 class EventStats {
-
   const EventStats({
     required this.totalEvents,
     required this.parsedEvents,
@@ -203,6 +202,7 @@ class EventStats {
     required this.lastProcessed,
     required this.eventsPerSecond,
   });
+
   /// Total number of events processed
   final int totalEvents;
 
@@ -228,7 +228,6 @@ class EventStats {
 
 /// Event replay configuration
 class EventReplayConfig {
-
   const EventReplayConfig({
     required this.fromSlot,
     this.toSlot,
@@ -236,6 +235,7 @@ class EventReplayConfig {
     this.filter,
     this.includeFailed = false,
   });
+
   /// Starting slot for replay
   final int fromSlot;
 
@@ -272,7 +272,6 @@ enum WebSocketState {
 
 /// Exception thrown by event system operations
 class EventException implements Exception {
-
   const EventException(this.message, [this.cause]);
   final String message;
   final dynamic cause;

@@ -23,7 +23,6 @@ import 'package:coral_xyz_anchor/src/workspace/workspace.dart';
 /// Test Validator Management System
 /// Provides local validator setup, management, and cleanup for integration testing
 class TestValidator {
-
   TestValidator({
     this.rpcUrl = 'http://localhost:8899',
     this.config = const {},
@@ -127,7 +126,6 @@ class TestValidator {
 /// Test Account Management and Funding
 /// Manages test accounts, funding, and lifecycle for test scenarios
 class TestAccountManager {
-
   TestAccountManager(this.connection, this.payerKeypair);
   final Connection connection;
   final Keypair payerKeypair;
@@ -163,7 +161,8 @@ class TestAccountManager {
   Keypair? getAccount(String name) => _namedAccounts[name];
 
   /// Get account balance
-  Future<int> getBalance(PublicKey publicKey) async => await connection.getBalance(publicKey);
+  Future<int> getBalance(PublicKey publicKey) async =>
+      connection.getBalance(publicKey);
 
   /// Create test account with specific data
   Future<Keypair> createAccountWithData({
@@ -207,7 +206,6 @@ class TestAccountManager {
 /// Mock Provider and Connection Framework
 /// Advanced mock implementations for isolated unit testing
 class AdvancedMockProvider extends AnchorProvider {
-
   AdvancedMockProvider._(this.mockConnection, this.mockWallet)
       : super(mockConnection, mockWallet);
 
@@ -232,7 +230,9 @@ class AdvancedMockProvider extends AnchorProvider {
 
   /// Configure mock responses for specific scenarios
   void configureMockScenario(
-      String scenarioName, Map<String, dynamic> responses,) {
+    String scenarioName,
+    Map<String, dynamic> responses,
+  ) {
     mockConnection.setScenario(scenarioName, responses);
   }
 
@@ -252,12 +252,11 @@ class AdvancedMockProvider extends AnchorProvider {
 
 /// Advanced Mock Connection with scenario support
 class AdvancedMockConnection extends Connection {
+  AdvancedMockConnection(super.endpoint);
   final Map<String, Map<String, dynamic>> _scenarios = {};
   final Map<String, dynamic> _currentResponses = {};
   final List<String> _callHistory = [];
   int _callCount = 0;
-
-  AdvancedMockConnection(super.endpoint);
 
   /// Set responses for a named scenario
   void setScenario(String name, Map<String, dynamic> responses) {
@@ -301,16 +300,19 @@ class AdvancedMockConnection extends Connection {
   }
 
   @override
-  Future<int> getBalance(PublicKey address,
-      {CommitmentConfig? commitment,}) async {
+  Future<int> getBalance(
+    PublicKey address, {
+    CommitmentConfig? commitment,
+  }) async {
     _recordCall('getBalance', {'address': address.toBase58()});
     final result = _currentResponses['getBalance'];
     return result is int ? result : 1000000000;
   }
 
   @override
-  Future<LatestBlockhash> getLatestBlockhash(
-      {CommitmentConfig? commitment,}) async {
+  Future<LatestBlockhash> getLatestBlockhash({
+    CommitmentConfig? commitment,
+  }) async {
     _recordCall('getLatestBlockhash');
     final mockBlockhash = _currentResponses['getLatestBlockhash'] ??
         '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
@@ -322,10 +324,14 @@ class AdvancedMockConnection extends Connection {
   }
 
   @override
-  Future<int> getMinimumBalanceForRentExemption(int dataLength,
-      {CommitmentConfig? commitment,}) async {
+  Future<int> getMinimumBalanceForRentExemption(
+    int dataLength, {
+    CommitmentConfig? commitment,
+  }) async {
     _recordCall(
-        'getMinimumBalanceForRentExemption', {'dataLength': dataLength},);
+      'getMinimumBalanceForRentExemption',
+      {'dataLength': dataLength},
+    );
     final result = _currentResponses['getMinimumBalanceForRentExemption'];
     return result is int ? result : 1000000;
   }
@@ -336,7 +342,8 @@ class AdvancedMockConnection extends Connection {
     CommitmentConfig? commitment,
   }) async {
     _recordCall('sendAndConfirmTransaction', {
-      'transaction': transaction is Map ? transaction.length : transaction.toString(),
+      'transaction':
+          transaction is Map ? transaction.length : transaction.toString(),
     });
     final result = _currentResponses['sendAndConfirmTransaction'];
     return result != null
@@ -347,7 +354,6 @@ class AdvancedMockConnection extends Connection {
 
 /// Mock Wallet with advanced signing simulation
 class MockWallet implements Wallet {
-
   MockWallet([Keypair? keypair])
       : _keypair = keypair ?? _generateDefaultKeypair();
   final Keypair _keypair;
@@ -409,7 +415,8 @@ class MockWallet implements Wallet {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions,) async {
+    List<Transaction> transactions,
+  ) async {
     final results = <Transaction>[];
     for (final tx in transactions) {
       results.add(await signTransaction(tx));
@@ -468,11 +475,12 @@ class TestFixtures {
     required String name,
     required List<String> programs,
     Map<String, dynamic>? config,
-  }) => TestWorkspaceFixture(
-      name: name,
-      programs: programs,
-      config: config ?? {},
-    );
+  }) =>
+      TestWorkspaceFixture(
+        name: name,
+        programs: programs,
+        config: config ?? {},
+      );
 
   /// Clear all fixtures
   static void clear() {
@@ -483,7 +491,6 @@ class TestFixtures {
 
 /// Test Workspace Fixture
 class TestWorkspaceFixture {
-
   TestWorkspaceFixture({
     required this.name,
     required this.programs,
@@ -533,32 +540,33 @@ class TestDataGenerator {
     String name = 'test_program',
     List<IdlInstruction>? instructions,
     List<IdlAccount>? accounts,
-  }) => Idl(
-      address: address ?? 'TestProgram111111111111111111111111111111',
-      metadata: IdlMetadata(
-        name: name,
-        version: '0.1.0',
-        spec: '0.1.0',
-      ),
-      instructions: instructions ??
-          [
-            IdlInstruction(
-              name: 'initialize',
-              discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
-              accounts: [
-                IdlInstructionAccount(
-                  name: 'user',
-                  writable: true,
-                  signer: true,
-                ),
-              ],
-              args: [
-                IdlField(name: 'amount', type: idlTypeU64()),
-              ],
-            ),
-          ],
-      accounts: accounts,
-    );
+  }) =>
+      Idl(
+        address: address ?? 'TestProgram111111111111111111111111111111',
+        metadata: IdlMetadata(
+          name: name,
+          version: '0.1.0',
+          spec: '0.1.0',
+        ),
+        instructions: instructions ??
+            [
+              IdlInstruction(
+                name: 'initialize',
+                discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
+                accounts: [
+                  const IdlInstructionAccount(
+                    name: 'user',
+                    writable: true,
+                    signer: true,
+                  ),
+                ],
+                args: [
+                  IdlField(name: 'amount', type: idlTypeU64()),
+                ],
+              ),
+            ],
+        accounts: accounts,
+      );
 
   /// Generate test account data
   static Map<String, dynamic> generateAccountData({
@@ -583,11 +591,10 @@ class TestDataGenerator {
 /// Integration Testing Framework
 /// Utilities for running integration tests with real or mock validators
 class IntegrationTestRunner {
-
   IntegrationTestRunner({
-    this.validator,
     required this.connection,
     required this.accountManager,
+    this.validator,
   });
   final TestValidator? validator;
   final Connection connection;

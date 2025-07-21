@@ -5,8 +5,8 @@
 /// direct src/ imports.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Core Library Export Validation', () {
@@ -21,10 +21,14 @@ void main() {
         expect(AccountMeta, isA<Type>());
 
         // Test creation works
-        expect(() => PublicKey.fromBase58('11111111111111111111111111111112'),
-            returnsNormally,);
         expect(
-            () => Connection('https://api.devnet.solana.com'), returnsNormally,);
+          () => PublicKey.fromBase58('11111111111111111111111111111112'),
+          returnsNormally,
+        );
+        expect(
+          () => Connection('https://api.devnet.solana.com'),
+          returnsNormally,
+        );
       });
 
       test('anchor-specific types are exported and accessible', () {
@@ -252,19 +256,26 @@ void main() {
         expect(AnchorException, isA<Type>());
 
         // Test that specific exceptions can be caught
-        expect(() {
-          throw Exception('Test error'); // Use generic exception instead
-        }, throwsA(isA<Exception>()),);
+        expect(
+          () {
+            throw Exception('Test error'); // Use generic exception instead
+          },
+          throwsA(isA<Exception>()),
+        );
       });
 
       test('error handling works correctly with public API', () {
         // Test invalid public key handling (throws ArgumentError, not Exception)
-        expect(() => PublicKey.fromBase58('invalid'),
-            throwsA(isA<ArgumentError>()),);
+        expect(
+          () => PublicKey.fromBase58('invalid'),
+          throwsA(isA<ArgumentError>()),
+        );
 
         // Test invalid connection
-        expect(() => Connection('invalid_url'),
-            returnsNormally,); // Constructor should not throw
+        expect(
+          () => Connection('invalid_url'),
+          returnsNormally,
+        ); // Constructor should not throw
 
         // Test invalid IDL handling
         expect(() => BorshCoder(const Idl(instructions: [])), returnsNormally);

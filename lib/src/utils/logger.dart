@@ -112,7 +112,8 @@ class LogEntry {
     // Stack trace
     if (stackTrace != null) {
       buffer.write(
-          ' | Stack: ${stackTrace.toString().split('\n').take(3).join(' -> ')}');
+        ' | Stack: ${stackTrace.toString().split('\n').take(3).join(' -> ')}',
+      );
     }
 
     return buffer.toString();
@@ -275,7 +276,7 @@ class LoggerConfig {
 /// Main logger class
 class AnchorLogger {
   /// Create logger with name and configuration
-  AnchorLogger(this.name, {LoggerConfig? config});
+  AnchorLogger(this.name);
 
   /// Logger name
   final String name;
@@ -290,9 +291,8 @@ class AnchorLogger {
   static final Map<String, AnchorLogger> _loggers = {};
 
   /// Get logger by name
-  static AnchorLogger getLogger(String name) {
-    return _loggers.putIfAbsent(name, () => AnchorLogger(name));
-  }
+  static AnchorLogger getLogger(String name) =>
+      _loggers.putIfAbsent(name, () => AnchorLogger(name));
 
   /// Configure global logging
   static void configure(LoggerConfig config) {
@@ -331,9 +331,7 @@ class AnchorLogger {
   LogOutput get _effectiveOutput => _effectiveConfig.output ?? _defaultOutput;
 
   /// Check if level is enabled
-  bool isEnabled(LogLevel level) {
-    return level.value >= _effectiveConfig.level.value;
-  }
+  bool isEnabled(LogLevel level) => level.value >= _effectiveConfig.level.value;
 
   /// Log a message at the specified level
   void log(
@@ -380,8 +378,13 @@ class AnchorLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    log(LogLevel.error, message,
-        context: context, error: error, stackTrace: stackTrace);
+    log(
+      LogLevel.error,
+      message,
+      context: context,
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   /// Log fatal message
@@ -391,8 +394,13 @@ class AnchorLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    log(LogLevel.fatal, message,
-        context: context, error: error, stackTrace: stackTrace);
+    log(
+      LogLevel.fatal,
+      message,
+      context: context,
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   /// Log transaction details

@@ -12,9 +12,12 @@ void main() {
       accounts: [
         IdlAccount(
           name: 'TestAccount',
-          type: IdlTypeDefType(kind: 'struct', fields: [
-            IdlField(name: 'value', type: IdlType(kind: 'u64')),
-          ],),
+          type: IdlTypeDefType(
+            kind: 'struct',
+            fields: [
+              IdlField(name: 'value', type: IdlType(kind: 'u64')),
+            ],
+          ),
         ),
       ],
     );

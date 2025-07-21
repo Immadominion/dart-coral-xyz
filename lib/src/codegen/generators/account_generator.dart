@@ -93,7 +93,8 @@ class AccountGenerator {
     buffer.writeln('  /// Create $className from bytes');
     buffer.writeln('  static $className fromBytes(List<int> bytes) {');
     buffer.writeln(
-        '    final reader = BinaryReader(Uint8List.fromList(bytes).buffer.asByteData());');
+      '    final reader = BinaryReader(Uint8List.fromList(bytes).buffer.asByteData());',
+    );
     buffer.writeln('    return $className.fromReader(reader);');
     buffer.writeln('  }');
     buffer.writeln();
@@ -347,14 +348,14 @@ class AccountGenerator {
   }
 
   /// Convert string to PascalCase
-  String _toPascalCase(String input) {
-    return input
-        .split('_')
-        .map((word) => word.isNotEmpty
+  String _toPascalCase(String input) => input
+      .split('_')
+      .map(
+        (word) => word.isNotEmpty
             ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : '')
-        .join('');
-  }
+            : '',
+      )
+      .join();
 
   /// Convert string to camelCase
   String _toCamelCase(String input) {

@@ -1,7 +1,5 @@
-
-
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Coral XYZ Anchor', () {

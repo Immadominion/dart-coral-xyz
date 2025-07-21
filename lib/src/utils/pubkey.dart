@@ -37,7 +37,8 @@ class PublicKeyUtils {
   static Future<PdaResult> findProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async => PublicKey.findProgramAddress(seeds, programId);
+  ) async =>
+      PublicKey.findProgramAddress(seeds, programId);
 
   /// Create a program address directly (without finding bump)
   ///
@@ -46,7 +47,8 @@ class PublicKeyUtils {
   static Future<PublicKey> createProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async => PublicKey.createProgramAddress(seeds, programId);
+  ) async =>
+      PublicKey.createProgramAddress(seeds, programId);
 
   /// Check if a PublicKey is on the ed25519 curve
   ///

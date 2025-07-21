@@ -51,7 +51,6 @@ abstract class IdlType {
 
 /// Primitive types (bool, u8, i8, etc.)
 class IdlTypePrimitive extends IdlType {
-
   const IdlTypePrimitive(this.type);
   final String type;
 
@@ -71,7 +70,6 @@ class IdlTypePrimitive extends IdlType {
 
 /// Option type
 class IdlTypeOption extends IdlType {
-
   const IdlTypeOption(this.inner);
   final IdlType inner;
 
@@ -91,7 +89,6 @@ class IdlTypeOption extends IdlType {
 
 /// COption type (compact option)
 class IdlTypeCOption extends IdlType {
-
   const IdlTypeCOption(this.inner);
   final IdlType inner;
 
@@ -111,7 +108,6 @@ class IdlTypeCOption extends IdlType {
 
 /// Vector type
 class IdlTypeVec extends IdlType {
-
   const IdlTypeVec(this.inner);
   final IdlType inner;
 
@@ -131,7 +127,6 @@ class IdlTypeVec extends IdlType {
 
 /// Array type with length
 class IdlTypeArray extends IdlType {
-
   const IdlTypeArray(this.inner, this.length);
   final IdlType inner;
   final IdlArrayLen length;
@@ -155,7 +150,6 @@ class IdlTypeArray extends IdlType {
 
 /// Defined type (user-defined)
 class IdlTypeDefined extends IdlType {
-
   const IdlTypeDefined(this.defined);
   final IdlTypeDefinedData defined;
 
@@ -176,7 +170,6 @@ class IdlTypeDefined extends IdlType {
 
 /// Generic type parameter
 class IdlTypeGeneric extends IdlType {
-
   const IdlTypeGeneric(this.name);
   final String name;
 
@@ -202,7 +195,6 @@ abstract class IdlTypeDefinedData {
 
 /// Simple defined type (just a name)
 class IdlTypeDefinedSimple extends IdlTypeDefinedData {
-
   const IdlTypeDefinedSimple(this.name);
   final String name;
 
@@ -223,17 +215,15 @@ class IdlTypeDefinedSimple extends IdlTypeDefinedData {
 
 /// Generic defined type (name + generics)
 class IdlTypeDefinedGeneric extends IdlTypeDefinedData {
-
   const IdlTypeDefinedGeneric(this.name, this.generics);
 
-  factory IdlTypeDefinedGeneric.fromJson(Map<String, dynamic> json) {
-    return IdlTypeDefinedGeneric(
-      json['name'] as String,
-      (json['generics'] as List<dynamic>?)
-          ?.map((e) => IdlGenericArg.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
+  factory IdlTypeDefinedGeneric.fromJson(Map<String, dynamic> json) =>
+      IdlTypeDefinedGeneric(
+        json['name'] as String,
+        (json['generics'] as List<dynamic>?)
+            ?.map((e) => IdlGenericArg.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
   final String name;
   final List<IdlGenericArg>? generics;
 
@@ -276,7 +266,6 @@ abstract class IdlArrayLen {
 
 /// Fixed array length
 class IdlArrayLenValue extends IdlArrayLen {
-
   const IdlArrayLenValue(this.value);
   final int value;
 
@@ -297,7 +286,6 @@ class IdlArrayLenValue extends IdlArrayLen {
 
 /// Generic array length
 class IdlArrayLenGeneric extends IdlArrayLen {
-
   const IdlArrayLenGeneric(this.generic);
   final String generic;
 
@@ -337,7 +325,6 @@ abstract class IdlGenericArg {
 
 /// Type generic argument
 class IdlGenericArgType extends IdlGenericArg {
-
   const IdlGenericArgType(this.type);
   final IdlType type;
 
@@ -361,7 +348,6 @@ class IdlGenericArgType extends IdlGenericArg {
 
 /// Const generic argument
 class IdlGenericArgConst extends IdlGenericArg {
-
   const IdlGenericArgConst(this.value);
   final String value;
 
@@ -385,30 +371,28 @@ class IdlGenericArgConst extends IdlGenericArg {
 
 /// Enhanced type definition with generics support
 class IdlTypeDefEnhanced {
-
   const IdlTypeDefEnhanced({
     required this.name,
+    required this.type,
     this.docs,
     this.serialization,
     this.repr,
     this.generics,
-    required this.type,
   });
 
-  factory IdlTypeDefEnhanced.fromJson(Map<String, dynamic> json) {
-    return IdlTypeDefEnhanced(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      serialization: json['serialization'] as String?,
-      repr: json['repr'] != null
-          ? IdlRepr.fromJson(json['repr'] as Map<String, dynamic>)
-          : null,
-      generics: (json['generics'] as List<dynamic>?)
-          ?.map((e) => IdlTypeDefGeneric.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      type: IdlTypeDefTy.fromJson(json['type'] as Map<String, dynamic>),
-    );
-  }
+  factory IdlTypeDefEnhanced.fromJson(Map<String, dynamic> json) =>
+      IdlTypeDefEnhanced(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        serialization: json['serialization'] as String?,
+        repr: json['repr'] != null
+            ? IdlRepr.fromJson(json['repr'] as Map<String, dynamic>)
+            : null,
+        generics: (json['generics'] as List<dynamic>?)
+            ?.map((e) => IdlTypeDefGeneric.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        type: IdlTypeDefTy.fromJson(json['type'] as Map<String, dynamic>),
+      );
   final String name;
   final List<String>? docs;
   final String? serialization;
@@ -452,7 +436,6 @@ abstract class IdlTypeDefGeneric {
 
 /// Type generic
 class IdlTypeDefGenericType extends IdlTypeDefGeneric {
-
   const IdlTypeDefGenericType(this.name);
   final String name;
 
@@ -468,7 +451,6 @@ class IdlTypeDefGenericType extends IdlTypeDefGeneric {
 
 /// Const generic
 class IdlTypeDefGenericConst extends IdlTypeDefGeneric {
-
   const IdlTypeDefGenericConst(this.name, this.type);
   final String name;
   final String type;
@@ -515,7 +497,6 @@ abstract class IdlTypeDefTy {
 
 /// Struct type definition
 class IdlTypeDefTyStruct extends IdlTypeDefTy {
-
   const IdlTypeDefTyStruct(this.fields);
   final IdlDefinedFields? fields;
 
@@ -531,7 +512,6 @@ class IdlTypeDefTyStruct extends IdlTypeDefTy {
 
 /// Enum type definition
 class IdlTypeDefTyEnum extends IdlTypeDefTy {
-
   const IdlTypeDefTyEnum(this.variants);
   final List<IdlEnumVariant> variants;
 
@@ -547,7 +527,6 @@ class IdlTypeDefTyEnum extends IdlTypeDefTy {
 
 /// Type alias definition
 class IdlTypeDefTyType extends IdlTypeDefTy {
-
   const IdlTypeDefTyType(this.alias);
   final IdlType alias;
 
@@ -594,7 +573,6 @@ abstract class IdlDefinedFields {
 
 /// Named fields
 class IdlDefinedFieldsNamed extends IdlDefinedFields {
-
   const IdlDefinedFieldsNamed(this.fields);
   final List<IdlField> fields;
 
@@ -615,7 +593,6 @@ class IdlDefinedFieldsNamed extends IdlDefinedFields {
 
 /// Tuple fields
 class IdlDefinedFieldsTuple extends IdlDefinedFields {
-
   const IdlDefinedFieldsTuple(this.fields);
   final List<IdlType> fields;
 
@@ -636,15 +613,14 @@ class IdlDefinedFieldsTuple extends IdlDefinedFields {
 
 /// Enum variant
 class IdlEnumVariant {
-
   const IdlEnumVariant(this.name, this.fields);
 
-  factory IdlEnumVariant.fromJson(Map<String, dynamic> json) {
-    return IdlEnumVariant(
-      json['name'] as String,
-      json['fields'] != null ? IdlDefinedFields.fromJson(json['fields']) : null,
-    );
-  }
+  factory IdlEnumVariant.fromJson(Map<String, dynamic> json) => IdlEnumVariant(
+        json['name'] as String,
+        json['fields'] != null
+            ? IdlDefinedFields.fromJson(json['fields'])
+            : null,
+      );
   final String name;
   final IdlDefinedFields? fields;
 
@@ -694,7 +670,6 @@ abstract class IdlRepr {
 
 /// Rust representation
 class IdlReprRust extends IdlRepr {
-
   const IdlReprRust({this.packed, this.align});
   final bool? packed;
   final int? align;
@@ -712,7 +687,6 @@ class IdlReprRust extends IdlRepr {
 
 /// C representation
 class IdlReprC extends IdlRepr {
-
   const IdlReprC({this.packed, this.align});
   final bool? packed;
   final int? align;
@@ -741,20 +715,17 @@ class IdlReprTransparent extends IdlRepr {
 
 /// Field definition
 class IdlField {
-
   const IdlField({
     required this.name,
-    this.docs,
     required this.type,
+    this.docs,
   });
 
-  factory IdlField.fromJson(Map<String, dynamic> json) {
-    return IdlField(
-      name: json['name'] as String,
-      docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-      type: IdlType.fromJson(json['type']),
-    );
-  }
+  factory IdlField.fromJson(Map<String, dynamic> json) => IdlField(
+        name: json['name'] as String,
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
+        type: IdlType.fromJson(json['type']),
+      );
   final String name;
   final List<String>? docs;
   final IdlType type;

@@ -10,7 +10,8 @@ import 'dart:async';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/commitment.dart';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    as transaction_types;
 import 'package:coral_xyz_anchor/src/provider/connection.dart';
 import 'package:coral_xyz_anchor/src/provider/wallet.dart';
 import 'package:coral_xyz_anchor/src/types/connection_config.dart';
@@ -144,7 +145,8 @@ class ProviderFactory {
   ///
   /// Returns list of currently supported provider types based on
   /// registered builders and environment capabilities.
-  static List<ProviderType> getAvailableProviderTypes() => _providerBuilders.keys.toList();
+  static List<ProviderType> getAvailableProviderTypes() =>
+      _providerBuilders.keys.toList();
 
   /// Detect optimal provider type for current environment
   static Future<ProviderType> _detectProviderType() async {
@@ -192,7 +194,6 @@ class ProviderFactory {
     final provider = KeypairProvider(
       connection: connection,
       wallet: wallet,
-      options: config.options.confirmOptions,
     );
 
     return provider;
@@ -227,14 +228,14 @@ typedef ProviderBuilder = Future<ProviderInterface> Function(
 
 /// Configuration for provider creation
 class ProviderCreationConfig {
-
   const ProviderCreationConfig({
-    this.type,
     required this.connectionConfig,
     required this.walletConfig,
     required this.options,
+    this.type,
     this.requiredCapabilities = const {},
   });
+
   /// Desired provider type (null for auto-detection)
   final ProviderType? type;
 
@@ -255,13 +256,13 @@ class ProviderCreationConfig {
 
 /// Wallet configuration
 class WalletConfig {
-
   const WalletConfig({
     required this.type,
     this.autoGenerate = false,
     this.keypair,
     this.config = const {},
   });
+
   /// Wallet type
   final WalletType type;
 
@@ -289,11 +290,11 @@ enum WalletType {
 
 /// Provider options
 class ProviderOptions {
-
   const ProviderOptions({
     this.confirmOptions = ConfirmOptions.defaultOptions,
     this.additionalOptions = const {},
   });
+
   /// Default confirmation options
   final ConfirmOptions confirmOptions;
 
@@ -306,11 +307,9 @@ class ProviderOptions {
 
 /// Keypair-based provider implementation
 class KeypairProvider extends BaseProvider {
-
   KeypairProvider({
     required super.connection,
     required this.wallet,
-    ConfirmOptions? options,
   }) : super(
           config: const ProviderConfig(
             type: ProviderType.keypair,

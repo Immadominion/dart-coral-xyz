@@ -6,10 +6,10 @@ import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 
 /// Comprehensive simulation result processing and analysis
 class SimulationResultProcessor {
-
   SimulationResultProcessor({
     this.config = const SimulationProcessingConfig(),
   });
+
   /// Cache for processed results
   final Map<String, ProcessedSimulationResult> _resultCache = {};
 
@@ -387,27 +387,32 @@ class SimulationResultProcessor {
 
   /// Generate debugging recommendations
   List<String> _generateDebugRecommendations(
-      TransactionSimulationResult result,) {
+    TransactionSimulationResult result,
+  ) {
     final recommendations = <String>[];
 
     if (result.unitsConsumed != null && result.unitsConsumed! > 800000) {
       recommendations.add(
-          'Consider optimizing compute unit usage (${result.unitsConsumed} units used)',);
+        'Consider optimizing compute unit usage (${result.unitsConsumed} units used)',
+      );
     }
 
     if (result.logs.length > 50) {
       recommendations.add(
-          'High number of logs detected (${result.logs.length}), consider reducing verbosity in production',);
+        'High number of logs detected (${result.logs.length}), consider reducing verbosity in production',
+      );
     }
 
     if (result.error != null) {
       recommendations.add(
-          'Transaction failed: ${result.error!.type} - Review error details for optimization',);
+        'Transaction failed: ${result.error!.type} - Review error details for optimization',
+      );
     }
 
     if (recommendations.isEmpty) {
       recommendations.add(
-          'Transaction simulation completed successfully with no optimization suggestions',);
+        'Transaction simulation completed successfully with no optimization suggestions',
+      );
     }
 
     return recommendations;
@@ -447,7 +452,9 @@ class SimulationResultProcessor {
 
   /// Build error context from logs and error information
   String _buildErrorContext(
-      TransactionSimulationError error, List<String> logs,) {
+    TransactionSimulationError error,
+    List<String> logs,
+  ) {
     final context = StringBuffer();
     context.writeln('Error Context:');
     context.writeln('- Error Type: ${error.type}');
@@ -463,10 +470,12 @@ class SimulationResultProcessor {
     // Find relevant logs around the error
     if (error.instructionIndex != null) {
       final relevantLogs = logs
-          .where((log) =>
-              log.contains('instruction') ||
-              log.contains('error') ||
-              log.contains('failed'),)
+          .where(
+            (log) =>
+                log.contains('instruction') ||
+                log.contains('error') ||
+                log.contains('failed'),
+          )
           .take(5);
 
       if (relevantLogs.isNotEmpty) {
@@ -489,14 +498,16 @@ class SimulationResultProcessor {
         suggestions
             .add('Ensure account has sufficient lamports for rent exemption');
         suggestions.add(
-            'Consider increasing transaction funding or reducing account size',);
+          'Consider increasing transaction funding or reducing account size',
+        );
         break;
       case 'InstructionError':
         suggestions
             .add('Review instruction parameters and account permissions');
         if (error.customErrorCode != null) {
           suggestions.add(
-              'Check program documentation for custom error code ${error.customErrorCode}',);
+            'Check program documentation for custom error code ${error.customErrorCode}',
+          );
         }
         break;
       case 'InvalidAccountData':
@@ -507,7 +518,8 @@ class SimulationResultProcessor {
       case 'ProgramFailedToComplete':
         suggestions.add('Program exceeded compute budget or encountered panic');
         suggestions.add(
-            'Consider optimizing program logic or increasing compute budget',);
+          'Consider optimizing program logic or increasing compute budget',
+        );
         break;
       default:
         suggestions.add('Review transaction structure and account states');
@@ -535,13 +547,18 @@ class SimulationResultProcessor {
 
   /// Extract logs related to the error
   List<String> _extractRelatedLogs(
-      TransactionSimulationError error, List<String> logs,) => logs
-        .where((log) =>
-            log.toLowerCase().contains('error') ||
-            log.toLowerCase().contains('failed') ||
-            log.toLowerCase().contains('panic') ||
-            (error.instructionIndex != null && log.contains('instruction')))
-        .toList();
+    TransactionSimulationError error,
+    List<String> logs,
+  ) =>
+      logs
+          .where(
+            (log) =>
+                log.toLowerCase().contains('error') ||
+                log.toLowerCase().contains('failed') ||
+                log.toLowerCase().contains('panic') ||
+                (error.instructionIndex != null && log.contains('instruction')),
+          )
+          .toList();
 
   /// Cache processed result
   void _cacheResult(String key, ProcessedSimulationResult result) {
@@ -565,7 +582,8 @@ class SimulationResultProcessor {
     // Compare success status
     if (result1.originalResult.success != result2.originalResult.success) {
       differences.add(
-          'Success status differs: ${result1.originalResult.success} vs ${result2.originalResult.success}',);
+        'Success status differs: ${result1.originalResult.success} vs ${result2.originalResult.success}',
+      );
     } else {
       similarities.add('Both results have same success status');
     }
@@ -577,7 +595,8 @@ class SimulationResultProcessor {
       final diff = (units1 - units2).abs();
       if (diff > 1000) {
         differences.add(
-            'Compute units differ significantly: $units1 vs $units2 (diff: $diff)',);
+          'Compute units differ significantly: $units1 vs $units2 (diff: $diff)',
+        );
       } else {
         similarities.add('Compute units are similar: $units1 vs $units2');
       }
@@ -586,7 +605,8 @@ class SimulationResultProcessor {
     // Compare events
     if (result1.events.length != result2.events.length) {
       differences.add(
-          'Event count differs: ${result1.events.length} vs ${result2.events.length}',);
+        'Event count differs: ${result1.events.length} vs ${result2.events.length}',
+      );
     } else {
       similarities.add('Same number of events: ${result1.events.length}');
     }
@@ -595,10 +615,12 @@ class SimulationResultProcessor {
     if (result1.accountChanges.changedAccounts.length !=
         result2.accountChanges.changedAccounts.length) {
       differences.add(
-          'Account changes differ: ${result1.accountChanges.changedAccounts.length} vs ${result2.accountChanges.changedAccounts.length}',);
+        'Account changes differ: ${result1.accountChanges.changedAccounts.length} vs ${result2.accountChanges.changedAccounts.length}',
+      );
     } else {
       similarities.add(
-          'Same number of account changes: ${result1.accountChanges.changedAccounts.length}',);
+        'Same number of account changes: ${result1.accountChanges.changedAccounts.length}',
+      );
     }
 
     return ComparisonResult(
@@ -618,22 +640,22 @@ class SimulationResultProcessor {
 
   /// Get cache statistics
   Map<String, dynamic> getCacheStats() => {
-      'cacheSize': _resultCache.length,
-      'maxCacheSize': config.maxCacheSize,
-      'cacheHitRate': statistics.cacheHits /
-          (statistics.cacheHits + statistics.processedResults),
-      'statistics': statistics.toMap(),
-    };
+        'cacheSize': _resultCache.length,
+        'maxCacheSize': config.maxCacheSize,
+        'cacheHitRate': statistics.cacheHits /
+            (statistics.cacheHits + statistics.processedResults),
+        'statistics': statistics.toMap(),
+      };
 }
 
 /// Configuration for simulation result processing
 class SimulationProcessingConfig {
-
   const SimulationProcessingConfig({
     this.maxCacheSize = 100,
     this.enableDetailedLogging = false,
     this.processingTimeout = const Duration(seconds: 30),
   });
+
   /// Maximum number of results to cache
   final int maxCacheSize;
 
@@ -646,7 +668,6 @@ class SimulationProcessingConfig {
 
 /// Options for processing simulation results
 class ProcessingOptions {
-
   const ProcessingOptions({
     this.extractEvents = true,
     this.analyzeAccountChanges = true,
@@ -656,20 +677,16 @@ class ProcessingOptions {
   });
 
   /// Create default processing options
-  factory ProcessingOptions.defaultOptions() {
-    return const ProcessingOptions();
-  }
+  factory ProcessingOptions.defaultOptions() => const ProcessingOptions();
 
   /// Create minimal processing options
-  factory ProcessingOptions.minimal() {
-    return const ProcessingOptions(
-      extractEvents: false,
-      analyzeAccountChanges: false,
-      processReturnData: false,
-      extractDebugInfo: false,
-      analyzeErrors: true, // Always analyze errors
-    );
-  }
+  factory ProcessingOptions.minimal() => const ProcessingOptions(
+        extractEvents: false,
+        analyzeAccountChanges: false,
+        processReturnData: false,
+        extractDebugInfo: false,
+      );
+
   /// Whether to extract events from logs
   final bool extractEvents;
 
@@ -688,7 +705,6 @@ class ProcessingOptions {
 
 /// Comprehensive processed simulation result
 class ProcessedSimulationResult {
-
   const ProcessedSimulationResult({
     required this.originalResult,
     required this.events,
@@ -699,6 +715,7 @@ class ProcessedSimulationResult {
     required this.processingTime,
     required this.processedAt,
   });
+
   /// Original simulation result
   final TransactionSimulationResult originalResult;
 
@@ -730,14 +747,17 @@ class ProcessedSimulationResult {
   int get eventCount => events.length;
 
   /// Get events by type
-  List<ExtractedEvent> getEventsByType(EventType type) => events.where((e) => e.eventType == type).toList();
+  List<ExtractedEvent> getEventsByType(EventType type) =>
+      events.where((e) => e.eventType == type).toList();
 
   /// Get CPI events
   List<ExtractedEvent> getCpiEvents() => events
-        .where((e) =>
+      .where(
+        (e) =>
             e.eventType == EventType.cpiInvoke ||
-            e.eventType == EventType.cpiResult)
-        .toList();
+            e.eventType == EventType.cpiResult,
+      )
+      .toList();
 
   /// Generate comprehensive summary
   String generateSummary() {
@@ -767,18 +787,18 @@ class ProcessedSimulationResult {
 
 /// Event extracted from simulation logs
 class ExtractedEvent {
-
   const ExtractedEvent({
     required this.source,
     required this.logIndex,
     required this.rawData,
+    required this.eventType,
+    required this.timestamp,
     this.decodedData,
     this.textData,
-    required this.eventType,
     this.cpiInfo,
     this.errorMessage,
-    required this.timestamp,
   });
+
   /// Source of the event (program log, program data, system log)
   final EventSource source;
 
@@ -823,7 +843,8 @@ class ExtractedEvent {
   }
 
   @override
-  String toString() => 'ExtractedEvent(type: $eventType, source: $source, index: $logIndex)';
+  String toString() =>
+      'ExtractedEvent(type: $eventType, source: $source, index: $logIndex)';
 }
 
 /// Source of an event
@@ -844,12 +865,12 @@ enum EventType {
 
 /// Cross-Program Invocation information
 class CpiInfo {
-
   const CpiInfo({
     required this.programId,
-    this.depth,
     required this.status,
+    this.depth,
   });
+
   /// Program ID being invoked
   final String programId;
 
@@ -869,13 +890,13 @@ enum CpiStatus {
 
 /// Account state change analysis
 class AccountStateAnalysis {
-
   const AccountStateAnalysis({
     required this.hasChanges,
     required this.changedAccounts,
     required this.totalAccounts,
     this.analysis,
   });
+
   /// Whether any account changes were detected
   final bool hasChanges;
 
@@ -891,16 +912,16 @@ class AccountStateAnalysis {
 
 /// Individual account change
 class AccountChange {
-
   const AccountChange({
     required this.publicKey,
-    this.lamports,
-    this.owner,
     required this.executable,
-    this.rentEpoch,
     required this.dataLength,
     required this.changeType,
+    this.lamports,
+    this.owner,
+    this.rentEpoch,
   });
+
   /// Account public key
   final PublicKey publicKey;
 
@@ -932,7 +953,6 @@ enum AccountChangeType {
 
 /// Return data analysis
 class ReturnDataAnalysis {
-
   const ReturnDataAnalysis({
     required this.hasReturnData,
     this.programId,
@@ -942,6 +962,7 @@ class ReturnDataAnalysis {
     this.analysis,
     this.errorMessage,
   });
+
   /// Whether return data is present
   final bool hasReturnData;
 
@@ -966,7 +987,6 @@ class ReturnDataAnalysis {
 
 /// Debugging information extracted from simulation
 class DebugInfo {
-
   const DebugInfo({
     required this.hasDebugInfo,
     this.debugLogs,
@@ -974,6 +994,7 @@ class DebugInfo {
     this.performanceMetrics,
     this.recommendations,
   });
+
   /// Whether debug information is available
   final bool hasDebugInfo;
 
@@ -992,7 +1013,6 @@ class DebugInfo {
 
 /// Error analysis from simulation
 class ErrorAnalysis {
-
   const ErrorAnalysis({
     required this.hasErrors,
     this.errorType,
@@ -1003,6 +1023,7 @@ class ErrorAnalysis {
     this.suggestions,
     this.relatedLogs,
   });
+
   /// Whether errors were found
   final bool hasErrors;
 
@@ -1030,12 +1051,12 @@ class ErrorAnalysis {
 
 /// Result of comparing two simulation results
 class ComparisonResult {
-
   const ComparisonResult({
     required this.differences,
     required this.similarities,
     required this.overallSimilarity,
   });
+
   /// Differences found between results
   final List<String> differences;
 
@@ -1071,12 +1092,12 @@ class ProcessingStatistics {
 
   /// Convert to map for serialization
   Map<String, dynamic> toMap() => {
-      'processedResults': processedResults,
-      'successfulProcesses': successfulProcesses,
-      'failedProcesses': failedProcesses,
-      'cacheHits': cacheHits,
-      'cacheClears': cacheClears,
-      'successRate':
-          successfulProcesses / (processedResults > 0 ? processedResults : 1),
-    };
+        'processedResults': processedResults,
+        'successfulProcesses': successfulProcesses,
+        'failedProcesses': failedProcesses,
+        'cacheHits': cacheHits,
+        'cacheClears': cacheClears,
+        'successRate':
+            successfulProcesses / (processedResults > 0 ? processedResults : 1),
+      };
 }

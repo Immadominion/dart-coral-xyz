@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 // Mock IDL for testing
 const mockIdl = Idl(
@@ -342,8 +342,10 @@ void main() {
         expect(context.programId, equals(program1.programId));
         expect(context.instructionName, equals('instruction1'));
         expect(context.nestedInvocations.length, equals(1));
-        expect(context.nestedInvocations.first.programId,
-            equals(program2.programId),);
+        expect(
+          context.nestedInvocations.first.programId,
+          equals(program2.programId),
+        );
         expect(context.depth, equals(2));
       });
 
@@ -444,7 +446,9 @@ void main() {
       test('should throw CpiException for invalid operations', () {
         expect(
           () => cpiFramework.builder().account(
-              'test', PublicKey.fromBase58('11111111111111111111111111111112'),),
+                'test',
+                PublicKey.fromBase58('11111111111111111111111111111112'),
+              ),
           throwsA(isA<CpiException>()),
         );
       });

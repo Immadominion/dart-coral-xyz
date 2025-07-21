@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:logging/logging.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
@@ -28,6 +29,7 @@ class Workspace extends Object {
   Workspace(this._provider);
   final Map<String, Program> _programs = {};
   final AnchorProvider _provider;
+  static final _logger = Logger('Workspace');
   final Map<String, Idl> _idls = {};
 
   /// Get provider instance
@@ -66,7 +68,7 @@ class Workspace extends Object {
   String _symbolToProgramName(Symbol symbol) {
     final s = symbol.toString();
     // Symbol("ProgramName") => ProgramName
-    final match = RegExp(r'"(.*)"').firstMatch(s);
+    final match = RegExp('"(.*)"').firstMatch(s);
     return match != null ? match.group(1)! : s;
   }
 
@@ -138,7 +140,7 @@ class Workspace extends Object {
             loadedPrograms[name] = program;
           } catch (e) {
             // Log error but continue with other programs
-            print('Warning: Failed to load program "$name": $e');
+            _logger.warning('Failed to load program "$name": $e');
           }
         }
       }
@@ -155,7 +157,7 @@ class Workspace extends Object {
   }) async {
     workspaceDir ??= await _findWorkspaceRoot();
 
-    final config = await WorkspaceConfig.fromFile(
+    final config = WorkspaceConfig.fromFile(
       path.join(workspaceDir, 'Anchor.toml'),
     );
 
@@ -178,13 +180,12 @@ class Workspace extends Object {
     String? workspaceDir,
     AnchorProvider? provider,
     String? cluster,
-  }) async {
-    return await fromAnchorWorkspace(
-      workspaceDir: workspaceDir,
-      provider: provider,
-      cluster: cluster,
-    );
-  }
+  }) async =>
+      fromAnchorWorkspace(
+        workspaceDir: workspaceDir,
+        provider: provider,
+        cluster: cluster,
+      );
 
   /// Initialize workspace from template
   static Future<Workspace> initializeFromTemplate(
@@ -198,7 +199,10 @@ class Workspace extends Object {
       final name = entry.key;
       final programConfig = entry.value;
       await workspace.loadProgram(
-          name, programConfig.idl, programConfig.programId);
+        name,
+        programConfig.idl,
+        programConfig.programId,
+      );
     }
 
     return workspace;
@@ -212,7 +216,7 @@ class Workspace extends Object {
 
     // Try converting snake_case to camelCase
     final camelCase = name.replaceAllMapped(
-      RegExp(r'_([a-z])'),
+      RegExp('_([a-z])'),
       (match) => match.group(1)!.toUpperCase(),
     );
     program = getProgram(camelCase);
@@ -220,16 +224,15 @@ class Workspace extends Object {
 
     // Try converting camelCase to snake_case
     final snakeCase = name.replaceAllMapped(
-      RegExp(r'([A-Z])'),
+      RegExp('([A-Z])'),
       (match) => '_${match.group(1)!.toLowerCase()}',
     );
     return getProgram(snakeCase);
   }
 
   /// Check if workspace has program
-  bool hasProgram(String name) {
-    return getProgram(name) != null || getProgramCamelCase(name) != null;
-  }
+  bool hasProgram(String name) =>
+      getProgram(name) != null || getProgramCamelCase(name) != null;
 
   /// Validate workspace health
   Future<WorkspaceHealthReport> validateHealth() async {
@@ -242,10 +245,12 @@ class Workspace extends Object {
       final connection = _provider.connection;
       await connection.checkHealth();
     } catch (e) {
-      issues.add(WorkspaceIssue(
-        type: WorkspaceIssueType.connectionError,
-        message: 'Provider connection failed: ${e.toString()}',
-      ));
+      issues.add(
+        WorkspaceIssue(
+          type: WorkspaceIssueType.connectionError,
+          message: 'Provider connection failed: ${e.toString()}',
+        ),
+      );
     }
 
     // Check each program
@@ -263,19 +268,23 @@ class Workspace extends Object {
               : ProgramStatus.notExecutable;
         } else {
           programStatuses[name] = ProgramStatus.notFound;
-          issues.add(WorkspaceIssue(
-            type: WorkspaceIssueType.programNotFound,
-            programName: name,
-            message: 'Program not found on-chain',
-          ));
+          issues.add(
+            WorkspaceIssue(
+              type: WorkspaceIssueType.programNotFound,
+              programName: name,
+              message: 'Program not found on-chain',
+            ),
+          );
         }
       } catch (e) {
         programStatuses[name] = ProgramStatus.error;
-        issues.add(WorkspaceIssue(
-          type: WorkspaceIssueType.programNotFound,
-          programName: name,
-          message: 'Error checking program: ${e.toString()}',
-        ));
+        issues.add(
+          WorkspaceIssue(
+            type: WorkspaceIssueType.programNotFound,
+            programName: name,
+            message: 'Error checking program: ${e.toString()}',
+          ),
+        );
       }
     }
 
@@ -339,7 +348,9 @@ class Workspace extends Object {
 
   /// Enable development mode features
   Future<void> _enableDevelopmentMode(
-      String workspaceDir, WorkspaceConfig config) async {
+    String workspaceDir,
+    WorkspaceConfig config,
+  ) async {
     // Set up file watching for IDL changes
     await _watchIdlFiles(workspaceDir);
 
@@ -685,14 +696,12 @@ class ProgramConfig {
   });
 
   /// Create from JSON configuration
-  factory ProgramConfig.fromJson(Map<String, dynamic> json) {
-    return ProgramConfig(
-      idl: Idl.fromJson(json['idl'] as Map<String, dynamic>),
-      programId: PublicKey.fromBase58(json['programId'] as String),
-      name: json['name'] as String?,
-      metadata: json['metadata'] as Map<String, dynamic>?,
-    );
-  }
+  factory ProgramConfig.fromJson(Map<String, dynamic> json) => ProgramConfig(
+        idl: Idl.fromJson(json['idl'] as Map<String, dynamic>),
+        programId: PublicKey.fromBase58(json['programId'] as String),
+        name: json['name'] as String?,
+        metadata: json['metadata'] as Map<String, dynamic>?,
+      );
   final Idl idl;
   final PublicKey programId;
   final String? name;
@@ -803,8 +812,8 @@ enum WorkspaceIssueType {
 class WorkspaceIssue {
   WorkspaceIssue({
     required this.type,
-    this.programName,
     required this.message,
+    this.programName,
     DateTime? detectedAt,
   }) : detectedAt = detectedAt ?? DateTime.now();
   final WorkspaceIssueType type;
@@ -838,10 +847,10 @@ enum ProgramStatus {
 class DeploymentResult {
   const DeploymentResult({
     required this.success,
+    required this.deployedAt,
     this.programId,
     this.transactionId,
     this.error,
-    required this.deployedAt,
   });
   final bool success;
   final PublicKey? programId;
@@ -863,10 +872,10 @@ class DeploymentResult {
 class UpgradeResult {
   const UpgradeResult({
     required this.success,
+    required this.upgradedAt,
     this.programId,
     this.transactionId,
     this.error,
-    required this.upgradedAt,
   });
   final bool success;
   final PublicKey? programId;
@@ -896,13 +905,12 @@ class WorkspaceTemplate {
   factory WorkspaceTemplate.basic({
     required String name,
     required Map<String, ProgramConfig> programs,
-  }) {
-    return WorkspaceTemplate(
-      name: name,
-      version: '1.0.0',
-      programs: programs,
-    );
-  }
+  }) =>
+      WorkspaceTemplate(
+        name: name,
+        version: '1.0.0',
+        programs: programs,
+      );
 
   factory WorkspaceTemplate.fromJson(Map<String, dynamic> json) {
     final programsData = json['programs'] as Map<String, dynamic>;

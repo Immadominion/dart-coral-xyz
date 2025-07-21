@@ -1,5 +1,6 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
+
 import 'integration_test_utils.dart';
 
 /// TypeScript compatibility integration tests
@@ -166,7 +167,9 @@ void main() {
       final dartIdl = Idl.fromJson(tsCompatibleIdl);
 
       expect(
-          dartIdl.address, equals('TSCompatible11111111111111111111111111111'),);
+        dartIdl.address,
+        equals('TSCompatible11111111111111111111111111111'),
+      );
       expect(dartIdl.metadata?.name, equals('ts_compatible_program'));
       expect(dartIdl.instructions.length, equals(2));
       expect(dartIdl.accounts?.length, equals(1));
@@ -208,9 +211,12 @@ void main() {
           expectedBytes: testCase['expected_discriminator'] as List<int>,
         );
 
-        expect(isCompatible, isTrue,
-            reason:
-                'Instruction ${testCase['instruction']} encoding should be compatible',);
+        expect(
+          isCompatible,
+          isTrue,
+          reason:
+              'Instruction ${testCase['instruction']} encoding should be compatible',
+        );
       }
     });
 
@@ -243,9 +249,12 @@ void main() {
           expectedParsed: testCase['expected_parsed'] as Map<String, dynamic>,
         );
 
-        expect(isCompatible, isTrue,
-            reason:
-                'Account ${testCase['account_type']} parsing should be compatible',);
+        expect(
+          isCompatible,
+          isTrue,
+          reason:
+              'Account ${testCase['account_type']} parsing should be compatible',
+        );
       }
     });
 
@@ -322,8 +331,10 @@ void main() {
       final encoded =
           coder.instructions.encode('complex_instruction', complexArgs);
       expect(encoded, isNotNull);
-      expect(encoded.length,
-          greaterThan(8),); // Should include discriminator + data
+      expect(
+        encoded.length,
+        greaterThan(8),
+      ); // Should include discriminator + data
 
       // Verify that complex types are handled correctly
       expect(complexArgs['optional_value'], equals(42));

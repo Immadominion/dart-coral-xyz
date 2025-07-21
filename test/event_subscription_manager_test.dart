@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'package:test/test.dart';
 
-import 'package:coral_xyz_anchor/src/event/event_subscription_manager.dart';
 import 'package:coral_xyz_anchor/src/event/event_definition.dart';
+import 'package:coral_xyz_anchor/src/event/event_subscription_manager.dart';
+import 'package:coral_xyz_anchor/src/event/types.dart';
 import 'package:coral_xyz_anchor/src/provider/connection.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('EventSubscriptionManager - TypeScript Compatibility', () {
@@ -30,11 +30,8 @@ void main() {
             hasNestedStructures: false,
             estimatedSize: 8,
             complexity: EventComplexity.low,
-            tags: [],
           ),
-          validationRules: EventValidationRules(
-            customValidators: [],
-          ),
+          validationRules: EventValidationRules(),
         ),
       ];
 
@@ -124,8 +121,10 @@ void main() {
           config: customConfig,
         );
 
-        expect(customManager.connectionState,
-            equals(ConnectionState.disconnected),);
+        expect(
+          customManager.connectionState,
+          equals(ConnectionState.disconnected),
+        );
         customManager.dispose();
       });
     });

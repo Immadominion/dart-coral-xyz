@@ -9,7 +9,6 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Base exception class for IDL-related errors
 class IdlError extends Error {
-
   IdlError(this.message);
   final String message;
 
@@ -19,7 +18,6 @@ class IdlError extends Error {
 
 /// Represents an error code with both string and numeric representations
 class ErrorCode {
-
   const ErrorCode({
     required this.code,
     required this.number,
@@ -42,7 +40,6 @@ class ErrorCode {
 
 /// Represents a file and line location for error reporting
 class FileLine {
-
   const FileLine({
     required this.file,
     required this.line,
@@ -65,7 +62,6 @@ class FileLine {
 
 /// Union type for error origin (either string account name or file location)
 class ErrorOrigin {
-
   const ErrorOrigin.accountName(String this.accountName) : fileLine = null;
   const ErrorOrigin.fileLine(FileLine this.fileLine) : accountName = null;
   final String? accountName;
@@ -81,7 +77,6 @@ class ErrorOrigin {
 
 /// Union type for compared values in error messages
 class ComparedValues {
-
   const ComparedValues.publicKeys(List<PublicKey> this.publicKeys)
       : accountNames = null;
   const ComparedValues.accountNames(List<String> this.accountNames)
@@ -103,7 +98,6 @@ class ComparedValues {
 
 /// Stack of programs being executed, used for tracking CPI calls
 class ProgramErrorStack {
-
   const ProgramErrorStack(this.stack);
   final List<PublicKey> stack;
 
@@ -146,7 +140,6 @@ class ProgramErrorStack {
 
 /// Detailed Anchor error with full context
 class AnchorError extends Error {
-
   AnchorError({
     required this.errorCode,
     required this.errorMessage,
@@ -192,10 +185,12 @@ class AnchorError extends Error {
             final rightPubkey = PublicKey.fromBase58(rightMatch.group(1)!);
             comparedValues =
                 ComparedValues.publicKeys([leftPubkey, rightPubkey]);
-            errorLogs.addAll(logs.sublist(
-              anchorErrorLogIndex + 1,
-              anchorErrorLogIndex + 5,
-            ),);
+            errorLogs.addAll(
+              logs.sublist(
+                anchorErrorLogIndex + 1,
+                anchorErrorLogIndex + 5,
+              ),
+            );
           } catch (e) {
             // Not valid pubkeys, ignore
           }
@@ -211,10 +206,12 @@ class AnchorError extends Error {
           final leftValue = leftMatch.group(2)!;
           final rightValue = rightMatch.group(2)!;
           comparedValues = ComparedValues.accountNames([leftValue, rightValue]);
-          errorLogs.addAll(logs.sublist(
-            anchorErrorLogIndex + 1,
-            anchorErrorLogIndex + 3,
-          ),);
+          errorLogs.addAll(
+            logs.sublist(
+              anchorErrorLogIndex + 1,
+              anchorErrorLogIndex + 3,
+            ),
+          );
         }
       }
     }
@@ -307,7 +304,6 @@ class AnchorError extends Error {
 
 /// User-defined or framework program error
 class ProgramError extends Error {
-
   ProgramError({
     required this.code,
     required this.message,

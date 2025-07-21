@@ -196,7 +196,8 @@ Future<void> main() async {
         }
       } catch (e) {
         print(
-            '   ⚠️  Increment method building failed (expected for demo): $e\n',);
+          '   ⚠️  Increment method building failed (expected for demo): $e\n',
+        );
       }
 
       // Step 8: Summary
@@ -206,7 +207,8 @@ Future<void> main() async {
       print('   • Provider: AnchorProvider(connection, wallet)');
       print('   • Program: Program(idl, provider: provider)');
       print(
-          '   • Methods: program.methods[\'methodName\'].call(args).accounts(map).transaction()',);
+        '   • Methods: program.methods[\'methodName\'].call(args).accounts(map).transaction()',
+      );
       print('   • Accounts: program.account[\'AccountType\'].fetch(address)');
       print('   • Sending: provider.sendAndConfirm(transaction)');
       print('\n✅ Hello World example completed successfully!');

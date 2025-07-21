@@ -6,9 +6,12 @@
 library;
 
 import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/error/program_error.dart' as programErrorLib;
-import 'package:coral_xyz_anchor/src/error/account_errors.dart' hide AccountDiscriminatorMismatchError;
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart' show AccountDiscriminatorMismatchError;
+import 'package:coral_xyz_anchor/src/error/program_error.dart'
+    as programErrorLib;
+import 'package:coral_xyz_anchor/src/error/account_errors.dart'
+    hide AccountDiscriminatorMismatchError;
+import 'package:coral_xyz_anchor/src/error/anchor_error.dart'
+    show AccountDiscriminatorMismatchError;
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Unified Program error for all Program operations
@@ -17,7 +20,6 @@ import 'package:coral_xyz_anchor/src/types/public_key.dart';
 /// errors that occur during Program operations, matching TypeScript's
 /// error handling patterns.
 class ProgramOperationError extends AnchorError {
-
   ProgramOperationError({
     required this.operation,
     required String message,
@@ -39,19 +41,18 @@ class ProgramOperationError extends AnchorError {
     required PublicKey programId,
     required String reason,
     dynamic cause,
-  }) {
-    return ProgramOperationError(
-      operation: 'fetchIdl',
-      message:
-          'Failed to fetch IDL for program ${programId.toBase58()}: $reason',
-      code: 6000, // Custom error code for IDL operations
-      context: {
-        'programId': programId.toBase58(),
-        'reason': reason,
-      },
-      cause: cause,
-    );
-  }
+  }) =>
+      ProgramOperationError(
+        operation: 'fetchIdl',
+        message:
+            'Failed to fetch IDL for program ${programId.toBase58()}: $reason',
+        code: 6000, // Custom error code for IDL operations
+        context: {
+          'programId': programId.toBase58(),
+          'reason': reason,
+        },
+        cause: cause,
+      );
 
   /// Create an error for method execution operations
   factory ProgramOperationError.methodExecution({
@@ -60,20 +61,19 @@ class ProgramOperationError extends AnchorError {
     Map<String, dynamic>? context,
     dynamic cause,
     List<String>? logs,
-  }) {
-    return ProgramOperationError(
-      operation: 'methodExecution',
-      message: 'Failed to execute method $methodName: $reason',
-      code: 6001, // Custom error code for method execution
-      context: {
-        'methodName': methodName,
-        'reason': reason,
-        ...?context,
-      },
-      cause: cause,
-      logs: logs,
-    );
-  }
+  }) =>
+      ProgramOperationError(
+        operation: 'methodExecution',
+        message: 'Failed to execute method $methodName: $reason',
+        code: 6001, // Custom error code for method execution
+        context: {
+          'methodName': methodName,
+          'reason': reason,
+          ...?context,
+        },
+        cause: cause,
+        logs: logs,
+      );
 
   /// Create an error for instruction building operations
   factory ProgramOperationError.instructionBuilding({
@@ -81,19 +81,18 @@ class ProgramOperationError extends AnchorError {
     required String reason,
     Map<String, dynamic>? context,
     dynamic cause,
-  }) {
-    return ProgramOperationError(
-      operation: 'instructionBuilding',
-      message: 'Failed to build instruction $instructionName: $reason',
-      code: 6002, // Custom error code for instruction building
-      context: {
-        'instructionName': instructionName,
-        'reason': reason,
-        ...?context,
-      },
-      cause: cause,
-    );
-  }
+  }) =>
+      ProgramOperationError(
+        operation: 'instructionBuilding',
+        message: 'Failed to build instruction $instructionName: $reason',
+        code: 6002, // Custom error code for instruction building
+        context: {
+          'instructionName': instructionName,
+          'reason': reason,
+          ...?context,
+        },
+        cause: cause,
+      );
 
   /// Create an error for account operations
   factory ProgramOperationError.accountOperation({
@@ -102,20 +101,20 @@ class ProgramOperationError extends AnchorError {
     required String reason,
     PublicKey? accountAddress,
     dynamic cause,
-  }) {
-    return ProgramOperationError(
-      operation: 'accountOperation',
-      message: 'Failed to $operation account $accountType: $reason',
-      code: 6003, // Custom error code for account operations
-      context: {
-        'accountType': accountType,
-        'operation': operation,
-        'reason': reason,
-        if (accountAddress != null) 'accountAddress': accountAddress.toBase58(),
-      },
-      cause: cause,
-    );
-  }
+  }) =>
+      ProgramOperationError(
+        operation: 'accountOperation',
+        message: 'Failed to $operation account $accountType: $reason',
+        code: 6003, // Custom error code for account operations
+        context: {
+          'accountType': accountType,
+          'operation': operation,
+          'reason': reason,
+          if (accountAddress != null)
+            'accountAddress': accountAddress.toBase58(),
+        },
+        cause: cause,
+      );
 
   /// Create an error for simulation operations
   factory ProgramOperationError.simulation({
@@ -123,19 +122,18 @@ class ProgramOperationError extends AnchorError {
     Map<String, dynamic>? context,
     dynamic cause,
     List<String>? logs,
-  }) {
-    return ProgramOperationError(
-      operation: 'simulation',
-      message: 'Transaction simulation failed: $reason',
-      code: 6004, // Custom error code for simulation
-      context: {
-        'reason': reason,
-        ...?context,
-      },
-      cause: cause,
-      logs: logs,
-    );
-  }
+  }) =>
+      ProgramOperationError(
+        operation: 'simulation',
+        message: 'Transaction simulation failed: $reason',
+        code: 6004, // Custom error code for simulation
+        context: {
+          'reason': reason,
+          ...?context,
+        },
+        cause: cause,
+        logs: logs,
+      );
 
   /// Create an error for transaction operations
   factory ProgramOperationError.transaction({
@@ -143,19 +141,19 @@ class ProgramOperationError extends AnchorError {
     Map<String, dynamic>? context,
     dynamic cause,
     List<String>? logs,
-  }) {
-    return ProgramOperationError(
-      operation: 'transaction',
-      message: 'Transaction failed: $reason',
-      code: 6005, // Custom error code for transactions
-      context: {
-        'reason': reason,
-        ...?context,
-      },
-      cause: cause,
-      logs: logs,
-    );
-  }
+  }) =>
+      ProgramOperationError(
+        operation: 'transaction',
+        message: 'Transaction failed: $reason',
+        code: 6005, // Custom error code for transactions
+        context: {
+          'reason': reason,
+          ...?context,
+        },
+        cause: cause,
+        logs: logs,
+      );
+
   /// The operation that caused the error
   final String operation;
 

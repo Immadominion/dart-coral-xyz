@@ -4,8 +4,8 @@
 /// TypeScript Anchor client compatibility and covers all functionality.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AccountDefinition', () {
@@ -112,9 +112,13 @@ void main() {
 
         expect(accountDef.validationRules.requireDiscriminator, isTrue);
         expect(
-            accountDef.validationRules.requiredFields.length, greaterThan(0),);
-        expect(accountDef.validationRules.minimumSize,
-            greaterThan(8),); // discriminator + fields
+          accountDef.validationRules.requiredFields.length,
+          greaterThan(0),
+        );
+        expect(
+          accountDef.validationRules.minimumSize,
+          greaterThan(8),
+        ); // discriminator + fields
         expect(accountDef.validationRules.fieldConstraints.length, equals(6));
       });
 
@@ -137,7 +141,9 @@ void main() {
 
         expect(
           () => AccountDefinition.fromIdlAccount(
-              accountWithoutType, testIdl.types,),
+            accountWithoutType,
+            testIdl.types,
+          ),
           throwsA(isA<IdlError>()),
         );
       });
@@ -220,8 +226,10 @@ void main() {
         final result = accountDef.validateStructure(invalidData);
 
         expect(result.isValid, isFalse);
-        expect(result.errors.any((e) => e.contains('Discriminator mismatch')),
-            isTrue,);
+        expect(
+          result.errors.any((e) => e.contains('Discriminator mismatch')),
+          isTrue,
+        );
       });
 
       test('detects insufficient data for discriminator', () {
@@ -230,9 +238,11 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-            result.errors.any(
-                (e) => e.contains('Account data too short for discriminator'),),
-            isTrue,);
+          result.errors.any(
+            (e) => e.contains('Account data too short for discriminator'),
+          ),
+          isTrue,
+        );
       });
 
       test('detects data below minimum size', () {
@@ -241,9 +251,10 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-            result.errors
-                .any((e) => e.contains('Account data below minimum size')),
-            isTrue,);
+          result.errors
+              .any((e) => e.contains('Account data below minimum size')),
+          isTrue,
+        );
       });
     });
 
@@ -302,7 +313,9 @@ void main() {
         final accountDef1 =
             AccountDefinition.fromIdlAccount(testAccount, testIdl.types);
         final accountDef2 = AccountDefinition.fromIdlAccount(
-            differentAccount, [differentTypeDef],);
+          differentAccount,
+          [differentTypeDef],
+        );
 
         expect(accountDef1, isNot(equals(accountDef2)));
       });
@@ -312,7 +325,8 @@ void main() {
   group('FieldDefinition', () {
     group('fromIdlField', () {
       test('creates definition for primitive types', () {
-        final field = const IdlField(name: 'test_u64', type: IdlType(kind: 'u64'));
+        final field =
+            const IdlField(name: 'test_u64', type: IdlType(kind: 'u64'));
         final fieldDef = FieldDefinition.fromIdlField(field, []);
 
         expect(fieldDef.name, equals('test_u64'));
@@ -398,8 +412,10 @@ void main() {
       });
 
       test('fields with different properties are not equal', () {
-        final field1 = const IdlField(name: 'test1', type: IdlType(kind: 'u64'));
-        final field2 = const IdlField(name: 'test2', type: IdlType(kind: 'u32'));
+        final field1 =
+            const IdlField(name: 'test1', type: IdlType(kind: 'u64'));
+        final field2 =
+            const IdlField(name: 'test2', type: IdlType(kind: 'u32'));
         final fieldDef1 = FieldDefinition.fromIdlField(field1, []);
         final fieldDef2 = FieldDefinition.fromIdlField(field2, []);
 
@@ -428,14 +444,26 @@ void main() {
           final type = IdlType(kind: entry.key);
           final typeInfo = FieldTypeInfo.fromIdlType(type, []);
 
-          expect(typeInfo.typeName, equals(entry.key),
-              reason: 'Type name should match for ${entry.key}',);
-          expect(typeInfo.isFixedSize, isTrue,
-              reason: 'Should be fixed size for ${entry.key}',);
-          expect(typeInfo.minimumSize, equals(entry.value.$1),
-              reason: 'Min size should match for ${entry.key}',);
-          expect(typeInfo.maximumSize, equals(entry.value.$2),
-              reason: 'Max size should match for ${entry.key}',);
+          expect(
+            typeInfo.typeName,
+            equals(entry.key),
+            reason: 'Type name should match for ${entry.key}',
+          );
+          expect(
+            typeInfo.isFixedSize,
+            isTrue,
+            reason: 'Should be fixed size for ${entry.key}',
+          );
+          expect(
+            typeInfo.minimumSize,
+            equals(entry.value.$1),
+            reason: 'Min size should match for ${entry.key}',
+          );
+          expect(
+            typeInfo.maximumSize,
+            equals(entry.value.$2),
+            reason: 'Max size should match for ${entry.key}',
+          );
         }
       });
 
@@ -450,7 +478,8 @@ void main() {
       });
 
       test('handles complex types correctly', () {
-        final optionType = const IdlType(kind: 'option', inner: IdlType(kind: 'u64'));
+        final optionType =
+            const IdlType(kind: 'option', inner: IdlType(kind: 'u64'));
         final optionTypeInfo = FieldTypeInfo.fromIdlType(optionType, []);
 
         expect(optionTypeInfo.typeName, equals('option'));
@@ -464,7 +493,8 @@ void main() {
 
     group('calculateSize', () {
       test('calculates fixed-size types correctly', () {
-        final u64Type = FieldTypeInfo.fromIdlType(const IdlType(kind: 'u64'), []);
+        final u64Type =
+            FieldTypeInfo.fromIdlType(const IdlType(kind: 'u64'), []);
         expect(u64Type.calculateSize(123), equals(8));
       });
 
@@ -488,8 +518,10 @@ void main() {
           [],
         );
         expect(optionType.calculateSize(null), equals(1)); // None discriminator
-        expect(optionType.calculateSize(42),
-            equals(5),); // Some discriminator + u32
+        expect(
+          optionType.calculateSize(42),
+          equals(5),
+        ); // Some discriminator + u32
       });
     });
 
@@ -585,7 +617,8 @@ void main() {
       );
 
       final invalidIdl = Idl(
-        metadata: const IdlMetadata(name: 'invalid', version: '1.0.0', spec: '0.1.0'),
+        metadata:
+            const IdlMetadata(name: 'invalid', version: '1.0.0', spec: '0.1.0'),
         instructions: [],
         accounts: [invalidAccount],
         types: [], // No type definitions

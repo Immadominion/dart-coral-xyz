@@ -77,7 +77,6 @@ class AnchorErrorCode {
 
 /// Represents a custom program error with message
 class ProgramError {
-
   const ProgramError({
     required this.code,
     required this.message,

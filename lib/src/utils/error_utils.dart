@@ -4,7 +4,6 @@ library;
 
 /// Base error class for all Anchor-related errors
 class AnchorError implements Exception {
-
   AnchorError(
     this.message, {
     required this.code,
@@ -32,20 +31,14 @@ class AnchorError implements Exception {
 
 /// Program error from Solana program execution
 class ProgramError extends AnchorError {
-
   ProgramError(
-    String message, {
+    super.message, {
     required this.errorCode,
-    required String code,
+    required super.code,
     this.programName,
-    int? programId,
-    Map<String, dynamic>? context,
-  }) : super(
-          message,
-          code: code,
-          programId: programId,
-          context: context,
-        );
+    super.programId,
+    super.context,
+  });
   final int errorCode;
   final String? programName;
 
@@ -62,15 +55,12 @@ class ProgramError extends AnchorError {
 
 /// IDL parsing or validation error
 class IdlError extends AnchorError {
-
   IdlError(
-    String message, {
+    super.message, {
     this.idlField,
-    Map<String, dynamic>? context,
+    super.context,
   }) : super(
-          message,
           code: 'IDL_ERROR',
-          context: context,
         );
   final String? idlField;
 
@@ -87,16 +77,13 @@ class IdlError extends AnchorError {
 
 /// Network or RPC related error
 class NetworkError extends AnchorError {
-
   NetworkError(
-    String message, {
+    super.message, {
     this.statusCode,
     this.endpoint,
-    Map<String, dynamic>? context,
+    super.context,
   }) : super(
-          message,
           code: 'NETWORK_ERROR',
-          context: context,
         );
   final int? statusCode;
   final String? endpoint;
@@ -117,16 +104,13 @@ class NetworkError extends AnchorError {
 
 /// Account not found error
 class AccountNotFoundError extends AnchorError {
-
   AccountNotFoundError(
-    String message, {
+    super.message, {
     this.accountType,
     this.publicKey,
-    Map<String, dynamic>? context,
+    super.context,
   }) : super(
-          message,
           code: 'ACCOUNT_NOT_FOUND',
-          context: context,
         );
   final String? accountType;
   final String? publicKey;
@@ -147,16 +131,13 @@ class AccountNotFoundError extends AnchorError {
 
 /// Instruction building or execution error
 class InstructionError extends AnchorError {
-
   InstructionError(
-    String message, {
+    super.message, {
     this.instructionName,
     this.instructionIndex,
-    Map<String, dynamic>? context,
+    super.context,
   }) : super(
-          message,
           code: 'INSTRUCTION_ERROR',
-          context: context,
         );
   final String? instructionName;
   final int? instructionIndex;
@@ -177,16 +158,13 @@ class InstructionError extends AnchorError {
 
 /// Simulation error
 class SimulationError extends AnchorError {
-
   SimulationError(
-    String message, {
+    super.message, {
     this.logs,
     this.transactionSignature,
-    Map<String, dynamic>? context,
+    super.context,
   }) : super(
-          message,
           code: 'SIMULATION_ERROR',
-          context: context,
         );
   final List<String>? logs;
   final String? transactionSignature;

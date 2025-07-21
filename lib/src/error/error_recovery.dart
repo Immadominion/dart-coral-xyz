@@ -100,9 +100,8 @@ class LinearBackoffStrategy implements RetryStrategy {
   Duration calculateDelay(int attemptNumber) => delay;
 
   @override
-  bool shouldRetry(int attemptNumber, Object error) {
-    return attemptNumber < maxAttempts;
-  }
+  bool shouldRetry(int attemptNumber, Object error) =>
+      attemptNumber < maxAttempts;
 }
 
 /// Immediate retry strategy (no delay)
@@ -117,9 +116,8 @@ class ImmediateRetryStrategy implements RetryStrategy {
   Duration calculateDelay(int attemptNumber) => Duration.zero;
 
   @override
-  bool shouldRetry(int attemptNumber, Object error) {
-    return attemptNumber < maxAttempts;
-  }
+  bool shouldRetry(int attemptNumber, Object error) =>
+      attemptNumber < maxAttempts;
 }
 
 /// Circuit breaker states
@@ -187,7 +185,7 @@ class CircuitBreaker {
 
     if (_state == CircuitBreakerState.halfOpen) {
       if (_halfOpenCalls >= halfOpenMaxCalls) {
-        throw CircuitBreakerOpenException(
+        throw const CircuitBreakerOpenException(
           'Circuit breaker half-open limit exceeded',
         );
       }
@@ -446,7 +444,7 @@ class ErrorRecoveryExecutor {
         );
 
         // Throw the fallback error as it's more recent
-        throw fallbackError;
+        rethrow;
       }
     }
 
@@ -468,65 +466,49 @@ class ErrorRecoveryExecutor {
 /// Utility class for creating common error recovery configurations
 class ErrorRecoveryConfig {
   /// Default configuration for network operations
-  static ErrorRecoveryExecutor networkOperations() {
-    return ErrorRecoveryExecutor(
-      retryStrategy: const ExponentialBackoffStrategy(
-        maxAttempts: 3,
-        baseDelay: Duration(milliseconds: 500),
-        maxDelay: Duration(seconds: 10),
-      ),
-      circuitBreaker: CircuitBreaker(
-        failureThreshold: 5,
-        recoveryTimeout: const Duration(minutes: 1),
-      ),
-      timeout: const Duration(seconds: 30),
-    );
-  }
+  static ErrorRecoveryExecutor networkOperations() => ErrorRecoveryExecutor(
+        retryStrategy: const ExponentialBackoffStrategy(
+          baseDelay: Duration(milliseconds: 500),
+          maxDelay: Duration(seconds: 10),
+        ),
+        circuitBreaker: CircuitBreaker(),
+        timeout: const Duration(seconds: 30),
+      );
 
   /// Configuration for RPC operations
-  static ErrorRecoveryExecutor rpcOperations() {
-    return ErrorRecoveryExecutor(
-      retryStrategy: const ExponentialBackoffStrategy(
-        maxAttempts: 2,
-        baseDelay: Duration(milliseconds: 200),
-        maxDelay: Duration(seconds: 5),
-      ),
-      circuitBreaker: CircuitBreaker(
-        failureThreshold: 3,
-        recoveryTimeout: const Duration(seconds: 30),
-      ),
-      timeout: const Duration(seconds: 15),
-    );
-  }
+  static ErrorRecoveryExecutor rpcOperations() => ErrorRecoveryExecutor(
+        retryStrategy: const ExponentialBackoffStrategy(
+          maxAttempts: 2,
+          baseDelay: Duration(milliseconds: 200),
+          maxDelay: Duration(seconds: 5),
+        ),
+        circuitBreaker: CircuitBreaker(
+          failureThreshold: 3,
+          recoveryTimeout: const Duration(seconds: 30),
+        ),
+        timeout: const Duration(seconds: 15),
+      );
 
   /// Configuration for account fetching operations
-  static ErrorRecoveryExecutor accountFetching() {
-    return ErrorRecoveryExecutor(
-      retryStrategy: const LinearBackoffStrategy(
-        maxAttempts: 2,
-        delay: Duration(milliseconds: 100),
-      ),
-      timeout: const Duration(seconds: 10),
-    );
-  }
+  static ErrorRecoveryExecutor accountFetching() => ErrorRecoveryExecutor(
+        retryStrategy: const LinearBackoffStrategy(
+          maxAttempts: 2,
+          delay: Duration(milliseconds: 100),
+        ),
+        timeout: const Duration(seconds: 10),
+      );
 
   /// Configuration for transaction operations
-  static ErrorRecoveryExecutor transactionOperations() {
-    return ErrorRecoveryExecutor(
-      retryStrategy: const ExponentialBackoffStrategy(
-        maxAttempts: 3,
-        baseDelay: Duration(seconds: 1),
-        maxDelay: Duration(seconds: 30),
-      ),
-      timeout: const Duration(seconds: 60),
-    );
-  }
+  static ErrorRecoveryExecutor transactionOperations() => ErrorRecoveryExecutor(
+        retryStrategy: const ExponentialBackoffStrategy(
+          baseDelay: Duration(seconds: 1),
+        ),
+        timeout: const Duration(seconds: 60),
+      );
 
   /// Configuration for critical operations (no retries)
-  static ErrorRecoveryExecutor criticalOperations() {
-    return ErrorRecoveryExecutor(
-      retryStrategy: const ImmediateRetryStrategy(maxAttempts: 1),
-      timeout: const Duration(seconds: 5),
-    );
-  }
+  static ErrorRecoveryExecutor criticalOperations() => ErrorRecoveryExecutor(
+        retryStrategy: const ImmediateRetryStrategy(maxAttempts: 1),
+        timeout: const Duration(seconds: 5),
+      );
 }

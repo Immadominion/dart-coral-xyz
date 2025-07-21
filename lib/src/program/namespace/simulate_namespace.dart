@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    as transaction_types;
 import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart' hide SimulationResult;
+import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart'
+    hide SimulationResult;
 import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
@@ -18,7 +20,6 @@ import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
 /// final result = await program.simulate.methodName(...args, ctx);
 /// ```
 class SimulateNamespace {
-
   SimulateNamespace._();
   final Map<String, SimulateFunction> _functions = {};
 
@@ -38,8 +39,6 @@ class SimulateNamespace {
         instruction: instruction,
         transactionNamespace: transactionNamespace,
         provider: provider,
-        coder: coder,
-        programId: programId,
       );
     }
 
@@ -56,7 +55,8 @@ class SimulateNamespace {
   bool contains(String name) => _functions.containsKey(name);
 
   @override
-  String toString() => 'SimulateNamespace(instructions: ${_functions.keys.toList()})';
+  String toString() =>
+      'SimulateNamespace(instructions: ${_functions.keys.toList()})';
 }
 
 /// Function for simulating a transaction for a specific instruction
@@ -69,8 +69,6 @@ class SimulateFunction {
     required IdlInstruction instruction,
     required TransactionNamespace transactionNamespace,
     required AnchorProvider provider,
-    required Coder coder,
-    required PublicKey programId,
   })  : _instruction = instruction,
         _transactionNamespace = transactionNamespace,
         _provider = provider;
@@ -117,19 +115,26 @@ class SimulateFunction {
 
   /// Convert AnchorTransaction to Transaction for simulation
   transaction_types.Transaction _convertToTransaction(
-      AnchorTransaction anchorTx,) {
+    AnchorTransaction anchorTx,
+  ) {
     // Convert instructions from namespace types to transaction types
-    final convertedInstructions = anchorTx.instructions.map((instruction) => transaction_types.TransactionInstruction(
-        programId: instruction.programId,
-        accounts: instruction.accounts.map((account) {
-          return transaction_types.AccountMeta(
-            pubkey: account.publicKey,
-            isWritable: account.isWritable,
-            isSigner: account.isSigner,
-          );
-        }).toList(),
-        data: Uint8List.fromList(instruction.data),
-      )).toList();
+    final convertedInstructions = anchorTx.instructions
+        .map(
+          (instruction) => transaction_types.TransactionInstruction(
+            programId: instruction.programId,
+            accounts: instruction.accounts
+                .map(
+                  (account) => transaction_types.AccountMeta(
+                    pubkey: account.publicKey,
+                    isWritable: account.isWritable,
+                    isSigner: account.isSigner,
+                  ),
+                )
+                .toList(),
+            data: Uint8List.fromList(instruction.data),
+          ),
+        )
+        .toList();
 
     return transaction_types.Transaction(
       instructions: convertedInstructions,

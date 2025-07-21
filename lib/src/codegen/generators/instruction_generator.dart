@@ -34,7 +34,9 @@ class InstructionGenerator {
 
   /// Generate instruction builder class for a single instruction
   void _generateInstructionBuilder(
-      StringBuffer buffer, IdlInstruction instruction) {
+    StringBuffer buffer,
+    IdlInstruction instruction,
+  ) {
     final className = _toPascalCase(instruction.name);
     final builderClassName = '${className}InstructionBuilder';
 
@@ -71,20 +73,25 @@ class InstructionGenerator {
 
     // Add static helper method
     buffer.writeln(
-        '  /// Helper method to create an AccountsResolver for instruction building');
+      '  /// Helper method to create an AccountsResolver for instruction building',
+    );
     buffer.writeln(
-        '  static AccountsResolver _createAccountsResolver(Program program) {');
+      '  static AccountsResolver _createAccountsResolver(Program program) {',
+    );
     buffer.writeln(
-        '    // For now, create a minimal AccountsResolver with empty data');
+      '    // For now, create a minimal AccountsResolver with empty data',
+    );
     buffer.writeln(
-        '    // In a production system, this would be properly implemented');
+      '    // In a production system, this would be properly implemented',
+    );
     buffer.writeln('    return AccountsResolver(');
     buffer.writeln('      args: <dynamic>[],');
     buffer.writeln('      accounts: <String, dynamic>{},');
     buffer.writeln('      provider: program.provider,');
     buffer.writeln('      programId: program.programId,');
     buffer.writeln(
-        '      idlInstruction: program.idl.instructions.first, // Placeholder');
+      '      idlInstruction: program.idl.instructions.first, // Placeholder',
+    );
     buffer.writeln('      idlTypes: program.idl.types ?? [],');
     buffer.writeln('    );');
     buffer.writeln('  }');
@@ -137,7 +144,8 @@ class InstructionGenerator {
     final accountsClassName = '${className}Accounts';
 
     buffer.writeln(
-        '/// Accounts configuration for ${instruction.name} instruction');
+      '/// Accounts configuration for ${instruction.name} instruction',
+    );
     buffer.writeln('class $accountsClassName {');
     buffer.writeln('  /// Creates a new $accountsClassName');
     buffer.writeln('  const $accountsClassName({');
@@ -147,7 +155,8 @@ class InstructionGenerator {
       final accountName = _toCamelCase(account.name);
       if (account is IdlInstructionAccount) {
         buffer.writeln(
-            '    ${account.optional ? '' : 'required '}this.$accountName,');
+          '    ${account.optional ? '' : 'required '}this.$accountName,',
+        );
       } else {
         buffer.writeln('    required this.$accountName,');
       }
@@ -167,7 +176,8 @@ class InstructionGenerator {
       }
       if (account is IdlInstructionAccount) {
         buffer.writeln(
-            '  final PublicKey${account.optional ? '?' : ''} $accountName;');
+          '  final PublicKey${account.optional ? '?' : ''} $accountName;',
+        );
       } else {
         buffer.writeln('  final PublicKey $accountName;');
       }
@@ -196,7 +206,9 @@ class InstructionGenerator {
 
   /// Generate builder methods
   void _generateBuilderMethods(
-      StringBuffer buffer, IdlInstruction instruction) {
+    StringBuffer buffer,
+    IdlInstruction instruction,
+  ) {
     final className = _toPascalCase(instruction.name);
     final builderClassName = '${className}InstructionBuilder';
     final accountsClassName = '${className}Accounts';
@@ -231,7 +243,8 @@ class InstructionGenerator {
     // Generate preInstructions method
     buffer.writeln('  /// Add pre-instructions to this instruction');
     buffer.writeln(
-        '  $builderClassName preInstructions(List<TransactionInstruction> instructions) {');
+      '  $builderClassName preInstructions(List<TransactionInstruction> instructions) {',
+    );
     buffer.writeln('    return $builderClassName(');
     buffer.writeln('      program: program,');
     for (final arg in instruction.args) {
@@ -245,7 +258,8 @@ class InstructionGenerator {
     // Generate postInstructions method
     buffer.writeln('  /// Add post-instructions to this instruction');
     buffer.writeln(
-        '  $builderClassName postInstructions(List<TransactionInstruction> instructions) {');
+      '  $builderClassName postInstructions(List<TransactionInstruction> instructions) {',
+    );
     buffer.writeln('    return $builderClassName(');
     buffer.writeln('      program: program,');
     for (final arg in instruction.args) {
@@ -259,7 +273,9 @@ class InstructionGenerator {
 
   /// Generate execution methods
   void _generateExecutionMethods(
-      StringBuffer buffer, IdlInstruction instruction) {
+    StringBuffer buffer,
+    IdlInstruction instruction,
+  ) {
     final className = _toPascalCase(instruction.name);
 
     // Generate instruction method
@@ -337,8 +353,11 @@ class InstructionGenerator {
   }
 
   /// Generate convenience methods for instruction builder
-  void _generateConvenienceMethods(StringBuffer buffer,
-      IdlInstruction instruction, String builderClassName) {
+  void _generateConvenienceMethods(
+    StringBuffer buffer,
+    IdlInstruction instruction,
+    String builderClassName,
+  ) {
     buffer.writeln('  /// Create instruction');
     buffer.writeln('  Future<tx.TransactionInstruction> instruction() async {');
     buffer.writeln('    final args = <String, dynamic>{');
@@ -347,7 +366,8 @@ class InstructionGenerator {
     for (final arg in instruction.args) {
       final paramName = _toCamelCase(arg.name);
       buffer.writeln(
-          '      if ($paramName != null) \'${arg.name}\': $paramName,');
+        '      if ($paramName != null) \'${arg.name}\': $paramName,',
+      );
     }
 
     buffer.writeln('    };');
@@ -377,7 +397,8 @@ class InstructionGenerator {
     buffer.writeln('      feePayer: program.provider.wallet?.publicKey,');
     buffer.writeln('    );');
     buffer.writeln(
-        '    return await program.provider.sendAndConfirm(transaction);');
+      '    return await program.provider.sendAndConfirm(transaction);',
+    );
     buffer.writeln('  }');
     buffer.writeln();
 
@@ -463,14 +484,14 @@ class InstructionGenerator {
   }
 
   /// Convert string to PascalCase
-  String _toPascalCase(String input) {
-    return input
-        .split('_')
-        .map((word) => word.isNotEmpty
+  String _toPascalCase(String input) => input
+      .split('_')
+      .map(
+        (word) => word.isNotEmpty
             ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : '')
-        .join('');
-  }
+            : '',
+      )
+      .join();
 
   /// Convert string to camelCase
   String _toCamelCase(String input) {

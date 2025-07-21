@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/src/transaction/simulation_result_processor.dart';
 import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('SimulationResultProcessor Tests', () {
@@ -127,11 +127,15 @@ void main() {
         // Check invoke events
         final invokeEvents = result.getEventsByType(EventType.cpiInvoke);
         expect(invokeEvents.length, equals(2));
-        expect(invokeEvents[0].cpiInfo!.programId,
-            equals('11111111111111111111111111111112'),);
+        expect(
+          invokeEvents[0].cpiInfo!.programId,
+          equals('11111111111111111111111111111112'),
+        );
         expect(invokeEvents[0].cpiInfo!.depth, equals(1));
-        expect(invokeEvents[1].cpiInfo!.programId,
-            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),);
+        expect(
+          invokeEvents[1].cpiInfo!.programId,
+          equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        );
         expect(invokeEvents[1].cpiInfo!.depth, equals(2));
 
         // Check success events
@@ -213,16 +217,24 @@ void main() {
         final result = await processor.processResult(simulationResult);
 
         expect(result.returnDataAnalysis.hasReturnData, true);
-        expect(result.returnDataAnalysis.programId,
-            equals('11111111111111111111111111111112'),);
+        expect(
+          result.returnDataAnalysis.programId,
+          equals('11111111111111111111111111111112'),
+        );
         expect(result.returnDataAnalysis.rawData, equals(encodedData));
         expect(result.returnDataAnalysis.decodedData, isNotNull);
-        expect(utf8.decode(result.returnDataAnalysis.decodedData!),
-            equals(returnData),);
         expect(
-            result.returnDataAnalysis.dataLength, equals(encodedData.length),);
-        expect(result.returnDataAnalysis.analysis,
-            contains('Return Data Analysis'),);
+          utf8.decode(result.returnDataAnalysis.decodedData!),
+          equals(returnData),
+        );
+        expect(
+          result.returnDataAnalysis.dataLength,
+          equals(encodedData.length),
+        );
+        expect(
+          result.returnDataAnalysis.analysis,
+          contains('Return Data Analysis'),
+        );
       });
 
       test('should handle non-base64 return data', () async {
@@ -242,8 +254,10 @@ void main() {
         expect(result.returnDataAnalysis.hasReturnData, true);
         expect(result.returnDataAnalysis.rawData, equals(returnData));
         expect(result.returnDataAnalysis.decodedData, isNull);
-        expect(result.returnDataAnalysis.analysis,
-            contains('Data type: String/Text'),);
+        expect(
+          result.returnDataAnalysis.analysis,
+          contains('Data type: String/Text'),
+        );
       });
     });
 
@@ -269,8 +283,10 @@ void main() {
         expect(result.debugInfo.warnings, isNotNull);
         expect(result.debugInfo.warnings!.length, equals(1));
         expect(result.debugInfo.performanceMetrics, isNotNull);
-        expect(result.debugInfo.performanceMetrics!['computeUnitsConsumed'],
-            equals(250000),);
+        expect(
+          result.debugInfo.performanceMetrics!['computeUnitsConsumed'],
+          equals(250000),
+        );
         expect(result.debugInfo.recommendations, isNotNull);
       });
 
@@ -288,14 +304,18 @@ void main() {
 
         expect(result.debugInfo.recommendations, isNotNull);
         expect(
-            result.debugInfo.recommendations!
-                .any((r) => r.contains('compute unit')),
-            true,);
-        expect(result.debugInfo.recommendations!.any((r) => r.contains('logs')),
-            true,);
+          result.debugInfo.recommendations!
+              .any((r) => r.contains('compute unit')),
+          true,
+        );
         expect(
-            result.debugInfo.recommendations!.any((r) => r.contains('failed')),
-            true,);
+          result.debugInfo.recommendations!.any((r) => r.contains('logs')),
+          true,
+        );
+        expect(
+          result.debugInfo.recommendations!.any((r) => r.contains('failed')),
+          true,
+        );
       });
     });
 
@@ -322,8 +342,10 @@ void main() {
         expect(result.errorAnalysis.instructionIndex, equals(0));
         expect(result.errorAnalysis.errorCode, equals(3001));
         expect(result.errorAnalysis.errorSummary, contains('InstructionError'));
-        expect(result.errorAnalysis.errorContext,
-            contains('Failed at instruction: 0'),);
+        expect(
+          result.errorAnalysis.errorContext,
+          contains('Failed at instruction: 0'),
+        );
         expect(result.errorAnalysis.suggestions, isNotEmpty);
         expect(result.errorAnalysis.relatedLogs, isNotEmpty);
       });
@@ -395,12 +417,18 @@ void main() {
         );
 
         // Fill cache beyond limit
-        await limitedProcessor.processResult(simulationResult,
-            cacheKey: 'key1',);
-        await limitedProcessor.processResult(simulationResult,
-            cacheKey: 'key2',);
-        await limitedProcessor.processResult(simulationResult,
-            cacheKey: 'key3',);
+        await limitedProcessor.processResult(
+          simulationResult,
+          cacheKey: 'key1',
+        );
+        await limitedProcessor.processResult(
+          simulationResult,
+          cacheKey: 'key2',
+        );
+        await limitedProcessor.processResult(
+          simulationResult,
+          cacheKey: 'key3',
+        );
 
         final stats = limitedProcessor.getCacheStats();
         expect(stats['cacheSize'], equals(2));
@@ -427,29 +455,35 @@ void main() {
       });
 
       test('should compare different results', () async {
-        final result1 =
-            await processor.processResult(const TransactionSimulationResult(
-          success: true,
-          logs: ['Program log: Test 1'],
-          unitsConsumed: 100000,
-        ),);
+        final result1 = await processor.processResult(
+          const TransactionSimulationResult(
+            success: true,
+            logs: ['Program log: Test 1'],
+            unitsConsumed: 100000,
+          ),
+        );
 
-        final result2 =
-            await processor.processResult(const TransactionSimulationResult(
-          success: false,
-          logs: ['Program log: Test 2', 'Program log: Error'],
-          unitsConsumed: 200000,
-        ),);
+        final result2 = await processor.processResult(
+          const TransactionSimulationResult(
+            success: false,
+            logs: ['Program log: Test 2', 'Program log: Error'],
+            unitsConsumed: 200000,
+          ),
+        );
 
         final comparison = processor.compareResults(result1, result2);
 
         expect(comparison.areIdentical, false);
         expect(comparison.overallSimilarity, lessThan(1.0));
         expect(comparison.differences, isNotEmpty);
-        expect(comparison.differences.any((d) => d.contains('Success status')),
-            true,);
-        expect(comparison.differences.any((d) => d.contains('Compute units')),
-            true,);
+        expect(
+          comparison.differences.any((d) => d.contains('Success status')),
+          true,
+        );
+        expect(
+          comparison.differences.any((d) => d.contains('Compute units')),
+          true,
+        );
       });
     });
 

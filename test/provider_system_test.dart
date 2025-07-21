@@ -4,15 +4,15 @@
 /// and provider lifecycle management to ensure TypeScript compatibility.
 library;
 
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/src/provider/provider_interface.dart';
-import 'package:coral_xyz_anchor/src/provider/provider_factory.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz_anchor/src/provider/provider_factory.dart';
+import 'package:coral_xyz_anchor/src/provider/provider_interface.dart';
 import 'package:coral_xyz_anchor/src/provider/wallet.dart';
 import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
 import 'package:coral_xyz_anchor/src/types/connection_config.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ProviderInterface', () {
@@ -72,7 +72,9 @@ void main() {
 
       expect(capabilities.contains(ProviderCapability.signTransaction), isTrue);
       expect(
-          capabilities.contains(ProviderCapability.hardwareSecurity), isFalse,);
+        capabilities.contains(ProviderCapability.hardwareSecurity),
+        isFalse,
+      );
       expect(capabilities.length, equals(4));
     });
   });
@@ -103,9 +105,7 @@ void main() {
     });
 
     test('should support different endpoint environments', () async {
-      final localProvider = await ProviderFactory.createEnvironmentProvider(
-        
-      );
+      final localProvider = await ProviderFactory.createEnvironmentProvider();
       final devnetProvider = await ProviderFactory.createEnvironmentProvider(
         environment: 'devnet',
       );
@@ -157,15 +157,17 @@ void main() {
       final provider = await ProviderFactory.createProvider(config);
 
       expect(
-          provider.config.capabilities.contains(
-            ProviderCapability.signTransaction,
-          ),
-          isTrue,);
+        provider.config.capabilities.contains(
+          ProviderCapability.signTransaction,
+        ),
+        isTrue,
+      );
       expect(
-          provider.config.capabilities.contains(
-            ProviderCapability.simulateTransaction,
-          ),
-          isTrue,);
+        provider.config.capabilities.contains(
+          ProviderCapability.simulateTransaction,
+        ),
+        isTrue,
+      );
     });
 
     test('should throw on missing capabilities', () async {
@@ -271,13 +273,19 @@ void main() {
       final capabilities = provider.config.capabilities;
 
       expect(capabilities.contains(ProviderCapability.signTransaction), isTrue);
-      expect(capabilities.contains(ProviderCapability.signAllTransactions),
-          isTrue,);
-      expect(capabilities.contains(ProviderCapability.signMessage), isTrue);
-      expect(capabilities.contains(ProviderCapability.simulateTransaction),
-          isTrue,);
       expect(
-          capabilities.contains(ProviderCapability.hardwareSecurity), isFalse,);
+        capabilities.contains(ProviderCapability.signAllTransactions),
+        isTrue,
+      );
+      expect(capabilities.contains(ProviderCapability.signMessage), isTrue);
+      expect(
+        capabilities.contains(ProviderCapability.simulateTransaction),
+        isTrue,
+      );
+      expect(
+        capabilities.contains(ProviderCapability.hardwareSecurity),
+        isFalse,
+      );
     });
   });
 

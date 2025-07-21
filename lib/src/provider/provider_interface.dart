@@ -113,7 +113,6 @@ enum ProviderType {
 
 /// Provider configuration
 class ProviderConfig {
-
   const ProviderConfig({
     required this.type,
     required this.name,
@@ -121,6 +120,7 @@ class ProviderConfig {
     this.capabilities = const {},
     this.properties = const {},
   });
+
   /// Provider type
   final ProviderType type;
 
@@ -143,17 +143,19 @@ class ProviderConfig {
     String? version,
     Set<ProviderCapability>? capabilities,
     Map<String, dynamic>? properties,
-  }) => ProviderConfig(
-      type: type ?? this.type,
-      name: name ?? this.name,
-      version: version ?? this.version,
-      capabilities: capabilities ?? this.capabilities,
-      properties: properties ?? this.properties,
-    );
+  }) =>
+      ProviderConfig(
+        type: type ?? this.type,
+        name: name ?? this.name,
+        version: version ?? this.version,
+        capabilities: capabilities ?? this.capabilities,
+        properties: properties ?? this.properties,
+      );
 
   @override
-  String toString() => 'ProviderConfig(type: $type, name: $name, version: $version, '
-        'capabilities: $capabilities, properties: ${properties.keys})';
+  String toString() =>
+      'ProviderConfig(type: $type, name: $name, version: $version, '
+      'capabilities: $capabilities, properties: ${properties.keys})';
 
   @override
   bool operator ==(Object other) {
@@ -167,7 +169,8 @@ class ProviderConfig {
   }
 
   @override
-  int get hashCode => Object.hash(type, name, version, capabilities, properties);
+  int get hashCode =>
+      Object.hash(type, name, version, capabilities, properties);
 
   static bool _mapEquals(Map<String, dynamic> a, Map<String, dynamic> b) {
     if (a.length != b.length) return false;
@@ -207,7 +210,6 @@ enum ProviderCapability {
 
 /// Provider connection status
 class ProviderConnectionStatus {
-
   const ProviderConnectionStatus({
     required this.isConnected,
     required this.timestamp,
@@ -218,26 +220,25 @@ class ProviderConnectionStatus {
   /// Create connected status
   factory ProviderConnectionStatus.connected({
     Map<String, dynamic> metadata = const {},
-  }) {
-    return ProviderConnectionStatus(
-      isConnected: true,
-      timestamp: DateTime.now(),
-      metadata: metadata,
-    );
-  }
+  }) =>
+      ProviderConnectionStatus(
+        isConnected: true,
+        timestamp: DateTime.now(),
+        metadata: metadata,
+      );
 
   /// Create disconnected status
   factory ProviderConnectionStatus.disconnected({
     Exception? error,
     Map<String, dynamic> metadata = const {},
-  }) {
-    return ProviderConnectionStatus(
-      isConnected: false,
-      timestamp: DateTime.now(),
-      error: error,
-      metadata: metadata,
-    );
-  }
+  }) =>
+      ProviderConnectionStatus(
+        isConnected: false,
+        timestamp: DateTime.now(),
+        error: error,
+        metadata: metadata,
+      );
+
   /// Whether the provider is connected
   final bool isConnected;
 
@@ -252,7 +253,7 @@ class ProviderConnectionStatus {
 
   @override
   String toString() => 'ProviderConnectionStatus(isConnected: $isConnected, '
-        'timestamp: $timestamp, error: $error, metadata: $metadata)';
+      'timestamp: $timestamp, error: $error, metadata: $metadata)';
 
   @override
   bool operator ==(Object other) {
@@ -278,13 +279,13 @@ class ProviderConnectionStatus {
 
 /// Base provider implementation with common functionality
 abstract class BaseProvider implements ProviderInterface {
-
   BaseProvider({
     required this.connection,
     required this.config,
   })  : _connectionStatusController =
             StreamController<ProviderConnectionStatus>.broadcast(),
         _currentStatus = ProviderConnectionStatus.disconnected();
+
   /// Connection instance
   @override
   final Connection connection;

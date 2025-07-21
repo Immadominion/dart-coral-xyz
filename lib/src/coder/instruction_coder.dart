@@ -37,11 +37,11 @@ abstract class InstructionCoder {
 
 /// A decoded program instruction
 class Instruction {
-
   const Instruction({
     required this.name,
     required this.data,
   });
+
   /// The name of the instruction
   final String name;
 
@@ -73,11 +73,11 @@ class Instruction {
 
 /// Formatted instruction display for debugging and analysis
 class InstructionDisplay {
-
   const InstructionDisplay({
     required this.args,
     required this.accounts,
   });
+
   /// Formatted instruction arguments
   final List<InstructionArg> args;
 
@@ -90,12 +90,12 @@ class InstructionDisplay {
 
 /// Formatted instruction argument
 class InstructionArg {
-
   const InstructionArg({
     required this.name,
     required this.type,
     required this.data,
   });
+
   /// The name of the argument
   final String name;
 
@@ -111,13 +111,13 @@ class InstructionArg {
 
 /// Formatted instruction account
 class InstructionAccount {
-
   const InstructionAccount({
-    this.name,
     required this.pubkey,
     required this.isSigner,
     required this.isWritable,
+    this.name,
   });
+
   /// The name of the account (if known)
   final String? name;
 
@@ -132,16 +132,16 @@ class InstructionAccount {
 
   @override
   String toString() => 'InstructionAccount(name: $name, pubkey: $pubkey, '
-        'isSigner: $isSigner, isWritable: $isWritable)';
+      'isSigner: $isSigner, isWritable: $isWritable)';
 }
 
 /// Borsh-based implementation of InstructionCoder
 class BorshInstructionCoder implements InstructionCoder {
-
   /// Create a new BorshInstructionCoder
   BorshInstructionCoder(this.idl) {
     _ixLayouts = _buildInstructionLayouts();
   }
+
   /// The IDL containing instruction definitions
   final Idl idl;
 
@@ -173,14 +173,16 @@ class BorshInstructionCoder implements InstructionCoder {
       result.setRange(discriminator.length, result.length, argsData);
 
       print(
-          'InstructionCoder: Final instruction data length: ${result.length}',);
+        'InstructionCoder: Final instruction data length: ${result.length}',
+      );
       print('InstructionCoder: Final instruction data: ${result.toList()}');
 
       return result;
     } catch (e) {
       print('InstructionCoder: Error encoding instruction $ixName: $e');
       throw InstructionCoderException(
-          'Failed to encode instruction $ixName: $e',);
+        'Failed to encode instruction $ixName: $e',
+      );
     }
   }
 
@@ -245,11 +247,13 @@ class BorshInstructionCoder implements InstructionCoder {
     final args = <InstructionArg>[];
     for (final arg in instruction.args) {
       final value = ix.data[arg.name];
-      args.add(InstructionArg(
-        name: arg.name,
-        type: _formatIdlType(arg.type),
-        data: _formatValue(value, arg.type),
-      ),);
+      args.add(
+        InstructionArg(
+          name: arg.name,
+          type: _formatIdlType(arg.type),
+          data: _formatValue(value, arg.type),
+        ),
+      );
     }
 
     // Format accounts
@@ -264,12 +268,14 @@ class BorshInstructionCoder implements InstructionCoder {
         name = account.name;
       }
 
-      accounts.add(InstructionAccount(
-        name: name,
-        pubkey: meta.pubkey.toBase58(),
-        isSigner: meta.isSigner,
-        isWritable: meta.isWritable,
-      ),);
+      accounts.add(
+        InstructionAccount(
+          name: name,
+          pubkey: meta.pubkey.toBase58(),
+          isSigner: meta.isSigner,
+          isWritable: meta.isWritable,
+        ),
+      );
     }
 
     return InstructionDisplay(args: args, accounts: accounts);
@@ -316,7 +322,8 @@ class BorshInstructionCoder implements InstructionCoder {
     for (final arg in instruction.args) {
       if (!data.containsKey(arg.name)) {
         throw InstructionCoderException(
-            'Missing required argument: ${arg.name}',);
+          'Missing required argument: ${arg.name}',
+        );
       }
       final value = data[arg.name];
       _encodeValue(value, arg.type, serializer);
@@ -355,7 +362,8 @@ class BorshInstructionCoder implements InstructionCoder {
           serializer.writeU64(value);
         } else {
           throw InstructionCoderException(
-              'Invalid u64 value type: ${value.runtimeType}');
+            'Invalid u64 value type: ${value.runtimeType}',
+          );
         }
         break;
       case 'i64':
@@ -366,7 +374,8 @@ class BorshInstructionCoder implements InstructionCoder {
           serializer.writeI64(value);
         } else {
           throw InstructionCoderException(
-              'Invalid i64 value type: ${value.runtimeType}');
+            'Invalid i64 value type: ${value.runtimeType}',
+          );
         }
         break;
       case 'string':
@@ -404,7 +413,8 @@ class BorshInstructionCoder implements InstructionCoder {
         break;
       default:
         throw InstructionCoderException(
-            'Unsupported type for encoding: ${type.kind}',);
+          'Unsupported type for encoding: ${type.kind}',
+        );
     }
   }
 
@@ -470,7 +480,8 @@ class BorshInstructionCoder implements InstructionCoder {
         return list;
       default:
         throw InstructionCoderException(
-            'Unsupported type for decoding: ${type.kind}',);
+          'Unsupported type for decoding: ${type.kind}',
+        );
     }
   }
 
@@ -506,8 +517,10 @@ class BorshInstructionCoder implements InstructionCoder {
 
     if (value is Map) {
       final entries = value.entries
-          .map((e) =>
-              '${e.key}: ${_formatValue(e.value, const IdlType(kind: 'unknown'))}',)
+          .map(
+            (e) =>
+                '${e.key}: ${_formatValue(e.value, const IdlType(kind: 'unknown'))}',
+          )
           .join(', ');
       return '{$entries}';
     }
@@ -518,11 +531,11 @@ class BorshInstructionCoder implements InstructionCoder {
 
 /// Internal instruction layout information
 class InstructionLayout {
-
   const InstructionLayout({
     required this.discriminator,
     required this.instruction,
   });
+
   /// The instruction discriminator bytes
   final List<int> discriminator;
 

@@ -1,6 +1,6 @@
 /// Native Solana System Program utilities.
 /// Provides TypeScript-like system program functionality.
-library system_program;
+library;
 
 import 'dart:typed_data';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
@@ -47,18 +47,17 @@ class SystemProgram {
     required PublicKey account,
     required PublicKey destination,
     PublicKey? authority,
-  }) {
-    return TransactionInstruction(
-      programId: SystemProgram.programId,
-      accounts: [
-        AccountMeta(pubkey: account, isSigner: false, isWritable: true),
-        AccountMeta(pubkey: destination, isSigner: false, isWritable: true),
-        if (authority != null)
-          AccountMeta(pubkey: authority, isSigner: true, isWritable: false),
-      ],
-      data: Uint8List(0), // No data for generic close
-    );
-  }
+  }) =>
+      TransactionInstruction(
+        programId: SystemProgram.programId,
+        accounts: [
+          AccountMeta(pubkey: account, isSigner: false, isWritable: true),
+          AccountMeta(pubkey: destination, isSigner: false, isWritable: true),
+          if (authority != null)
+            AccountMeta(pubkey: authority, isSigner: true, isWritable: false),
+        ],
+        data: Uint8List(0), // No data for generic close
+      );
 
   /// Transfer instruction
   static TransactionInstruction transfer({

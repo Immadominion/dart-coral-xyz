@@ -9,7 +9,6 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Configuration for documentation generation
 class DocumentationConfig {
-
   const DocumentationConfig({
     this.outputDirectory = 'docs',
     this.format = 'markdown',
@@ -22,26 +21,15 @@ class DocumentationConfig {
   });
 
   /// Create a comprehensive documentation configuration
-  factory DocumentationConfig.comprehensive() {
-    return const DocumentationConfig(
-      includeExamples: true,
-      includeTypes: true,
-      includeErrors: true,
-      generateApiReference: true,
-      format: 'markdown',
-    );
-  }
+  factory DocumentationConfig.comprehensive() => const DocumentationConfig();
 
   /// Create a minimal documentation configuration
-  factory DocumentationConfig.minimal() {
-    return const DocumentationConfig(
-      includeExamples: false,
-      includeTypes: false,
-      includeErrors: false,
-      generateApiReference: true,
-      format: 'markdown',
-    );
-  }
+  factory DocumentationConfig.minimal() => const DocumentationConfig(
+        includeExamples: false,
+        includeTypes: false,
+        includeErrors: false,
+      );
+
   /// Output directory for documentation
   final String outputDirectory;
 
@@ -69,7 +57,6 @@ class DocumentationConfig {
 
 /// Result of documentation generation
 class DocumentationResult {
-
   const DocumentationResult({
     required this.success,
     required this.generatedDocs,
@@ -81,28 +68,27 @@ class DocumentationResult {
   factory DocumentationResult.success({
     required Map<String, String> generatedDocs,
     List<String> warnings = const [],
-  }) {
-    return DocumentationResult(
-      success: true,
-      generatedDocs: generatedDocs,
-      warnings: warnings,
-      errors: const [],
-    );
-  }
+  }) =>
+      DocumentationResult(
+        success: true,
+        generatedDocs: generatedDocs,
+        warnings: warnings,
+        errors: const [],
+      );
 
   /// Create failed result
   factory DocumentationResult.failure({
     required List<String> errors,
     List<String> warnings = const [],
     Map<String, String> generatedDocs = const {},
-  }) {
-    return DocumentationResult(
-      success: false,
-      generatedDocs: generatedDocs,
-      warnings: warnings,
-      errors: errors,
-    );
-  }
+  }) =>
+      DocumentationResult(
+        success: false,
+        generatedDocs: generatedDocs,
+        warnings: warnings,
+        errors: errors,
+      );
+
   /// Whether generation was successful
   final bool success;
 
@@ -118,7 +104,6 @@ class DocumentationResult {
 
 /// Main documentation generator
 class AnchorDocumentationGenerator {
-
   const AnchorDocumentationGenerator(this.config);
   final DocumentationConfig config;
 
@@ -179,7 +164,8 @@ class AnchorDocumentationGenerator {
     buffer.writeln('# ${config.title}');
     buffer.writeln();
     buffer.writeln(
-        'Generated documentation for **${idl.name ?? 'Unknown'}** program.',);
+      'Generated documentation for **${idl.name ?? 'Unknown'}** program.',
+    );
     if (idl.metadata?.description != null) {
       buffer.writeln();
       buffer.writeln('## Description');
@@ -288,7 +274,8 @@ class AnchorDocumentationGenerator {
           buffer.writeln();
           buffer.writeln('```dart');
           buffer.writeln(
-              'final accountData = await program.account.${account.name}.fetch(accountAddress);',);
+            'final accountData = await program.account.${account.name}.fetch(accountAddress);',
+          );
           buffer.writeln('```');
           buffer.writeln();
         }
@@ -322,7 +309,8 @@ class AnchorDocumentationGenerator {
     buffer.writeln('<head>');
     buffer.writeln('  <meta charset="UTF-8">');
     buffer.writeln(
-        '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',);
+      '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+    );
     buffer.writeln('  <title>${config.title}</title>');
 
     if (config.customCss != null) {
@@ -364,48 +352,60 @@ class AnchorDocumentationGenerator {
         'metadata': idl.metadata?.toJson(),
       },
       'instructions': idl.instructions
-          .map((instruction) => {
-                'name': instruction.name,
-                'docs': instruction.docs,
-                'args': instruction.args
-                    .map((arg) => {
-                          'name': arg.name,
-                          'type': arg.type.toString(),
-                        },)
-                    .toList(),
-                'accounts': instruction.accounts
-                    .map((account) => {
-                          'name': account.name,
-                          'writable': account is IdlInstructionAccount
-                              ? account.writable
-                              : false,
-                          'signer': account is IdlInstructionAccount
-                              ? account.signer
-                              : false,
-                        },)
-                    .toList(),
-              },)
+          .map(
+            (instruction) => {
+              'name': instruction.name,
+              'docs': instruction.docs,
+              'args': instruction.args
+                  .map(
+                    (arg) => {
+                      'name': arg.name,
+                      'type': arg.type.toString(),
+                    },
+                  )
+                  .toList(),
+              'accounts': instruction.accounts
+                  .map(
+                    (account) => {
+                      'name': account.name,
+                      'writable': account is IdlInstructionAccount
+                          ? account.writable
+                          : false,
+                      'signer': account is IdlInstructionAccount
+                          ? account.signer
+                          : false,
+                    },
+                  )
+                  .toList(),
+            },
+          )
           .toList(),
       'accounts': idl.accounts
-          ?.map((account) => {
-                'name': account.name,
-                'type': {
-                  'kind': account.type.kind,
-                  'fields': account.type.fields
-                      ?.map((field) => {
-                            'name': field.name,
-                            'type': field.type.toString(),
-                          },)
-                      .toList(),
-                },
-              },)
+          ?.map(
+            (account) => {
+              'name': account.name,
+              'type': {
+                'kind': account.type.kind,
+                'fields': account.type.fields
+                    ?.map(
+                      (field) => {
+                        'name': field.name,
+                        'type': field.type.toString(),
+                      },
+                    )
+                    .toList(),
+              },
+            },
+          )
           .toList(),
       'errors': idl.errors
-          ?.map((error) => {
-                'code': error.code,
-                'name': error.name,
-                'msg': error.msg,
-              },)
+          ?.map(
+            (error) => {
+              'code': error.code,
+              'name': error.name,
+              'msg': error.msg,
+            },
+          )
           .toList(),
     };
 
@@ -419,7 +419,8 @@ class AnchorDocumentationGenerator {
     buffer.writeln('# API Reference');
     buffer.writeln();
     buffer.writeln(
-        'Complete API reference for ${idl.name ?? 'Unknown'} program.',);
+      'Complete API reference for ${idl.name ?? 'Unknown'} program.',
+    );
     buffer.writeln();
 
     // Method reference
@@ -477,18 +478,30 @@ class AnchorDocumentationGenerator {
   /// Convert basic markdown to HTML
   String _markdownToBasicHtml(String markdown) {
     var html = markdown
-        .replaceAllMapped(RegExp(r'^# (.+)$', multiLine: true),
-            (match) => '<h1>${match.group(1)}</h1>',)
-        .replaceAllMapped(RegExp(r'^## (.+)$', multiLine: true),
-            (match) => '<h2>${match.group(1)}</h2>',)
-        .replaceAllMapped(RegExp(r'^### (.+)$', multiLine: true),
-            (match) => '<h3>${match.group(1)}</h3>',)
         .replaceAllMapped(
-            RegExp('`([^`]+)`'), (match) => '<code>${match.group(1)}</code>',)
-        .replaceAllMapped(RegExp(r'```dart\n(.*?)\n```', dotAll: true),
-            (match) => '<pre><code>${match.group(1)}</code></pre>',)
-        .replaceAllMapped(RegExp(r'```\n(.*?)\n```', dotAll: true),
-            (match) => '<pre><code>${match.group(1)}</code></pre>',)
+          RegExp(r'^# (.+)$', multiLine: true),
+          (match) => '<h1>${match.group(1)}</h1>',
+        )
+        .replaceAllMapped(
+          RegExp(r'^## (.+)$', multiLine: true),
+          (match) => '<h2>${match.group(1)}</h2>',
+        )
+        .replaceAllMapped(
+          RegExp(r'^### (.+)$', multiLine: true),
+          (match) => '<h3>${match.group(1)}</h3>',
+        )
+        .replaceAllMapped(
+          RegExp('`([^`]+)`'),
+          (match) => '<code>${match.group(1)}</code>',
+        )
+        .replaceAllMapped(
+          RegExp(r'```dart\n(.*?)\n```', dotAll: true),
+          (match) => '<pre><code>${match.group(1)}</code></pre>',
+        )
+        .replaceAllMapped(
+          RegExp(r'```\n(.*?)\n```', dotAll: true),
+          (match) => '<pre><code>${match.group(1)}</code></pre>',
+        )
         .replaceAllMapped(RegExp(r'^\| (.+) \|$', multiLine: true), (match) {
       final cells =
           match.group(1)!.split(' | ').map((cell) => '<td>$cell</td>').join();
@@ -496,8 +509,10 @@ class AnchorDocumentationGenerator {
     });
 
     // Wrap table rows in table tags
-    html = html.replaceAllMapped(RegExp('(<tr>.*?</tr>)+', dotAll: true),
-        (match) => '<table>${match.group(0)}</table>',);
+    html = html.replaceAllMapped(
+      RegExp('(<tr>.*?</tr>)+', dotAll: true),
+      (match) => '<table>${match.group(0)}</table>',
+    );
 
     // Convert line breaks to paragraphs
     html = html.replaceAll('\n\n', '</p><p>');

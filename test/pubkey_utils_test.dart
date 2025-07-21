@@ -1,6 +1,7 @@
-import 'package:test/test.dart';
 import 'dart:typed_data';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('PublicKeyUtils Tests', () {
@@ -66,8 +67,10 @@ void main() {
     });
 
     test('isValidBase58 should validate addresses correctly', () {
-      expect(PublicKeyUtils.isValidBase58('11111111111111111111111111111112'),
-          isTrue,);
+      expect(
+        PublicKeyUtils.isValidBase58('11111111111111111111111111111112'),
+        isTrue,
+      );
       expect(PublicKeyUtils.isValidBase58('invalid-address'), isFalse);
       expect(PublicKeyUtils.isValidBase58(''), isFalse);
     });
@@ -76,18 +79,25 @@ void main() {
       final validBytes = Uint8List(32);
       final invalidBytes = Uint8List(31);
 
-      expect(() => PublicKeyUtils.fromBytes(validBytes),
-          isNot(throwsA(isA<ArgumentError>())),);
-      expect(() => PublicKeyUtils.fromBytes(invalidBytes),
-          throwsA(isA<ArgumentError>()),);
+      expect(
+        () => PublicKeyUtils.fromBytes(validBytes),
+        isNot(throwsA(isA<ArgumentError>())),
+      );
+      expect(
+        () => PublicKeyUtils.fromBytes(invalidBytes),
+        throwsA(isA<ArgumentError>()),
+      );
     });
 
     test('fromBase58 should validate base58 format', () {
       expect(
-          () => PublicKeyUtils.fromBase58('11111111111111111111111111111112'),
-          isNot(throwsException),);
-      expect(() => PublicKeyUtils.fromBase58('invalid'),
-          throwsA(isA<ArgumentError>()),);
+        () => PublicKeyUtils.fromBase58('11111111111111111111111111111112'),
+        isNot(throwsException),
+      );
+      expect(
+        () => PublicKeyUtils.fromBase58('invalid'),
+        throwsA(isA<ArgumentError>()),
+      );
     });
 
     test('toBase58 should convert to string', () {

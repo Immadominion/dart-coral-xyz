@@ -2,11 +2,20 @@
 
 /// Script to validate public API usage and identify files using direct src/ imports
 /// This helps ensure our export system is complete and consistent.
+library;
 
 import 'dart:io';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('ValidateExports');
 
 void main() async {
-  print('🔍 Analyzing public API usage and export consistency...\n');
+  Logger.root.level = Level.INFO;
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.message}');
+  });
+
+  _logger.info('🔍 Analyzing public API usage and export consistency...\n');
 
   // Find all test files
   final testDir = Directory('test');
@@ -34,7 +43,8 @@ void main() async {
         directImports.add(file.path);
         break;
       } else if (line.trim().startsWith(
-          "import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'",)) {
+            "import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'",
+          )) {
         hasPublicImport = true;
       }
     }
@@ -44,36 +54,37 @@ void main() async {
     }
   }
 
-  print('📊 Results:');
-  print('Total test files: ${testFiles.length}');
-  print('✅ Using public API only: ${publicImports.length}');
-  print('⚠️  Using direct src/ imports: ${directImports.length}\n');
+  _logger.info('📊 Results:');
+  _logger.info('Total test files: ${testFiles.length}');
+  _logger.info('✅ Using public API only: ${publicImports.length}');
+  _logger.info('⚠️  Using direct src/ imports: ${directImports.length}\n');
 
   if (publicImports.isNotEmpty) {
-    print('✅ Files correctly using public API:');
+    _logger.info('✅ Files correctly using public API:');
     for (final file in publicImports) {
-      print('   ${file.replaceAll('test/', '')}');
+      _logger.info('   ${file.replaceAll('test/', '')}');
     }
-    print('');
+    _logger.info('');
   }
 
   if (directImports.isNotEmpty) {
-    print('⚠️  Files that should be updated to use public API:');
+    _logger.warning('⚠️  Files that should be updated to use public API:');
     for (final file in directImports) {
-      print('   ${file.replaceAll('test/', '')}');
+      _logger.warning('   ${file.replaceAll('test/', '')}');
     }
-    print('');
+    _logger.info('');
   }
 
   if (directImports.isEmpty) {
-    print('🎉 All test files are using the public API correctly!');
+    _logger.info('🎉 All test files are using the public API correctly!');
   } else {
-    print(
-        '📝 ${directImports.length} files need to be updated to use public API.',);
+    _logger.warning(
+      '📝 ${directImports.length} files need to be updated to use public API.',
+    );
   }
 
   // Check main export file for any obvious issues
-  print('\n🔍 Checking main export file...');
+  _logger.info('\n🔍 Checking main export file...');
   final mainExport = File('lib/coral_xyz_anchor.dart');
   if (await mainExport.exists()) {
     final content = await mainExport.readAsString();
@@ -84,7 +95,7 @@ void main() async {
         .where((line) => line.trim().startsWith('export '))
         .toList();
 
-    print('📦 Total exports: ${exportLines.length}');
+    _logger.info('📦 Total exports: ${exportLines.length}');
 
     // Look for potential conflicts
     final showExports =
@@ -92,23 +103,25 @@ void main() async {
     final hideExports =
         exportLines.where((line) => line.contains(' hide ')).length;
 
-    print('   - With explicit "show": $showExports');
-    print('   - With explicit "hide": $hideExports');
-    print(
-        '   - Unrestricted exports: ${exportLines.length - showExports - hideExports}',);
+    _logger.info('   - With explicit "show": $showExports');
+    _logger.info('   - With explicit "hide": $hideExports');
+    _logger.info(
+      '   - Unrestricted exports: ${exportLines.length - showExports - hideExports}',
+    );
 
-    print('\n✅ Export system appears to be properly configured.');
+    _logger.info('\n✅ Export system appears to be properly configured.');
   }
 
-  print('\n🎯 Critical Gap 5.5.1 Status:');
+  _logger.info('\n🎯 Critical Gap 5.5.1 Status:');
   if (directImports.isEmpty) {
-    print('✅ Export System Issues: RESOLVED');
-    print('   - All test files use public API');
-    print('   - No ambiguous exports detected');
-    print('   - Core types properly accessible');
+    _logger.info('✅ Export System Issues: RESOLVED');
+    _logger.info('   - All test files use public API');
+    _logger.info('   - No ambiguous exports detected');
+    _logger.info('   - Core types properly accessible');
   } else {
-    print('⚠️  Export System Issues: PARTIAL');
-    print('   - ${directImports.length} files still use direct imports');
-    print('   - These should be updated to use public API');
+    _logger.warning('⚠️  Export System Issues: PARTIAL');
+    _logger
+        .warning('   - ${directImports.length} files still use direct imports');
+    _logger.warning('   - These should be updated to use public API');
   }
 }

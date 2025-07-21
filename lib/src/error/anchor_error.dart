@@ -9,19 +9,17 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart';
 
 /// Represents an error code with both string and numeric representations
 class ErrorCode {
-
   const ErrorCode({
     required this.code,
     required this.number,
   });
 
   /// Create ErrorCode from JSON representation
-  factory ErrorCode.fromJson(Map<String, dynamic> json) {
-    return ErrorCode(
-      code: json['code'] as String,
-      number: json['number'] as int,
-    );
-  }
+  factory ErrorCode.fromJson(Map<String, dynamic> json) => ErrorCode(
+        code: json['code'] as String,
+        number: json['number'] as int,
+      );
+
   /// String representation of the error code
   final String code;
 
@@ -42,26 +40,24 @@ class ErrorCode {
 
   /// Convert ErrorCode to JSON representation
   Map<String, dynamic> toJson() => {
-      'code': code,
-      'number': number,
-    };
+        'code': code,
+        'number': number,
+      };
 }
 
 /// Represents a file and line location for error reporting
 class FileLine {
-
   const FileLine({
     required this.file,
     required this.line,
   });
 
   /// Create FileLine from JSON representation
-  factory FileLine.fromJson(Map<String, dynamic> json) {
-    return FileLine(
-      file: json['file'] as String,
-      line: json['line'] as int,
-    );
-  }
+  factory FileLine.fromJson(Map<String, dynamic> json) => FileLine(
+        file: json['file'] as String,
+        line: json['line'] as int,
+      );
+
   /// Source file path
   final String file;
 
@@ -82,13 +78,14 @@ class FileLine {
 
   /// Convert FileLine to JSON representation
   Map<String, dynamic> toJson() => {
-      'file': file,
-      'line': line,
-    };
+        'file': file,
+        'line': line,
+      };
 }
 
 /// Union type for error origin (either string account name or file location)
 abstract class Origin {
+  const Origin();
 
   /// Create origin from JSON representation
   factory Origin.fromJson(Map<String, dynamic> json) {
@@ -100,7 +97,6 @@ abstract class Origin {
       throw ArgumentError('Invalid origin JSON format');
     }
   }
-  const Origin();
 
   /// Create origin from account name
   factory Origin.accountName(String accountName) = AccountNameOrigin;
@@ -120,7 +116,6 @@ abstract class Origin {
 
 /// Account name origin implementation
 class AccountNameOrigin extends Origin {
-
   const AccountNameOrigin(this._accountName);
   final String _accountName;
 
@@ -145,7 +140,6 @@ class AccountNameOrigin extends Origin {
 
 /// File line origin implementation
 class FileLineOrigin extends Origin {
-
   const FileLineOrigin(this._fileLine);
   final FileLine _fileLine;
 
@@ -170,6 +164,7 @@ class FileLineOrigin extends Origin {
 
 /// Union type for compared values in error messages
 abstract class ComparedValues {
+  const ComparedValues();
 
   /// Create compared values from JSON representation
   factory ComparedValues.fromJson(Map<String, dynamic> json) {
@@ -186,7 +181,6 @@ abstract class ComparedValues {
       throw ArgumentError('Invalid compared values JSON format');
     }
   }
-  const ComparedValues();
 
   /// Create compared values from account names
   factory ComparedValues.accountNames(List<String> accountNames) {
@@ -219,7 +213,6 @@ abstract class ComparedValues {
 
 /// Account names compared values implementation
 class ComparedAccountNames extends ComparedValues {
-
   const ComparedAccountNames(this._accountNames);
   final List<String> _accountNames;
 
@@ -248,7 +241,6 @@ class ComparedAccountNames extends ComparedValues {
 
 /// Public keys compared values implementation
 class ComparedPublicKeys extends ComparedValues {
-
   const ComparedPublicKeys(this._publicKeys);
   final List<PublicKey> _publicKeys;
 
@@ -278,7 +270,6 @@ class ComparedPublicKeys extends ComparedValues {
 
 /// Stack of programs being executed, used for tracking CPI calls
 class ProgramErrorStack {
-
   const ProgramErrorStack(this.stack);
 
   /// Create from JSON representation
@@ -288,6 +279,7 @@ class ProgramErrorStack {
         .toList();
     return ProgramErrorStack(stackList);
   }
+
   /// List of program public keys in execution order
   final List<PublicKey> stack;
 
@@ -352,7 +344,6 @@ class ProgramErrorStack {
 
 /// Base Anchor error class matching TypeScript AnchorError
 class AnchorError extends Error {
-
   /// Create AnchorError with comprehensive error information
   AnchorError({
     required this.error,
@@ -361,13 +352,12 @@ class AnchorError extends Error {
   }) : _programErrorStack = ProgramErrorStack.parse(logs);
 
   /// Create from JSON representation
-  factory AnchorError.fromJson(Map<String, dynamic> json) {
-    return AnchorError(
-      error: ErrorInfo.fromJson(json['error'] as Map<String, dynamic>),
-      errorLogs: (json['errorLogs'] as List).cast<String>(),
-      logs: (json['logs'] as List).cast<String>(),
-    );
-  }
+  factory AnchorError.fromJson(Map<String, dynamic> json) => AnchorError(
+        error: ErrorInfo.fromJson(json['error'] as Map<String, dynamic>),
+        errorLogs: (json['errorLogs'] as List).cast<String>(),
+        logs: (json['logs'] as List).cast<String>(),
+      );
+
   /// Error information containing code and message
   final ErrorInfo error;
 
@@ -460,7 +450,10 @@ class AnchorError extends Error {
 
   /// Parse compared values from logs
   static ComparedValues? _parseComparedValues(
-      List<String> logs, int anchorErrorLogIndex, List<String> errorLogs,) {
+    List<String> logs,
+    int anchorErrorLogIndex,
+    List<String> errorLogs,
+  ) {
     // Pattern: Left: / Right: with pubkeys
     if (logs[anchorErrorLogIndex + 1] == 'Program log: Left:') {
       final pubkeyRegex = RegExp(r'^Program log: (.*)$');
@@ -471,10 +464,12 @@ class AnchorError extends Error {
         try {
           final leftPubkey = PublicKey.fromBase58(leftMatch.group(1)!);
           final rightPubkey = PublicKey.fromBase58(rightMatch.group(1)!);
-          errorLogs.addAll(logs.sublist(
-            anchorErrorLogIndex + 1,
-            anchorErrorLogIndex + 5,
-          ),);
+          errorLogs.addAll(
+            logs.sublist(
+              anchorErrorLogIndex + 1,
+              anchorErrorLogIndex + 5,
+            ),
+          );
           return ComparedValues.publicKeys([leftPubkey, rightPubkey]);
         } catch (e) {
           // Not valid pubkeys, continue to next pattern
@@ -490,10 +485,12 @@ class AnchorError extends Error {
       if (leftMatch != null && rightMatch != null) {
         final leftValue = leftMatch.group(2)!;
         final rightValue = rightMatch.group(2)!;
-        errorLogs.addAll(logs.sublist(
-          anchorErrorLogIndex + 1,
-          anchorErrorLogIndex + 3,
-        ),);
+        errorLogs.addAll(
+          logs.sublist(
+            anchorErrorLogIndex + 1,
+            anchorErrorLogIndex + 3,
+          ),
+        );
         return ComparedValues.accountNames([leftValue, rightValue]);
       }
     }
@@ -503,7 +500,9 @@ class AnchorError extends Error {
 
   /// Parse error information from log line
   static ErrorInfo? _parseErrorInfo(
-      String anchorErrorLog, ComparedValues? comparedValues,) {
+    String anchorErrorLog,
+    ComparedValues? comparedValues,
+  ) {
     // Pattern: AnchorError occurred. Error Code: <code>. Error Number: <number>. Error Message: <message>.
     final regexNoInfo = RegExp(
       r'^Program log: AnchorError occurred\. Error Code: (.*)\. Error Number: (\d+)\. Error Message: (.*)\.?$',
@@ -580,15 +579,14 @@ class AnchorError extends Error {
 
   /// Convert to JSON representation
   Map<String, dynamic> toJson() => {
-      'error': error.toJson(),
-      'errorLogs': errorLogs,
-      'logs': logs,
-    };
+        'error': error.toJson(),
+        'errorLogs': errorLogs,
+        'logs': logs,
+      };
 }
 
 /// Error information container
 class ErrorInfo {
-
   const ErrorInfo({
     required this.errorCode,
     required this.errorMessage,
@@ -597,19 +595,20 @@ class ErrorInfo {
   });
 
   /// Create from JSON representation
-  factory ErrorInfo.fromJson(Map<String, dynamic> json) {
-    return ErrorInfo(
-      errorCode: ErrorCode.fromJson(json['errorCode'] as Map<String, dynamic>),
-      errorMessage: json['errorMessage'] as String,
-      origin: json['origin'] != null
-          ? Origin.fromJson(json['origin'] as Map<String, dynamic>)
-          : null,
-      comparedValues: json['comparedValues'] != null
-          ? ComparedValues.fromJson(
-              json['comparedValues'] as Map<String, dynamic>)
-          : null,
-    );
-  }
+  factory ErrorInfo.fromJson(Map<String, dynamic> json) => ErrorInfo(
+        errorCode:
+            ErrorCode.fromJson(json['errorCode'] as Map<String, dynamic>),
+        errorMessage: json['errorMessage'] as String,
+        origin: json['origin'] != null
+            ? Origin.fromJson(json['origin'] as Map<String, dynamic>)
+            : null,
+        comparedValues: json['comparedValues'] != null
+            ? ComparedValues.fromJson(
+                json['comparedValues'] as Map<String, dynamic>,
+              )
+            : null,
+      );
+
   /// Error code with string and numeric representations
   final ErrorCode errorCode;
 
@@ -663,7 +662,6 @@ class ErrorInfo {
 
 /// Base exception class for IDL-related errors
 class IdlError extends Error {
-
   IdlError(this.message);
   final String message;
 
@@ -724,7 +722,6 @@ abstract class LangErrorMessage {
 
 /// Enhanced error class for account discriminator mismatches
 class AccountDiscriminatorMismatchError extends AnchorError {
-
   AccountDiscriminatorMismatchError({
     required this.expected,
     required this.actual,
@@ -733,8 +730,10 @@ class AccountDiscriminatorMismatchError extends AnchorError {
     List<String>? logs,
   }) : super(
           error: ErrorInfo(
-            errorCode:
-                ErrorCode(code: 'AccountDiscriminatorMismatch', number: 3001),
+            errorCode: const ErrorCode(
+              code: 'AccountDiscriminatorMismatch',
+              number: 3001,
+            ),
             errorMessage: message,
           ),
           errorLogs: logs ?? [],
@@ -746,14 +745,13 @@ class AccountDiscriminatorMismatchError extends AnchorError {
 
   @override
   String toString() => 'AccountDiscriminatorMismatchError: $message\n'
-        'Expected: ${expected.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}\n'
-        'Actual: ${actual.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}\n'
-        'Account: ${accountAddress.toBase58()}';
+      'Expected: ${expected.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}\n'
+      'Actual: ${actual.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}\n'
+      'Account: ${accountAddress.toBase58()}';
 }
 
 /// Enhanced error class for constraint violations
 class ConstraintError extends AnchorError {
-
   ConstraintError({
     required this.constraintType,
     required String message,
@@ -789,7 +787,6 @@ class ConstraintError extends AnchorError {
 
 /// Enhanced error class for instruction errors
 class InstructionError extends AnchorError {
-
   InstructionError({
     required this.instructionName,
     required this.instructionIndex,
@@ -810,13 +807,13 @@ class InstructionError extends AnchorError {
   final Map<String, dynamic> instructionData;
 
   @override
-  String toString() => 'InstructionError ($instructionName at index $instructionIndex): $message\n'
-        'Data: $instructionData';
+  String toString() =>
+      'InstructionError ($instructionName at index $instructionIndex): $message\n'
+      'Data: $instructionData';
 }
 
 /// Enhanced error class for program errors
 class ProgramError extends AnchorError {
-
   ProgramError({
     required this.programId,
     required String message,

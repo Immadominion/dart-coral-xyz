@@ -10,7 +10,6 @@ import 'package:coral_xyz_anchor/src/error/error_constants.dart';
 
 /// Error from a user-defined program
 class ProgramError extends Error {
-
   /// Create ProgramError with code, message and optional logs
   ProgramError({
     required this.code,
@@ -19,13 +18,12 @@ class ProgramError extends Error {
   }) : _programErrorStack = logs != null ? ProgramErrorStack.parse(logs) : null;
 
   /// Create from JSON representation
-  factory ProgramError.fromJson(Map<String, dynamic> json) {
-    return ProgramError(
-      code: json['code'] as int,
-      msg: json['msg'] as String,
-      logs: (json['logs'] as List?)?.cast<String>(),
-    );
-  }
+  factory ProgramError.fromJson(Map<String, dynamic> json) => ProgramError(
+        code: json['code'] as int,
+        msg: json['msg'] as String,
+        logs: (json['logs'] as List?)?.cast<String>(),
+      );
+
   /// Error code number
   final int code;
 
@@ -255,7 +253,6 @@ dynamic translateError(dynamic err, Map<int, String> idlErrors) {
 
 /// Wrapper class to add program error stack to existing errors
 class _ErrorWithStack {
-
   _ErrorWithStack(this.originalError, this.programErrorStack);
   final dynamic originalError;
   final ProgramErrorStack programErrorStack;

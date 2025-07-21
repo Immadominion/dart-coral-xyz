@@ -19,7 +19,6 @@ import 'package:coral_xyz_anchor/src/wallet/wallet_adapter.dart';
 /// deep linking and custom URL schemes. It provides secure transaction signing
 /// and account management for mobile environments.
 class MobileWalletAdapter extends BaseWalletAdapter {
-
   /// Constructor for mobile wallet adapter
   MobileWalletAdapter({
     MobileWalletAdapterConfig? config,
@@ -58,9 +57,11 @@ class MobileWalletAdapter extends BaseWalletAdapter {
 
   /// Initialize the mobile wallet adapter
   void _initialize() {
-    setReadyState(_config.platform.isSupported
-        ? WalletReadyState.installed
-        : WalletReadyState.unsupported,);
+    setReadyState(
+      _config.platform.isSupported
+          ? WalletReadyState.installed
+          : WalletReadyState.unsupported,
+    );
 
     setProperty('protocol', 'MWA');
     setProperty('version', _config.protocolVersion);
@@ -76,7 +77,8 @@ class MobileWalletAdapter extends BaseWalletAdapter {
 
     if (!supported) {
       throw const WalletNotSupportedException(
-          'Mobile Wallet Adapter is not supported on this platform',);
+        'Mobile Wallet Adapter is not supported on this platform',
+      );
     }
 
     try {
@@ -365,7 +367,6 @@ class MobileWalletAdapter extends BaseWalletAdapter {
 
 /// Configuration for mobile wallet adapter
 class MobileWalletAdapterConfig {
-
   const MobileWalletAdapterConfig({
     required this.appName,
     this.appIcon,
@@ -377,6 +378,7 @@ class MobileWalletAdapterConfig {
     this.icon,
     this.url,
   });
+
   /// The name of the requesting application
   final String appName;
 
@@ -405,15 +407,14 @@ class MobileWalletAdapterConfig {
   final String? url;
 
   /// Default configuration
-  static MobileWalletAdapterConfig defaultConfig() => const MobileWalletAdapterConfig(
-      appName: 'Coral XYZ Dart SDK',
-      cluster: 'mainnet-beta',
-    );
+  static MobileWalletAdapterConfig defaultConfig() =>
+      const MobileWalletAdapterConfig(
+        appName: 'Coral XYZ Dart SDK',
+      );
 }
 
 /// Platform configuration for mobile wallet adapter
 class MobileWalletPlatform {
-
   const MobileWalletPlatform({
     required this.name,
     required this.isSupported,
@@ -438,6 +439,7 @@ class MobileWalletPlatform {
   const MobileWalletPlatform.web()
       : name = 'web',
         isSupported = false;
+
   /// Platform name
   final String name;
 
@@ -447,13 +449,13 @@ class MobileWalletPlatform {
 
 /// Active mobile wallet session
 class MobileWalletSession {
-
   MobileWalletSession({
     required this.sessionId,
     required this.publicKey,
     required this.walletUriBase,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
+
   /// Unique session identifier
   final String sessionId;
 
@@ -469,10 +471,9 @@ class MobileWalletSession {
 
 /// Mobile wallet request types
 abstract class MobileWalletRequest {
-
   MobileWalletRequest({
-    String? id,
     required this.type,
+    String? id,
     DateTime? timestamp,
   })  : id = id ?? _generateRequestId(),
         timestamp = timestamp ?? DateTime.now();
@@ -483,54 +484,51 @@ abstract class MobileWalletRequest {
     String? appIcon,
     String? cluster,
     List<String>? permissions,
-  }) {
-    return MobileWalletConnectRequest(
-      appName: appName,
-      appIcon: appIcon,
-      cluster: cluster ?? 'mainnet-beta',
-      permissions: permissions ?? const ['sign_transactions', 'sign_messages'],
-    );
-  }
+  }) =>
+      MobileWalletConnectRequest(
+        appName: appName,
+        appIcon: appIcon,
+        cluster: cluster ?? 'mainnet-beta',
+        permissions:
+            permissions ?? const ['sign_transactions', 'sign_messages'],
+      );
 
   /// Create a disconnect request
   factory MobileWalletRequest.disconnect({
     required String sessionId,
-  }) {
-    return MobileWalletDisconnectRequest(sessionId: sessionId);
-  }
+  }) =>
+      MobileWalletDisconnectRequest(sessionId: sessionId);
 
   /// Create a transaction signing request
   factory MobileWalletRequest.signTransaction({
     required String sessionId,
     required Uint8List transaction,
-  }) {
-    return MobileWalletSignTransactionRequest(
-      sessionId: sessionId,
-      transaction: transaction,
-    );
-  }
+  }) =>
+      MobileWalletSignTransactionRequest(
+        sessionId: sessionId,
+        transaction: transaction,
+      );
 
   /// Create a batch transaction signing request
   factory MobileWalletRequest.signTransactions({
     required String sessionId,
     required List<Uint8List> transactions,
-  }) {
-    return MobileWalletSignTransactionsRequest(
-      sessionId: sessionId,
-      transactions: transactions,
-    );
-  }
+  }) =>
+      MobileWalletSignTransactionsRequest(
+        sessionId: sessionId,
+        transactions: transactions,
+      );
 
   /// Create a message signing request
   factory MobileWalletRequest.signMessage({
     required String sessionId,
     required Uint8List message,
-  }) {
-    return MobileWalletSignMessageRequest(
-      sessionId: sessionId,
-      message: message,
-    );
-  }
+  }) =>
+      MobileWalletSignMessageRequest(
+        sessionId: sessionId,
+        message: message,
+      );
+
   /// Unique request identifier
   final String id;
 
@@ -544,19 +542,19 @@ abstract class MobileWalletRequest {
   Map<String, dynamic> toJson();
 
   /// Generate a unique request ID
-  static String _generateRequestId() => DateTime.now().millisecondsSinceEpoch.toString();
+  static String _generateRequestId() =>
+      DateTime.now().millisecondsSinceEpoch.toString();
 }
 
 /// Connection request implementation
 class MobileWalletConnectRequest extends MobileWalletRequest {
-
   MobileWalletConnectRequest({
     required this.appName,
     this.appIcon,
     this.cluster = 'mainnet-beta',
     this.permissions = const ['sign_transactions', 'sign_messages'],
-    String? id,
-  }) : super(id: id, type: 'connect');
+    super.id,
+  }) : super(type: 'connect');
   final String appName;
   final String? appIcon;
   final String cluster;
@@ -564,100 +562,95 @@ class MobileWalletConnectRequest extends MobileWalletRequest {
 
   @override
   Map<String, dynamic> toJson() => {
-      'id': id,
-      'type': type,
-      'timestamp': timestamp.toIso8601String(),
-      'appName': appName,
-      'appIcon': appIcon,
-      'cluster': cluster,
-      'permissions': permissions,
-    };
+        'id': id,
+        'type': type,
+        'timestamp': timestamp.toIso8601String(),
+        'appName': appName,
+        'appIcon': appIcon,
+        'cluster': cluster,
+        'permissions': permissions,
+      };
 }
 
 /// Disconnect request implementation
 class MobileWalletDisconnectRequest extends MobileWalletRequest {
-
   MobileWalletDisconnectRequest({
     required this.sessionId,
-    String? id,
-  }) : super(id: id, type: 'disconnect');
+    super.id,
+  }) : super(type: 'disconnect');
   final String sessionId;
 
   @override
   Map<String, dynamic> toJson() => {
-      'id': id,
-      'type': type,
-      'timestamp': timestamp.toIso8601String(),
-      'sessionId': sessionId,
-    };
+        'id': id,
+        'type': type,
+        'timestamp': timestamp.toIso8601String(),
+        'sessionId': sessionId,
+      };
 }
 
 /// Transaction signing request implementation
 class MobileWalletSignTransactionRequest extends MobileWalletRequest {
-
   MobileWalletSignTransactionRequest({
     required this.sessionId,
     required this.transaction,
-    String? id,
-  }) : super(id: id, type: 'sign_transaction');
+    super.id,
+  }) : super(type: 'sign_transaction');
   final String sessionId;
   final Uint8List transaction;
 
   @override
   Map<String, dynamic> toJson() => {
-      'id': id,
-      'type': type,
-      'timestamp': timestamp.toIso8601String(),
-      'sessionId': sessionId,
-      'transaction': base64.encode(transaction),
-    };
+        'id': id,
+        'type': type,
+        'timestamp': timestamp.toIso8601String(),
+        'sessionId': sessionId,
+        'transaction': base64.encode(transaction),
+      };
 }
 
 /// Batch transaction signing request implementation
 class MobileWalletSignTransactionsRequest extends MobileWalletRequest {
-
   MobileWalletSignTransactionsRequest({
     required this.sessionId,
     required this.transactions,
-    String? id,
-  }) : super(id: id, type: 'sign_transactions');
+    super.id,
+  }) : super(type: 'sign_transactions');
   final String sessionId;
   final List<Uint8List> transactions;
 
   @override
   Map<String, dynamic> toJson() => {
-      'id': id,
-      'type': type,
-      'timestamp': timestamp.toIso8601String(),
-      'sessionId': sessionId,
-      'transactions': transactions.map((tx) => base64.encode(tx)).toList(),
-    };
+        'id': id,
+        'type': type,
+        'timestamp': timestamp.toIso8601String(),
+        'sessionId': sessionId,
+        'transactions': transactions.map((tx) => base64.encode(tx)).toList(),
+      };
 }
 
 /// Message signing request implementation
 class MobileWalletSignMessageRequest extends MobileWalletRequest {
-
   MobileWalletSignMessageRequest({
     required this.sessionId,
     required this.message,
-    String? id,
-  }) : super(id: id, type: 'sign_message');
+    super.id,
+  }) : super(type: 'sign_message');
   final String sessionId;
   final Uint8List message;
 
   @override
   Map<String, dynamic> toJson() => {
-      'id': id,
-      'type': type,
-      'timestamp': timestamp.toIso8601String(),
-      'sessionId': sessionId,
-      'message': base64.encode(message),
-    };
+        'id': id,
+        'type': type,
+        'timestamp': timestamp.toIso8601String(),
+        'sessionId': sessionId,
+        'message': base64.encode(message),
+      };
 }
 
 /// Mobile wallet response types
 abstract class MobileWalletResponse {
-
   MobileWalletResponse({
     required this.requestId,
     required this.type,
@@ -683,6 +676,7 @@ abstract class MobileWalletResponse {
       return MobileWalletErrorResponse.fromJson(json);
     }
   }
+
   /// Request ID this response corresponds to
   final String requestId;
 
@@ -698,33 +692,29 @@ abstract class MobileWalletResponse {
 
 /// Successful connection response
 class MobileWalletConnectResponse extends MobileWalletResponse {
-
   MobileWalletConnectResponse({
-    required String requestId,
+    required super.requestId,
     required this.sessionId,
     required this.publicKey,
     required this.walletUriBase,
     required this.walletName,
     this.walletIcon,
-    DateTime? timestamp,
+    super.timestamp,
   }) : super(
-          requestId: requestId,
           type: 'connect',
           isSuccess: true,
-          timestamp: timestamp,
         );
 
-  factory MobileWalletConnectResponse.fromJson(Map<String, dynamic> json) {
-    return MobileWalletConnectResponse(
-      requestId: json['requestId'] as String,
-      sessionId: json['sessionId'] as String,
-      publicKey: PublicKey.fromBase58(json['publicKey'] as String),
-      walletUriBase: json['walletUriBase'] as String,
-      walletName: json['walletName'] as String,
-      walletIcon: json['walletIcon'] as String?,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-    );
-  }
+  factory MobileWalletConnectResponse.fromJson(Map<String, dynamic> json) =>
+      MobileWalletConnectResponse(
+        requestId: json['requestId'] as String,
+        sessionId: json['sessionId'] as String,
+        publicKey: PublicKey.fromBase58(json['publicKey'] as String),
+        walletUriBase: json['walletUriBase'] as String,
+        walletName: json['walletName'] as String,
+        walletIcon: json['walletIcon'] as String?,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+      );
   final String sessionId;
   final PublicKey publicKey;
   final String walletUriBase;
@@ -734,20 +724,17 @@ class MobileWalletConnectResponse extends MobileWalletResponse {
 
 /// Successful signing response
 class MobileWalletSignResponse extends MobileWalletResponse {
-
   MobileWalletSignResponse({
-    required String requestId,
+    required super.requestId,
     Uint8List? signature,
     List<Uint8List>? signatures,
-    DateTime? timestamp,
+    super.timestamp,
   })  : signature = signature ??
             (signatures?.isNotEmpty == true ? signatures!.first : Uint8List(0)),
         signatures = signatures ?? (signature != null ? [signature] : []),
         super(
-          requestId: requestId,
           type: 'sign',
           isSuccess: true,
-          timestamp: timestamp,
         );
 
   factory MobileWalletSignResponse.fromJson(Map<String, dynamic> json) {
@@ -780,27 +767,23 @@ class MobileWalletSignResponse extends MobileWalletResponse {
 
 /// Error response
 class MobileWalletErrorResponse extends MobileWalletResponse {
-
   MobileWalletErrorResponse({
-    required String requestId,
+    required super.requestId,
     required this.code,
     required this.message,
-    DateTime? timestamp,
+    super.timestamp,
   }) : super(
-          requestId: requestId,
           type: 'error',
           isSuccess: false,
-          timestamp: timestamp,
         );
 
-  factory MobileWalletErrorResponse.fromJson(Map<String, dynamic> json) {
-    return MobileWalletErrorResponse(
-      requestId: json['requestId'] as String,
-      code: json['code'] as String,
-      message: json['message'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-    );
-  }
+  factory MobileWalletErrorResponse.fromJson(Map<String, dynamic> json) =>
+      MobileWalletErrorResponse(
+        requestId: json['requestId'] as String,
+        code: json['code'] as String,
+        message: json['message'] as String,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+      );
   final String code;
   final String message;
 
@@ -830,13 +813,15 @@ class MobileWalletDeepLinkHandler {
     // Simulate a delayed response for testing
     Future.delayed(const Duration(seconds: 2), () {
       // Simulate a successful connection response
-      _responseController.add(MobileWalletConnectResponse(
-        requestId: 'test',
-        sessionId: 'test-session',
-        publicKey: PublicKey.fromBase58('11111111111111111111111111111112'),
-        walletUriBase: 'https://phantom.app/ul/v1',
-        walletName: 'Test Wallet',
-      ),);
+      _responseController.add(
+        MobileWalletConnectResponse(
+          requestId: 'test',
+          sessionId: 'test-session',
+          publicKey: PublicKey.fromBase58('11111111111111111111111111111112'),
+          walletUriBase: 'https://phantom.app/ul/v1',
+          walletName: 'Test Wallet',
+        ),
+      );
     });
   }
 

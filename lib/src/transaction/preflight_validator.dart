@@ -12,13 +12,13 @@ import 'dart:typed_data';
 import 'dart:async';
 
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as transaction_types;
+import 'package:coral_xyz_anchor/src/types/transaction.dart'
+    as transaction_types;
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/types/commitment.dart';
 
 /// Configuration for pre-flight validation
 class PreflightValidationConfig {
-
   const PreflightValidationConfig({
     this.validateOwnership = true,
     this.validateExistence = true,
@@ -33,31 +33,22 @@ class PreflightValidationConfig {
   });
 
   /// Create default configuration
-  factory PreflightValidationConfig.defaultConfig() {
-    return const PreflightValidationConfig();
-  }
+  factory PreflightValidationConfig.defaultConfig() =>
+      const PreflightValidationConfig();
 
   /// Create strict validation configuration
-  factory PreflightValidationConfig.strict() {
-    return const PreflightValidationConfig(
-      validateOwnership: true,
-      validateExistence: true,
-      validateState: true,
-      validateDependencies: true,
-      skipSystemAccountValidation: false,
-    );
-  }
+  factory PreflightValidationConfig.strict() => const PreflightValidationConfig(
+        skipSystemAccountValidation: false,
+      );
 
   /// Create permissive validation configuration for development
-  factory PreflightValidationConfig.permissive() {
-    return const PreflightValidationConfig(
-      validateOwnership: false,
-      validateExistence: true,
-      validateState: false,
-      validateDependencies: false,
-      skipSystemAccountValidation: true,
-    );
-  }
+  factory PreflightValidationConfig.permissive() =>
+      const PreflightValidationConfig(
+        validateOwnership: false,
+        validateState: false,
+        validateDependencies: false,
+      );
+
   /// Whether to validate account ownership
   final bool validateOwnership;
 
@@ -91,7 +82,6 @@ class PreflightValidationConfig {
 
 /// Result of pre-flight account validation
 class PreflightValidationResult {
-
   const PreflightValidationResult({
     required this.success,
     required this.errors,
@@ -110,19 +100,18 @@ class PreflightValidationResult {
     required Duration validationTime,
     List<AccountValidationWarning> warnings = const [],
     Map<String, dynamic> metadata = const {},
-  }) {
-    return PreflightValidationResult(
-      success: true,
-      errors: const [],
-      warnings: warnings,
-      accountStatuses: accountStatuses,
-      totalAccounts: accountStatuses.length,
-      validAccounts: accountStatuses.length,
-      invalidAccounts: 0,
-      validationTime: validationTime,
-      metadata: metadata,
-    );
-  }
+  }) =>
+      PreflightValidationResult(
+        success: true,
+        errors: const [],
+        warnings: warnings,
+        accountStatuses: accountStatuses,
+        totalAccounts: accountStatuses.length,
+        validAccounts: accountStatuses.length,
+        invalidAccounts: 0,
+        validationTime: validationTime,
+        metadata: metadata,
+      );
 
   /// Create a failed validation result
   factory PreflightValidationResult.failure({
@@ -147,6 +136,7 @@ class PreflightValidationResult {
       metadata: metadata,
     );
   }
+
   /// Whether all validations passed
   final bool success;
 
@@ -176,14 +166,13 @@ class PreflightValidationResult {
 
   @override
   String toString() => 'PreflightValidationResult(success: $success, '
-        'totalAccounts: $totalAccounts, validAccounts: $validAccounts, '
-        'invalidAccounts: $invalidAccounts, errors: ${errors.length}, '
-        'warnings: ${warnings.length})';
+      'totalAccounts: $totalAccounts, validAccounts: $validAccounts, '
+      'invalidAccounts: $invalidAccounts, errors: ${errors.length}, '
+      'warnings: ${warnings.length})';
 }
 
 /// Status of individual account validation
 class AccountValidationStatus {
-
   const AccountValidationStatus({
     required this.publicKey,
     required this.isValid,
@@ -206,19 +195,18 @@ class AccountValidationStatus {
     required bool executable,
     List<AccountValidationWarning> warnings = const [],
     Map<String, dynamic> metadata = const {},
-  }) {
-    return AccountValidationStatus(
-      publicKey: publicKey,
-      isValid: true,
-      exists: true,
-      owner: owner,
-      dataLength: dataLength,
-      lamports: lamports,
-      executable: executable,
-      warnings: warnings,
-      metadata: metadata,
-    );
-  }
+  }) =>
+      AccountValidationStatus(
+        publicKey: publicKey,
+        isValid: true,
+        exists: true,
+        owner: owner,
+        dataLength: dataLength,
+        lamports: lamports,
+        executable: executable,
+        warnings: warnings,
+        metadata: metadata,
+      );
 
   /// Create status for an invalid account
   factory AccountValidationStatus.invalid({
@@ -231,20 +219,20 @@ class AccountValidationStatus {
     bool? executable,
     List<AccountValidationWarning> warnings = const [],
     Map<String, dynamic> metadata = const {},
-  }) {
-    return AccountValidationStatus(
-      publicKey: publicKey,
-      isValid: false,
-      exists: exists,
-      owner: owner,
-      dataLength: dataLength,
-      lamports: lamports,
-      executable: executable,
-      errors: errors,
-      warnings: warnings,
-      metadata: metadata,
-    );
-  }
+  }) =>
+      AccountValidationStatus(
+        publicKey: publicKey,
+        isValid: false,
+        exists: exists,
+        owner: owner,
+        dataLength: dataLength,
+        lamports: lamports,
+        executable: executable,
+        errors: errors,
+        warnings: warnings,
+        metadata: metadata,
+      );
+
   /// Public key of the account
   final PublicKey publicKey;
 
@@ -276,13 +264,13 @@ class AccountValidationStatus {
   final Map<String, dynamic> metadata;
 
   @override
-  String toString() => 'AccountValidationStatus(publicKey: ${publicKey.toBase58()}, '
-        'isValid: $isValid, exists: $exists, errors: ${errors.length})';
+  String toString() =>
+      'AccountValidationStatus(publicKey: ${publicKey.toBase58()}, '
+      'isValid: $isValid, exists: $exists, errors: ${errors.length})';
 }
 
 /// Account validation error
 class AccountValidationError {
-
   const AccountValidationError({
     required this.type,
     required this.publicKey,
@@ -290,6 +278,7 @@ class AccountValidationError {
     this.context = const {},
     this.exception,
   });
+
   /// Type of validation error
   final AccountValidationErrorType type;
 
@@ -306,19 +295,20 @@ class AccountValidationError {
   final Exception? exception;
 
   @override
-  String toString() => 'AccountValidationError(type: $type, publicKey: ${publicKey.toBase58()}, '
-        'message: $message)';
+  String toString() =>
+      'AccountValidationError(type: $type, publicKey: ${publicKey.toBase58()}, '
+      'message: $message)';
 }
 
 /// Account validation warning
 class AccountValidationWarning {
-
   const AccountValidationWarning({
     required this.type,
     required this.publicKey,
     required this.message,
     this.context = const {},
   });
+
   /// Type of validation warning
   final AccountValidationWarningType type;
 
@@ -332,8 +322,9 @@ class AccountValidationWarning {
   final Map<String, dynamic> context;
 
   @override
-  String toString() => 'AccountValidationWarning(type: $type, publicKey: ${publicKey.toBase58()}, '
-        'message: $message)';
+  String toString() =>
+      'AccountValidationWarning(type: $type, publicKey: ${publicKey.toBase58()}, '
+      'message: $message)';
 }
 
 /// Types of account validation errors
@@ -361,13 +352,13 @@ enum AccountValidationWarningType {
 
 /// Account dependency relationship
 class AccountDependency {
-
   const AccountDependency({
     required this.dependent,
     required this.dependency,
     required this.type,
     this.metadata = const {},
   });
+
   /// Account that depends on another
   final PublicKey dependent;
 
@@ -393,7 +384,6 @@ enum AccountDependencyType {
 
 /// Comprehensive pre-flight account validation system
 class PreflightValidator {
-
   PreflightValidator(this._provider);
   final AnchorProvider _provider;
   final Map<String, AccountValidationStatus> _cache = {};
@@ -525,9 +515,9 @@ class PreflightValidator {
 
   /// Get cache statistics
   Map<String, int> getCacheStats() => {
-      'size': _cache.length,
-      'maxSize': _maxCacheSize,
-    };
+        'size': _cache.length,
+        'maxSize': _maxCacheSize,
+      };
 
   /// Extract all accounts from transaction instructions
   List<PublicKey> _extractAccountsFromTransaction(
@@ -624,21 +614,25 @@ class PreflightValidator {
     // Split accounts into batches for parallel processing
     final batches = <List<PublicKey>>[];
     for (int i = 0; i < accounts.length; i += config.maxParallelRequests) {
-      batches.add(accounts.sublist(
-        i,
-        (i + config.maxParallelRequests < accounts.length)
-            ? i + config.maxParallelRequests
-            : accounts.length,
-      ),);
+      batches.add(
+        accounts.sublist(
+          i,
+          (i + config.maxParallelRequests < accounts.length)
+              ? i + config.maxParallelRequests
+              : accounts.length,
+        ),
+      );
     }
 
     // Process batches in parallel
     for (final batch in batches) {
-      final futures = batch.map((account) async => await _validateSingleAccount(
+      final futures = batch.map(
+        (account) async => _validateSingleAccount(
           account,
           config,
           expectedOwners?[account],
-        ));
+        ),
+      );
 
       final results = await Future.wait(futures);
 
@@ -730,11 +724,13 @@ class PreflightValidator {
 
       if (accountInfo == null) {
         if (config.validateExistence) {
-          errors.add(AccountValidationError(
-            type: AccountValidationErrorType.accountNotFound,
-            publicKey: account,
-            message: 'Account does not exist',
-          ),);
+          errors.add(
+            AccountValidationError(
+              type: AccountValidationErrorType.accountNotFound,
+              publicKey: account,
+              message: 'Account does not exist',
+            ),
+          );
         }
 
         final status = AccountValidationStatus.invalid(
@@ -748,36 +744,43 @@ class PreflightValidator {
       // Validate ownership if expected owner is provided
       if (expectedOwner != null && config.validateOwnership) {
         if (accountInfo.owner != expectedOwner) {
-          errors.add(AccountValidationError(
-            type: AccountValidationErrorType.ownershipMismatch,
-            publicKey: account,
-            message: 'Account owned by ${accountInfo.owner.toBase58()}, '
-                'expected ${expectedOwner.toBase58()}',
-            context: {
-              'actualOwner': accountInfo.owner.toBase58(),
-              'expectedOwner': expectedOwner.toBase58(),
-            },
-          ),);
+          errors.add(
+            AccountValidationError(
+              type: AccountValidationErrorType.ownershipMismatch,
+              publicKey: account,
+              message: 'Account owned by ${accountInfo.owner.toBase58()}, '
+                  'expected ${expectedOwner.toBase58()}',
+              context: {
+                'actualOwner': accountInfo.owner.toBase58(),
+                'expectedOwner': expectedOwner.toBase58(),
+              },
+            ),
+          );
         }
       }
 
       // Add warnings for potential issues
       if (accountInfo.lamports < 1000000) {
         // Less than 0.001 SOL
-        warnings.add(AccountValidationWarning(
-          type: AccountValidationWarningType.lowBalance,
-          publicKey: account,
-          message: 'Account has low balance: ${accountInfo.lamports} lamports',
-        ),);
+        warnings.add(
+          AccountValidationWarning(
+            type: AccountValidationWarningType.lowBalance,
+            publicKey: account,
+            message:
+                'Account has low balance: ${accountInfo.lamports} lamports',
+          ),
+        );
       }
 
       if (dataLength > 10 * 1024 * 1024) {
         // Larger than 10MB
-        warnings.add(AccountValidationWarning(
-          type: AccountValidationWarningType.largeAccount,
-          publicKey: account,
-          message: 'Account data is unusually large: $dataLength bytes',
-        ),);
+        warnings.add(
+          AccountValidationWarning(
+            type: AccountValidationWarningType.largeAccount,
+            publicKey: account,
+            message: 'Account data is unusually large: $dataLength bytes',
+          ),
+        );
       }
 
       final status = errors.isEmpty
@@ -803,12 +806,14 @@ class PreflightValidator {
       _addToCache(cacheKey, status);
       return status;
     } catch (e) {
-      errors.add(AccountValidationError(
-        type: AccountValidationErrorType.networkError,
-        publicKey: account,
-        message: 'Failed to validate account: $e',
-        exception: e is Exception ? e : Exception(e.toString()),
-      ),);
+      errors.add(
+        AccountValidationError(
+          type: AccountValidationErrorType.networkError,
+          publicKey: account,
+          message: 'Failed to validate account: $e',
+          exception: e is Exception ? e : Exception(e.toString()),
+        ),
+      );
 
       final status = AccountValidationStatus.invalid(
         publicKey: account,
@@ -832,11 +837,13 @@ class PreflightValidator {
           accountStatuses[dependency.dependency.toBase58()];
 
       if (dependentStatus == null || dependencyStatus == null) {
-        warnings.add(AccountValidationWarning(
-          type: AccountValidationWarningType.potentialDependencyIssue,
-          publicKey: dependency.dependent,
-          message: 'Cannot validate dependency: missing account status',
-        ),);
+        warnings.add(
+          AccountValidationWarning(
+            type: AccountValidationWarningType.potentialDependencyIssue,
+            publicKey: dependency.dependent,
+            message: 'Cannot validate dependency: missing account status',
+          ),
+        );
         continue;
       }
 
@@ -844,15 +851,17 @@ class PreflightValidator {
       switch (dependency.type) {
         case AccountDependencyType.ownership:
           if (dependentStatus.owner != dependency.dependency) {
-            errors.add(AccountValidationError(
-              type: AccountValidationErrorType.ownershipMismatch,
-              publicKey: dependency.dependent,
-              message: 'Ownership dependency failed',
-              context: {
-                'dependency': dependency.dependency.toBase58(),
-                'actualOwner': dependentStatus.owner?.toBase58(),
-              },
-            ),);
+            errors.add(
+              AccountValidationError(
+                type: AccountValidationErrorType.ownershipMismatch,
+                publicKey: dependency.dependent,
+                message: 'Ownership dependency failed',
+                context: {
+                  'dependency': dependency.dependency.toBase58(),
+                  'actualOwner': dependentStatus.owner?.toBase58(),
+                },
+              ),
+            );
           }
           break;
         case AccountDependencyType.stateConsistency:
@@ -871,11 +880,14 @@ class PreflightValidator {
     final systemAccounts = [
       PublicKey.systemProgram,
       PublicKey.fromBase58(
-          '11111111111111111111111111111111',), // System Program
+        '11111111111111111111111111111111',
+      ), // System Program
       PublicKey.fromBase58(
-          'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',), // Token Program
+        'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+      ), // Token Program
       PublicKey.fromBase58(
-          'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',), // Token-2022 Program
+        'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+      ), // Token-2022 Program
     ];
 
     return systemAccounts.contains(account);
@@ -904,15 +916,16 @@ extension PreflightValidationResultExtension on PreflightValidationResult {
     int? invalidAccounts,
     Duration? validationTime,
     Map<String, dynamic>? metadata,
-  }) => PreflightValidationResult(
-      success: success ?? this.success,
-      errors: errors ?? this.errors,
-      warnings: warnings ?? this.warnings,
-      accountStatuses: accountStatuses ?? this.accountStatuses,
-      totalAccounts: totalAccounts ?? this.totalAccounts,
-      validAccounts: validAccounts ?? this.validAccounts,
-      invalidAccounts: invalidAccounts ?? this.invalidAccounts,
-      validationTime: validationTime ?? this.validationTime,
-      metadata: metadata ?? this.metadata,
-    );
+  }) =>
+      PreflightValidationResult(
+        success: success ?? this.success,
+        errors: errors ?? this.errors,
+        warnings: warnings ?? this.warnings,
+        accountStatuses: accountStatuses ?? this.accountStatuses,
+        totalAccounts: totalAccounts ?? this.totalAccounts,
+        validAccounts: validAccounts ?? this.validAccounts,
+        invalidAccounts: invalidAccounts ?? this.invalidAccounts,
+        validationTime: validationTime ?? this.validationTime,
+        metadata: metadata ?? this.metadata,
+      );
 }

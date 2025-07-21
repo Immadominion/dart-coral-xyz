@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
 
 /// Mobile-specific secure storage implementation
 class MobileSecureStorage implements PlatformStorage {
-
   MobileSecureStorage._();
   static MobileSecureStorage? _instance;
 
@@ -120,7 +119,6 @@ class MobileDeepLinkHandler {
 
 /// Deep link data structure
 class DeepLinkData {
-
   const DeepLinkData({
     required this.scheme,
     required this.host,
@@ -129,14 +127,12 @@ class DeepLinkData {
   });
 
   /// Create from URI
-  factory DeepLinkData.fromUri(Uri uri) {
-    return DeepLinkData(
-      scheme: uri.scheme,
-      host: uri.host,
-      path: uri.path,
-      parameters: uri.queryParameters,
-    );
-  }
+  factory DeepLinkData.fromUri(Uri uri) => DeepLinkData(
+        scheme: uri.scheme,
+        host: uri.host,
+        path: uri.path,
+        parameters: uri.queryParameters,
+      );
   final String scheme;
   final String host;
   final String path;
@@ -154,7 +150,6 @@ class DeepLinkData {
 
 /// Mobile-optimized connection manager
 class MobileConnectionManager {
-
   MobileConnectionManager(
     this._connection, {
     Duration healthCheckInterval = const Duration(seconds: 30),
@@ -226,7 +221,6 @@ enum ConnectionHealth {
 
 /// Mobile-optimized transaction manager
 class MobileTransactionManager {
-
   MobileTransactionManager(this._provider);
   final AnchorProvider _provider;
   final List<PendingTransaction> _pendingTransactions = [];
@@ -254,10 +248,12 @@ class MobileTransactionManager {
     );
 
     _pendingTransactions.add(pendingTx);
-    _updateController.add(TransactionUpdate(
-      transaction: pendingTx,
-      status: TransactionStatus.submitting,
-    ),);
+    _updateController.add(
+      TransactionUpdate(
+        transaction: pendingTx,
+        status: TransactionStatus.submitting,
+      ),
+    );
 
     try {
       onStatusChange?.call(TransactionStatus.submitting);
@@ -268,10 +264,12 @@ class MobileTransactionManager {
       pendingTx.signature = signature;
       pendingTx.status = TransactionStatus.confirmed;
 
-      _updateController.add(TransactionUpdate(
-        transaction: pendingTx,
-        status: TransactionStatus.confirmed,
-      ),);
+      _updateController.add(
+        TransactionUpdate(
+          transaction: pendingTx,
+          status: TransactionStatus.confirmed,
+        ),
+      );
 
       onStatusChange?.call(TransactionStatus.confirmed);
 
@@ -280,11 +278,13 @@ class MobileTransactionManager {
       pendingTx.status = TransactionStatus.failed;
       pendingTx.error = e.toString();
 
-      _updateController.add(TransactionUpdate(
-        transaction: pendingTx,
-        status: TransactionStatus.failed,
-        error: e.toString(),
-      ),);
+      _updateController.add(
+        TransactionUpdate(
+          transaction: pendingTx,
+          status: TransactionStatus.failed,
+          error: e.toString(),
+        ),
+      );
 
       onStatusChange?.call(TransactionStatus.failed);
 
@@ -312,10 +312,12 @@ class MobileTransactionManager {
         await Future<void>.delayed(retryDelay * attempt);
 
         pendingTx.status = TransactionStatus.retrying;
-        _updateController.add(TransactionUpdate(
-          transaction: pendingTx,
-          status: TransactionStatus.retrying,
-        ),);
+        _updateController.add(
+          TransactionUpdate(
+            transaction: pendingTx,
+            status: TransactionStatus.retrying,
+          ),
+        );
 
         onStatusChange?.call(TransactionStatus.retrying);
 
@@ -324,10 +326,12 @@ class MobileTransactionManager {
         pendingTx.signature = signature;
         pendingTx.status = TransactionStatus.confirmed;
 
-        _updateController.add(TransactionUpdate(
-          transaction: pendingTx,
-          status: TransactionStatus.confirmed,
-        ),);
+        _updateController.add(
+          TransactionUpdate(
+            transaction: pendingTx,
+            status: TransactionStatus.confirmed,
+          ),
+        );
 
         onStatusChange?.call(TransactionStatus.confirmed);
 
@@ -338,11 +342,13 @@ class MobileTransactionManager {
           pendingTx.error =
               'Failed after $maxRetries attempts: ${e.toString()}';
 
-          _updateController.add(TransactionUpdate(
-            transaction: pendingTx,
-            status: TransactionStatus.failed,
-            error: pendingTx.error,
-          ),);
+          _updateController.add(
+            TransactionUpdate(
+              transaction: pendingTx,
+              status: TransactionStatus.failed,
+              error: pendingTx.error,
+            ),
+          );
 
           onStatusChange?.call(TransactionStatus.failed);
           rethrow;
@@ -355,9 +361,11 @@ class MobileTransactionManager {
 
   /// Clear completed transactions
   void clearCompleted() {
-    _pendingTransactions.removeWhere((tx) =>
-        tx.status == TransactionStatus.confirmed ||
-        tx.status == TransactionStatus.failed,);
+    _pendingTransactions.removeWhere(
+      (tx) =>
+          tx.status == TransactionStatus.confirmed ||
+          tx.status == TransactionStatus.failed,
+    );
   }
 
   /// Dispose resources
@@ -368,7 +376,6 @@ class MobileTransactionManager {
 
 /// Pending transaction tracking
 class PendingTransaction {
-
   PendingTransaction({
     required this.transaction,
     required this.timestamp,
@@ -400,7 +407,6 @@ enum TransactionStatus {
 
 /// Transaction update event
 class TransactionUpdate {
-
   const TransactionUpdate({
     required this.transaction,
     required this.status,
@@ -413,7 +419,6 @@ class TransactionUpdate {
 
 /// Mobile wallet session manager
 class MobileWalletSession {
-
   MobileWalletSession({PlatformStorage? storage})
       : _storage = storage ?? MobileSecureStorage.instance;
   static const String _sessionKey = 'mobile_wallet_session';
@@ -479,8 +484,10 @@ class MobileWalletSession {
     if (await isSessionActive()) {
       final currentWallet = await getSessionWallet();
       if (currentWallet != null) {
-        await startSession(currentWallet,
-            timeout: additionalTime ?? _defaultSessionTimeout,);
+        await startSession(
+          currentWallet,
+          timeout: additionalTime ?? _defaultSessionTimeout,
+        );
       }
     }
   }
@@ -493,7 +500,6 @@ class MobileWalletSession {
 
 /// Mobile-specific background sync manager
 class MobileBackgroundSync {
-
   MobileBackgroundSync(
     this._provider, {
     PlatformStorage? storage,
@@ -551,7 +557,9 @@ class MobileBackgroundSync {
       }
 
       await _storage.store(
-          _lastSyncKey, DateTime.now().millisecondsSinceEpoch.toString(),);
+        _lastSyncKey,
+        DateTime.now().millisecondsSinceEpoch.toString(),
+      );
     } catch (e) {
       print('Background sync failed: $e');
     } finally {
@@ -594,7 +602,6 @@ abstract class BackgroundSyncTask {
 
 /// Account balance sync task
 class AccountBalanceSyncTask implements BackgroundSyncTask {
-
   const AccountBalanceSyncTask({
     required this.accountId,
     required this.accountAddress,

@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/types/commitment.dart';
 ///
 /// This includes accounts, signers, additional instructions, and transaction options.
 class Context<T extends Accounts> {
-
   const Context({
     this.accounts,
     this.remainingAccounts,
@@ -25,6 +24,7 @@ class Context<T extends Accounts> {
     this.commitment,
     this.options,
   });
+
   /// Accounts used in the instruction context
   final T? accounts;
 
@@ -58,15 +58,16 @@ class Context<T extends Accounts> {
     List<TransactionInstruction>? postInstructions,
     CommitmentConfig? commitment,
     ConfirmOptions? options,
-  }) => Context<T>(
-      accounts: accounts ?? this.accounts,
-      remainingAccounts: remainingAccounts ?? this.remainingAccounts,
-      signers: signers ?? this.signers,
-      preInstructions: preInstructions ?? this.preInstructions,
-      postInstructions: postInstructions ?? this.postInstructions,
-      commitment: commitment ?? this.commitment,
-      options: options ?? this.options,
-    );
+  }) =>
+      Context<T>(
+        accounts: accounts ?? this.accounts,
+        remainingAccounts: remainingAccounts ?? this.remainingAccounts,
+        signers: signers ?? this.signers,
+        preInstructions: preInstructions ?? this.preInstructions,
+        postInstructions: postInstructions ?? this.postInstructions,
+        commitment: commitment ?? this.commitment,
+        options: options ?? this.options,
+      );
 }
 
 /// Base class for account structures
@@ -89,7 +90,6 @@ abstract class Accounts {
 
 /// Implementation of Accounts that uses a dynamic map structure
 class DynamicAccounts extends Accounts {
-
   /// Create dynamic accounts from a map
   DynamicAccounts([Map<String, dynamic>? accounts]) {
     if (accounts != null) {
@@ -128,12 +128,12 @@ class DynamicAccounts extends Accounts {
 
 /// Options for transaction confirmation
 class ConfirmOptions {
-
   const ConfirmOptions({
     this.skipPreflight,
     this.commitment,
     this.maxRetries,
   });
+
   /// Skip preflight checks
   final bool? skipPreflight;
 
@@ -223,7 +223,6 @@ CommitmentConfig? _parseCommitment(dynamic commitment) {
 
 /// Result of splitting arguments and context
 class ContextSplitResult {
-
   const ContextSplitResult(this.args, this.context);
   final List<dynamic> args;
   final Context context;

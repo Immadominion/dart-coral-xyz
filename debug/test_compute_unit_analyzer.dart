@@ -1,10 +1,10 @@
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/src/transaction/compute_unit_analyzer.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/provider/connection.dart';
 import 'package:coral_xyz_anchor/src/provider/wallet.dart';
+import 'package:coral_xyz_anchor/src/transaction/compute_unit_analyzer.dart';
+import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ComputeUnitAnalyzer', () {
@@ -45,8 +45,10 @@ void main() {
         expect(result.breakdown.totalUnits, equals(150000));
         expect(result.feeEstimates.baseTransactionFee, equals(5000));
         expect(result.transactionComplexity, isA<TransactionComplexity>());
-        expect(result.optimizationRecommendations,
-            isA<List<OptimizationRecommendation>>(),);
+        expect(
+          result.optimizationRecommendations,
+          isA<List<OptimizationRecommendation>>(),
+        );
       });
 
       test(
@@ -105,9 +107,13 @@ void main() {
         );
 
         expect(
-            simple.transactionComplexity, equals(TransactionComplexity.simple),);
-        expect(complex.transactionComplexity,
-            equals(TransactionComplexity.veryComplex),);
+          simple.transactionComplexity,
+          equals(TransactionComplexity.simple),
+        );
+        expect(
+          complex.transactionComplexity,
+          equals(TransactionComplexity.veryComplex),
+        );
       });
     });
 

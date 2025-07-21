@@ -26,7 +26,6 @@ typedef AllEvents<I extends Idl> = List<IdlEvent>;
 
 /// Context for instruction execution
 class Context<T> {
-
   const Context({
     required this.accounts,
     this.remainingAccounts,
@@ -34,6 +33,7 @@ class Context<T> {
     this.preInstructions,
     this.postInstructions,
   });
+
   /// The accounts required for the instruction
   final T accounts;
 
@@ -52,12 +52,12 @@ class Context<T> {
 
 /// Account meta for instruction execution
 class AccountMeta {
-
   const AccountMeta({
     required this.publicKey,
     required this.isWritable,
     required this.isSigner,
   });
+
   /// The public key of the account
   final PublicKey publicKey;
 
@@ -68,7 +68,8 @@ class AccountMeta {
   final bool isSigner;
 
   @override
-  String toString() => 'AccountMeta(publicKey: $publicKey, isWritable: $isWritable, isSigner: $isSigner)';
+  String toString() =>
+      'AccountMeta(publicKey: $publicKey, isWritable: $isWritable, isSigner: $isSigner)';
 
   @override
   bool operator ==(Object other) {
@@ -95,12 +96,12 @@ abstract class Signer {
 
 /// Transaction instruction for Solana programs
 class TransactionInstruction {
-
   const TransactionInstruction({
     required this.programId,
     required this.accounts,
     required this.data,
   });
+
   /// The program ID that owns this instruction
   final PublicKey programId;
 
@@ -112,7 +113,7 @@ class TransactionInstruction {
 
   @override
   String toString() => 'TransactionInstruction(programId: $programId, '
-        'accounts: ${accounts.length}, data: ${data.length} bytes)';
+      'accounts: ${accounts.length}, data: ${data.length} bytes)';
 
   @override
   bool operator ==(Object other) {
@@ -138,12 +139,12 @@ class TransactionInstruction {
 
 /// Transaction containing multiple instructions
 class AnchorTransaction {
-
   const AnchorTransaction({
+    required this.instructions,
     this.feePayer,
     this.recentBlockhash,
-    required this.instructions,
   });
+
   /// The fee payer for this transaction
   final PublicKey? feePayer;
 
@@ -155,24 +156,25 @@ class AnchorTransaction {
 
   /// Create a new transaction with a fee payer
   AnchorTransaction setFeePayer(PublicKey feePayer) => AnchorTransaction(
-      feePayer: feePayer,
-      recentBlockhash: recentBlockhash,
-      instructions: instructions,
-    );
+        feePayer: feePayer,
+        recentBlockhash: recentBlockhash,
+        instructions: instructions,
+      );
 
   /// Create a new transaction with a recent blockhash
   AnchorTransaction setRecentBlockhash(String blockhash) => AnchorTransaction(
-      feePayer: feePayer,
-      recentBlockhash: blockhash,
-      instructions: instructions,
-    );
+        feePayer: feePayer,
+        recentBlockhash: blockhash,
+        instructions: instructions,
+      );
 
   /// Add an instruction to this transaction
-  AnchorTransaction add(TransactionInstruction instruction) => AnchorTransaction(
-      feePayer: feePayer,
-      recentBlockhash: recentBlockhash,
-      instructions: [...instructions, instruction],
-    );
+  AnchorTransaction add(TransactionInstruction instruction) =>
+      AnchorTransaction(
+        feePayer: feePayer,
+        recentBlockhash: recentBlockhash,
+        instructions: [...instructions, instruction],
+      );
 
   /// Estimate the size of the transaction in bytes (rough estimate)
   int estimateSize() {
@@ -206,7 +208,8 @@ class AnchorTransaction {
     SimulateFunction simulateFn,
     List<dynamic> args,
     Context<Accounts> context,
-  ) async => await simulateFn(args, context);
+  ) async =>
+      simulateFn(args, context);
 
   /// Confirm this transaction (requires provider/connection and signature)
   Future<bool> confirm(
@@ -220,7 +223,7 @@ class AnchorTransaction {
 
   @override
   String toString() => 'AnchorTransaction(feePayer: $feePayer, '
-        'instructions: ${instructions.length})';
+      'instructions: ${instructions.length})';
 }
 
 /// Generic accounts type for instruction contexts
@@ -228,11 +231,11 @@ typedef Accounts = Map<String, PublicKey>;
 
 /// Transaction result containing signature
 class TransactionResult {
-
   const TransactionResult({
     required this.signature,
     this.confirmed = false,
   });
+
   /// The transaction signature
   final String signature;
 
@@ -240,18 +243,19 @@ class TransactionResult {
   final bool confirmed;
 
   @override
-  String toString() => 'TransactionResult(signature: $signature, confirmed: $confirmed)';
+  String toString() =>
+      'TransactionResult(signature: $signature, confirmed: $confirmed)';
 }
 
 /// Simulation result for transactions
 class SimulationResult {
-
   const SimulationResult({
     required this.success,
     required this.logs,
     this.error,
     this.unitsConsumed,
   });
+
   /// Whether the simulation was successful
   final bool success;
 
@@ -265,6 +269,7 @@ class SimulationResult {
   final int? unitsConsumed;
 
   @override
-  String toString() => 'SimulationResult(success: $success, logs: ${logs.length}, '
-        'error: $error, unitsConsumed: $unitsConsumed)';
+  String toString() =>
+      'SimulationResult(success: $success, logs: ${logs.length}, '
+      'error: $error, unitsConsumed: $unitsConsumed)';
 }

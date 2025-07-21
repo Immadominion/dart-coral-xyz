@@ -1,8 +1,8 @@
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/src/program/program_class.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/program_class.dart';
 import 'package:coral_xyz_anchor/src/provider/provider.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Program Class Foundation Tests', () {

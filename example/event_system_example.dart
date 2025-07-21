@@ -83,7 +83,8 @@ void main() async {
     maxSlot: 2000,
   );
   print(
-      'Created slot range filter: ${recentFilter.minSlot} - ${recentFilter.maxSlot}',);
+    'Created slot range filter: ${recentFilter.minSlot} - ${recentFilter.maxSlot}',
+  );
 
   // Example usage of filtered listener
   print('Setting up filtered event listener...');
@@ -148,9 +149,7 @@ void main() async {
 
   // Example subscription configuration
   final config = const EventSubscriptionConfig(
-    includeFailed: false,
     maxBufferSize: 1000,
-    reconnectTimeout: Duration(seconds: 30),
   );
 
   print('Subscription config:');
@@ -196,7 +195,9 @@ void main() async {
 
   print(r'\n=== Event System Ready! ===');
   print(
-      'The Dart Anchor event system is now fully implemented and ready to use.',);
+    'The Dart Anchor event system is now fully implemented and ready to use.',
+  );
   print(
-      'Connect to a real Solana RPC WebSocket endpoint to start listening for live events.',);
+    'Connect to a real Solana RPC WebSocket endpoint to start listening for live events.',
+  );
 }

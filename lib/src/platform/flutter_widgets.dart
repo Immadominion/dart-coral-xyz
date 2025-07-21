@@ -10,7 +10,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
 import 'package:coral_xyz_anchor/src/provider/wallet.dart';
 import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
 import 'package:coral_xyz_anchor/src/provider/connection.dart';
@@ -30,10 +30,10 @@ abstract class SolanaWidget {
 
 /// Wallet connection widget for Flutter applications
 class SolanaWalletWidget implements SolanaWidget {
-
   SolanaWalletWidget({
     SolanaWalletConfig? config,
   }) : config = config ?? SolanaWalletConfig.defaultConfig();
+
   /// Connection state stream
   final StreamController<WalletConnectionState> _connectionStateController =
       StreamController<WalletConnectionState>.broadcast();
@@ -169,7 +169,7 @@ class SolanaWalletWidget implements SolanaWidget {
   }
 
   /// Sign and send transaction
-  Future<String> sendTransaction(Transaction transaction) async {
+  Future<String> sendTransaction(tx.Transaction transaction) async {
     if (_provider == null) {
       throw Exception('Provider not initialized');
     }
@@ -206,7 +206,6 @@ class SolanaWalletWidget implements SolanaWidget {
 
 /// Configuration for Solana wallet widget
 class SolanaWalletConfig {
-
   const SolanaWalletConfig({
     required this.rpcUrl,
     this.walletOptions = const {},
@@ -217,37 +216,26 @@ class SolanaWalletConfig {
   });
 
   /// Default configuration for development
-  factory SolanaWalletConfig.defaultConfig() {
-    return const SolanaWalletConfig(
-      rpcUrl: 'https://api.devnet.solana.com',
-      autoConnect: false,
-      maxRetries: 3,
-      retryDelay: Duration(seconds: 1),
-      enablePlatformOptimizations: true,
-    );
-  }
+  factory SolanaWalletConfig.defaultConfig() => const SolanaWalletConfig(
+        rpcUrl: 'https://api.devnet.solana.com',
+      );
 
   /// Configuration for mainnet
-  factory SolanaWalletConfig.mainnet() {
-    return const SolanaWalletConfig(
-      rpcUrl: 'https://api.mainnet-beta.solana.com',
-      autoConnect: false,
-      maxRetries: 5,
-      retryDelay: Duration(seconds: 2),
-      enablePlatformOptimizations: true,
-    );
-  }
+  factory SolanaWalletConfig.mainnet() => const SolanaWalletConfig(
+        rpcUrl: 'https://api.mainnet-beta.solana.com',
+        maxRetries: 5,
+        retryDelay: Duration(seconds: 2),
+      );
 
   /// Configuration for local development
-  factory SolanaWalletConfig.local() {
-    return const SolanaWalletConfig(
-      rpcUrl: 'http://127.0.0.1:8899',
-      autoConnect: true,
-      maxRetries: 1,
-      retryDelay: Duration(milliseconds: 500),
-      enablePlatformOptimizations: false,
-    );
-  }
+  factory SolanaWalletConfig.local() => const SolanaWalletConfig(
+        rpcUrl: 'http://127.0.0.1:8899',
+        autoConnect: true,
+        maxRetries: 1,
+        retryDelay: Duration(milliseconds: 500),
+        enablePlatformOptimizations: false,
+      );
+
   /// RPC URL for connection
   final String rpcUrl;
 
@@ -288,12 +276,12 @@ enum WalletConnectionState {
 
 /// Program interaction widget for Flutter applications
 class SolanaProgramWidget implements SolanaWidget {
-
   SolanaProgramWidget({
     required this.provider,
     required this.idl,
     this.programId,
   });
+
   /// The program instance
   Program? _program;
 
@@ -457,10 +445,10 @@ enum ProgramState {
 
 /// Transaction builder widget for Flutter applications
 class SolanaTransactionWidget implements SolanaWidget {
-
   SolanaTransactionWidget({required this.provider});
+
   /// Current transaction being built
-  Transaction? _transaction;
+  tx.Transaction? _transaction;
 
   /// Transaction state
   TransactionState _state = TransactionState.empty;
@@ -473,7 +461,7 @@ class SolanaTransactionWidget implements SolanaWidget {
   final AnchorProvider provider;
 
   /// Get current transaction
-  Transaction? get transaction => _transaction;
+  tx.Transaction? get transaction => _transaction;
 
   /// Get current state
   TransactionState get state => _state;
@@ -491,8 +479,8 @@ class SolanaTransactionWidget implements SolanaWidget {
     PublicKey? feePayer,
     String? recentBlockhash,
   }) {
-    _transaction = Transaction(
-      instructions: [],
+    _transaction = tx.Transaction(
+      instructions: <tx.TransactionInstruction>[],
       feePayer: feePayer,
       recentBlockhash: recentBlockhash,
     );
@@ -500,7 +488,7 @@ class SolanaTransactionWidget implements SolanaWidget {
   }
 
   /// Add instruction to transaction
-  void addInstruction(TransactionInstruction instruction) {
+  void addInstruction(tx.TransactionInstruction instruction) {
     if (_transaction == null) {
       createTransaction();
     }
@@ -585,11 +573,11 @@ enum TransactionState {
 
 /// Account monitor widget for real-time account updates
 class SolanaAccountMonitor implements SolanaWidget {
-
   SolanaAccountMonitor({
     required this.connection,
     this.updateInterval = const Duration(seconds: 5),
   });
+
   /// Accounts being monitored
   final Map<PublicKey, StreamSubscription<dynamic>> _monitoredAccounts = {};
 
@@ -665,14 +653,14 @@ class SolanaAccountMonitor implements SolanaWidget {
 
 /// Account update data
 class AccountUpdate {
-
   const AccountUpdate({
     required this.address,
+    required this.timestamp,
     this.balance,
     this.data,
     this.error,
-    required this.timestamp,
   });
+
   /// Account address
   final PublicKey address;
 

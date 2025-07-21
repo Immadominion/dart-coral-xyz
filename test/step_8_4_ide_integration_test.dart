@@ -1,7 +1,8 @@
-import 'package:test/test.dart';
 import 'dart:convert';
+
 import 'package:coral_xyz_anchor/src/ide/ide.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Step 8.4: IDE Integration and Developer Experience Tests', () {
@@ -104,13 +105,21 @@ void main() {
 
         // Check generated files
         expect(
-            result.generatedFiles.keys, contains('test_program_program.dart'),);
+          result.generatedFiles.keys,
+          contains('test_program_program.dart'),
+        );
         expect(
-            result.generatedFiles.keys, contains('test_program_accounts.dart'),);
+          result.generatedFiles.keys,
+          contains('test_program_accounts.dart'),
+        );
         expect(
-            result.generatedFiles.keys, contains('test_program_methods.dart'),);
+          result.generatedFiles.keys,
+          contains('test_program_methods.dart'),
+        );
         expect(
-            result.generatedFiles.keys, contains('test_program_errors.dart'),);
+          result.generatedFiles.keys,
+          contains('test_program_errors.dart'),
+        );
         expect(result.generatedFiles.keys, contains('test_program.dart'));
 
         // Check statistics
@@ -130,7 +139,9 @@ void main() {
         expect(programCode, isNotNull);
         expect(programCode, contains('abstract class ITestProgram'));
         expect(
-            programCode, contains('class TestProgram implements ITestProgram'),);
+          programCode,
+          contains('class TestProgram implements ITestProgram'),
+        );
         expect(programCode, contains('Future<String> initialize('));
         expect(programCode, contains('Future<String> update('));
         expect(programCode, contains('required BigInt value'));
@@ -171,10 +182,14 @@ void main() {
         final errorCode = result.generatedFiles['test_program_errors.dart'];
 
         expect(errorCode, isNotNull);
-        expect(errorCode,
-            contains('class InvalidAuthorityError extends AnchorError'),);
-        expect(errorCode,
-            contains('class AlreadyInitializedError extends AnchorError'),);
+        expect(
+          errorCode,
+          contains('class InvalidAuthorityError extends AnchorError'),
+        );
+        expect(
+          errorCode,
+          contains('class AlreadyInitializedError extends AnchorError'),
+        );
         expect(errorCode, contains('code: 6000'));
         expect(errorCode, contains('code: 6001'));
         expect(errorCode, contains('Invalid authority provided'));
@@ -352,7 +367,9 @@ void main() {
         final prodIntegration = AnchorIdeIntegration.production();
 
         expect(
-            prodIntegration.codeGenerator.config.generateInterfaces, isFalse,);
+          prodIntegration.codeGenerator.config.generateInterfaces,
+          isFalse,
+        );
         expect(prodIntegration.debugger.config.verbose, isFalse);
         expect(prodIntegration.debugger.config.captureTransactionLogs, isFalse);
       });
@@ -421,13 +438,21 @@ void main() {
 
         expect(result.success, isTrue);
         expect(
-            result.generatedFiles.keys, contains('test_program_methods.dart'),);
-        expect(result.generatedFiles.keys,
-            isNot(contains('test_program_program.dart')),);
-        expect(result.generatedFiles.keys,
-            isNot(contains('test_program_accounts.dart')),);
-        expect(result.generatedFiles.keys,
-            isNot(contains('test_program_errors.dart')),);
+          result.generatedFiles.keys,
+          contains('test_program_methods.dart'),
+        );
+        expect(
+          result.generatedFiles.keys,
+          isNot(contains('test_program_program.dart')),
+        );
+        expect(
+          result.generatedFiles.keys,
+          isNot(contains('test_program_accounts.dart')),
+        );
+        expect(
+          result.generatedFiles.keys,
+          isNot(contains('test_program_errors.dart')),
+        );
       });
     });
   });

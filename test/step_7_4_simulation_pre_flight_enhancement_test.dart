@@ -1,7 +1,7 @@
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart'
     show TransactionSimulationResult;
+import 'package:test/test.dart';
 
 void main() {
   group('Step 7.4: Simulation and Pre-flight Enhancement', () {
@@ -89,7 +89,9 @@ void main() {
 
         expect(analysis.issueAnalysis.issues, isNotEmpty);
         expect(
-            analysis.issueAnalysis.overallRisk, isNot(equals(RiskLevel.low)),);
+          analysis.issueAnalysis.overallRisk,
+          isNot(equals(RiskLevel.low)),
+        );
       });
 
       test('should compare multiple simulations', () async {
@@ -111,7 +113,9 @@ void main() {
         expect(comparison.baseline, isNotNull);
         expect(comparison.comparisons, hasLength(1));
         expect(
-            comparison.comparisons.first.computeUnitsDifference, equals(2000),);
+          comparison.comparisons.first.computeUnitsDifference,
+          equals(2000),
+        );
         expect(comparison.summary.bestPerforming, isA<int>());
       });
 
@@ -164,12 +168,13 @@ void main() {
       test('should create and replay sessions', () async {
         // Cache some simulations
         final simulations = List.generate(
-            3,
-            (i) => TransactionSimulationResult(
-                  success: true,
-                  logs: ['Program log: Replay $i'],
-                  unitsConsumed: 5000 + i * 1000,
-                ),);
+          3,
+          (i) => TransactionSimulationResult(
+            success: true,
+            logs: ['Program log: Replay $i'],
+            unitsConsumed: 5000 + i * 1000,
+          ),
+        );
 
         final keys =
             simulations.map((s) => cacheManager.cacheSimulation(s)).toList();
@@ -338,7 +343,9 @@ void main() {
 
         expect(report.session.steps, hasLength(3));
         expect(
-            report.flowAnalysis.successRate, closeTo(1.0, 0.01),); // 3/3 success
+          report.flowAnalysis.successRate,
+          closeTo(1.0, 0.01),
+        ); // 3/3 success
         expect(report.optimizations, isNotEmpty);
 
         // Test batch analysis
@@ -352,10 +359,14 @@ void main() {
         final comparison =
             await analyzer.compareSimulations(successfulSimulations);
 
-        expect(comparison.comparisons,
-            hasLength(2),); // 3 simulations = 2 comparisons
-        expect(comparison.comparisons.first.computeUnitsDifference,
-            equals(-100000),); // 700000 - 600000
+        expect(
+          comparison.comparisons,
+          hasLength(2),
+        ); // 3 simulations = 2 comparisons
+        expect(
+          comparison.comparisons.first.computeUnitsDifference,
+          equals(-100000),
+        ); // 700000 - 600000
       });
 
       test('should handle error conditions gracefully', () async {

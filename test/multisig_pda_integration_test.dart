@@ -1,9 +1,10 @@
-import 'package:test/test.dart';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/utils/multisig.dart';
-import 'package:coral_xyz_anchor/src/utils/pubkey.dart';
+
 import 'package:coral_xyz_anchor/src/program/pda_utils.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz_anchor/src/utils/multisig.dart';
+import 'package:coral_xyz_anchor/src/utils/pubkey.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Multisig and PDA Integration Tests', () {
@@ -68,22 +69,28 @@ void main() {
       );
 
       // Step 5: Simulate owner approvals
-      expect(MultisigUtils.canExecuteTransaction(transaction, config.threshold),
-          isFalse,);
+      expect(
+        MultisigUtils.canExecuteTransaction(transaction, config.threshold),
+        isFalse,
+      );
 
       // First owner approves
       final owner1Index = MultisigUtils.getOwnerIndex(owners, owners[0]);
       transaction = MultisigUtils.signTransaction(transaction, owner1Index);
       expect(transaction.signatureCount, equals(1));
-      expect(MultisigUtils.canExecuteTransaction(transaction, config.threshold),
-          isFalse,);
+      expect(
+        MultisigUtils.canExecuteTransaction(transaction, config.threshold),
+        isFalse,
+      );
 
       // Second owner approves
       final owner2Index = MultisigUtils.getOwnerIndex(owners, owners[1]);
       transaction = MultisigUtils.signTransaction(transaction, owner2Index);
       expect(transaction.signatureCount, equals(2));
-      expect(MultisigUtils.canExecuteTransaction(transaction, config.threshold),
-          isTrue,);
+      expect(
+        MultisigUtils.canExecuteTransaction(transaction, config.threshold),
+        isTrue,
+      );
 
       // Step 6: Prepare execution accounts
       final executionMetas = MultisigUtils.createExecutionAccountMetas(

@@ -7,11 +7,11 @@ import 'package:coral_xyz_anchor/src/transaction/simulation_cache_manager.dart';
 
 /// Comprehensive debugging and development tools for transaction simulation
 class SimulationDebugger {
-
   SimulationDebugger({
     SimulationCacheManager? cacheManager,
     this.config = const DebugConfig(),
   }) : _cacheManager = cacheManager ?? SimulationCacheManager();
+
   /// Cache manager for storing debug sessions
   final SimulationCacheManager _cacheManager;
 
@@ -355,7 +355,9 @@ class SimulationDebugger {
   }
 
   double _calculatePerformanceChange(
-      AnalysisResult? previous, AnalysisResult current,) {
+    AnalysisResult? previous,
+    AnalysisResult current,
+  ) {
     if (previous == null) return 0;
 
     final prevScore = previous.performanceMetrics.throughputScore;
@@ -366,7 +368,9 @@ class SimulationDebugger {
   }
 
   List<String> _identifySignificantChanges(
-      AnalysisResult? previous, AnalysisResult current,) {
+    AnalysisResult? previous,
+    AnalysisResult current,
+  ) {
     if (previous == null) return ['Initial step'];
 
     final changes = <String>[];
@@ -376,7 +380,8 @@ class SimulationDebugger {
         previous.computeAnalysis.unitsConsumed;
     if (computeDiff.abs() > 10000) {
       changes.add(
-          'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}',);
+        'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}',
+      );
     }
 
     // Check for account count changes
@@ -384,7 +389,8 @@ class SimulationDebugger {
         previous.accountAnalysis.totalAccounts;
     if (accountDiff != 0) {
       changes.add(
-          'Account count ${accountDiff > 0 ? 'increased' : 'decreased'} by ${accountDiff.abs()}',);
+        'Account count ${accountDiff > 0 ? 'increased' : 'decreased'} by ${accountDiff.abs()}',
+      );
     }
 
     return changes;
@@ -399,15 +405,17 @@ class SimulationDebugger {
 
     // Detect high compute usage
     if (analysis.computeAnalysis.unitsConsumed > 1000000) {
-      issues.add(DebugIssue(
-        type: DebugIssueType.performance,
-        severity: DebugIssueSeverity.warning,
-        title: 'High Compute Usage',
-        description:
-            'Transaction uses ${analysis.computeAnalysis.unitsConsumed} compute units',
-        recommendation: 'Consider optimizing instruction complexity',
-        affectedStep: session.steps.length,
-      ),);
+      issues.add(
+        DebugIssue(
+          type: DebugIssueType.performance,
+          severity: DebugIssueSeverity.warning,
+          title: 'High Compute Usage',
+          description:
+              'Transaction uses ${analysis.computeAnalysis.unitsConsumed} compute units',
+          recommendation: 'Consider optimizing instruction complexity',
+          affectedStep: session.steps.length,
+        ),
+      );
     }
 
     // Detect pattern anomalies
@@ -419,15 +427,17 @@ class SimulationDebugger {
           session.steps.where((s) => s.analysis != null).length;
 
       if (analysis.computeAnalysis.unitsConsumed > avgCompute * 1.5) {
-        issues.add(DebugIssue(
-          type: DebugIssueType.anomaly,
-          severity: DebugIssueSeverity.info,
-          title: 'Compute Usage Spike',
-          description:
-              'This step uses significantly more compute units than average',
-          recommendation: 'Investigate what changed in this transaction',
-          affectedStep: session.steps.length,
-        ),);
+        issues.add(
+          DebugIssue(
+            type: DebugIssueType.anomaly,
+            severity: DebugIssueSeverity.info,
+            title: 'Compute Usage Spike',
+            description:
+                'This step uses significantly more compute units than average',
+            recommendation: 'Investigate what changed in this transaction',
+            affectedStep: session.steps.length,
+          ),
+        );
       }
     }
 
@@ -443,14 +453,16 @@ class SimulationDebugger {
 
     // Efficiency insight
     if (analysis.computeAnalysis.efficiency > 0.8) {
-      insights.add(DebugInsight(
-        type: DebugInsightType.efficiency,
-        title: 'Efficient Transaction',
-        description:
-            'This transaction is highly efficient with ${(analysis.computeAnalysis.efficiency * 100).toStringAsFixed(1)}% efficiency',
-        impact: InsightImpact.positive,
-        confidence: 0.9,
-      ),);
+      insights.add(
+        DebugInsight(
+          type: DebugInsightType.efficiency,
+          title: 'Efficient Transaction',
+          description:
+              'This transaction is highly efficient with ${(analysis.computeAnalysis.efficiency * 100).toStringAsFixed(1)}% efficiency',
+          impact: InsightImpact.positive,
+          confidence: 0.9,
+        ),
+      );
     }
 
     // Pattern insight
@@ -462,18 +474,22 @@ class SimulationDebugger {
           .toList();
 
       if (computeUnits.length > 1) {
-        final isDecreasing = computeUnits.every((units) =>
-            computeUnits.indexOf(units) == 0 ||
-            units <= computeUnits[computeUnits.indexOf(units) - 1],);
+        final isDecreasing = computeUnits.every(
+          (units) =>
+              computeUnits.indexOf(units) == 0 ||
+              units <= computeUnits[computeUnits.indexOf(units) - 1],
+        );
 
         if (isDecreasing) {
-          insights.add(const DebugInsight(
-            type: DebugInsightType.pattern,
-            title: 'Optimization Trend',
-            description: 'Compute unit usage is consistently decreasing',
-            impact: InsightImpact.positive,
-            confidence: 0.8,
-          ),);
+          insights.add(
+            const DebugInsight(
+              type: DebugInsightType.pattern,
+              title: 'Optimization Trend',
+              description: 'Compute unit usage is consistently decreasing',
+              impact: InsightImpact.positive,
+              confidence: 0.8,
+            ),
+          );
         }
       }
     }
@@ -482,7 +498,8 @@ class SimulationDebugger {
   }
 
   Future<List<SessionPattern>> _analyzeSessionPatterns(
-      DebugSession session,) async {
+    DebugSession session,
+  ) async {
     final patterns = <SessionPattern>[];
 
     if (session.steps.length < 2) return patterns;
@@ -501,12 +518,14 @@ class SimulationDebugger {
           computeUnits.length;
 
       if (variance < avg * 0.1) {
-        patterns.add(SessionPattern(
-          type: PatternType.stable,
-          description: 'Compute unit usage is stable across steps',
-          confidence: 0.9,
-          affectedSteps: List.generate(session.steps.length, (i) => i),
-        ),);
+        patterns.add(
+          SessionPattern(
+            type: PatternType.stable,
+            description: 'Compute unit usage is stable across steps',
+            confidence: 0.9,
+            affectedSteps: List.generate(session.steps.length, (i) => i),
+          ),
+        );
       }
     }
 
@@ -514,7 +533,8 @@ class SimulationDebugger {
   }
 
   Future<List<PerformanceBottleneck>> _identifyBottlenecks(
-      DebugSession session,) async {
+    DebugSession session,
+  ) async {
     final bottlenecks = <PerformanceBottleneck>[];
 
     for (int i = 0; i < session.steps.length; i++) {
@@ -524,28 +544,32 @@ class SimulationDebugger {
 
         // Check for high compute usage
         if (analysis.computeAnalysis.unitsConsumed > 1000000) {
-          bottlenecks.add(PerformanceBottleneck(
-            type: BottleneckType.compute,
-            stepIndex: i,
-            severity: BottleneckSeverity.high,
-            description:
-                'High compute unit usage: ${analysis.computeAnalysis.unitsConsumed}',
-            impact: 'May cause transaction failures or high fees',
-            recommendation: 'Optimize instruction complexity',
-          ),);
+          bottlenecks.add(
+            PerformanceBottleneck(
+              type: BottleneckType.compute,
+              stepIndex: i,
+              severity: BottleneckSeverity.high,
+              description:
+                  'High compute unit usage: ${analysis.computeAnalysis.unitsConsumed}',
+              impact: 'May cause transaction failures or high fees',
+              recommendation: 'Optimize instruction complexity',
+            ),
+          );
         }
 
         // Check for many account accesses
         if (analysis.accountAnalysis.totalAccounts > 20) {
-          bottlenecks.add(PerformanceBottleneck(
-            type: BottleneckType.accounts,
-            stepIndex: i,
-            severity: BottleneckSeverity.medium,
-            description:
-                'Many account accesses: ${analysis.accountAnalysis.totalAccounts}',
-            impact: 'May increase transaction size and processing time',
-            recommendation: 'Consider account lookup tables',
-          ),);
+          bottlenecks.add(
+            PerformanceBottleneck(
+              type: BottleneckType.accounts,
+              stepIndex: i,
+              severity: BottleneckSeverity.medium,
+              description:
+                  'Many account accesses: ${analysis.accountAnalysis.totalAccounts}',
+              impact: 'May increase transaction size and processing time',
+              recommendation: 'Consider account lookup tables',
+            ),
+          );
         }
       }
     }
@@ -554,7 +578,8 @@ class SimulationDebugger {
   }
 
   Future<List<SessionOptimization>> _generateSessionOptimizations(
-      DebugSession session,) async {
+    DebugSession session,
+  ) async {
     final optimizations = <SessionOptimization>[];
 
     // Global optimization recommendations based on session patterns
@@ -570,19 +595,21 @@ class SimulationDebugger {
           allAnalyses.length;
 
       if (avgCompute > 500000) {
-        optimizations.add(SessionOptimization(
-          type: OptimizationType.computeUnits,
-          priority: OptimizationPriority.high,
-          title: 'Reduce Overall Compute Usage',
-          description:
-              'Average compute usage across session is high: ${avgCompute.toStringAsFixed(0)} units',
-          estimatedImpact: 'Could reduce fees by 30-50%',
-          implementation: [
-            'Review instruction complexity',
-            'Optimize data processing',
-            'Consider breaking into smaller transactions',
-          ],
-        ),);
+        optimizations.add(
+          SessionOptimization(
+            type: OptimizationType.computeUnits,
+            priority: OptimizationPriority.high,
+            title: 'Reduce Overall Compute Usage',
+            description:
+                'Average compute usage across session is high: ${avgCompute.toStringAsFixed(0)} units',
+            estimatedImpact: 'Could reduce fees by 30-50%',
+            implementation: [
+              'Review instruction complexity',
+              'Optimize data processing',
+              'Consider breaking into smaller transactions',
+            ],
+          ),
+        );
       }
     }
 
@@ -590,21 +617,24 @@ class SimulationDebugger {
   }
 
   Future<ExecutionFlowAnalysis> _analyzeExecutionFlow(
-      DebugSession session,) async {
+    DebugSession session,
+  ) async {
     final flowSteps = <FlowStep>[];
 
     for (int i = 0; i < session.steps.length; i++) {
       final step = session.steps[i];
 
-      flowSteps.add(FlowStep(
-        index: i,
-        name: step.name,
-        success: step.simulation.success,
-        computeUnits: step.analysis?.computeAnalysis.unitsConsumed ?? 0,
-        duration: step.processingTime,
-        issues: step.issues?.length ?? 0,
-        insights: step.insights?.length ?? 0,
-      ),);
+      flowSteps.add(
+        FlowStep(
+          index: i,
+          name: step.name,
+          success: step.simulation.success,
+          computeUnits: step.analysis?.computeAnalysis.unitsConsumed ?? 0,
+          duration: step.processingTime,
+          issues: step.issues?.length ?? 0,
+          insights: step.insights?.length ?? 0,
+        ),
+      );
     }
 
     return ExecutionFlowAnalysis(
@@ -620,7 +650,8 @@ class SimulationDebugger {
   }
 
   Future<ComparisonMatrix> _generateComparisonMatrix(
-      DebugSession session,) async {
+    DebugSession session,
+  ) async {
     final validSteps = session.steps.where((s) => s.analysis != null).toList();
     final matrix = <List<ComparisonCell>>[];
 
@@ -629,28 +660,32 @@ class SimulationDebugger {
 
       for (int j = 0; j < validSteps.length; j++) {
         if (i == j) {
-          row.add(ComparisonCell(
-            row: i,
-            column: j,
-            value: 0,
-            type: ComparisonType.identity,
-          ),);
+          row.add(
+            ComparisonCell(
+              row: i,
+              column: j,
+              value: 0,
+              type: ComparisonType.identity,
+            ),
+          );
         } else {
           final stepA = validSteps[i];
           final stepB = validSteps[j];
           final computeDiff = stepB.analysis!.computeAnalysis.unitsConsumed -
               stepA.analysis!.computeAnalysis.unitsConsumed;
 
-          row.add(ComparisonCell(
-            row: i,
-            column: j,
-            value: computeDiff.toDouble(),
-            type: ComparisonType.computeDifference,
-            metadata: {
-              'stepA': stepA.name,
-              'stepB': stepB.name,
-            },
-          ),);
+          row.add(
+            ComparisonCell(
+              row: i,
+              column: j,
+              value: computeDiff.toDouble(),
+              type: ComparisonType.computeDifference,
+              metadata: {
+                'stepA': stepA.name,
+                'stepB': stepB.name,
+              },
+            ),
+          );
         }
       }
 
@@ -725,7 +760,9 @@ class SimulationDebugger {
   // Export methods
 
   DebugExportResult _exportSessionToJson(
-      DebugSession session, DebugExportOptions options,) {
+    DebugSession session,
+    DebugExportOptions options,
+  ) {
     final data = {
       'session': {
         'id': session.id,
@@ -735,15 +772,17 @@ class SimulationDebugger {
         'lastUpdated': session.lastUpdated?.toIso8601String(),
       },
       'steps': session.steps
-          .map((step) => {
-                'index': step.index,
-                'name': step.name,
-                'timestamp': step.timestamp.toIso8601String(),
-                'success': step.simulation.success,
-                'computeUnits': step.analysis?.computeAnalysis.unitsConsumed,
-                'issues': step.issues?.length ?? 0,
-                'insights': step.insights?.length ?? 0,
-              },)
+          .map(
+            (step) => {
+              'index': step.index,
+              'name': step.name,
+              'timestamp': step.timestamp.toIso8601String(),
+              'success': step.simulation.success,
+              'computeUnits': step.analysis?.computeAnalysis.unitsConsumed,
+              'issues': step.issues?.length ?? 0,
+              'insights': step.insights?.length ?? 0,
+            },
+          )
           .toList(),
     };
 
@@ -757,7 +796,9 @@ class SimulationDebugger {
   }
 
   DebugExportResult _exportSessionToCsv(
-      DebugSession session, DebugExportOptions options,) {
+    DebugSession session,
+    DebugExportOptions options,
+  ) {
     final csv = StringBuffer();
     csv.writeln('Index,Name,Timestamp,Success,ComputeUnits,Issues,Insights');
 
@@ -778,7 +819,9 @@ class SimulationDebugger {
   }
 
   DebugExportResult _exportSessionToMarkdown(
-      DebugSession session, DebugExportOptions options,) {
+    DebugSession session,
+    DebugExportOptions options,
+  ) {
     final md = StringBuffer();
     md.writeln('# Debug Session: ${session.name}');
     md.writeln();
@@ -791,9 +834,11 @@ class SimulationDebugger {
     md.writeln('## Steps Summary');
     md.writeln();
     md.writeln(
-        '| Index | Name | Success | Compute Units | Issues | Insights |',);
+      '| Index | Name | Success | Compute Units | Issues | Insights |',
+    );
     md.writeln(
-        '|-------|------|---------|---------------|---------|----------|',);
+      '|-------|------|---------|---------------|---------|----------|',
+    );
 
     for (final step in session.steps) {
       md.writeln(
@@ -812,19 +857,24 @@ class SimulationDebugger {
   }
 
   DebugExportResult _exportSessionToHtml(
-      DebugSession session, DebugExportOptions options,) {
+    DebugSession session,
+    DebugExportOptions options,
+  ) {
     final html = StringBuffer();
     html.writeln('<!DOCTYPE html>');
     html.writeln(
-        '<html><head><title>Debug Session: ${session.name}</title></head><body>',);
+      '<html><head><title>Debug Session: ${session.name}</title></head><body>',
+    );
     html.writeln('<h1>Debug Session: ${session.name}</h1>');
     html.writeln('<p><strong>Session ID:</strong> ${session.id}</p>');
     html.writeln(
-        '<p><strong>Start Time:</strong> ${session.startTime.toIso8601String()}</p>',);
+      '<p><strong>Start Time:</strong> ${session.startTime.toIso8601String()}</p>',
+    );
     html.writeln('<h2>Steps</h2>');
     html.writeln('<table border="1">');
     html.writeln(
-        '<tr><th>Index</th><th>Name</th><th>Success</th><th>Compute Units</th><th>Issues</th><th>Insights</th></tr>',);
+      '<tr><th>Index</th><th>Name</th><th>Success</th><th>Compute Units</th><th>Issues</th><th>Insights</th></tr>',
+    );
 
     for (final step in session.steps) {
       html.writeln('<tr>');
@@ -832,7 +882,8 @@ class SimulationDebugger {
       html.writeln('<td>${step.name}</td>');
       html.writeln('<td>${step.simulation.success}</td>');
       html.writeln(
-          '<td>${step.analysis?.computeAnalysis.unitsConsumed ?? 0}</td>',);
+        '<td>${step.analysis?.computeAnalysis.unitsConsumed ?? 0}</td>',
+      );
       html.writeln('<td>${step.issues?.length ?? 0}</td>');
       html.writeln('<td>${step.insights?.length ?? 0}</td>');
       html.writeln('</tr>');
@@ -855,7 +906,6 @@ class SimulationDebugger {
 
 /// Configuration for debugging
 class DebugConfig {
-
   const DebugConfig({
     this.enableCaching = true,
     this.enableComparison = true,
@@ -870,7 +920,6 @@ class DebugConfig {
 
 /// Options for debug sessions
 class DebugSessionOptions {
-
   const DebugSessionOptions({
     this.autoAnalyze = true,
     this.trackPerformance = true,
@@ -887,7 +936,6 @@ class DebugSessionOptions {
 
 /// Options for debug steps
 class DebugStepOptions {
-
   const DebugStepOptions({
     this.enableComparison = true,
     this.detectIssues = true,
@@ -904,7 +952,6 @@ class DebugStepOptions {
 
 /// Options for debug reports
 class DebugReportOptions {
-
   const DebugReportOptions({
     this.includeComparisonMatrix = true,
     this.includeFlowAnalysis = true,
@@ -921,7 +968,6 @@ class DebugReportOptions {
 
 /// Options for interactive debugging
 class InteractiveDebugOptions {
-
   const InteractiveDebugOptions({
     this.enableBreakpoints = true,
     this.enableWatchlist = true,
@@ -939,7 +985,6 @@ class InteractiveDebugOptions {
 
 /// Options for monitoring
 class MonitoringOptions {
-
   const MonitoringOptions({
     this.checkInterval = const Duration(seconds: 30),
     this.enableAlerts = true,
@@ -956,7 +1001,6 @@ class MonitoringOptions {
 
 /// Options for debug export
 class DebugExportOptions {
-
   const DebugExportOptions({
     this.includeMetadata = true,
     this.includeAnalysisDetails = false,
@@ -975,7 +1019,6 @@ class DebugExportOptions {
 
 /// Debug session
 class DebugSession {
-
   DebugSession({
     required this.id,
     required this.name,
@@ -998,20 +1041,19 @@ class DebugSession {
 
 /// Individual debug step
 class DebugStep {
-
   const DebugStep({
     required this.index,
     required this.name,
     required this.simulationKey,
     required this.analysisKey,
     required this.simulation,
+    required this.timestamp,
+    required this.processingTime,
+    required this.metadata,
     this.analysis,
     this.comparison,
     this.issues,
     this.insights,
-    required this.timestamp,
-    required this.processingTime,
-    required this.metadata,
     this.error,
   });
   final int index;
@@ -1031,7 +1073,6 @@ class DebugStep {
 
 /// Result of adding a debug step
 class DebugStepResult {
-
   const DebugStepResult({
     required this.step,
     required this.session,
@@ -1046,7 +1087,6 @@ class DebugStepResult {
 
 /// Comparison between debug steps
 class Comparison {
-
   const Comparison({
     required this.computeUnitsDifference,
     required this.accountCountDifference,
@@ -1061,7 +1101,6 @@ class Comparison {
 
 /// Debug issue
 class DebugIssue {
-
   const DebugIssue({
     required this.type,
     required this.severity,
@@ -1080,7 +1119,6 @@ class DebugIssue {
 
 /// Debug insight
 class DebugInsight {
-
   const DebugInsight({
     required this.type,
     required this.title,
@@ -1097,7 +1135,6 @@ class DebugInsight {
 
 /// Debug report
 class DebugReport {
-
   const DebugReport({
     required this.sessionId,
     required this.session,
@@ -1105,11 +1142,11 @@ class DebugReport {
     required this.bottlenecks,
     required this.optimizations,
     required this.flowAnalysis,
-    this.comparisonMatrix,
     required this.issueSummary,
     required this.insightsSummary,
     required this.metadata,
     required this.timestamp,
+    this.comparisonMatrix,
   });
   final String sessionId;
   final DebugSession session;
@@ -1126,7 +1163,6 @@ class DebugReport {
 
 /// Session pattern analysis
 class SessionPattern {
-
   const SessionPattern({
     required this.type,
     required this.description,
@@ -1141,7 +1177,6 @@ class SessionPattern {
 
 /// Performance bottleneck
 class PerformanceBottleneck {
-
   const PerformanceBottleneck({
     required this.type,
     required this.stepIndex,
@@ -1160,7 +1195,6 @@ class PerformanceBottleneck {
 
 /// Session optimization recommendation
 class SessionOptimization {
-
   const SessionOptimization({
     required this.type,
     required this.priority,
@@ -1179,7 +1213,6 @@ class SessionOptimization {
 
 /// Execution flow analysis
 class ExecutionFlowAnalysis {
-
   const ExecutionFlowAnalysis({
     required this.steps,
     required this.totalDuration,
@@ -1194,7 +1227,6 @@ class ExecutionFlowAnalysis {
 
 /// Flow step
 class FlowStep {
-
   const FlowStep({
     required this.index,
     required this.name,
@@ -1215,7 +1247,6 @@ class FlowStep {
 
 /// Comparison matrix for steps
 class ComparisonMatrix {
-
   const ComparisonMatrix({
     required this.matrix,
     required this.size,
@@ -1228,7 +1259,6 @@ class ComparisonMatrix {
 
 /// Cell in comparison matrix
 class ComparisonCell {
-
   const ComparisonCell({
     required this.row,
     required this.column,
@@ -1245,7 +1275,6 @@ class ComparisonCell {
 
 /// Issue summary
 class IssueSummary {
-
   const IssueSummary({
     required this.totalIssues,
     required this.byType,
@@ -1260,7 +1289,6 @@ class IssueSummary {
 
 /// Insights summary
 class InsightsSummary {
-
   const InsightsSummary({
     required this.totalInsights,
     required this.byType,
@@ -1275,7 +1303,6 @@ class InsightsSummary {
 
 /// Interactive debug session
 class InteractiveDebugSession {
-
   const InteractiveDebugSession({
     required this.id,
     required this.name,
@@ -1296,7 +1323,6 @@ class InteractiveDebugSession {
 
 /// Debug command
 class DebugCommand {
-
   const DebugCommand({
     required this.type,
     required this.command,
@@ -1309,14 +1335,13 @@ class DebugCommand {
 
 /// Debug command result
 class DebugCommandResult {
-
   const DebugCommandResult({
     required this.command,
     required this.success,
-    this.result,
-    this.error,
     required this.executionTime,
     required this.timestamp,
+    this.result,
+    this.error,
   });
   final DebugCommand command;
   final bool success;
@@ -1328,7 +1353,6 @@ class DebugCommandResult {
 
 /// Breakpoint for debugging
 class Breakpoint {
-
   const Breakpoint({
     required this.id,
     required this.condition,
@@ -1341,7 +1365,6 @@ class Breakpoint {
 
 /// Monitoring session
 class MonitoringSession {
-
   const MonitoringSession({
     required this.id,
     required this.name,
@@ -1362,7 +1385,6 @@ class MonitoringSession {
 
 /// Monitoring rule
 class MonitoringRule {
-
   const MonitoringRule({
     required this.id,
     required this.name,
@@ -1377,7 +1399,6 @@ class MonitoringRule {
 
 /// Monitoring alert
 class MonitoringAlert {
-
   const MonitoringAlert({
     required this.id,
     required this.ruleId,
@@ -1401,7 +1422,6 @@ class MonitoringMetrics {
 
 /// Debug export result
 class DebugExportResult {
-
   const DebugExportResult({
     required this.format,
     required this.data,

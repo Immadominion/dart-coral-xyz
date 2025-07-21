@@ -39,7 +39,8 @@ class BorshWrapper {
       serializer.writeArray(data, serializer.writeU8);
     } else {
       throw BorshException(
-          'Unsupported data type for serialization: ${data.runtimeType}',);
+        'Unsupported data type for serialization: ${data.runtimeType}',
+      );
     }
 
     return serializer.toBytes();
@@ -47,14 +48,18 @@ class BorshWrapper {
 
   /// Deserialize bytes from Borsh format
   static T deserialize<T>(
-      Uint8List data, T Function(BorshDeserializer) deserializeFunc,) {
+    Uint8List data,
+    T Function(BorshDeserializer) deserializeFunc,
+  ) {
     final deserializer = BorshDeserializer(data);
     return deserializeFunc(deserializer);
   }
 
   /// Create discriminator for Anchor accounts (8 bytes)
-  static Uint8List createAccountDiscriminator(String name) => BorshUtils.createAccountDiscriminator(name);
+  static Uint8List createAccountDiscriminator(String name) =>
+      BorshUtils.createAccountDiscriminator(name);
 
   /// Create discriminator for Anchor instructions (8 bytes)
-  static Uint8List createInstructionDiscriminator(String name) => BorshUtils.createInstructionDiscriminator(name);
+  static Uint8List createInstructionDiscriminator(String name) =>
+      BorshUtils.createInstructionDiscriminator(name);
 }

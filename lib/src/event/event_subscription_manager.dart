@@ -1,15 +1,17 @@
 import 'dart:async';
 
-import 'package:coral_xyz_anchor/src/provider/connection.dart' show Connection, LogsNotification;
+import 'package:coral_xyz_anchor/src/provider/connection.dart'
+    show Connection, LogsNotification;
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/event/event_definition.dart';
-import 'package:coral_xyz_anchor/src/event/event_log_parser.dart' show EventLogParser, ParsedEvent;
-import 'package:coral_xyz_anchor/src/event/types.dart' show EventSubscriptionConfig;
+import 'package:coral_xyz_anchor/src/event/event_log_parser.dart'
+    show EventLogParser, ParsedEvent;
+import 'package:coral_xyz_anchor/src/event/types.dart'
+    show EventSubscriptionConfig;
 
 /// Event subscription manager for real-time event monitoring
 /// Uses Connection.onLogs for TypeScript-compatible event subscription
 class EventSubscriptionManager {
-
   EventSubscriptionManager({
     required Connection connection,
     required PublicKey programId,
@@ -21,6 +23,7 @@ class EventSubscriptionManager {
         _config = config ?? const EventSubscriptionConfig() {
     _parser = EventLogParser.fromEvents(_programId, _eventDefinitions);
   }
+
   /// Connection for RPC calls and subscriptions
   final Connection _connection;
 
@@ -252,7 +255,8 @@ class EventSubscriptionManager {
   }
 
   /// Get active subscriptions
-  List<EventSubscription> getActiveSubscriptions() => _subscriptions.values.toList();
+  List<EventSubscription> getActiveSubscriptions() =>
+      _subscriptions.values.toList();
 
   /// Get subscription by ID
   EventSubscription? getSubscription(String id) => _subscriptions[id];
@@ -274,7 +278,6 @@ class EventSubscriptionManager {
 
 /// Event subscription configuration compatible with both old and new APIs
 class LegacyEventSubscriptionConfig {
-
   const LegacyEventSubscriptionConfig({
     this.autoReconnect = true,
     this.maxReconnectionAttempts = 5,
@@ -285,33 +288,28 @@ class LegacyEventSubscriptionConfig {
   });
 
   /// Default configuration
-  factory LegacyEventSubscriptionConfig.defaultConfig() {
-    return const LegacyEventSubscriptionConfig();
-  }
+  factory LegacyEventSubscriptionConfig.defaultConfig() =>
+      const LegacyEventSubscriptionConfig();
 
   /// Production configuration with more conservative settings
-  factory LegacyEventSubscriptionConfig.production() {
-    return const LegacyEventSubscriptionConfig(
-      autoReconnect: true,
-      maxReconnectionAttempts: 10,
-      reconnectionDelay: 2000,
-      bufferEvents: true,
-      maxBufferSize: 5000,
-      connectionTimeout: 60000,
-    );
-  }
+  factory LegacyEventSubscriptionConfig.production() =>
+      const LegacyEventSubscriptionConfig(
+        maxReconnectionAttempts: 10,
+        reconnectionDelay: 2000,
+        maxBufferSize: 5000,
+        connectionTimeout: 60000,
+      );
 
   /// Development configuration with aggressive reconnection
-  factory LegacyEventSubscriptionConfig.development() {
-    return const LegacyEventSubscriptionConfig(
-      autoReconnect: true,
-      maxReconnectionAttempts: 3,
-      reconnectionDelay: 500,
-      bufferEvents: false,
-      maxBufferSize: 100,
-      connectionTimeout: 10000,
-    );
-  }
+  factory LegacyEventSubscriptionConfig.development() =>
+      const LegacyEventSubscriptionConfig(
+        maxReconnectionAttempts: 3,
+        reconnectionDelay: 500,
+        bufferEvents: false,
+        maxBufferSize: 100,
+        connectionTimeout: 10000,
+      );
+
   /// Whether to automatically reconnect on connection loss
   final bool autoReconnect;
 
@@ -333,15 +331,15 @@ class LegacyEventSubscriptionConfig {
 
 /// Event subscription
 class EventSubscription {
-
   const EventSubscription({
     required this.id,
+    required this.createdAt,
     this.eventName,
     this.filter,
     this.onEvent,
     this.onError,
-    required this.createdAt,
   });
+
   /// Unique subscription ID
   final String id;
 
@@ -366,12 +364,12 @@ class EventSubscription {
 
 /// Event filter for complex event filtering
 class EventFilter {
-
   const EventFilter({
     this.eventNames,
     this.dataFilters,
     this.customFilter,
   });
+
   /// Event names to include
   final Set<String>? eventNames;
 
@@ -431,12 +429,12 @@ enum EventSubscriptionErrorType {
 
 /// Event subscription error
 class EventSubscriptionError {
-
   EventSubscriptionError({
     required this.type,
     required this.message,
     this.data,
   }) : timestamp = DateTime.now();
+
   /// Error type
   final EventSubscriptionErrorType type;
 
@@ -451,10 +449,10 @@ class EventSubscriptionError {
 
   @override
   String toString() => 'EventSubscriptionError('
-        'type: $type, '
-        'message: $message, '
-        'timestamp: $timestamp'
-        ')';
+      'type: $type, '
+      'message: $message, '
+      'timestamp: $timestamp'
+      ')';
 }
 
 /// Event subscription metrics
@@ -489,11 +487,11 @@ class EventSubscriptionMetrics {
 
   @override
   String toString() => 'EventSubscriptionMetrics('
-        'connections: $connectionCount, '
-        'messages: $messagesReceived, '
-        'events: $eventsProcessed, '
-        'notifications: $notificationsDelivered, '
-        'errors: $errorCount, '
-        'subscriptions: $subscriptionCount'
-        ')';
+      'connections: $connectionCount, '
+      'messages: $messagesReceived, '
+      'events: $eventsProcessed, '
+      'notifications: $notificationsDelivered, '
+      'errors: $errorCount, '
+      'subscriptions: $subscriptionCount'
+      ')';
 }

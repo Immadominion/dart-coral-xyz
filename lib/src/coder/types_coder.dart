@@ -38,12 +38,12 @@ abstract class TypesCoder<N extends String> {
 
 /// Enhanced Borsh-based implementation of TypesCoder with generics support
 class BorshTypesCoder<N extends String> implements TypesCoder<N> {
-
   /// Create a new BorshTypesCoder
   BorshTypesCoder(this.idl) {
     _typeLayouts = _buildTypeLayouts();
     _enhancedTypeLayouts = _buildEnhancedTypeLayouts();
   }
+
   /// The IDL containing type definitions
   final Idl idl;
 
@@ -289,11 +289,14 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
         final variants = typeKind.variants;
         if (variants != null) {
           final enhancedVariants = variants
-              .map((v) => enhanced.IdlEnumVariant(
+              .map(
+                (v) => enhanced.IdlEnumVariant(
                   v.name,
                   v.fields != null && v.fields!.isNotEmpty
                       ? _convertToEnhancedFields(v.fields!)
-                      : null,),)
+                      : null,
+                ),
+              )
               .toList();
           return enhanced.IdlTypeDefTyEnum(enhancedVariants);
         }
@@ -307,11 +310,13 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
   enhanced.IdlDefinedFields? _convertToEnhancedFields(List<IdlField> fields) {
     try {
       final enhancedFields = fields
-          .map((f) => enhanced.IdlField(
-                name: f.name,
-                docs: f.docs,
-                type: _convertToEnhancedType(f.type),
-              ),)
+          .map(
+            (f) => enhanced.IdlField(
+              name: f.name,
+              docs: f.docs,
+              type: _convertToEnhancedType(f.type),
+            ),
+          )
           .toList();
       return enhanced.IdlDefinedFieldsNamed(enhancedFields);
     } catch (e) {
@@ -362,7 +367,8 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       case 'defined':
         if (type.defined != null) {
           return enhanced.IdlTypeDefined(
-              enhanced.IdlTypeDefinedSimple(type.defined!),);
+            enhanced.IdlTypeDefinedSimple(type.defined!),
+          );
         }
         break;
     }
@@ -371,31 +377,38 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Encode enhanced type
   Uint8List _encodeEnhancedType<T>(
-      T data, enhanced.IdlTypeDefEnhanced typeDef,) {
+    T data,
+    enhanced.IdlTypeDefEnhanced typeDef,
+  ) {
     try {
       final serializer = BorshSerializer();
       _encodeEnhancedTypeData(data, typeDef, serializer);
       return serializer.toBytes();
     } catch (e) {
       throw TypesCoderException(
-          'Failed to encode enhanced type ${typeDef.name}: $e',);
+        'Failed to encode enhanced type ${typeDef.name}: $e',
+      );
     }
   }
 
   /// Decode enhanced type
   T _decodeEnhancedType<T>(
-      enhanced.IdlTypeDefEnhanced typeDef, Uint8List data,) {
+    enhanced.IdlTypeDefEnhanced typeDef,
+    Uint8List data,
+  ) {
     try {
       final deserializer = BorshDeserializer(data);
       return _decodeEnhancedTypeData<T>(typeDef, deserializer);
     } catch (e) {
       throw TypesCoderException(
-          'Failed to decode enhanced type ${typeDef.name}: $e',);
+        'Failed to decode enhanced type ${typeDef.name}: $e',
+      );
     }
   }
 
   /// Calculate enhanced type size
-  int? _calculateEnhancedTypeSize(enhanced.IdlTypeDefEnhanced typeDef) => _calculateEnhancedTypeDefSize(typeDef.type);
+  int? _calculateEnhancedTypeSize(enhanced.IdlTypeDefEnhanced typeDef) =>
+      _calculateEnhancedTypeDefSize(typeDef.type);
 
   /// Calculate enhanced type definition size
   int? _calculateEnhancedTypeDefSize(enhanced.IdlTypeDefTy typeDef) {
@@ -515,8 +528,11 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
   }
 
   /// Encode enhanced type data
-  void _encodeEnhancedTypeData(dynamic data,
-      enhanced.IdlTypeDefEnhanced typeDef, BorshSerializer serializer,) {
+  void _encodeEnhancedTypeData(
+    dynamic data,
+    enhanced.IdlTypeDefEnhanced typeDef,
+    BorshSerializer serializer,
+  ) {
     final typeDefKind = typeDef.type;
 
     if (typeDefKind is enhanced.IdlTypeDefTyStruct) {
@@ -527,13 +543,17 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       _encodeEnhancedValue(data, typeDefKind.alias, serializer);
     } else {
       throw TypesCoderException(
-          'Unsupported enhanced type: ${typeDefKind.runtimeType}',);
+        'Unsupported enhanced type: ${typeDefKind.runtimeType}',
+      );
     }
   }
 
   /// Encode enhanced struct
-  void _encodeEnhancedStruct(dynamic data,
-      enhanced.IdlTypeDefTyStruct structDef, BorshSerializer serializer,) {
+  void _encodeEnhancedStruct(
+    dynamic data,
+    enhanced.IdlTypeDefTyStruct structDef,
+    BorshSerializer serializer,
+  ) {
     if (data is! Map<String, dynamic>) {
       throw const TypesCoderException('Expected Map for struct type');
     }
@@ -561,8 +581,11 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
   }
 
   /// Encode enhanced enum
-  void _encodeEnhancedEnum(dynamic data, enhanced.IdlTypeDefTyEnum enumDef,
-      BorshSerializer serializer,) {
+  void _encodeEnhancedEnum(
+    dynamic data,
+    enhanced.IdlTypeDefTyEnum enumDef,
+    BorshSerializer serializer,
+  ) {
     if (data is! Map<String, dynamic>) {
       throw const TypesCoderException('Expected Map for enum type');
     }
@@ -588,8 +611,11 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
   }
 
   /// Encode enhanced variant fields
-  void _encodeEnhancedVariantFields(enhanced.IdlDefinedFields fields,
-      dynamic variantData, BorshSerializer serializer,) {
+  void _encodeEnhancedVariantFields(
+    enhanced.IdlDefinedFields fields,
+    dynamic variantData,
+    BorshSerializer serializer,
+  ) {
     if (fields is enhanced.IdlDefinedFieldsNamed) {
       if (variantData is Map<String, dynamic>) {
         for (final field in fields.fields) {
@@ -597,7 +623,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
           _encodeEnhancedValue(value, field.type, serializer);
         }
       } else {
-        throw const TypesCoderException('Expected Map for named variant fields');
+        throw const TypesCoderException(
+          'Expected Map for named variant fields',
+        );
       }
     } else if (fields is enhanced.IdlDefinedFieldsTuple) {
       if (variantData is List) {
@@ -608,17 +636,23 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
           _encodeEnhancedValue(variantData[i], fields.fields[i], serializer);
         }
       } else {
-        throw const TypesCoderException('Expected List for tuple variant fields');
+        throw const TypesCoderException(
+          'Expected List for tuple variant fields',
+        );
       }
     }
   }
 
   /// Check if enhanced type is optional
-  bool _isEnhancedOptionalType(enhanced.IdlType type) => type is enhanced.IdlTypeOption || type is enhanced.IdlTypeCOption;
+  bool _isEnhancedOptionalType(enhanced.IdlType type) =>
+      type is enhanced.IdlTypeOption || type is enhanced.IdlTypeCOption;
 
   /// Encode enhanced value
   void _encodeEnhancedValue(
-      dynamic value, enhanced.IdlType type, BorshSerializer serializer,) {
+    dynamic value,
+    enhanced.IdlType type,
+    BorshSerializer serializer,
+  ) {
     if (type is enhanced.IdlTypePrimitive) {
       _encodePrimitiveValue(value, type.type, serializer);
     } else if (type is enhanced.IdlTypeOption) {
@@ -674,13 +708,17 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       throw TypesCoderException('Cannot encode generic type: ${type.name}');
     } else {
       throw TypesCoderException(
-          'Unsupported enhanced type: ${type.runtimeType}',);
+        'Unsupported enhanced type: ${type.runtimeType}',
+      );
     }
   }
 
   /// Encode primitive value
   void _encodePrimitiveValue(
-      dynamic value, String type, BorshSerializer serializer,) {
+    dynamic value,
+    String type,
+    BorshSerializer serializer,
+  ) {
     switch (type) {
       case 'bool':
         serializer.writeBool(value as bool);
@@ -743,7 +781,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Decode enhanced type data
   T _decodeEnhancedTypeData<T>(
-      enhanced.IdlTypeDefEnhanced typeDef, BorshDeserializer deserializer,) {
+    enhanced.IdlTypeDefEnhanced typeDef,
+    BorshDeserializer deserializer,
+  ) {
     final typeDefKind = typeDef.type;
 
     if (typeDefKind is enhanced.IdlTypeDefTyStruct) {
@@ -755,13 +795,16 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       return _decodeEnhancedValue(typeDefKind.alias, deserializer) as T;
     } else {
       throw TypesCoderException(
-          'Unsupported enhanced type: ${typeDefKind.runtimeType}',);
+        'Unsupported enhanced type: ${typeDefKind.runtimeType}',
+      );
     }
   }
 
   /// Decode enhanced struct
   T _decodeEnhancedStruct<T>(
-      enhanced.IdlTypeDefTyStruct structDef, BorshDeserializer deserializer,) {
+    enhanced.IdlTypeDefTyStruct structDef,
+    BorshDeserializer deserializer,
+  ) {
     final fields = structDef.fields;
 
     if (fields is enhanced.IdlDefinedFieldsNamed) {
@@ -785,7 +828,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Decode enhanced enum
   T _decodeEnhancedEnum<T>(
-      enhanced.IdlTypeDefTyEnum enumDef, BorshDeserializer deserializer,) {
+    enhanced.IdlTypeDefTyEnum enumDef,
+    BorshDeserializer deserializer,
+  ) {
     final variantIndex = deserializer.readU8();
 
     if (variantIndex >= enumDef.variants.length) {
@@ -807,7 +852,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Decode enhanced variant fields
   dynamic _decodeEnhancedVariantFields(
-      enhanced.IdlDefinedFields fields, BorshDeserializer deserializer,) {
+    enhanced.IdlDefinedFields fields,
+    BorshDeserializer deserializer,
+  ) {
     if (fields is enhanced.IdlDefinedFieldsNamed) {
       final variantData = <String, dynamic>{};
       for (final field in fields.fields) {
@@ -827,7 +874,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Decode enhanced value
   dynamic _decodeEnhancedValue<T>(
-      enhanced.IdlType type, BorshDeserializer deserializer,) {
+    enhanced.IdlType type,
+    BorshDeserializer deserializer,
+  ) {
     if (type is enhanced.IdlTypePrimitive) {
       return _decodePrimitiveValue(type.type, deserializer);
     } else if (type is enhanced.IdlTypeOption) {
@@ -867,7 +916,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
         final enhancedTypeDef = _enhancedTypeLayouts[name as N];
         if (enhancedTypeDef != null) {
           return _decodeEnhancedTypeData<dynamic>(
-              enhancedTypeDef, deserializer,);
+            enhancedTypeDef,
+            deserializer,
+          );
         }
         final basicTypeDef = _typeLayouts[name];
         if (basicTypeDef != null) {
@@ -879,7 +930,8 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       throw TypesCoderException('Cannot decode generic type: ${type.name}');
     } else {
       throw TypesCoderException(
-          'Unsupported enhanced type: ${type.runtimeType}',);
+        'Unsupported enhanced type: ${type.runtimeType}',
+      );
     }
   }
 
@@ -929,7 +981,10 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Encode type data based on its type definition (basic types)
   void _encodeTypeData(
-      dynamic data, IdlTypeDef typeDef, BorshSerializer serializer,) {
+    dynamic data,
+    IdlTypeDef typeDef,
+    BorshSerializer serializer,
+  ) {
     final typeSpec = typeDef.type;
 
     if (typeSpec.kind == 'struct') {
@@ -984,7 +1039,10 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Encode variant fields with enhanced support (basic types)
   void _encodeVariantFields(
-      List<IdlField> fields, dynamic variantData, BorshSerializer serializer,) {
+    List<IdlField> fields,
+    dynamic variantData,
+    BorshSerializer serializer,
+  ) {
     if (variantData is Map<String, dynamic>) {
       // Struct-like variant (named fields)
       for (final field in fields) {
@@ -1003,7 +1061,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
         _encodeValue(variantData[i], fields[i].type, serializer);
       }
     } else {
-      throw const TypesCoderException('Expected Map or List for variant with fields');
+      throw const TypesCoderException(
+        'Expected Map or List for variant with fields',
+      );
     }
   }
 
@@ -1057,7 +1117,9 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
 
   /// Decode variant fields with enhanced support (basic types)
   dynamic _decodeVariantFields(
-      List<IdlField> fields, BorshDeserializer deserializer,) {
+    List<IdlField> fields,
+    BorshDeserializer deserializer,
+  ) {
     // Check if fields have names (struct-like) or are unnamed (tuple-like)
     if (fields.every((f) => f.name.isNotEmpty)) {
       // Struct-like: all fields have names
@@ -1176,7 +1238,8 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
         break;
       default:
         throw TypesCoderException(
-            'Unsupported type for encoding: ${type.kind}',);
+          'Unsupported type for encoding: ${type.kind}',
+        );
     }
   }
 
@@ -1256,7 +1319,8 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
         return null;
       default:
         throw TypesCoderException(
-            'Unsupported type for decoding: ${type.kind}',);
+          'Unsupported type for decoding: ${type.kind}',
+        );
     }
   }
 

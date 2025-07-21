@@ -10,7 +10,6 @@ import 'package:coral_xyz_anchor/src/event/types.dart';
 
 /// Advanced event filter with complex logic
 class AdvancedEventFilter {
-
   AdvancedEventFilter({FilterOperator operator = FilterOperator.and})
       : _operator = operator;
   final List<FilterCriteria> _criteria = [];
@@ -26,19 +25,24 @@ class AdvancedEventFilter {
   AdvancedEventFilter eventName(String name) => where(EventNameCriteria(name));
 
   /// Add an event names filter (any of the specified names)
-  AdvancedEventFilter eventNames(Set<String> names) => where(EventNamesCriteria(names));
+  AdvancedEventFilter eventNames(Set<String> names) =>
+      where(EventNamesCriteria(names));
 
   /// Add a program ID filter
-  AdvancedEventFilter programId(PublicKey programId) => where(ProgramIdCriteria(programId));
+  AdvancedEventFilter programId(PublicKey programId) =>
+      where(ProgramIdCriteria(programId));
 
   /// Add a slot range filter
-  AdvancedEventFilter slotRange(int minSlot, [int? maxSlot]) => where(SlotRangeCriteria(minSlot, maxSlot));
+  AdvancedEventFilter slotRange(int minSlot, [int? maxSlot]) =>
+      where(SlotRangeCriteria(minSlot, maxSlot));
 
   /// Add a data field filter
-  AdvancedEventFilter dataField(String fieldName, dynamic value) => where(DataFieldCriteria(fieldName, value));
+  AdvancedEventFilter dataField(String fieldName, dynamic value) =>
+      where(DataFieldCriteria(fieldName, value));
 
   /// Add a custom filter function
-  AdvancedEventFilter custom(bool Function(ParsedEvent, PublicKey) filter) => where(CustomCriteria(filter));
+  AdvancedEventFilter custom(bool Function(ParsedEvent, PublicKey) filter) =>
+      where(CustomCriteria(filter));
 
   /// Check if an event matches the filter
   bool matches(ParsedEvent event, PublicKey programId) {
@@ -84,12 +88,12 @@ abstract class FilterCriteria {
 
 /// Filter by event name
 class EventNameCriteria extends FilterCriteria {
-
   EventNameCriteria(this.eventName);
   final String eventName;
 
   @override
-  bool matches(ParsedEvent event, PublicKey programId) => event.name == eventName;
+  bool matches(ParsedEvent event, PublicKey programId) =>
+      event.name == eventName;
 
   @override
   String get description => 'event name = $eventName';
@@ -97,12 +101,12 @@ class EventNameCriteria extends FilterCriteria {
 
 /// Filter by multiple event names (OR logic)
 class EventNamesCriteria extends FilterCriteria {
-
   EventNamesCriteria(this.eventNames);
   final Set<String> eventNames;
 
   @override
-  bool matches(ParsedEvent event, PublicKey programId) => eventNames.contains(event.name);
+  bool matches(ParsedEvent event, PublicKey programId) =>
+      eventNames.contains(event.name);
 
   @override
   String get description => 'event name in {${eventNames.join(', ')}}';
@@ -110,12 +114,12 @@ class EventNamesCriteria extends FilterCriteria {
 
 /// Filter by program ID
 class ProgramIdCriteria extends FilterCriteria {
-
   ProgramIdCriteria(this.programId);
   final PublicKey programId;
 
   @override
-  bool matches(ParsedEvent event, PublicKey eventProgramId) => eventProgramId == programId;
+  bool matches(ParsedEvent event, PublicKey eventProgramId) =>
+      eventProgramId == programId;
 
   @override
   String get description => 'program ID = ${programId.toBase58()}';
@@ -123,7 +127,6 @@ class ProgramIdCriteria extends FilterCriteria {
 
 /// Filter by slot range
 class SlotRangeCriteria extends FilterCriteria {
-
   SlotRangeCriteria(this.minSlot, [this.maxSlot]);
   final int minSlot;
   final int? maxSlot;
@@ -148,7 +151,6 @@ class SlotRangeCriteria extends FilterCriteria {
 
 /// Filter by data field value
 class DataFieldCriteria extends FilterCriteria {
-
   DataFieldCriteria(this.fieldName, this.expectedValue);
   final String fieldName;
   final dynamic expectedValue;
@@ -172,7 +174,6 @@ class DataFieldCriteria extends FilterCriteria {
 
 /// Custom filter function
 class CustomCriteria extends FilterCriteria {
-
   CustomCriteria(this._filter, {String description = 'custom filter'})
       : _description = description;
   final bool Function(ParsedEvent, PublicKey) _filter;
@@ -193,7 +194,6 @@ class CustomCriteria extends FilterCriteria {
 
 /// Composite filter that combines multiple filters
 class CompositeEventFilter {
-
   CompositeEventFilter({FilterOperator operator = FilterOperator.and})
       : _operator = operator;
   final List<AdvancedEventFilter> _filters = [];
@@ -207,7 +207,8 @@ class CompositeEventFilter {
 
   /// Create and add a new sub-filter
   CompositeEventFilter addFilter(
-      AdvancedEventFilter Function(AdvancedEventFilter) builder,) {
+    AdvancedEventFilter Function(AdvancedEventFilter) builder,
+  ) {
     final filter = builder(AdvancedEventFilter());
     return add(filter);
   }
@@ -243,8 +244,10 @@ class CompositeEventFilter {
 /// Pre-built filter patterns for common use cases
 class FilterPatterns {
   /// Filter for specific event types with optional data constraints
-  static AdvancedEventFilter eventOfType(String eventName,
-      {Map<String, dynamic>? dataConstraints,}) {
+  static AdvancedEventFilter eventOfType(
+    String eventName, {
+    Map<String, dynamic>? dataConstraints,
+  }) {
     final filter = AdvancedEventFilter().eventName(eventName);
 
     if (dataConstraints != null) {
@@ -257,7 +260,8 @@ class FilterPatterns {
   }
 
   /// Filter for events in a time range (using slot numbers as proxy)
-  static AdvancedEventFilter timeRange(int fromSlot, int toSlot) => AdvancedEventFilter().slotRange(fromSlot, toSlot);
+  static AdvancedEventFilter timeRange(int fromSlot, int toSlot) =>
+      AdvancedEventFilter().slotRange(fromSlot, toSlot);
 
   /// Filter for events from multiple programs
   static CompositeEventFilter multiplePrograms(Set<PublicKey> programIds) {
@@ -269,52 +273,55 @@ class FilterPatterns {
   }
 
   /// Filter for high-value events (custom logic based on data)
-  static AdvancedEventFilter highValue(double threshold) => AdvancedEventFilter().custom(
-      (event, programId) {
-        try {
-          final data = event.data as Map<String, dynamic>?;
-          if (data == null) return false;
+  static AdvancedEventFilter highValue(double threshold) =>
+      AdvancedEventFilter().custom(
+        (event, programId) {
+          try {
+            final data = event.data as Map<String, dynamic>?;
+            if (data == null) return false;
 
-          // Look for common value fields
-          for (final field in ['amount', 'value', 'lamports', 'tokens']) {
-            if (data.containsKey(field)) {
-              final value = data[field];
-              if (value is num && value.toDouble() >= threshold) {
+            // Look for common value fields
+            for (final field in ['amount', 'value', 'lamports', 'tokens']) {
+              if (data.containsKey(field)) {
+                final value = data[field];
+                if (value is num && value.toDouble() >= threshold) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          } catch (e) {
+            return false;
+          }
+        },
+      );
+
+  /// Filter for recent events (within last N slots)
+  static AdvancedEventFilter recent(int currentSlot, int lookbackSlots) =>
+      AdvancedEventFilter().slotRange(currentSlot - lookbackSlots);
+
+  /// Filter for events with specific account involvement
+  static AdvancedEventFilter involvingAccount(PublicKey account) =>
+      AdvancedEventFilter().custom(
+        (event, programId) {
+          try {
+            final data = event.data as Map<String, dynamic>?;
+            if (data == null) return false;
+
+            final accountStr = account.toBase58();
+
+            // Check all string values in the data for the account
+            for (final value in data.values) {
+              if (value is String && value == accountStr) {
                 return true;
               }
             }
+            return false;
+          } catch (e) {
+            return false;
           }
-          return false;
-        } catch (e) {
-          return false;
-        }
-      },
-    );
-
-  /// Filter for recent events (within last N slots)
-  static AdvancedEventFilter recent(int currentSlot, int lookbackSlots) => AdvancedEventFilter().slotRange(currentSlot - lookbackSlots);
-
-  /// Filter for events with specific account involvement
-  static AdvancedEventFilter involvingAccount(PublicKey account) => AdvancedEventFilter().custom(
-      (event, programId) {
-        try {
-          final data = event.data as Map<String, dynamic>?;
-          if (data == null) return false;
-
-          final accountStr = account.toBase58();
-
-          // Check all string values in the data for the account
-          for (final value in data.values) {
-            if (value is String && value == accountStr) {
-              return true;
-            }
-          }
-          return false;
-        } catch (e) {
-          return false;
-        }
-      },
-    );
+        },
+      );
 }
 
 /// Filter performance metrics

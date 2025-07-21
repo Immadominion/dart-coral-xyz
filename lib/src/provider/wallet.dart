@@ -11,6 +11,7 @@ import 'dart:async';
 import 'package:coral_xyz_anchor/src/types/keypair.dart';
 import 'package:coral_xyz_anchor/src/types/public_key.dart';
 import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import '../utils/logger.dart';
 
 /// Abstract wallet interface for signing Solana transactions
 ///
@@ -56,7 +57,6 @@ abstract class Wallet {
 /// for signing. It's suitable for server-side applications or development
 /// environments where the private key can be safely stored in memory.
 class KeypairWallet implements Wallet {
-
   /// Create a wallet from a keypair
   ///
   /// [keypair] - The keypair to use for signing
@@ -85,6 +85,11 @@ class KeypairWallet implements Wallet {
     final keypair = Keypair.fromJson(secretKeyArray);
     return KeypairWallet(keypair);
   }
+
+  /// Logger instance for KeypairWallet
+  static final AnchorLogger _logger = AnchorLogger.getLogger('KeypairWallet');
+
+  /// The underlying keypair for this wallet
   final Keypair _keypair;
 
   /// Create a wallet by generating a new random keypair
@@ -128,7 +133,8 @@ class KeypairWallet implements Wallet {
   }
 
   @override
-  Future<Uint8List> signMessage(Uint8List message) async => await _keypair.sign(message);
+  Future<Uint8List> signMessage(Uint8List message) async =>
+      _keypair.sign(message);
 
   /// Internal method to sign a transaction
   ///
@@ -136,8 +142,9 @@ class KeypairWallet implements Wallet {
   /// message format will be created later in the RPC layer, we just add our
   /// public key as a signer and the signature will be computed later.
   Future<Transaction> _signTransactionInternal(Transaction transaction) async {
-    print(
-        'DEBUG: Wallet signing transaction with public key: ${publicKey.toBase58()}',);
+    _logger.debug(
+      'Wallet signing transaction with public key: ${publicKey.toBase58()}',
+    );
 
     // Ensure feePayer is set if not already set
     if (transaction.feePayer == null) {
@@ -169,10 +176,11 @@ class KeypairWallet implements Wallet {
   /// This method signs the actual transaction message bytes that will be sent
   /// to the Solana network.
   Future<Uint8List> signTransactionMessage(Uint8List messageBytes) async {
-    print(
-        'DEBUG: Wallet signing transaction message (${messageBytes.length} bytes)',);
+    _logger.debug(
+      'Wallet signing transaction message (${messageBytes.length} bytes)',
+    );
     final signatureBytes = await _keypair.sign(messageBytes);
-    print('DEBUG: Generated signature (${signatureBytes.length} bytes)');
+    _logger.debug('Generated signature (${signatureBytes.length} bytes)');
     return signatureBytes;
   }
 
@@ -243,7 +251,6 @@ abstract class WalletAdapter {
 /// This class allows external wallet adapters to be used with the standard
 /// Wallet interface, providing a bridge between the two systems.
 class AdapterWallet implements Wallet {
-
   /// Create a wallet from a wallet adapter
   AdapterWallet(this._adapter);
   final WalletAdapter _adapter;
@@ -256,7 +263,8 @@ class AdapterWallet implements Wallet {
     final pubkey = _adapter.publicKey;
     if (pubkey == null) {
       throw const WalletNotConnectedException(
-          'Wallet adapter is not connected or has no public key',);
+        'Wallet adapter is not connected or has no public key',
+      );
     }
     return pubkey;
   }
@@ -333,7 +341,8 @@ class AdapterWallet implements Wallet {
   Stream<PublicKey?> get onAccountChange => _adapter.onAccountChange;
 
   @override
-  String toString() => 'AdapterWallet(${_adapter.name}, connected: ${_adapter.connected})';
+  String toString() =>
+      'AdapterWallet(${_adapter.name}, connected: ${_adapter.connected})';
 
   @override
   bool operator ==(Object other) {
@@ -347,8 +356,8 @@ class AdapterWallet implements Wallet {
 
 /// Exception thrown when wallet operations fail
 class WalletException implements Exception {
-
   const WalletException(this.message, [this.cause]);
+
   /// The error message describing what went wrong
   final String message;
 
@@ -388,7 +397,6 @@ class WalletNotAvailableException extends WalletException {
 /// testing and development purposes. It simulates the behavior of an
 /// external wallet without requiring actual wallet software.
 class MockWalletAdapter implements WalletAdapter {
-
   MockWalletAdapter(
     this._name,
     this._keypair, {

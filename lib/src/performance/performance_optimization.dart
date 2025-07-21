@@ -991,21 +991,21 @@ class AdaptiveConfig {
   });
 
   factory AdaptiveConfig.defaultConfig() => const AdaptiveConfig(
-        highFrequencyThreshold: 10.0,
+        highFrequencyThreshold: 10,
         optimizationInterval: Duration(minutes: 10),
         minOptimizationInterval: Duration(minutes: 5),
         optimizationConfidenceThreshold: 0.7,
       );
 
   factory AdaptiveConfig.aggressive() => const AdaptiveConfig(
-        highFrequencyThreshold: 5.0,
+        highFrequencyThreshold: 5,
         optimizationInterval: Duration(minutes: 5),
         minOptimizationInterval: Duration(minutes: 2),
         optimizationConfidenceThreshold: 0.6,
       );
 
   factory AdaptiveConfig.development() => const AdaptiveConfig(
-        highFrequencyThreshold: 2.0,
+        highFrequencyThreshold: 2,
         optimizationInterval: Duration(minutes: 2),
         minOptimizationInterval: Duration(minutes: 1),
         optimizationConfidenceThreshold: 0.8,

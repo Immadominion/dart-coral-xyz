@@ -11,7 +11,6 @@ import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
 /// final transaction = program.transaction.methodName(...args, ctx);
 /// ```
 class TransactionNamespace {
-
   TransactionNamespace._();
   final Map<String, TransactionBuilder> _builders = {};
 
@@ -43,12 +42,12 @@ class TransactionNamespace {
   bool contains(String name) => _builders.containsKey(name);
 
   @override
-  String toString() => 'TransactionNamespace(instructions: ${_builders.keys.toList()})';
+  String toString() =>
+      'TransactionNamespace(instructions: ${_builders.keys.toList()})';
 }
 
 /// Builder for creating transactions with specific instructions
 class TransactionBuilder {
-
   TransactionBuilder({
     required IdlInstruction instruction,
     required InstructionNamespace instructionNamespace,
@@ -59,7 +58,9 @@ class TransactionBuilder {
 
   /// Build a transaction with the given arguments and context (async for PDA resolution)
   Future<AnchorTransaction> callAsync(
-      List<dynamic> args, Context<Accounts> context,) async {
+    List<dynamic> args,
+    Context<Accounts> context,
+  ) async {
     // Get the instruction builder
     final instructionBuilder = _instructionNamespace[_instruction.name];
     if (instructionBuilder == null) {

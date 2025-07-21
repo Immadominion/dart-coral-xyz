@@ -6,13 +6,13 @@ library;
 
 /// Event statistics data
 class EventStats {
-
   const EventStats({
     required this.totalEvents,
     required this.parseErrors,
     required this.lastEventSlot,
     this.lastEventTime,
   });
+
   /// Total number of events received
   final int totalEvents;
 
@@ -43,12 +43,12 @@ enum WebSocketState {
 
 /// Configuration for event persistence
 class EventPersistenceConfig {
-
   const EventPersistenceConfig({
     this.storageDirectory,
     this.enableCompression = true,
     this.maxFileSize = 10 * 1024 * 1024, // 10MB default
   });
+
   /// Directory to store events
   final String? storageDirectory;
 
@@ -61,11 +61,11 @@ class EventPersistenceConfig {
 
 /// Configuration for event monitoring
 class EventMonitorConfig {
-
   const EventMonitorConfig({
     this.logLevel = 'info',
     this.captureHistory = true,
   });
+
   /// Log level for event monitoring
   final String logLevel;
 
@@ -75,11 +75,11 @@ class EventMonitorConfig {
 
 /// Configuration for event aggregation
 class EventAggregationConfig {
-
   const EventAggregationConfig({
     this.maxEvents = 1000,
     this.enablePruning = true,
   });
+
   /// Maximum number of events to aggregate
   final int maxEvents;
 
@@ -89,12 +89,12 @@ class EventAggregationConfig {
 
 /// Statistics from event persistence
 class EventPersistenceStats {
-
   const EventPersistenceStats({
     required this.eventsStored,
     required this.eventsRetrieved,
     required this.storageSizeBytes,
   });
+
   /// Number of events stored
   final int eventsStored;
 
@@ -107,12 +107,12 @@ class EventPersistenceStats {
 
 /// Statistics from event monitoring
 class EventMonitoringStats {
-
   const EventMonitoringStats({
     required this.eventsMonitored,
     required this.alertsTriggered,
     this.mostCommonEvent,
   });
+
   /// Number of events monitored
   final int eventsMonitored;
 
@@ -125,12 +125,12 @@ class EventMonitoringStats {
 
 /// Aggregated event data
 class AggregatedEvent {
-
   const AggregatedEvent({
     required this.name,
     required this.count,
     required this.data,
   });
+
   /// Event name
   final String name;
 
@@ -143,12 +143,12 @@ class AggregatedEvent {
 
 /// Event processing pipeline
 class EventProcessingPipeline {
-
   const EventProcessingPipeline({
     required this.id,
     required this.processors,
     required this.isActive,
   });
+
   /// Pipeline ID
   final String id;
 

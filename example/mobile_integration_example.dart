@@ -88,7 +88,6 @@ class SolanaWalletState {
 
 /// Example mobile-optimized program interaction class
 class MobileProgramManager {
-
   MobileProgramManager({
     required this.provider,
     required this.program,
@@ -181,9 +180,7 @@ class SolanaWalletWidget {
   /// Initialize wallet when widget is created
   Future<void> initializeForApp() async {
     try {
-      await _walletState.initializeWallet(
-        
-      );
+      await _walletState.initializeWallet();
       print('Wallet initialized: ${_walletState.publicKey}');
     } catch (e) {
       print('Wallet initialization failed: $e');
@@ -240,7 +237,6 @@ class SolanaWalletWidget {
 
 /// Custom exception for Solana wallet operations
 class SolanaWalletException implements Exception {
-
   const SolanaWalletException(this.message);
   final String message;
 

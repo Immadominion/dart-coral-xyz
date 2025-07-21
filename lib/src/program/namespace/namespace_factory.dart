@@ -103,7 +103,6 @@ class NamespaceFactory {
 
 /// Container for all namespace types
 class NamespaceSet {
-
   const NamespaceSet({
     required this.rpc,
     required this.instruction,
@@ -113,6 +112,7 @@ class NamespaceSet {
     required this.methods,
     required this.views,
   });
+
   /// RPC namespace for sending signed transactions
   final RpcNamespace rpc;
 
@@ -136,6 +136,6 @@ class NamespaceSet {
 
   @override
   String toString() => 'NamespaceSet(rpc: $rpc, instruction: $instruction, '
-        'transaction: $transaction, account: $account, '
-        'simulate: $simulate, methods: $methods, views: $views)';
+      'transaction: $transaction, account: $account, '
+      'simulate: $simulate, methods: $methods, views: $views)';
 }

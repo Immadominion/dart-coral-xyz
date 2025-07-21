@@ -115,7 +115,8 @@ class ErrorValidator {
     if (error.programErrorStack.isEmpty) {
       warnings.add('No program error stack found');
       suggestions.add(
-          'Ensure transaction logs contain program invocation information');
+        'Ensure transaction logs contain program invocation information',
+      );
     }
 
     // Check for compared values consistency
@@ -150,7 +151,8 @@ class ErrorValidator {
 
     if (now.difference(context.timestamp).inDays > 30) {
       warnings.add(
-          'Error timestamp is very old (${now.difference(context.timestamp).inDays} days)');
+        'Error timestamp is very old (${now.difference(context.timestamp).inDays} days)',
+      );
     }
 
     // Validate account addresses
@@ -165,7 +167,8 @@ class ErrorValidator {
     // Validate instruction index
     if (context.instructionIndex != null && context.instructionIndex! < 0) {
       errors.add(
-          'Instruction index cannot be negative: ${context.instructionIndex}');
+        'Instruction index cannot be negative: ${context.instructionIndex}',
+      );
     }
 
     return ErrorValidationResult(
@@ -209,7 +212,8 @@ class ErrorValidator {
     } else {
       warnings.add('Error code $errorCode does not follow Anchor conventions');
       suggestions.add(
-          'Use error codes in standard ranges: 100-999 (instruction), 1000-1999 (IDL), 2000-2999 (constraint), 3000-3999 (account), 6000+ (custom)');
+        'Use error codes in standard ranges: 100-999 (instruction), 1000-1999 (IDL), 2000-2999 (constraint), 3000-3999 (account), 6000+ (custom)',
+      );
     }
   }
 
@@ -247,30 +251,26 @@ class ErrorValidator {
   }
 
   /// Check if error code is a known instruction error
-  bool _isKnownInstructionError(int code) {
-    return code == InstructionErrorCode.instructionMissing ||
-        code == InstructionErrorCode.instructionFallbackNotFound ||
-        code == InstructionErrorCode.instructionDidNotDeserialize ||
-        code == InstructionErrorCode.instructionDidNotSerialize;
-  }
+  bool _isKnownInstructionError(int code) =>
+      code == InstructionErrorCode.instructionMissing ||
+      code == InstructionErrorCode.instructionFallbackNotFound ||
+      code == InstructionErrorCode.instructionDidNotDeserialize ||
+      code == InstructionErrorCode.instructionDidNotSerialize;
 
   /// Check if error code is a known IDL error
-  bool _isKnownIdlError(int code) {
-    return code >= IdlInstructionErrorCode.idlInstructionMissing &&
-        code <= IdlInstructionErrorCode.idlInstructionInvalidData;
-  }
+  bool _isKnownIdlError(int code) =>
+      code >= IdlInstructionErrorCode.idlInstructionMissing &&
+      code <= IdlInstructionErrorCode.idlInstructionInvalidData;
 
   /// Check if error code is a known constraint error
-  bool _isKnownConstraintError(int code) {
-    return code >= ConstraintErrorCode.constraintMut &&
-        code <= ConstraintErrorCode.constraintTokenOwner;
-  }
+  bool _isKnownConstraintError(int code) =>
+      code >= ConstraintErrorCode.constraintMut &&
+      code <= ConstraintErrorCode.constraintTokenOwner;
 
   /// Check if error code is a known account error
-  bool _isKnownAccountError(int code) {
-    return code >= AccountErrorCode.accountDiscriminatorAlreadySet &&
-        code <= AccountErrorCode.accountNotAssociatedTokenAccount;
-  }
+  bool _isKnownAccountError(int code) =>
+      code >= AccountErrorCode.accountDiscriminatorAlreadySet &&
+      code <= AccountErrorCode.accountNotAssociatedTokenAccount;
 }
 
 /// Error testing utilities
@@ -306,15 +306,14 @@ class ErrorTestUtils {
     DateTime? timestamp,
     PublicKey? programId,
     List<PublicKey>? accountAddresses,
-  }) {
-    return ErrorContext(
-      operation: operation,
-      timestamp: timestamp ?? DateTime.now(),
-      programId: programId,
-      accountAddresses: accountAddresses,
-      environment: 'test',
-    );
-  }
+  }) =>
+      ErrorContext(
+        operation: operation,
+        timestamp: timestamp ?? DateTime.now(),
+        programId: programId,
+        accountAddresses: accountAddresses,
+        environment: 'test',
+      );
 
   /// Create a random PublicKey for testing
   static PublicKey createRandomPublicKey() {
@@ -384,7 +383,8 @@ class ErrorDebugUtils {
 
     logger.debug('=== ERROR DEBUG ANALYSIS ===');
     logger.debug(
-        'Error Code: ${error.error.errorCode.code} (${error.error.errorCode.number})');
+      'Error Code: ${error.error.errorCode.code} (${error.error.errorCode.number})',
+    );
     logger.debug('Error Message: ${error.error.errorMessage}');
 
     // Analyze error category
@@ -470,7 +470,8 @@ class ErrorDebugUtils {
     final buffer = StringBuffer();
     buffer.writeln('┌─ Anchor Error ─────────────────────────────────────────');
     buffer.writeln(
-        '│ Code: ${error.error.errorCode.code} (${error.error.errorCode.number})');
+      '│ Code: ${error.error.errorCode.code} (${error.error.errorCode.number})',
+    );
     buffer.writeln('│ Message: ${error.error.errorMessage}');
 
     if (error.programErrorStack.isNotEmpty) {

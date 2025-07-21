@@ -15,6 +15,7 @@ import 'package:web_socket_channel/io.dart';
 import '../types/commitment.dart';
 import '../types/connection_config.dart';
 import '../types/public_key.dart';
+import '../utils/logger.dart';
 import '../utils/rpc_errors.dart';
 
 /// Connection to a Solana cluster for RPC communication
@@ -23,16 +24,6 @@ import '../utils/rpc_errors.dart';
 /// Solana validators. It handles connection management, endpoint
 /// configuration, commitment levels, and retry logic.
 class Connection {
-  final String _endpoint;
-  final ConnectionConfig _config;
-  final http.Client _httpClient;
-
-  /// WebSocket connections for subscriptions
-  final Map<String, IOWebSocketChannel> _subscriptions = {};
-
-  /// Subscription ID counter
-  int _subscriptionIdCounter = 1;
-
   /// Create a new Connection
   ///
   /// [endpoint] - The RPC endpoint URL
@@ -44,6 +35,16 @@ class Connection {
     http.Client? httpClient,
   })  : _config = config ?? ConnectionConfig(rpcUrl: _endpoint),
         _httpClient = httpClient ?? http.Client();
+  final String _endpoint;
+  final ConnectionConfig _config;
+  final http.Client _httpClient;
+  static final AnchorLogger _logger = AnchorLogger.getLogger('Connection');
+
+  /// WebSocket connections for subscriptions
+  final Map<String, IOWebSocketChannel> _subscriptions = {};
+
+  /// Subscription ID counter
+  int _subscriptionIdCounter = 1;
 
   /// Get the endpoint URL
   String get endpoint => _endpoint;
@@ -72,8 +73,9 @@ class Connection {
 
     for (int attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        print(
-            'DEBUG: Connection sendAndConfirmTransaction attempt ${attempt + 1}/$maxRetries');
+        _logger.info(
+          'Connection sendAndConfirmTransaction attempt ${attempt + 1}/$maxRetries',
+        );
 
         // Handle both Map and Uint8List transaction formats
         final txData = transaction is Uint8List
@@ -83,19 +85,19 @@ class Connection {
                 : throw ArgumentError('Transaction must be a Map or Uint8List');
 
         // Convert Uint8List to base64 if needed
-        print('DEBUG: txData type: ${txData.runtimeType}');
-        print('DEBUG: txData is Uint8List: ${txData is Uint8List}');
+        _logger.debug('txData type: ${txData.runtimeType}');
+        _logger.debug('txData is Uint8List: ${txData is Uint8List}');
 
         final List<dynamic> params =
             txData is Uint8List ? [base64.encode(txData)] : [txData];
-        print('DEBUG: params after base64 encode: $params');
+        _logger.debug('params after base64 encode: $params');
 
         // Add options
         final commitmentValue =
             (commitment ?? _config.commitment).commitment.value;
-        print('DEBUG: commitment param: $commitment');
-        print('DEBUG: _config.commitment: ${_config.commitment}');
-        print('DEBUG: final commitment value: $commitmentValue');
+        _logger.debug('commitment param: $commitment');
+        _logger.debug('_config.commitment: ${_config.commitment}');
+        _logger.debug('final commitment value: $commitmentValue');
 
         final options = <String, dynamic>{
           'encoding': 'base64',
@@ -104,27 +106,28 @@ class Connection {
               true, // Skip simulation to avoid blockhash timing issues
         };
         params.add(options);
-        print('DEBUG: Added options to params: $options');
+        _logger.debug('Added options to params: $options');
 
         String signature;
         try {
-          print('DEBUG: About to call _makeRpcRequest for sendTransaction');
+          _logger.debug('About to call _makeRpcRequest for sendTransaction');
           final result = await _makeRpcRequest('sendTransaction', params);
-          print('DEBUG: sendTransaction successful, result: $result');
-          print('DEBUG: sendTransaction result type: ${result.runtimeType}');
+          _logger.debug('sendTransaction successful, result: $result');
+          _logger.debug('sendTransaction result type: ${result.runtimeType}');
 
           // Handle different response formats
           if (result is String) {
             // Direct string response (most common for sendTransaction)
             signature = result;
-            print('DEBUG: Got direct string signature: $signature');
+            _logger.debug('Got direct string signature: $signature');
           } else if (result is Map<String, dynamic>) {
             // RPC response might have the signature in different fields
-            print('DEBUG: Got Map response, keys: ${result.keys.toList()}');
+            _logger.debug('Got Map response, keys: ${result.keys.toList()}');
             if (result.containsKey('value')) {
               final value = result['value'];
-              print(
-                  'DEBUG: Found value field: $value (type: ${value.runtimeType})');
+              _logger.debug(
+                'Found value field: $value (type: ${value.runtimeType})',
+              );
 
               // Handle case where value might be a Map instead of String
               if (value is String) {
@@ -133,57 +136,65 @@ class Connection {
                 // Look for signature field in the nested map
                 if (value.containsKey('signature')) {
                   signature = value['signature'] as String;
-                  print('DEBUG: Found signature in nested map: $signature');
+                  _logger.debug('Found signature in nested map: $signature');
                 } else {
-                  print('DEBUG: No signature field in nested map: $value');
+                  _logger.debug('No signature field in nested map: $value');
                   throw RpcException(
-                      'No signature field found in nested response map: $value');
+                    'No signature field found in nested response map: $value',
+                  );
                 }
               } else {
                 throw RpcException(
-                    'Unexpected value type in response: ${value.runtimeType}');
+                  'Unexpected value type in response: ${value.runtimeType}',
+                );
               }
             } else if (result.containsKey('signature')) {
               signature = result['signature'] as String;
             } else {
               // If it's a simple map, try to extract string value
-              final values = result.values.where((v) => v is String);
+              final values = result.values.whereType<String>();
               if (values.isNotEmpty) {
-                signature = values.first as String;
+                signature = values.first;
               } else {
                 throw RpcException(
-                    'Unexpected sendTransaction response format: $result');
+                  'Unexpected sendTransaction response format: $result',
+                );
               }
             }
           } else {
             throw RpcException(
-                'Unexpected sendTransaction response type: ${result.runtimeType}');
+              'Unexpected sendTransaction response type: ${result.runtimeType}',
+            );
           }
 
-          print('DEBUG: Extracted signature: $signature');
+          _logger.debug('Extracted signature: $signature');
 
           // Confirm the transaction
-          print(
-              'DEBUG: About to confirm transaction with signature: $signature');
+          _logger.debug(
+            'About to confirm transaction with signature: $signature',
+          );
           try {
             await _confirmTransaction(signature, commitment);
-            print('DEBUG: Transaction confirmation completed successfully');
+            _logger.info('Transaction confirmation completed successfully');
           } catch (confirmError) {
-            print(
-                'DEBUG: Error during transaction confirmation: $confirmError');
-            print(
-                'DEBUG: Confirmation error type: ${confirmError.runtimeType}');
+            _logger.error(
+              'Error during transaction confirmation: $confirmError',
+            );
+            _logger.debug(
+              'Confirmation error type: ${confirmError.runtimeType}',
+            );
             rethrow;
           }
         } catch (e) {
-          print('DEBUG: Exception in sendTransaction: $e');
-          print('DEBUG: Exception type: ${e.runtimeType}');
-          print('DEBUG: Exception stack trace: ${StackTrace.current}');
+          _logger.error('Exception in sendTransaction: $e');
+          _logger.debug('Exception type: ${e.runtimeType}');
+          _logger.debug('Exception stack trace: ${StackTrace.current}');
           rethrow;
         }
 
-        print(
-            'DEBUG: Connection sendAndConfirmTransaction success on attempt ${attempt + 1}');
+        _logger.info(
+          'Connection sendAndConfirmTransaction success on attempt ${attempt + 1}',
+        );
         return signature;
       } catch (e) {
         final errorString = e.toString();
@@ -192,23 +203,26 @@ class Connection {
             errorString.contains('Invalid blockhash');
 
         if (isBlockhashError && attempt < maxRetries - 1) {
-          print(
-              'DEBUG: Blockhash error at connection level on attempt ${attempt + 1}, retrying...');
+          _logger.warn(
+            'Blockhash error at connection level on attempt ${attempt + 1}, retrying...',
+          );
           // Wait a bit before retry
-          await Future<void>.delayed(Duration(milliseconds: 500));
+          await Future<void>.delayed(const Duration(milliseconds: 500));
           continue;
         }
 
         // If it's not a blockhash error or we've exhausted retries, rethrow
-        print(
-            'DEBUG: Connection sendAndConfirmTransaction failed on attempt ${attempt + 1}: $e');
+        _logger.error(
+          'Connection sendAndConfirmTransaction failed on attempt ${attempt + 1}: $e',
+        );
         rethrow;
       }
     }
 
     // This should never be reached due to the loop structure, but just in case
     throw Exception(
-        'Connection sendAndConfirmTransaction: Maximum retry attempts exceeded');
+      'Connection sendAndConfirmTransaction: Maximum retry attempts exceeded',
+    );
   }
 
   /// Internal method to confirm a transaction
@@ -216,45 +230,47 @@ class Connection {
     String signature,
     CommitmentConfig? commitment,
   ) async {
-    print('DEBUG: _confirmTransaction called with signature: $signature');
+    _logger.debug('_confirmTransaction called with signature: $signature');
     final maxRetries = 30;
     final delayMs = 1000;
 
     for (int i = 0; i < maxRetries; i++) {
       try {
-        print('DEBUG: _confirmTransaction attempt ${i + 1}/$maxRetries');
+        _logger.debug('_confirmTransaction attempt ${i + 1}/$maxRetries');
         final result = await _makeRpcRequest('getSignatureStatuses', [
           [signature],
-          {'searchTransactionHistory': true}
+          {'searchTransactionHistory': true},
         ]);
 
-        print('DEBUG: getSignatureStatuses result: $result');
+        _logger.debug('getSignatureStatuses result: $result');
         final resultMap = result as Map<String, dynamic>;
-        print('DEBUG: resultMap: $resultMap');
+        _logger.debug('resultMap: $resultMap');
         final statuses = resultMap['value'] as List<dynamic>;
-        print('DEBUG: statuses: $statuses');
+        _logger.debug('statuses: $statuses');
         if (statuses.isNotEmpty && statuses[0] != null) {
           final status = statuses[0] as Map<String, dynamic>;
-          print('DEBUG: status: $status');
+          _logger.debug('status: $status');
           if (status['confirmationStatus'] != null) {
             final confirmationStatus = status['confirmationStatus'] as String;
             final targetCommitment =
                 (commitment ?? _config.commitment).commitment.value;
 
-            print(
-                'DEBUG: confirmationStatus: $confirmationStatus, targetCommitment: $targetCommitment');
+            _logger.debug(
+              'confirmationStatus: $confirmationStatus, targetCommitment: $targetCommitment',
+            );
             if (_isCommitmentSatisfied(confirmationStatus, targetCommitment)) {
               if (status['err'] != null) {
                 throw RpcException(
-                    'Transaction failed: ${status['err'].toString()}');
+                  'Transaction failed: ${status['err'].toString()}',
+                );
               }
-              print('DEBUG: Transaction confirmed successfully');
+              _logger.info('Transaction confirmed successfully');
               return; // Transaction confirmed successfully
             }
           }
         }
       } catch (e) {
-        print('DEBUG: Exception in _confirmTransaction: $e');
+        _logger.error('Exception in _confirmTransaction: $e');
         if (e is RpcException) rethrow;
         // Continue retrying on other errors
       }
@@ -262,7 +278,7 @@ class Connection {
       await Future<void>.delayed(Duration(milliseconds: delayMs));
     }
 
-    throw RpcException('Transaction confirmation timeout');
+    throw const RpcException('Transaction confirmation timeout');
   }
 
   /// Check if the given confirmation status satisfies the target commitment
@@ -459,9 +475,8 @@ class Connection {
   /// [config] - Connection configuration
   ///
   /// Returns new connection instance
-  static Connection fromConfig(ConnectionConfig config) {
-    return Connection(config.rpcUrl, config: config);
-  }
+  static Connection fromConfig(ConnectionConfig config) =>
+      Connection(config.rpcUrl, config: config);
 
   /// Close the connection and cleanup resources
   void close() {
@@ -536,13 +551,11 @@ class Connection {
           }
         } catch (e) {
           // Log error but continue processing
-          // TODO: Use proper logging framework instead of print
-          print('Error processing logs notification: $e');
+          _logger.error('Error processing logs notification', error: e);
         }
       },
       onError: (Object error) {
-        // TODO: Use proper logging framework instead of print
-        print('WebSocket error: $error');
+        _logger.error('WebSocket error', error: error);
       },
       onDone: () {
         _subscriptions.remove(subscriptionId);
@@ -575,8 +588,8 @@ class Connection {
       'params': params,
     };
 
-    print('DEBUG: _makeRpcRequest called with method: $method');
-    print('DEBUG: _makeRpcRequest params: $params');
+    _logger.debug('_makeRpcRequest called with method: $method');
+    _logger.debug('_makeRpcRequest params: $params');
 
     try {
       final response = await _httpClient.post(
@@ -585,8 +598,8 @@ class Connection {
         body: jsonEncode(requestBody),
       );
 
-      print('DEBUG: HTTP response status: ${response.statusCode}');
-      print('DEBUG: HTTP response body: ${response.body}');
+      _logger.debug('HTTP response status: ${response.statusCode}');
+      _logger.debug('HTTP response body: ${response.body}');
 
       if (response.statusCode != 200) {
         throw RpcException(
@@ -595,7 +608,7 @@ class Connection {
       }
 
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
-      print('DEBUG: Parsed response data: $responseData');
+      _logger.debug('Parsed response data: $responseData');
 
       if (responseData['error'] != null) {
         final error = responseData['error'] as Map<String, dynamic>;
@@ -605,12 +618,12 @@ class Connection {
       }
 
       final result = responseData['result'];
-      print('DEBUG: Result from RPC: $result');
-      print('DEBUG: Result type: ${result.runtimeType}');
+      _logger.debug('Result from RPC: $result');
+      _logger.debug('Result type: ${result.runtimeType}');
 
       return result;
     } catch (e) {
-      print('DEBUG: Exception in _makeRpcRequest: $e');
+      _logger.error('Exception in _makeRpcRequest: $e');
       if (e is RpcException) rethrow;
       throw RpcException('Failed to make RPC request: $e');
     }
@@ -619,18 +632,12 @@ class Connection {
 
 /// Account information returned by getAccountInfo
 class AccountInfo {
-  final bool executable;
-  final int lamports;
-  final PublicKey owner;
-  final dynamic data; // Can be String (base64) or Uint8List
-  final int rentEpoch;
-
   const AccountInfo({
     required this.executable,
     required this.lamports,
     required this.owner,
-    this.data,
     required this.rentEpoch,
+    this.data,
   });
 
   factory AccountInfo.fromJson(Map<String, dynamic> json) {
@@ -655,24 +662,27 @@ class AccountInfo {
       rentEpoch: (json['rentEpoch'] as num).toInt(),
     );
   }
+  final bool executable;
+  final int lamports;
+  final PublicKey owner;
+  final dynamic data; // Can be String (base64) or Uint8List
+  final int rentEpoch;
 }
 
 /// Latest blockhash information
 class LatestBlockhash {
-  final String blockhash;
-  final int lastValidBlockHeight;
-
   const LatestBlockhash({
     required this.blockhash,
     required this.lastValidBlockHeight,
   });
 
-  factory LatestBlockhash.fromJson(Map<String, dynamic> json) {
-    return LatestBlockhash(
-      blockhash: json['blockhash'] as String,
-      lastValidBlockHeight: json['lastValidBlockHeight'] as int,
-    );
-  }
+  factory LatestBlockhash.fromJson(Map<String, dynamic> json) =>
+      LatestBlockhash(
+        blockhash: json['blockhash'] as String,
+        lastValidBlockHeight: json['lastValidBlockHeight'] as int,
+      );
+  final String blockhash;
+  final int lastValidBlockHeight;
 }
 
 /// Base class for account filters
@@ -682,106 +692,84 @@ abstract class AccountFilter {
 
 /// Memory comparison filter
 class MemcmpFilter extends AccountFilter {
-  final int offset;
-  final String bytes;
-
   MemcmpFilter({
     required this.offset,
     required this.bytes,
   });
+  final int offset;
+  final String bytes;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      'memcmp': {
-        'offset': offset,
-        'bytes': bytes,
-      },
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'memcmp': {
+          'offset': offset,
+          'bytes': bytes,
+        },
+      };
 }
 
 /// Data size filter
 class DataSizeFilter extends AccountFilter {
-  final int dataSize;
-
   DataSizeFilter(this.dataSize);
 
   /// Named constructor for backward compatibility
   DataSizeFilter.named({required this.dataSize});
+  final int dataSize;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      'dataSize': dataSize,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'dataSize': dataSize,
+      };
 }
 
 /// Token account filter
 class TokenAccountFilter extends AccountFilter {
+  TokenAccountFilter(this.mint);
   final String mint;
 
-  TokenAccountFilter(this.mint);
-
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      'tokenAccountState': 'initialized',
-      'mint': mint,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'tokenAccountState': 'initialized',
+        'mint': mint,
+      };
 }
 
 /// Program account information returned by getProgramAccounts
 class ProgramAccountInfo {
-  final PublicKey pubkey;
-  final AccountInfo account;
-
   const ProgramAccountInfo({
     required this.pubkey,
     required this.account,
   });
 
-  factory ProgramAccountInfo.fromJson(Map<String, dynamic> json) {
-    return ProgramAccountInfo(
-      pubkey: PublicKey.fromBase58(json['pubkey'] as String),
-      account: AccountInfo.fromJson(json['account'] as Map<String, dynamic>),
-    );
-  }
+  factory ProgramAccountInfo.fromJson(Map<String, dynamic> json) =>
+      ProgramAccountInfo(
+        pubkey: PublicKey.fromBase58(json['pubkey'] as String),
+        account: AccountInfo.fromJson(json['account'] as Map<String, dynamic>),
+      );
+  final PublicKey pubkey;
+  final AccountInfo account;
 }
 
 /// Send transaction options
 class SendTransactionOptions {
-  final bool skipPreflight;
-  final String preflightCommitment;
-  final int maxRetries;
-
   const SendTransactionOptions({
     this.skipPreflight = false,
     this.preflightCommitment = 'processed',
     this.maxRetries = 0,
   });
+  final bool skipPreflight;
+  final String preflightCommitment;
+  final int maxRetries;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'skipPreflight': skipPreflight,
-      'preflightCommitment': preflightCommitment,
-      'maxRetries': maxRetries,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'skipPreflight': skipPreflight,
+        'preflightCommitment': preflightCommitment,
+        'maxRetries': maxRetries,
+      };
 }
 
 /// RPC transaction confirmation
 class RpcTransactionConfirmation {
-  final String signature;
-  final String? err;
-  final Map<String, dynamic>? meta;
-  final int? slot;
-  final int? confirmations;
-  final String? confirmationStatus;
-  final bool isSuccess;
-
   const RpcTransactionConfirmation({
     required this.signature,
     this.err,
@@ -791,49 +779,49 @@ class RpcTransactionConfirmation {
     this.confirmationStatus,
   }) : isSuccess = err == null;
 
-  factory RpcTransactionConfirmation.fromJson(Map<String, dynamic> json) {
-    return RpcTransactionConfirmation(
-      signature: json['signature'] as String? ??
-          '', // Default to empty string if not provided
-      err: json['err'] as String?,
-      meta: json['meta'] as Map<String, dynamic>?,
-      slot: json['slot'] as int?,
-      confirmations: json['confirmations'] as int?,
-      confirmationStatus: json['confirmationStatus'] as String?,
-    );
-  }
+  factory RpcTransactionConfirmation.fromJson(Map<String, dynamic> json) =>
+      RpcTransactionConfirmation(
+        signature: json['signature'] as String? ??
+            '', // Default to empty string if not provided
+        err: json['err'] as String?,
+        meta: json['meta'] as Map<String, dynamic>?,
+        slot: json['slot'] as int?,
+        confirmations: json['confirmations'] as int?,
+        confirmationStatus: json['confirmationStatus'] as String?,
+      );
+  final String signature;
+  final String? err;
+  final Map<String, dynamic>? meta;
+  final int? slot;
+  final int? confirmations;
+  final String? confirmationStatus;
+  final bool isSuccess;
 }
 
 /// Helper functions for creating account filters
 
 /// Create a memory comparison filter
-MemcmpFilter memcmpFilter({required int offset, required String bytes}) {
-  return MemcmpFilter(offset: offset, bytes: bytes);
-}
+MemcmpFilter memcmpFilter({required int offset, required String bytes}) =>
+    MemcmpFilter(offset: offset, bytes: bytes);
 
 /// Create a data size filter
-DataSizeFilter dataSizeFilter(int dataSize) {
-  return DataSizeFilter(dataSize);
-}
+DataSizeFilter dataSizeFilter(int dataSize) => DataSizeFilter(dataSize);
 
 /// Create a token account filter
-TokenAccountFilter tokenAccountFilter(String mint) {
-  return TokenAccountFilter(mint);
-}
+TokenAccountFilter tokenAccountFilter(String mint) => TokenAccountFilter(mint);
 
 /// Logs notification data
 class LogsNotification {
+  LogsNotification({
+    required this.signature,
+    required this.logs,
+    required this.slot,
+    this.err,
+  });
   final String signature;
   final List<String> logs;
   final String? err;
   final int slot;
-
-  LogsNotification({
-    required this.signature,
-    required this.logs,
-    this.err,
-    required this.slot,
-  });
 
   /// Whether the transaction succeeded
   bool get isSuccess => err == null;

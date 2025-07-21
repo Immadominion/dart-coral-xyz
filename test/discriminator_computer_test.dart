@@ -5,8 +5,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('DiscriminatorComputer', () {
@@ -105,7 +106,8 @@ void main() {
       test('computes correct discriminator for camelCase instruction', () {
         final discriminator =
             DiscriminatorComputer.computeInstructionDiscriminator(
-                'createAccount',);
+          'createAccount',
+        );
 
         // Expected discriminator for "global:createAccount"
         final expected =
@@ -226,7 +228,8 @@ void main() {
         // Should be different from name without spaces
         final discriminatorNoSpaces =
             DiscriminatorComputer.computeAccountDiscriminator(
-                'AccountWithSpaces',);
+          'AccountWithSpaces',
+        );
         expect(discriminator, isNot(equals(discriminatorNoSpaces)));
       });
 
@@ -250,7 +253,8 @@ void main() {
 
         expect(
           () => DiscriminatorComputer.validateDiscriminatorSize(
-              validDiscriminator,),
+            validDiscriminator,
+          ),
           returnsNormally,
         );
       });
@@ -305,13 +309,15 @@ void main() {
 
         expect(
           () => DiscriminatorComputer.discriminatorFromHex(
-              'afaf6d1f0d989be',), // too short
+            'afaf6d1f0d989be',
+          ), // too short
           throwsA(isA<ArgumentError>()),
         );
 
         expect(
           () => DiscriminatorComputer.discriminatorFromHex(
-              'afaf6d1f0d989bedx',), // too long
+            'afaf6d1f0d989bedx',
+          ), // too long
           throwsA(isA<ArgumentError>()),
         );
       });
@@ -322,11 +328,17 @@ void main() {
         final disc3 = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 9]);
 
         expect(
-            DiscriminatorComputer.compareDiscriminators(disc1, disc2), isTrue,);
+          DiscriminatorComputer.compareDiscriminators(disc1, disc2),
+          isTrue,
+        );
         expect(
-            DiscriminatorComputer.compareDiscriminators(disc1, disc3), isFalse,);
-        expect(DiscriminatorComputer.compareDiscriminators(disc1, Uint8List(7)),
-            isFalse,);
+          DiscriminatorComputer.compareDiscriminators(disc1, disc3),
+          isFalse,
+        );
+        expect(
+          DiscriminatorComputer.compareDiscriminators(disc1, Uint8List(7)),
+          isFalse,
+        );
       });
     });
 
@@ -395,9 +407,12 @@ void main() {
               fail('Unknown discriminator type: $type');
           }
 
-          expect(actual, equals(expected),
-              reason:
-                  'Discriminator for $type:$name does not match TypeScript output',);
+          expect(
+            actual,
+            equals(expected),
+            reason:
+                'Discriminator for $type:$name does not match TypeScript output',
+          );
         }
       });
     });

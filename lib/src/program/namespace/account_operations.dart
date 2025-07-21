@@ -1,4 +1,4 @@
-library account_operations;
+library;
 
 import 'dart:async';
 import 'dart:typed_data';
@@ -16,6 +16,17 @@ import 'package:coral_xyz_anchor/src/idl/idl.dart' show IdlAccount;
 
 // Missing types - define as placeholders for robust implementation
 class AccountCreationParams {
+  const AccountCreationParams({
+    required this.space,
+    this.newAccountPubkey,
+    this.lamports,
+    this.programId,
+    this.fromPubkey,
+    this.owner,
+    this.keypair,
+    this.executable = false,
+    this.initData,
+  });
   final PublicKey? newAccountPubkey;
   final int? lamports;
   final int space;
@@ -25,51 +36,28 @@ class AccountCreationParams {
   final Keypair? keypair;
   final bool executable;
   final Map<String, dynamic>? initData;
-
-  const AccountCreationParams({
-    this.newAccountPubkey,
-    this.lamports,
-    required this.space,
-    this.programId,
-    this.fromPubkey,
-    this.owner,
-    this.keypair,
-    this.executable = false,
-    this.initData,
-  });
 }
 
 class AccountOwnedByWrongProgramError implements Exception {
-  final String message;
-
   AccountOwnedByWrongProgramError(this.message);
 
   factory AccountOwnedByWrongProgramError.fromValidation({
     required PublicKey expected,
     required PublicKey actual,
-    required List<String> errorLogs,
-    required List<String> logs,
     required PublicKey accountAddress,
-    required String accountName,
-  }) {
-    return AccountOwnedByWrongProgramError(
-      'Account ${accountAddress.toBase58()} is owned by ${actual.toBase58()}, expected ${expected.toBase58()}',
-    );
-  }
+  }) =>
+      AccountOwnedByWrongProgramError(
+        'Account ${accountAddress.toBase58()} is owned by ${actual.toBase58()}, expected ${expected.toBase58()}',
+      );
+  final String message;
 }
 
 class AccountDiscriminatorMismatchError implements Exception {
-  final String message;
   AccountDiscriminatorMismatchError(this.message);
+  final String message;
 }
 
 class AccountNotInitializedError implements Exception {
-  final String message;
-  final PublicKey accountAddress;
-  final List<String> errorLogs;
-  final List<String> logs;
-  final String accountName;
-
   AccountNotInitializedError({
     required this.message,
     required this.accountAddress,
@@ -83,25 +71,31 @@ class AccountNotInitializedError implements Exception {
     required List<String> errorLogs,
     required List<String> logs,
     required String accountName,
-  }) {
-    return AccountNotInitializedError(
-      message: 'Account not initialized: ${accountAddress.toBase58()}',
-      accountAddress: accountAddress,
-      errorLogs: errorLogs,
-      logs: logs,
-      accountName: accountName,
-    );
-  }
+  }) =>
+      AccountNotInitializedError(
+        message: 'Account not initialized: ${accountAddress.toBase58()}',
+        accountAddress: accountAddress,
+        errorLogs: errorLogs,
+        logs: logs,
+        accountName: accountName,
+      );
+  final String message;
+  final PublicKey accountAddress;
+  final List<String> errorLogs;
+  final List<String> logs;
+  final String accountName;
 }
 
 /// Account filter for queries
 class AccountFilter {
+  AccountFilter({
+    required this.field,
+    required this.value,
+    required this.operator,
+  });
   final String field;
   final dynamic value;
   final String operator;
-
-  AccountFilter(
-      {required this.field, required this.value, required this.operator});
 }
 
 /// Account relationship types
@@ -287,12 +281,7 @@ class AccountOperationsManager<T> {
         throw AccountOwnedByWrongProgramError.fromValidation(
           expected: _programId,
           actual: accountInfo.owner,
-          errorLogs: ['Account owned by wrong program'],
-          logs: [
-            'Account ownership validation failed for ${address.toBase58()}',
-          ],
           accountAddress: address,
-          accountName: _idlAccount.name,
         );
       }
 
@@ -524,7 +513,8 @@ class AccountOperationsManager<T> {
 
   /// Batch create multiple accounts robustly
   Future<List<TransactionInstruction>> batchCreateAccounts(
-      List<AccountCreationParams> paramsList) async {
+    List<AccountCreationParams> paramsList,
+  ) async {
     final instructions = <TransactionInstruction>[];
     for (final params in paramsList) {
       final instruction = await createAccountInstruction(params);
@@ -535,14 +525,17 @@ class AccountOperationsManager<T> {
 
   /// Batch delete accounts (close accounts, transfer lamports to destination)
   Future<List<TransactionInstruction>> batchCloseAccounts(
-      List<PublicKey> accounts,
-      {required PublicKey destination}) async {
+    List<PublicKey> accounts, {
+    required PublicKey destination,
+  }) async {
     final instructions = <TransactionInstruction>[];
     for (final account in accounts) {
-      instructions.add(SystemProgram.closeAccount(
-        account: account,
-        destination: destination,
-      ));
+      instructions.add(
+        SystemProgram.closeAccount(
+          account: account,
+          destination: destination,
+        ),
+      );
     }
     return instructions;
   }
@@ -562,7 +555,8 @@ class AccountOperationsManager<T> {
 
       if (accountAddress == null || newSize == null) {
         throw ArgumentError(
-            'Account address and newSize are required for resize operation');
+          'Account address and newSize are required for resize operation',
+        );
       }
 
       // Get current account info
@@ -600,11 +594,13 @@ class AccountOperationsManager<T> {
           throw Exception('Payer required for account resize operation');
         }
 
-        instructions.add(SystemProgram.transfer(
-          fromPubkey: payerAddress,
-          toPubkey: accountAddress,
-          lamports: additionalLamports,
-        ));
+        instructions.add(
+          SystemProgram.transfer(
+            fromPubkey: payerAddress,
+            toPubkey: accountAddress,
+            lamports: additionalLamports,
+          ),
+        );
       }
 
       // Create realloc instruction - this is program-specific
@@ -640,8 +636,10 @@ class AccountOperationsManager<T> {
   }
 
   /// Traverse relationships for a given account
-  List<AccountRelationship> traverseRelationships(PublicKey account,
-      {bool recursive = false}) {
+  List<AccountRelationship> traverseRelationships(
+    PublicKey account, {
+    bool recursive = false,
+  }) {
     final visited = <String>{};
     final result = <AccountRelationship>[];
 
@@ -661,28 +659,44 @@ class AccountOperationsManager<T> {
   }
 
   /// Advanced filtering of accounts by predicate
-  Future<List<T?>> filterAccounts(bool Function(T?) predicate,
-      {List<PublicKey>? addresses,
-      Commitment? commitment,
-      bool useCache = true}) async {
+  Future<List<T?>> filterAccounts(
+    bool Function(T?) predicate, {
+    List<PublicKey>? addresses,
+    Commitment? commitment,
+    bool useCache = true,
+  }) async {
     final accounts = addresses != null
-        ? await fetchMultiple(addresses,
-            commitment: commitment, useCache: useCache)
-        : await fetchMultiple(await getAllAccountAddresses(),
-            commitment: commitment, useCache: useCache);
+        ? await fetchMultiple(
+            addresses,
+            commitment: commitment,
+            useCache: useCache,
+          )
+        : await fetchMultiple(
+            await getAllAccountAddresses(),
+            commitment: commitment,
+            useCache: useCache,
+          );
     return accounts.where(predicate).toList();
   }
 
   /// Advanced sorting of accounts by comparator
-  Future<List<T?>> sortAccounts(int Function(T? a, T? b) comparator,
-      {List<PublicKey>? addresses,
-      Commitment? commitment,
-      bool useCache = true}) async {
+  Future<List<T?>> sortAccounts(
+    int Function(T? a, T? b) comparator, {
+    List<PublicKey>? addresses,
+    Commitment? commitment,
+    bool useCache = true,
+  }) async {
     final accounts = addresses != null
-        ? await fetchMultiple(addresses,
-            commitment: commitment, useCache: useCache)
-        : await fetchMultiple(await getAllAccountAddresses(),
-            commitment: commitment, useCache: useCache);
+        ? await fetchMultiple(
+            addresses,
+            commitment: commitment,
+            useCache: useCache,
+          )
+        : await fetchMultiple(
+            await getAllAccountAddresses(),
+            commitment: commitment,
+            useCache: useCache,
+          );
     final filtered = accounts.toList();
     filtered.sort(comparator);
     return filtered;
@@ -1006,8 +1020,10 @@ class AccountOperationsManager<T> {
   }
 
   /// Batch validation of account ownership
-  Future<Map<PublicKey, bool>> batchValidateOwnership(List<PublicKey> addresses,
-      {PublicKey? expectedOwner}) async {
+  Future<Map<PublicKey, bool>> batchValidateOwnership(
+    List<PublicKey> addresses, {
+    PublicKey? expectedOwner,
+  }) async {
     final result = <PublicKey, bool>{};
     final owner = expectedOwner ?? _programId;
 
@@ -1025,8 +1041,9 @@ class AccountOperationsManager<T> {
 
   /// Batch validation of account discriminators
   Future<Map<PublicKey, bool>> batchValidateDiscriminators(
-      List<PublicKey> addresses,
-      {List<int>? expectedDiscriminator}) async {
+    List<PublicKey> addresses, {
+    List<int>? expectedDiscriminator,
+  }) async {
     final result = <PublicKey, bool>{};
     final discriminator = expectedDiscriminator ?? _idlAccount.discriminator;
 
@@ -1087,8 +1104,11 @@ class AccountOperationsManager<T> {
     final subscriptions = <StreamSubscription<void>>[];
 
     for (final address in addresses) {
-      final stream = await subscribe(address,
-          commitment: commitment, updateCache: updateCache);
+      final stream = await subscribe(
+        address,
+        commitment: commitment,
+        updateCache: updateCache,
+      );
       final subscription = stream.listen(
         (data) {
           // Send current state of all monitored accounts
@@ -1272,34 +1292,42 @@ class AccountOperationsManager<T> {
 
     // Add lamports filters
     if (minLamports != null) {
-      accountFilters.add(AccountFilter(
-        field: 'lamports',
-        value: minLamports,
-        operator: 'gte',
-      ));
+      accountFilters.add(
+        AccountFilter(
+          field: 'lamports',
+          value: minLamports,
+          operator: 'gte',
+        ),
+      );
     }
     if (maxLamports != null) {
-      accountFilters.add(AccountFilter(
-        field: 'lamports',
-        value: maxLamports,
-        operator: 'lte',
-      ));
+      accountFilters.add(
+        AccountFilter(
+          field: 'lamports',
+          value: maxLamports,
+          operator: 'lte',
+        ),
+      );
     }
 
     // Add size filters
     if (minSize != null) {
-      accountFilters.add(AccountFilter(
-        field: 'dataSize',
-        value: minSize,
-        operator: 'gte',
-      ));
+      accountFilters.add(
+        AccountFilter(
+          field: 'dataSize',
+          value: minSize,
+          operator: 'gte',
+        ),
+      );
     }
     if (maxSize != null) {
-      accountFilters.add(AccountFilter(
-        field: 'dataSize',
-        value: maxSize,
-        operator: 'lte',
-      ));
+      accountFilters.add(
+        AccountFilter(
+          field: 'dataSize',
+          value: maxSize,
+          operator: 'lte',
+        ),
+      );
     }
 
     // Get all addresses matching the filters
@@ -1332,7 +1360,7 @@ class AccountOperationsManager<T> {
     if (filters != null && filters.isNotEmpty) {
       final results = <PublicKey>[];
       for (final address in filteredAddresses) {
-        bool passesFilters = true;
+        final bool passesFilters = true;
         try {
           final accountData =
               await fetchNullable(address, commitment: commitment);
@@ -1381,7 +1409,8 @@ class AccountOperationsManager<T> {
 
   /// Validate account creation parameters
   Future<Map<String, dynamic>> validateCreationParams(
-      AccountCreationParams params) async {
+    AccountCreationParams params,
+  ) async {
     final validation = <String, dynamic>{
       'valid': true,
       'errors': <String>[],
@@ -1393,7 +1422,8 @@ class AccountOperationsManager<T> {
     if (params.space < expectedSize) {
       validation['valid'] = false;
       validation['errors'].add(
-          'Space (${params.space}) is less than required (${expectedSize})');
+        'Space (${params.space}) is less than required ($expectedSize)',
+      );
     }
 
     // Validate lamports for rent exemption
@@ -1403,7 +1433,8 @@ class AccountOperationsManager<T> {
     if (lamports < minLamports) {
       validation['valid'] = false;
       validation['errors'].add(
-          'Lamports (${lamports}) is less than rent exempt minimum (${minLamports})');
+        'Lamports ($lamports) is less than rent exempt minimum ($minLamports)',
+      );
     }
 
     // Validate owner

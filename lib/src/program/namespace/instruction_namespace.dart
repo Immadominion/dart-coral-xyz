@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/program/pda_cache.dart';
 /// final instruction = program.instruction.methodName(...args, ctx);
 /// ```
 class InstructionNamespace {
-
   InstructionNamespace._();
   final Map<String, InstructionBuilder> _builders = {};
 
@@ -52,11 +51,13 @@ class InstructionNamespace {
   bool contains(String name) => _builders.containsKey(name);
 
   @override
-  String toString() => 'InstructionNamespace(instructions: ${_builders.keys.toList()})';
+  String toString() =>
+      'InstructionNamespace(instructions: ${_builders.keys.toList()})';
 }
 
 /// Builder for creating individual transaction instructions
-class InstructionBuilder { // Add provider reference
+class InstructionBuilder {
+  // Add provider reference
 
   InstructionBuilder({
     required IdlInstruction instruction,
@@ -141,7 +142,8 @@ class InstructionBuilder { // Add provider reference
 
   /// Try to get cached account resolution results
   Map<String, dynamic>? _tryGetCachedAccountResolution(
-      Context<Accounts> context,) {
+    Context<Accounts> context,
+  ) {
     // Implementation for checking cached PDA results
     // This would check a global PDA cache for resolved addresses
     return PdaCache.getCachedResults(context.accounts, _programId);

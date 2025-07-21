@@ -4,11 +4,12 @@
 /// program discovery, and configuration validation.
 library;
 
-import 'dart:io';
 import 'dart:convert';
-import 'package:test/test.dart';
-import 'package:path/path.dart' as path;
+import 'dart:io';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 
 void main() {
   group('WorkspaceConfig', () {
@@ -44,8 +45,10 @@ my_program = "BPFLoader2111111111111111111111111111111111"
 
         expect(config.provider.cluster, equals('localnet'));
         expect(config.provider.wallet, equals('~/.config/solana/id.json'));
-        expect(config.programs['localnet']?['my_program']?.address,
-            equals('BPFLoader2111111111111111111111111111111111'),);
+        expect(
+          config.programs['localnet']?['my_program']?.address,
+          equals('BPFLoader2111111111111111111111111111111111'),
+        );
       });
 
       test('should parse complete Anchor.toml with all sections', () {
@@ -95,27 +98,41 @@ filename = "./tests/accounts/ANOTHER_ACCOUNT.json"
         expect(config.features?.skipLint, equals(true));
 
         // Test programs
-        expect(config.programs['localnet']?['my_program']?.address,
-            equals('BPFLoader2111111111111111111111111111111111'),);
-        expect(config.programs['localnet']?['complex_program']?.address,
-            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),);
-        expect(config.programs['localnet']?['complex_program']?.idl,
-            equals('target/idl/complex.json'),);
-        expect(config.programs['devnet']?['devnet_program']?.address,
-            equals('DevnetProgram111111111111111111111111111'),);
+        expect(
+          config.programs['localnet']?['my_program']?.address,
+          equals('BPFLoader2111111111111111111111111111111111'),
+        );
+        expect(
+          config.programs['localnet']?['complex_program']?.address,
+          equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        );
+        expect(
+          config.programs['localnet']?['complex_program']?.idl,
+          equals('target/idl/complex.json'),
+        );
+        expect(
+          config.programs['devnet']?['devnet_program']?.address,
+          equals('DevnetProgram111111111111111111111111111'),
+        );
 
         // Test scripts
-        expect(config.scripts?.scripts['test'],
-            equals('yarn run ts-mocha -t 1000000 tests/**/*.ts'),);
+        expect(
+          config.scripts?.scripts['test'],
+          equals('yarn run ts-mocha -t 1000000 tests/**/*.ts'),
+        );
         expect(config.scripts?.scripts['build'], equals('anchor build'));
 
         // Test test configuration
         expect(config.test?.startupWait, equals(20000));
         expect(config.test?.validatorAccounts, hasLength(2));
-        expect(config.test?.validatorAccounts?[0].address,
-            equals('3vMPj13emX9JmifYcWc77ekEzV1F37ga36E1YeSr6Mdj'),);
-        expect(config.test?.validatorAccounts?[0].filename,
-            equals('./tests/accounts/SOME_ACCOUNT.json'),);
+        expect(
+          config.test?.validatorAccounts?[0].address,
+          equals('3vMPj13emX9JmifYcWc77ekEzV1F37ga36E1YeSr6Mdj'),
+        );
+        expect(
+          config.test?.validatorAccounts?[0].filename,
+          equals('./tests/accounts/SOME_ACCOUNT.json'),
+        );
       });
 
       test('should handle missing Anchor.toml file', () {
@@ -240,7 +257,9 @@ my_program = { address = "BPFLoader2111111111111111111111111111111111", idl = "t
         expect(idl, isNotNull);
         expect(idl!.name, equals('my_program'));
         expect(
-            idl.address, equals('BPFLoader2111111111111111111111111111111111'),);
+          idl.address,
+          equals('BPFLoader2111111111111111111111111111111111'),
+        );
       });
 
       test('should auto-discover IDL file by snake_case name', () {
@@ -274,7 +293,9 @@ myProgram = "BPFLoader2111111111111111111111111111111111"
         expect(idl, isNotNull);
         expect(idl!.name, equals('my_program'));
         expect(
-            idl.address, equals('BPFLoader2111111111111111111111111111111111'),);
+          idl.address,
+          equals('BPFLoader2111111111111111111111111111111111'),
+        );
       });
 
       test('should return null for non-existent program', () {
@@ -335,10 +356,14 @@ program3 = "DevnetProgram111111111111111111111111111"
         final localnetPrograms = config.getProgramsForCluster();
 
         expect(localnetPrograms, hasLength(2));
-        expect(localnetPrograms['program1']?.address,
-            equals('BPFLoader2111111111111111111111111111111111'),);
-        expect(localnetPrograms['program2']?.address,
-            equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),);
+        expect(
+          localnetPrograms['program1']?.address,
+          equals('BPFLoader2111111111111111111111111111111111'),
+        );
+        expect(
+          localnetPrograms['program2']?.address,
+          equals('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        );
       });
 
       test('should get programs for specific cluster', () {
@@ -361,8 +386,10 @@ program2 = "DevnetProgram111111111111111111111111111"
         final devnetPrograms = config.getProgramsForCluster('devnet');
 
         expect(devnetPrograms, hasLength(1));
-        expect(devnetPrograms['program2']?.address,
-            equals('DevnetProgram111111111111111111111111111'),);
+        expect(
+          devnetPrograms['program2']?.address,
+          equals('DevnetProgram111111111111111111111111111'),
+        );
       });
 
       test('should get specific program', () {
@@ -382,8 +409,10 @@ my_program = "BPFLoader2111111111111111111111111111111111"
         final program = config.getProgram('my_program');
 
         expect(program, isNotNull);
-        expect(program!.address,
-            equals('BPFLoader2111111111111111111111111111111111'),);
+        expect(
+          program!.address,
+          equals('BPFLoader2111111111111111111111111111111111'),
+        );
       });
     });
 
@@ -456,8 +485,10 @@ my_program = { address = "BPFLoader2111111111111111111111111111111111", idl = "n
         final errors = config.validate();
 
         expect(errors, isNotEmpty);
-        expect(errors.any((error) => error.contains('IDL file not found')),
-            isTrue,);
+        expect(
+          errors.any((error) => error.contains('IDL file not found')),
+          isTrue,
+        );
       });
     });
 
@@ -511,8 +542,10 @@ wallet = "~/.config/solana/id.json"
           final config = WorkspaceConfig.fromCurrentDirectory();
 
           expect(config.provider.cluster, equals('localnet'));
-          expect(path.canonicalize(config.workspaceRoot!),
-              equals(path.canonicalize(Directory.current.path)),);
+          expect(
+            path.canonicalize(config.workspaceRoot!),
+            equals(path.canonicalize(Directory.current.path)),
+          );
         } finally {
           Directory.current = originalDir;
         }
@@ -531,8 +564,10 @@ wallet = "~/.config/solana/id.json"
         final config = WorkspaceConfig.fromDirectory(tempPath);
 
         expect(config.provider.cluster, equals('devnet'));
-        expect(path.canonicalize(config.workspaceRoot!),
-            equals(path.canonicalize(tempPath)),);
+        expect(
+          path.canonicalize(config.workspaceRoot!),
+          equals(path.canonicalize(tempPath)),
+        );
       });
     });
 
@@ -557,10 +592,14 @@ seeds = false
         final generatedToml = config.toToml();
 
         expect(generatedToml['provider']['cluster'], equals('localnet'));
-        expect(generatedToml['provider']['wallet'],
-            equals('~/.config/solana/id.json'),);
-        expect(generatedToml['programs']['localnet']['my_program'],
-            equals('BPFLoader2111111111111111111111111111111111'),);
+        expect(
+          generatedToml['provider']['wallet'],
+          equals('~/.config/solana/id.json'),
+        );
+        expect(
+          generatedToml['programs']['localnet']['my_program'],
+          equals('BPFLoader2111111111111111111111111111111111'),
+        );
         expect(generatedToml['features']['seeds'], equals(false));
       });
     });

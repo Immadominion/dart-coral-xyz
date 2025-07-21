@@ -73,11 +73,13 @@ class InstructionBuilder {
           _accounts.addAll(map);
         } else {
           throw ArgumentError(
-              'toMap() must return Map<String, PublicKey> or Map<String, dynamic>');
+            'toMap() must return Map<String, PublicKey> or Map<String, dynamic>',
+          );
         }
       } catch (e) {
         throw ArgumentError(
-            'Invalid accounts type: ${accounts.runtimeType}. Expected Map<String, dynamic>, Map<String, PublicKey>, or object with toMap() method');
+          'Invalid accounts type: ${accounts.runtimeType}. Expected Map<String, dynamic>, Map<String, PublicKey>, or object with toMap() method',
+        );
       }
     }
     return this;
@@ -118,7 +120,8 @@ class InstructionBuilder {
         pubKeys.add(signer.publicKey);
       } else {
         throw ArgumentError(
-            'Invalid signer type: ${signer.runtimeType}. Expected PublicKey or Signer.');
+          'Invalid signer type: ${signer.runtimeType}. Expected PublicKey or Signer.',
+        );
       }
     }
 

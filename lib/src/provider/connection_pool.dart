@@ -12,10 +12,10 @@ import 'dart:math' as math;
 
 import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
 import 'package:coral_xyz_anchor/src/provider/enhanced_connection.dart';
+import '../utils/logger.dart';
 
 /// Connection pool configuration
 class ConnectionPoolConfig {
-
   const ConnectionPoolConfig({
     this.minConnections = 2,
     this.maxConnections = 10,
@@ -27,6 +27,7 @@ class ConnectionPoolConfig {
     this.validateOnBorrow = true,
     this.validateOnReturn = false,
   });
+
   /// Minimum number of connections to maintain
   final int minConnections;
 
@@ -65,7 +66,6 @@ enum LoadBalancingStrategy {
 
 /// Connection wrapper with metadata
 class PooledConnection {
-
   PooledConnection(this.connection)
       : createdAt = DateTime.now(),
         lastUsedAt = DateTime.now(),
@@ -92,7 +92,8 @@ class PooledConnection {
   }
 
   /// Check if connection is idle
-  bool isIdle(Duration maxIdleTime) => !isInUse && DateTime.now().difference(lastUsedAt) > maxIdleTime;
+  bool isIdle(Duration maxIdleTime) =>
+      !isInUse && DateTime.now().difference(lastUsedAt) > maxIdleTime;
 
   /// Get connection age
   Duration get age => DateTime.now().difference(createdAt);
@@ -100,7 +101,6 @@ class PooledConnection {
 
 /// Connection pool metrics
 class ConnectionPoolMetrics {
-
   const ConnectionPoolMetrics({
     required this.totalConnections,
     required this.availableConnections,
@@ -137,7 +137,6 @@ class ConnectionPoolMetrics {
 
 /// Connection pool for managing multiple connections efficiently
 class ConnectionPool {
-
   /// Create connection pool
   ConnectionPool(
     this._endpoints, {
@@ -151,6 +150,9 @@ class ConnectionPool {
     _startHealthChecks();
     _startCleanupTimer();
   }
+
+  /// Logger instance for ConnectionPool
+  static final AnchorLogger _logger = AnchorLogger.getLogger('ConnectionPool');
   final List<String> _endpoints;
   final ConnectionPoolConfig _config;
   final RetryConfig? _retryConfig;
@@ -188,7 +190,8 @@ class ConnectionPool {
       failedRequests: _failedRequests,
       averageRequestTime: _totalRequests > 0
           ? Duration(
-              milliseconds: _totalRequestTime.inMilliseconds ~/ _totalRequests,)
+              milliseconds: _totalRequestTime.inMilliseconds ~/ _totalRequests,
+            )
           : Duration.zero,
       hitRate: _totalRequests > 0 ? _successfulRequests / _totalRequests : 0.0,
     );
@@ -196,7 +199,8 @@ class ConnectionPool {
 
   /// Execute operation with pooled connection
   Future<T> execute<T>(
-      Future<T> Function(EnhancedConnection connection) operation,) async {
+    Future<T> Function(EnhancedConnection connection) operation,
+  ) async {
     if (_isDisposed) {
       throw StateError('Connection pool has been disposed');
     }
@@ -331,7 +335,7 @@ class ConnectionPool {
         _availableConnections.add(connection);
       } catch (e) {
         // Log error but continue initialization
-        print('Failed to create initial connection: $e');
+        _logger.warn('Failed to create initial connection: $e');
       }
     }
   }

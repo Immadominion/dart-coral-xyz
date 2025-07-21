@@ -15,7 +15,6 @@ import 'dart:typed_data';
 /// recomputation, using configurable size limits and LRU eviction policy.
 /// Matches TypeScript Anchor client's caching strategy for optimal performance.
 class DiscriminatorCache {
-
   /// Create a new discriminator cache.
   ///
   /// [maxSize] Maximum number of entries to cache (default: 1000)
@@ -28,6 +27,7 @@ class DiscriminatorCache {
       throw ArgumentError('Cache max size must be positive, got $maxSize');
     }
   }
+
   /// Default maximum cache size (number of entries)
   static const int defaultMaxSize = 1000;
 

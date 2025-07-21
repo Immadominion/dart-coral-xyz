@@ -5,8 +5,8 @@
 /// performance monitoring, and batching functionality.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('RPC and Network Utilities', () {
@@ -520,8 +520,11 @@ void main() {
       setUp(() {
         connection = Connection('http://localhost:8899');
         client = EnhancedRpcClient(connection);
-        batcher = RpcBatcher(client,
-            batchSize: 3, batchDelay: const Duration(milliseconds: 50),);
+        batcher = RpcBatcher(
+          client,
+          batchSize: 3,
+          batchDelay: const Duration(milliseconds: 50),
+        );
       });
 
       tearDown(() {

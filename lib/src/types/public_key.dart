@@ -17,7 +17,6 @@ export '../crypto/solana_crypto.dart' show PdaResult;
 /// including validation, serialization, and utility functions for
 /// common operations like PDA derivation.
 class PublicKey {
-
   /// Creates a PublicKey from a 32-byte array
   PublicKey._(this._bytes) {
     if (_bytes.length != publicKeyLength) {
@@ -39,9 +38,8 @@ class PublicKey {
   }
 
   /// Creates a PublicKey from a byte array
-  factory PublicKey.fromBytes(List<int> bytes) {
-    return PublicKey._(Uint8List.fromList(bytes));
-  }
+  factory PublicKey.fromBytes(List<int> bytes) =>
+      PublicKey._(Uint8List.fromList(bytes));
 
   /// Creates a PublicKey from a hex string
   factory PublicKey.fromHex(String hex) {
@@ -86,7 +84,8 @@ class PublicKey {
   String toBase58() => EncodingWrapper.encodeBase58(_bytes);
 
   /// Convert to hex string representation
-  String toHex() => _bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+  String toHex() =>
+      _bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   /// Check if this public key equals another
   @override
@@ -185,7 +184,6 @@ class PublicKey {
 
 /// Result of a PDA (Program Derived Address) operation
 class PdaResult {
-
   const PdaResult(this.address, this.bump);
   final PublicKey address;
   final int bump;

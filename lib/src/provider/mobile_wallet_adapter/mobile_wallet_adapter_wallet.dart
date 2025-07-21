@@ -13,14 +13,14 @@ abstract class MobileWalletAdapterClient {
 
 /// Wallet implementation that wraps a Mobile Wallet Adapter client.
 class MobileWalletAdapterWallet implements Wallet {
-
   MobileWalletAdapterWallet(this._client, this._publicKey);
   final MobileWalletAdapterClient _client;
   final PublicKey _publicKey;
 
   /// Factory to create and initialize the wallet with the public key from the client.
   static Future<MobileWalletAdapterWallet> create(
-      MobileWalletAdapterClient client,) async {
+    MobileWalletAdapterClient client,
+  ) async {
     final pubkey = await client.getPublicKey();
     return MobileWalletAdapterWallet(client, pubkey);
   }
@@ -41,7 +41,8 @@ class MobileWalletAdapterWallet implements Wallet {
 
   @override
   Future<List<Transaction>> signAllTransactions(
-      List<Transaction> transactions,) async {
+    List<Transaction> transactions,
+  ) async {
     if (transactions.isEmpty) return [];
     final messages = transactions.map((tx) => tx.compileMessage()).toList();
     final signatures = await _client.signTransactions(messages);

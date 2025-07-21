@@ -1,12 +1,12 @@
-import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/account_operations.dart';
 import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz_anchor/src/program/namespace/account_operations.dart';
 import 'package:coral_xyz_anchor/src/program/namespace/account_subscription_manager.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AccountOperations Basic Types', () {
     test('can create IdlAccount', () {
-      final idlAccount = IdlAccount(
+      final idlAccount = const IdlAccount(
         name: 'TestAccount',
         type: IdlTypeDefType(kind: 'struct', fields: <IdlField>[]),
         discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
@@ -29,25 +29,25 @@ void main() {
     });
 
     test('can create AccountSubscriptionConfig', () {
-      final config = AccountSubscriptionConfig(
-        autoReconnect: true,
+      final config = const AccountSubscriptionConfig(
         reconnectDelay: Duration(seconds: 30),
       );
 
       expect(config.autoReconnect, equals(true));
-      expect(config.reconnectDelay, equals(Duration(seconds: 30)));
+      expect(config.reconnectDelay, equals(const Duration(seconds: 30)));
     });
 
     test('AccountRelationshipType enum has all values', () {
       expect(AccountRelationshipType.values.length, greaterThan(0));
       expect(
-          AccountRelationshipType.values
-              .contains(AccountRelationshipType.owner),
-          isTrue);
+        AccountRelationshipType.values.contains(AccountRelationshipType.owner),
+        isTrue,
+      );
       expect(
-          AccountRelationshipType.values
-              .contains(AccountRelationshipType.authority),
-          isTrue);
+        AccountRelationshipType.values
+            .contains(AccountRelationshipType.authority),
+        isTrue,
+      );
     });
 
     test('AccountOwnedByWrongProgramError can be created', () {

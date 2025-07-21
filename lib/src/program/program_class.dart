@@ -106,9 +106,12 @@ class Program<T extends Idl> {
     Coder? coder,
   })  : _rawIdl = _idl as Idl,
         _provider = provider ?? AnchorProvider.defaultProvider(),
-        _programId = PublicKey.fromBase58(_idl.address ??
-            (throw ArgumentError(
-                'IDL must contain an address field when using the default constructor. Use Program.withProgramId() to pass the program ID separately.'))),
+        _programId = PublicKey.fromBase58(
+          _idl.address ??
+              (throw ArgumentError(
+                'IDL must contain an address field when using the default constructor. Use Program.withProgramId() to pass the program ID separately.',
+              )),
+        ),
         _coder = coder ?? BorshCoder(_idl) {
     // Generate namespaces after all fields are initialized
     _namespaces = NamespaceFactory.build(
@@ -531,7 +534,7 @@ class Program<T extends Idl> {
 
     return ProgramErrorHandler.wrapOperation(
       'fetchIdl',
-      () async => await IdlUtils.fetchIdl(programId, provider!),
+      () async => IdlUtils.fetchIdl(programId, provider!),
       context: {'programId': programId.toBase58()},
     );
   }
@@ -540,7 +543,7 @@ class Program<T extends Idl> {
   ///
   /// This derives the deterministic address where the IDL is stored on-chain
   static Future<PublicKey> getIdlAddress(PublicKey programId) async =>
-      await IdlUtils.getIdlAddress(programId);
+      IdlUtils.getIdlAddress(programId);
 
   /// Get the size of an account for the given account name
   ///
@@ -616,7 +619,7 @@ class Program<T extends Idl> {
   /// await program.removeEventListener(listenerId);
   /// ```
   Future<void> removeEventListener(int listenerId) async =>
-      await _eventManager.removeEventListener(listenerId);
+      _eventManager.removeEventListener(listenerId);
 
   /// Get event connection state
   ///

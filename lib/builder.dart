@@ -10,9 +10,10 @@ import 'package:source_gen/source_gen.dart';
 import 'src/codegen/anchor_generator.dart';
 
 /// Builder for Anchor code generation
-Builder anchorBuilder(BuilderOptions options) =>
-    LibraryBuilder(AnchorGenerator(options),
-        generatedExtension: '.anchor.dart');
+Builder anchorBuilder(BuilderOptions options) => LibraryBuilder(
+      AnchorGenerator(options),
+      generatedExtension: '.anchor.dart',
+    );
 
 /// Partitioned builder for more efficient incremental builds
 Builder anchorPartBuilder(BuilderOptions options) =>

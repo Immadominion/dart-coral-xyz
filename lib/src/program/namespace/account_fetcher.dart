@@ -18,7 +18,6 @@ import 'package:coral_xyz_anchor/src/error/account_errors.dart';
 
 /// Enhanced account fetcher with caching and batch operations
 class AccountFetcher<T> {
-
   /// Create a new account fetcher
   AccountFetcher({
     required IdlAccount idlAccount,
@@ -30,7 +29,7 @@ class AccountFetcher<T> {
         _coder = coder,
         _programId = programId,
         _provider = provider,
-        _config = config ?? AccountFetcherConfig();
+        _config = config ?? const AccountFetcherConfig();
   final IdlAccount _idlAccount;
   final Coder _coder;
   final PublicKey _programId;
@@ -299,17 +298,21 @@ class AccountFetcher<T> {
     // Add discriminator filter
     if (memcmpFilter.containsKey('offset') &&
         memcmpFilter.containsKey('bytes')) {
-      allFilters.add(MemcmpFilter(
-        offset: memcmpFilter['offset'] as int,
-        bytes: memcmpFilter['bytes'] as String,
-      ),);
+      allFilters.add(
+        MemcmpFilter(
+          offset: memcmpFilter['offset'] as int,
+          bytes: memcmpFilter['bytes'] as String,
+        ),
+      );
     }
 
     // Add size filter if available
     if (memcmpFilter.containsKey('dataSize')) {
-      allFilters.add(DataSizeFilter(
-        memcmpFilter['dataSize'] as int,
-      ),);
+      allFilters.add(
+        DataSizeFilter(
+          memcmpFilter['dataSize'] as int,
+        ),
+      );
     }
 
     // Add user-provided filters
@@ -353,10 +356,12 @@ class AccountFetcher<T> {
           dataBytes,
         );
 
-        results.add(ProgramAccount<T>(
-          publicKey: account.pubkey,
-          account: decodedData,
-        ),);
+        results.add(
+          ProgramAccount<T>(
+            publicKey: account.pubkey,
+            account: decodedData,
+          ),
+        );
       } catch (e) {
         // Skip accounts that fail to decode
         continue;
@@ -417,7 +422,8 @@ class AccountFetcher<T> {
   void cleanCache() {
     final now = DateTime.now();
     _cache.removeWhere(
-        (key, value) => now.difference(value.timestamp) > _config.cacheTimeout,);
+      (key, value) => now.difference(value.timestamp) > _config.cacheTimeout,
+    );
   }
 
   /// Get cache statistics
@@ -490,7 +496,8 @@ class AccountFetcher<T> {
       }
     } else {
       throw Exception(
-          'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}',);
+        'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}',
+      );
     }
     return _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
   }
@@ -510,7 +517,6 @@ class AccountFetcher<T> {
 
 /// Configuration for account fetcher behavior
 class AccountFetcherConfig {
-
   const AccountFetcherConfig({
     this.enableCaching = true,
     this.cacheTimeout = const Duration(minutes: 5),
@@ -518,6 +524,7 @@ class AccountFetcherConfig {
     this.batchDelay = const Duration(milliseconds: 50),
     this.maxBatchSize = 100,
   });
+
   /// Whether to enable caching
   final bool enableCaching;
 
@@ -536,7 +543,6 @@ class AccountFetcherConfig {
 
 /// Cached account data with metadata
 class CachedAccountData<T> {
-
   const CachedAccountData({
     required this.data,
     required this.timestamp,
@@ -546,12 +552,12 @@ class CachedAccountData<T> {
   final DateTime timestamp;
   final int? slot;
 
-  bool isExpired(Duration timeout) => DateTime.now().difference(timestamp) > timeout;
+  bool isExpired(Duration timeout) =>
+      DateTime.now().difference(timestamp) > timeout;
 }
 
 /// Account data with RPC context
 class AccountWithContext<T> {
-
   const AccountWithContext({
     required this.data,
     required this.context,
@@ -562,7 +568,6 @@ class AccountWithContext<T> {
 
 /// Program account with address and data
 class ProgramAccount<T> {
-
   const ProgramAccount({
     required this.publicKey,
     required this.account,
@@ -571,12 +576,12 @@ class ProgramAccount<T> {
   final T account;
 
   @override
-  String toString() => 'ProgramAccount(publicKey: $publicKey, account: $account)';
+  String toString() =>
+      'ProgramAccount(publicKey: $publicKey, account: $account)';
 }
 
 /// Account subscription management
 class AccountSubscription<T> {
-
   AccountSubscription({
     required this.address,
     required this.controller,
@@ -596,7 +601,6 @@ class AccountSubscription<T> {
 
 /// Cache performance statistics
 class CacheStatistics {
-
   const CacheStatistics({
     required this.totalEntries,
     required this.validEntries,
@@ -612,13 +616,13 @@ class CacheStatistics {
   }
 
   @override
-  String toString() => 'CacheStatistics(total: $totalEntries, valid: $validEntries, '
-        'expired: $expiredEntries, hitRate: ${(hitRate * 100).toStringAsFixed(1)}%)';
+  String toString() =>
+      'CacheStatistics(total: $totalEntries, valid: $validEntries, '
+      'expired: $expiredEntries, hitRate: ${(hitRate * 100).toStringAsFixed(1)}%)';
 }
 
 /// RPC response context information
 class RpcResponseContext {
-
   const RpcResponseContext({
     required this.slot,
   });

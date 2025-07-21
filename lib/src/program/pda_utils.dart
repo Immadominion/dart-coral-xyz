@@ -20,7 +20,8 @@ class PdaUtils {
   static Future<PdaResult> findProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async => PublicKey.findProgramAddress(seeds, programId);
+  ) async =>
+      PublicKey.findProgramAddress(seeds, programId);
 
   /// Create a program address directly (without finding bump)
   ///
@@ -29,7 +30,8 @@ class PdaUtils {
   static Future<PublicKey> createProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async => PublicKey.createProgramAddress(seeds, programId);
+  ) async =>
+      PublicKey.createProgramAddress(seeds, programId);
 
   /// Convert various seed types to bytes for PDA derivation
   ///
@@ -60,7 +62,8 @@ class PdaUtils {
   }
 
   /// Convert multiple seeds to bytes for PDA derivation
-  static List<Uint8List> seedsToBytes(List<dynamic> seeds) => seeds.map(seedToBytesEnhanced).toList();
+  static List<Uint8List> seedsToBytes(List<dynamic> seeds) =>
+      seeds.map(seedToBytesEnhanced).toList();
 
   /// Derive PDA from mixed seed types
   ///
@@ -151,7 +154,8 @@ class PdaUtils {
       final seed = seeds[i];
       if (seed.length > 32) {
         throw ArgumentError(
-            'Seed $i is too long: ${seed.length} bytes (max 32)',);
+          'Seed $i is too long: ${seed.length} bytes (max 32)',
+        );
       }
     }
 
@@ -169,11 +173,12 @@ class PdaUtils {
     PublicKey fromPublicKey,
     String seed,
     PublicKey programId,
-  ) => pubkey_utils.PublicKeyUtils.createWithSeedSync(
-      fromPublicKey,
-      seed,
-      programId,
-    );
+  ) =>
+      pubkey_utils.PublicKeyUtils.createWithSeedSync(
+        fromPublicKey,
+        seed,
+        programId,
+      );
 }
 
 /// Address resolution utilities for account management
@@ -313,7 +318,8 @@ class AddressResolver {
       return Uint8List.fromList(value);
     } else {
       throw ArgumentError(
-          'Cannot convert ${value.runtimeType} to bytes for seed',);
+        'Cannot convert ${value.runtimeType} to bytes for seed',
+      );
     }
   }
 }
@@ -335,7 +341,8 @@ class AddressValidator {
   }
 
   /// Validate that an address is a valid PublicKey
-  static bool validatePublicKey(String address) => PublicKey.isValidBase58(address);
+  static bool validatePublicKey(String address) =>
+      PublicKey.isValidBase58(address);
 
   /// Validate account relationships based on IDL specification
   ///

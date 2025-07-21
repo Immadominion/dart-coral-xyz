@@ -11,7 +11,6 @@ import 'package:coral_xyz_anchor/src/event/event_subscription.dart';
 
 /// Event listener that can be paused and resumed
 class PausableEventListener {
-
   PausableEventListener(this._subscription, {int? maxBufferSize})
       : _maxBufferSize = maxBufferSize;
   final EventSubscription _subscription;
@@ -58,7 +57,6 @@ class PausableEventListener {
 
 /// Event listener that batches events for processing
 class BatchedEventListener {
-
   BatchedEventListener({
     required EventSubscription subscription,
     required Duration batchInterval,
@@ -127,7 +125,6 @@ class BatchedEventListener {
 
 /// Event listener that filters events based on custom criteria
 class FilteredEventListener {
-
   FilteredEventListener({
     required EventSubscription subscription,
     required bool Function(ParsedEvent) filter,
@@ -177,7 +174,6 @@ class FilteredEventListener {
 
 /// Event listener that maintains a history of recent events
 class HistoryEventListener {
-
   HistoryEventListener({
     required EventSubscription subscription,
     int maxHistorySize = 1000,
@@ -202,10 +198,12 @@ class HistoryEventListener {
 
   /// Get events from a specific time range
   List<ParsedEvent> getEventsInRange(DateTime start, DateTime end) => _history
-        .where((event) =>
+      .where(
+        (event) =>
             !event.context.blockTime!.isBefore(start) &&
-            !event.context.blockTime!.isAfter(end))
-        .toList();
+            !event.context.blockTime!.isAfter(end),
+      )
+      .toList();
 
   /// Get the last N events
   List<ParsedEvent> getLastEvents(int count) {
@@ -214,7 +212,8 @@ class HistoryEventListener {
   }
 
   /// Search events by name
-  List<ParsedEvent> findEventsByName(String eventName) => _history.where((event) => event.name == eventName).toList();
+  List<ParsedEvent> findEventsByName(String eventName) =>
+      _history.where((event) => event.name == eventName).toList();
 
   /// Clear the event history
   void clearHistory() {
@@ -255,8 +254,10 @@ class EventListenerBuilder {
 
   /// Enable batching with specified interval
   EventListenerBuilder batched(
-      Duration interval, void Function(List<ParsedEvent>) handler,
-      {int maxBatchSize = 100,}) {
+    Duration interval,
+    void Function(List<ParsedEvent>) handler, {
+    int maxBatchSize = 100,
+  }) {
     _batchInterval = interval;
     _batchHandler = handler;
     _maxBatchSize = maxBatchSize;

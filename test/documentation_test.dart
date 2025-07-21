@@ -6,8 +6,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:test/test.dart';
 
 // Exception classes for testing documentation examples
 class AnchorException implements Exception {
@@ -46,26 +47,31 @@ void main() {
         // This test validates the basic Program constructor example
         // from the API reference documentation
 
-        expect(() {
-          // Mock IDL for testing
-          final mockIdl = Idl.fromJson({
-            'address': '11111111111111111111111111111112',
-            'metadata': {
-              'name': 'test_program',
-              'version': '0.1.0',
-              'spec': '0.1.0',
-            },
-            'instructions': <Map<String, dynamic>>[],
-          });
+        expect(
+          () {
+            // Mock IDL for testing
+            final mockIdl = Idl.fromJson({
+              'address': '11111111111111111111111111111112',
+              'metadata': {
+                'name': 'test_program',
+                'version': '0.1.0',
+                'spec': '0.1.0',
+              },
+              'instructions': <Map<String, dynamic>>[],
+            });
 
-          // This should not throw during construction
-          final program = Program(mockIdl);
+            // This should not throw during construction
+            final program = Program(mockIdl);
 
-          // Verify the program was created correctly
-          expect(program.programId.toBase58(),
-              equals('11111111111111111111111111111112'),);
-          expect(program.idl.metadata?.name, equals('test_program'));
-        }, returnsNormally,);
+            // Verify the program was created correctly
+            expect(
+              program.programId.toBase58(),
+              equals('11111111111111111111111111111112'),
+            );
+            expect(program.idl.metadata?.name, equals('test_program'));
+          },
+          returnsNormally,
+        );
       });
 
       test('PublicKey examples compile', () {
@@ -103,10 +109,13 @@ void main() {
         // Test with custom config
         final connectionWithConfig = Connection(
           'https://api.devnet.solana.com',
-          config: const ConnectionConfig(rpcUrl: 'https://api.devnet.solana.com'),
+          config:
+              const ConnectionConfig(rpcUrl: 'https://api.devnet.solana.com'),
         );
-        expect(connectionWithConfig.rpcUrl,
-            equals('https://api.devnet.solana.com'),);
+        expect(
+          connectionWithConfig.rpcUrl,
+          equals('https://api.devnet.solana.com'),
+        );
       });
 
       test('AnchorProvider examples compile', () async {
@@ -154,8 +163,10 @@ void main() {
 
         final program = Program(mockIdl, provider: provider);
 
-        expect(program.programId.toBase58(),
-            equals('Counter111111111111111111111111111111111111'),);
+        expect(
+          program.programId.toBase58(),
+          equals('Counter111111111111111111111111111111111111'),
+        );
         expect(program.provider, equals(provider));
       });
 
@@ -249,45 +260,63 @@ void main() {
         };
 
         // This should parse without errors
-        expect(() {
-          final idl = Idl.fromJson(counterIdl);
-          expect(idl.metadata?.name, equals('counter'));
-          expect(idl.instructions.length, equals(1));
-          expect(idl.instructions.first.name, equals('initialize'));
-          expect(idl.accounts?.length, equals(1));
-          expect(idl.accounts?.first.name, equals('counter'));
-        }, returnsNormally,);
+        expect(
+          () {
+            final idl = Idl.fromJson(counterIdl);
+            expect(idl.metadata?.name, equals('counter'));
+            expect(idl.instructions.length, equals(1));
+            expect(idl.instructions.first.name, equals('initialize'));
+            expect(idl.accounts?.length, equals(1));
+            expect(idl.accounts?.first.name, equals('counter'));
+          },
+          returnsNormally,
+        );
       });
 
       test('error handling patterns compile', () {
         // Test error handling examples from documentation
 
-        expect(() {
-          try {
-            // This should throw
-            throw TypesCoderException('Test error');
-          } on AnchorException catch (e) {
-            expect(e.message, equals('Test error'));
-            expect(e, isA<AnchorException>());
-          }
-        }, returnsNormally,);
+        expect(
+          () {
+            try {
+              // This should throw
+              throw TypesCoderException('Test error');
+            } on AnchorException catch (e) {
+              expect(e.message, equals('Test error'));
+              expect(e, isA<AnchorException>());
+            }
+          },
+          returnsNormally,
+        );
 
         // Test specific exception types
-        expect(() {
-          throw InstructionCoderException('Instruction error');
-        }, throwsA(isA<InstructionCoderException>()),);
+        expect(
+          () {
+            throw InstructionCoderException('Instruction error');
+          },
+          throwsA(isA<InstructionCoderException>()),
+        );
 
-        expect(() {
-          throw AccountCoderException('Account error');
-        }, throwsA(isA<AccountCoderException>()),);
+        expect(
+          () {
+            throw AccountCoderException('Account error');
+          },
+          throwsA(isA<AccountCoderException>()),
+        );
 
-        expect(() {
-          throw EventCoderException('Event error');
-        }, throwsA(isA<EventCoderException>()),);
+        expect(
+          () {
+            throw EventCoderException('Event error');
+          },
+          throwsA(isA<EventCoderException>()),
+        );
 
-        expect(() {
-          throw TypesCoderException('Types error');
-        }, throwsA(isA<TypesCoderException>()),);
+        expect(
+          () {
+            throw TypesCoderException('Types error');
+          },
+          throwsA(isA<TypesCoderException>()),
+        );
       });
     });
 
@@ -339,11 +368,14 @@ void main() {
           'types': <Map<String, dynamic>>[],
         };
 
-        expect(() {
-          final idl = Idl.fromJson(complexIdl);
-          expect(idl.instructions.length, equals(1));
-          expect(idl.instructions.first.name, equals('processData'));
-        }, returnsNormally,);
+        expect(
+          () {
+            final idl = Idl.fromJson(complexIdl);
+            expect(idl.instructions.length, equals(1));
+            expect(idl.instructions.first.name, equals('processData'));
+          },
+          returnsNormally,
+        );
       });
     });
   });
@@ -378,7 +410,7 @@ void main() {
       // Test that common patterns used in examples work consistently
 
       // Pattern 1: Basic program setup
-      setupPattern() async {
+      Future<Program<Idl>> setupPattern() async {
         final connection = Connection('https://api.devnet.solana.com');
         final keypair = await Keypair.generate();
         final wallet = KeypairWallet(keypair);
@@ -396,7 +428,7 @@ void main() {
       expect(setupPattern, returnsNormally);
 
       // Pattern 2: Key generation
-      keyPattern() async {
+      Future<bool> keyPattern() async {
         final keypair = await Keypair.generate();
         final publicKey = keypair.publicKey;
         final base58 = publicKey.toBase58();
@@ -407,7 +439,7 @@ void main() {
       expect(await keyPattern(), isTrue);
 
       // Pattern 3: IDL type construction
-      typePattern() {
+      bool typePattern() {
         final simpleType = const IdlType(kind: 'u64');
         final complexType = const IdlType(
           kind: 'vec',

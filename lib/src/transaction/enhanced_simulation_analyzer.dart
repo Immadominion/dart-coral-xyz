@@ -6,10 +6,10 @@ import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
 /// Enhanced simulation analyzer providing comprehensive analysis,
 /// optimization recommendations, and debugging capabilities
 class EnhancedSimulationAnalyzer {
-
   EnhancedSimulationAnalyzer({
     this.config = const AnalysisConfig(),
   });
+
   /// Cache for analysis results
   final Map<String, AnalysisResult> _analysisCache = {};
 
@@ -45,7 +45,10 @@ class EnhancedSimulationAnalyzer {
 
       // Generate optimization recommendations
       final optimizations = await _generateOptimizations(
-          simulation, computeAnalysis, accountAnalysis,);
+        simulation,
+        computeAnalysis,
+        accountAnalysis,
+      );
 
       // Analyze potential issues and risks
       final issueAnalysis = await _analyzeIssues(simulation);
@@ -150,11 +153,13 @@ class EnhancedSimulationAnalyzer {
                 'batch_${entry.key}_${DateTime.now().millisecondsSinceEpoch}',
           );
         } catch (e) {
-          errors.add(BatchAnalysisError(
-            index: entry.key,
-            simulation: entry.value,
-            error: e.toString(),
-          ),);
+          errors.add(
+            BatchAnalysisError(
+              index: entry.key,
+              simulation: entry.value,
+              error: e.toString(),
+            ),
+          );
           return null;
         }
       });
@@ -171,11 +176,13 @@ class EnhancedSimulationAnalyzer {
           );
           analyses.add(analysis);
         } catch (e) {
-          errors.add(BatchAnalysisError(
-            index: i,
-            simulation: simulations[i],
-            error: e.toString(),
-          ),);
+          errors.add(
+            BatchAnalysisError(
+              index: i,
+              simulation: simulations[i],
+              error: e.toString(),
+            ),
+          );
         }
       }
     }
@@ -217,16 +224,17 @@ class EnhancedSimulationAnalyzer {
 
   /// Get cache statistics
   CacheStatistics getCacheStatistics() => CacheStatistics(
-      size: _analysisCache.length,
-      hits: statistics.cacheHits,
-      misses: statistics.analysisCount - statistics.cacheHits,
-      hitRate: statistics.cacheHits / math.max(1, statistics.analysisCount),
-    );
+        size: _analysisCache.length,
+        hits: statistics.cacheHits,
+        misses: statistics.analysisCount - statistics.cacheHits,
+        hitRate: statistics.cacheHits / math.max(1, statistics.analysisCount),
+      );
 
   // Private analysis methods
 
   Future<ComputeAnalysis> _analyzeComputeUnits(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     final consumedUnits = simulation.unitsConsumed ?? 0;
     final efficiency = _calculateComputeEfficiency(consumedUnits, simulation);
 
@@ -240,7 +248,8 @@ class EnhancedSimulationAnalyzer {
   }
 
   Future<AccountAnalysis> _analyzeAccountAccess(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     final accountsData = simulation.accounts ?? <String, dynamic>{};
     final accountsList = accountsData.values.toList();
     final accessPatterns = <AccountAccessPattern>[];
@@ -282,38 +291,42 @@ class EnhancedSimulationAnalyzer {
 
     // Compute unit optimizations
     if (computeAnalysis.efficiency < 0.7) {
-      recommendations.add(OptimizationRecommendation(
-        type: OptimizationType.computeUnits,
-        priority: Priority.high,
-        title: 'High Compute Unit Usage',
-        description:
-            'Transaction uses ${computeAnalysis.unitsConsumed} compute units. Consider optimizing instruction logic.',
-        impact: OptimizationImpact.medium,
-        effort: OptimizationEffort.medium,
-        suggestedActions: [
-          'Review instruction complexity',
-          'Consider breaking into smaller transactions',
-          'Optimize account access patterns',
-        ],
-      ),);
+      recommendations.add(
+        OptimizationRecommendation(
+          type: OptimizationType.computeUnits,
+          priority: Priority.high,
+          title: 'High Compute Unit Usage',
+          description:
+              'Transaction uses ${computeAnalysis.unitsConsumed} compute units. Consider optimizing instruction logic.',
+          impact: OptimizationImpact.medium,
+          effort: OptimizationEffort.medium,
+          suggestedActions: [
+            'Review instruction complexity',
+            'Consider breaking into smaller transactions',
+            'Optimize account access patterns',
+          ],
+        ),
+      );
     }
 
     // Account optimization
     if (accountAnalysis.totalAccounts > 20) {
-      recommendations.add(OptimizationRecommendation(
-        type: OptimizationType.accounts,
-        priority: Priority.medium,
-        title: 'Many Account Accesses',
-        description:
-            'Transaction accesses ${accountAnalysis.totalAccounts} accounts. Consider reducing account dependencies.',
-        impact: OptimizationImpact.low,
-        effort: OptimizationEffort.high,
-        suggestedActions: [
-          'Combine related accounts',
-          'Use PDAs to reduce account count',
-          'Consider account lookup tables',
-        ],
-      ),);
+      recommendations.add(
+        OptimizationRecommendation(
+          type: OptimizationType.accounts,
+          priority: Priority.medium,
+          title: 'Many Account Accesses',
+          description:
+              'Transaction accesses ${accountAnalysis.totalAccounts} accounts. Consider reducing account dependencies.',
+          impact: OptimizationImpact.low,
+          effort: OptimizationEffort.high,
+          suggestedActions: [
+            'Combine related accounts',
+            'Use PDAs to reduce account count',
+            'Consider account lookup tables',
+          ],
+        ),
+      );
     }
 
     // Add more optimization logic based on simulation analysis
@@ -324,29 +337,34 @@ class EnhancedSimulationAnalyzer {
   }
 
   Future<IssueAnalysis> _analyzeIssues(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     final issues = <SimulationIssue>[];
     final warnings = <SimulationWarning>[];
 
     // Check for common issues
     if (simulation.error != null) {
-      issues.add(SimulationIssue(
-        type: IssueType.simulationError,
-        severity: IssueSeverity.critical,
-        message: simulation.error!.type,
-        details: simulation.error!.details?.toString(),
-        suggestedFix: 'Review transaction parameters and account states',
-      ),);
+      issues.add(
+        SimulationIssue(
+          type: IssueType.simulationError,
+          severity: IssueSeverity.critical,
+          message: simulation.error!.type,
+          details: simulation.error!.details?.toString(),
+          suggestedFix: 'Review transaction parameters and account states',
+        ),
+      );
     }
 
     // Check for high compute usage
     final computeUnits = simulation.unitsConsumed ?? 0;
     if (computeUnits > 1000000) {
-      warnings.add(SimulationWarning(
-        type: WarningType.highComputeUsage,
-        message: 'High compute unit usage: $computeUnits units',
-        recommendation: 'Consider optimizing transaction complexity',
-      ),);
+      warnings.add(
+        SimulationWarning(
+          type: WarningType.highComputeUsage,
+          message: 'High compute unit usage: $computeUnits units',
+          recommendation: 'Consider optimizing transaction complexity',
+        ),
+      );
     }
 
     // Check for potential account conflicts
@@ -359,12 +377,14 @@ class EnhancedSimulationAnalyzer {
       return false;
     }).toList();
     if (writableAccounts.length > 10) {
-      warnings.add(SimulationWarning(
-        type: WarningType.manyWritableAccounts,
-        message:
-            '${writableAccounts.length} writable accounts may cause conflicts',
-        recommendation: 'Review if all writable access is necessary',
-      ),);
+      warnings.add(
+        SimulationWarning(
+          type: WarningType.manyWritableAccounts,
+          message:
+              '${writableAccounts.length} writable accounts may cause conflicts',
+          recommendation: 'Review if all writable access is necessary',
+        ),
+      );
     }
 
     return IssueAnalysis(
@@ -375,7 +395,8 @@ class EnhancedSimulationAnalyzer {
   }
 
   Future<PerformanceMetrics> _analyzePerformance(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     final logs = simulation.logs;
     final accountsData = simulation.accounts ?? <String, dynamic>{};
 
@@ -390,7 +411,8 @@ class EnhancedSimulationAnalyzer {
   }
 
   Future<CpiAnalysis> _analyzeCpiPatterns(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     final logs = simulation.logs;
     final cpiCalls = <CpiCall>[];
     final programStack = <String>[];
@@ -404,12 +426,14 @@ class EnhancedSimulationAnalyzer {
           final programId = match.group(1)!;
           final depth = int.parse(match.group(2)!);
 
-          cpiCalls.add(CpiCall(
-            programId: programId,
-            depth: depth,
-            timestamp: DateTime.now(),
-            callType: CpiCallType.invoke,
-          ),);
+          cpiCalls.add(
+            CpiCall(
+              programId: programId,
+              depth: depth,
+              timestamp: DateTime.now(),
+              callType: CpiCallType.invoke,
+            ),
+          );
 
           if (depth <= programStack.length) {
             programStack.removeRange(depth, programStack.length);
@@ -433,7 +457,9 @@ class EnhancedSimulationAnalyzer {
   // Helper methods for analysis
 
   double _calculateComputeEfficiency(
-      int unitsConsumed, TransactionSimulationResult simulation,) {
+    int unitsConsumed,
+    TransactionSimulationResult simulation,
+  ) {
     // Simple efficiency calculation - can be enhanced based on transaction complexity
     const maxUnits = 1400000; // Current transaction limit
     return 1.0 - (unitsConsumed / maxUnits);
@@ -446,7 +472,8 @@ class EnhancedSimulationAnalyzer {
   }
 
   Future<ComputeBreakdown> _getComputeBreakdown(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     // Analyze logs to break down compute unit usage
     // This is a simplified implementation
     return ComputeBreakdown(
@@ -457,7 +484,9 @@ class EnhancedSimulationAnalyzer {
   }
 
   List<String> _getComputeRecommendations(
-      int unitsConsumed, double efficiency,) {
+    int unitsConsumed,
+    double efficiency,
+  ) {
     final recommendations = <String>[];
 
     if (efficiency < 0.5) {
@@ -500,7 +529,8 @@ class EnhancedSimulationAnalyzer {
   }
 
   List<AccountOptimization> _identifyAccountOptimizations(
-      List<AccountAccessPattern> patterns,) {
+    List<AccountAccessPattern> patterns,
+  ) {
     final optimizations = <AccountOptimization>[];
 
     // Check for redundant readonly accounts
@@ -508,31 +538,37 @@ class EnhancedSimulationAnalyzer {
         .where((p) => p.accessType == AccountAccessType.readonly)
         .toList();
     if (readonlyAccounts.length > 15) {
-      optimizations.add(const AccountOptimization(
-        type: 'reduce_readonly_accounts',
-        description:
-            'Consider using account lookup tables for readonly accounts',
-        impact: 'Reduces transaction size and improves processing speed',
-      ),);
+      optimizations.add(
+        const AccountOptimization(
+          type: 'reduce_readonly_accounts',
+          description:
+              'Consider using account lookup tables for readonly accounts',
+          impact: 'Reduces transaction size and improves processing speed',
+        ),
+      );
     }
 
     return optimizations;
   }
 
   Future<List<OptimizationRecommendation>> _analyzeTransactionStructure(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     // Analyze transaction structure for optimization opportunities
     return [];
   }
 
   Future<List<OptimizationRecommendation>> _analyzeFeeOptimizations(
-      TransactionSimulationResult simulation,) async {
+    TransactionSimulationResult simulation,
+  ) async {
     // Analyze fee optimization opportunities
     return [];
   }
 
   RiskLevel _calculateOverallRisk(
-      List<SimulationIssue> issues, List<SimulationWarning> warnings,) {
+    List<SimulationIssue> issues,
+    List<SimulationWarning> warnings,
+  ) {
     if (issues.any((i) => i.severity == IssueSeverity.critical)) {
       return RiskLevel.high;
     } else if (issues.isNotEmpty || warnings.length > 3) {
@@ -588,7 +624,10 @@ class EnhancedSimulationAnalyzer {
   }
 
   SimulationComparison _compareAnalyses(
-      AnalysisResult baseline, AnalysisResult comparison, int index,) {
+    AnalysisResult baseline,
+    AnalysisResult comparison,
+    int index,
+  ) {
     final computeDiff = comparison.computeAnalysis.unitsConsumed -
         baseline.computeAnalysis.unitsConsumed;
     final accountDiff = comparison.accountAnalysis.totalAccounts -
@@ -606,7 +645,9 @@ class EnhancedSimulationAnalyzer {
   }
 
   ComparisonSummary _generateComparisonSummary(
-      AnalysisResult baseline, List<SimulationComparison> comparisons,) {
+    AnalysisResult baseline,
+    List<SimulationComparison> comparisons,
+  ) {
     if (comparisons.isEmpty) {
       return const ComparisonSummary(
         bestPerforming: 0,
@@ -632,7 +673,9 @@ class EnhancedSimulationAnalyzer {
   }
 
   double _calculatePerformanceImprovement(
-      AnalysisResult baseline, AnalysisResult comparison,) {
+    AnalysisResult baseline,
+    AnalysisResult comparison,
+  ) {
     // Calculate improvement as a percentage
     final baselineScore = baseline.performanceMetrics.throughputScore;
     final comparisonScore = comparison.performanceMetrics.throughputScore;
@@ -642,21 +685,25 @@ class EnhancedSimulationAnalyzer {
   }
 
   List<String> _identifySignificantChanges(
-      AnalysisResult baseline, AnalysisResult comparison,) {
+    AnalysisResult baseline,
+    AnalysisResult comparison,
+  ) {
     final changes = <String>[];
 
     final computeDiff = comparison.computeAnalysis.unitsConsumed -
         baseline.computeAnalysis.unitsConsumed;
     if (computeDiff.abs() > 10000) {
       changes.add(
-          'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}',);
+        'Compute units ${computeDiff > 0 ? 'increased' : 'decreased'} by ${computeDiff.abs()}',
+      );
     }
 
     final accountDiff = comparison.accountAnalysis.totalAccounts -
         baseline.accountAnalysis.totalAccounts;
     if (accountDiff != 0) {
       changes.add(
-          'Account count ${accountDiff > 0 ? 'increased' : 'decreased'} by ${accountDiff.abs()}',);
+        'Account count ${accountDiff > 0 ? 'increased' : 'decreased'} by ${accountDiff.abs()}',
+      );
     }
 
     return changes;
@@ -694,8 +741,9 @@ class EnhancedSimulationAnalyzer {
     }
 
     final commonOptimizations = optimizationCounts.entries
-        .where((e) =>
-            e.value > analyses.length * 0.5,) // Appears in >50% of analyses
+        .where(
+          (e) => e.value > analyses.length * 0.5,
+        ) // Appears in >50% of analyses
         .map((e) => e.key)
         .toList();
 
@@ -714,13 +762,16 @@ class EnhancedSimulationAnalyzer {
     final highComputeAnalyses =
         analyses.where((a) => a.computeAnalysis.unitsConsumed > 800000).length;
     if (highComputeAnalyses > analyses.length * 0.7) {
-      patterns.add(AnalysisPattern(
-        type: 'high_compute_usage',
-        description: 'Consistently high compute unit usage across transactions',
-        frequency: highComputeAnalyses / analyses.length,
-        recommendation:
-            'Review transaction complexity and consider optimization',
-      ),);
+      patterns.add(
+        AnalysisPattern(
+          type: 'high_compute_usage',
+          description:
+              'Consistently high compute unit usage across transactions',
+          frequency: highComputeAnalyses / analyses.length,
+          recommendation:
+              'Review transaction complexity and consider optimization',
+        ),
+      );
     }
 
     return patterns;
@@ -743,12 +794,14 @@ class EnhancedSimulationAnalyzer {
         'signerAccounts': analysis.accountAnalysis.signerAccounts,
       },
       'optimizationRecommendations': analysis.optimizationRecommendations
-          .map((r) => {
-                'type': r.type.toString(),
-                'priority': r.priority.toString(),
-                'title': r.title,
-                'description': r.description,
-              },)
+          .map(
+            (r) => {
+              'type': r.type.toString(),
+              'priority': r.priority.toString(),
+              'title': r.title,
+              'description': r.description,
+            },
+          )
           .toList(),
       'issueAnalysis': {
         'issues': analysis.issueAnalysis.issues.length,
@@ -786,7 +839,9 @@ class EnhancedSimulationAnalyzer {
   }
 
   ExportResult _exportToMarkdown(
-      AnalysisResult analysis, ExportOptions options,) {
+    AnalysisResult analysis,
+    ExportOptions options,
+  ) {
     final md = StringBuffer();
     md.writeln('# Simulation Analysis Report');
     md.writeln();
@@ -795,19 +850,25 @@ class EnhancedSimulationAnalyzer {
     md.writeln();
     md.writeln('## Compute Analysis');
     md.writeln(
-        '- **Units Consumed:** ${analysis.computeAnalysis.unitsConsumed}',);
+      '- **Units Consumed:** ${analysis.computeAnalysis.unitsConsumed}',
+    );
     md.writeln(
-        '- **Estimated Fee:** ${analysis.computeAnalysis.estimatedFee} lamports',);
+      '- **Estimated Fee:** ${analysis.computeAnalysis.estimatedFee} lamports',
+    );
     md.writeln(
-        '- **Efficiency:** ${(analysis.computeAnalysis.efficiency * 100).toStringAsFixed(1)}%',);
+      '- **Efficiency:** ${(analysis.computeAnalysis.efficiency * 100).toStringAsFixed(1)}%',
+    );
     md.writeln();
     md.writeln('## Account Analysis');
     md.writeln(
-        '- **Total Accounts:** ${analysis.accountAnalysis.totalAccounts}',);
+      '- **Total Accounts:** ${analysis.accountAnalysis.totalAccounts}',
+    );
     md.writeln(
-        '- **Writable Accounts:** ${analysis.accountAnalysis.writableAccounts}',);
+      '- **Writable Accounts:** ${analysis.accountAnalysis.writableAccounts}',
+    );
     md.writeln(
-        '- **Signer Accounts:** ${analysis.accountAnalysis.signerAccounts}',);
+      '- **Signer Accounts:** ${analysis.accountAnalysis.signerAccounts}',
+    );
     md.writeln();
 
     if (analysis.optimizationRecommendations.isNotEmpty) {
@@ -832,20 +893,26 @@ class EnhancedSimulationAnalyzer {
     final html = StringBuffer();
     html.writeln('<!DOCTYPE html>');
     html.writeln(
-        '<html><head><title>Simulation Analysis Report</title></head><body>',);
+      '<html><head><title>Simulation Analysis Report</title></head><body>',
+    );
     html.writeln('<h1>Simulation Analysis Report</h1>');
     html.writeln(
-        '<p><strong>Simulation ID:</strong> ${analysis.simulationId}</p>',);
+      '<p><strong>Simulation ID:</strong> ${analysis.simulationId}</p>',
+    );
     html.writeln(
-        '<p><strong>Timestamp:</strong> ${analysis.timestamp.toIso8601String()}</p>',);
+      '<p><strong>Timestamp:</strong> ${analysis.timestamp.toIso8601String()}</p>',
+    );
     html.writeln('<h2>Compute Analysis</h2>');
     html.writeln('<ul>');
     html.writeln(
-        '<li><strong>Units Consumed:</strong> ${analysis.computeAnalysis.unitsConsumed}</li>',);
+      '<li><strong>Units Consumed:</strong> ${analysis.computeAnalysis.unitsConsumed}</li>',
+    );
     html.writeln(
-        '<li><strong>Estimated Fee:</strong> ${analysis.computeAnalysis.estimatedFee} lamports</li>',);
+      '<li><strong>Estimated Fee:</strong> ${analysis.computeAnalysis.estimatedFee} lamports</li>',
+    );
     html.writeln(
-        '<li><strong>Efficiency:</strong> ${(analysis.computeAnalysis.efficiency * 100).toStringAsFixed(1)}%</li>',);
+      '<li><strong>Efficiency:</strong> ${(analysis.computeAnalysis.efficiency * 100).toStringAsFixed(1)}%</li>',
+    );
     html.writeln('</ul>');
     html.writeln('</body></html>');
 
@@ -862,7 +929,6 @@ class EnhancedSimulationAnalyzer {
 
 /// Configuration for enhanced simulation analysis
 class AnalysisConfig {
-
   const AnalysisConfig({
     this.enableCaching = true,
     this.maxCacheSize = 100,
@@ -877,7 +943,6 @@ class AnalysisConfig {
 
 /// Options for analysis operations
 class AnalysisOptions {
-
   const AnalysisOptions({
     this.includeOptimizations = true,
     this.includeIssueAnalysis = true,
@@ -894,7 +959,6 @@ class AnalysisOptions {
 
 /// Options for comparison operations
 class ComparisonOptions {
-
   const ComparisonOptions({
     this.includeDetailedDiff = true,
     this.highlightSignificantChanges = true,
@@ -909,7 +973,6 @@ class ComparisonOptions {
 
 /// Options for batch analysis
 class BatchAnalysisOptions {
-
   const BatchAnalysisOptions({
     this.parallel = true,
     this.maxConcurrency = 4,
@@ -926,7 +989,6 @@ class BatchAnalysisOptions {
 
 /// Options for export operations
 class ExportOptions {
-
   const ExportOptions({
     this.includeRawData = false,
     this.prettyFormat = true,
@@ -943,7 +1005,6 @@ class ExportOptions {
 
 /// Complete analysis result
 class AnalysisResult {
-
   const AnalysisResult({
     required this.simulationId,
     required this.timestamp,
@@ -970,7 +1031,6 @@ class AnalysisResult {
 
 /// Compute unit analysis
 class ComputeAnalysis {
-
   const ComputeAnalysis({
     required this.unitsConsumed,
     required this.estimatedFee,
@@ -987,7 +1047,6 @@ class ComputeAnalysis {
 
 /// Detailed compute unit breakdown
 class ComputeBreakdown {
-
   const ComputeBreakdown({
     required this.instructionCost,
     required this.accountAccess,
@@ -1000,7 +1059,6 @@ class ComputeBreakdown {
 
 /// Account access analysis
 class AccountAnalysis {
-
   const AccountAnalysis({
     required this.totalAccounts,
     required this.writableAccounts,
@@ -1017,14 +1075,13 @@ class AccountAnalysis {
 
 /// Account access pattern
 class AccountAccessPattern {
-
   const AccountAccessPattern({
     required this.publicKey,
     required this.isWritable,
     required this.isSigner,
-    this.dataSize,
     required this.accessType,
     required this.recommendations,
+    this.dataSize,
   });
   final String publicKey;
   final bool isWritable;
@@ -1036,7 +1093,6 @@ class AccountAccessPattern {
 
 /// Account optimization suggestion
 class AccountOptimization {
-
   const AccountOptimization({
     required this.type,
     required this.description,
@@ -1049,7 +1105,6 @@ class AccountOptimization {
 
 /// Optimization recommendation
 class OptimizationRecommendation {
-
   const OptimizationRecommendation({
     required this.type,
     required this.priority,
@@ -1070,7 +1125,6 @@ class OptimizationRecommendation {
 
 /// Issue analysis
 class IssueAnalysis {
-
   const IssueAnalysis({
     required this.issues,
     required this.warnings,
@@ -1083,7 +1137,6 @@ class IssueAnalysis {
 
 /// Simulation issue
 class SimulationIssue {
-
   const SimulationIssue({
     required this.type,
     required this.severity,
@@ -1100,7 +1153,6 @@ class SimulationIssue {
 
 /// Simulation warning
 class SimulationWarning {
-
   const SimulationWarning({
     required this.type,
     required this.message,
@@ -1113,7 +1165,6 @@ class SimulationWarning {
 
 /// Performance metrics
 class PerformanceMetrics {
-
   const PerformanceMetrics({
     required this.computeUnitsUsed,
     required this.logCount,
@@ -1132,7 +1183,6 @@ class PerformanceMetrics {
 
 /// CPI analysis
 class CpiAnalysis {
-
   const CpiAnalysis({
     required this.totalCpiCalls,
     required this.maxDepth,
@@ -1149,7 +1199,6 @@ class CpiAnalysis {
 
 /// CPI call information
 class CpiCall {
-
   const CpiCall({
     required this.programId,
     required this.depth,
@@ -1164,7 +1213,6 @@ class CpiCall {
 
 /// Comparison result
 class ComparisonResult {
-
   const ComparisonResult({
     required this.baseline,
     required this.comparisons,
@@ -1179,7 +1227,6 @@ class ComparisonResult {
 
 /// Simulation comparison
 class SimulationComparison {
-
   const SimulationComparison({
     required this.index,
     required this.analysis,
@@ -1198,7 +1245,6 @@ class SimulationComparison {
 
 /// Comparison summary
 class ComparisonSummary {
-
   const ComparisonSummary({
     required this.bestPerforming,
     required this.worstPerforming,
@@ -1213,7 +1259,6 @@ class ComparisonSummary {
 
 /// Batch analysis result
 class BatchAnalysisResult {
-
   const BatchAnalysisResult({
     required this.analyses,
     required this.errors,
@@ -1230,7 +1275,6 @@ class BatchAnalysisResult {
 
 /// Batch analysis error
 class BatchAnalysisError {
-
   const BatchAnalysisError({
     required this.index,
     required this.simulation,
@@ -1243,7 +1287,6 @@ class BatchAnalysisError {
 
 /// Aggregated metrics
 class AggregatedMetrics {
-
   const AggregatedMetrics({
     required this.averageComputeUnits,
     required this.averageAccountCount,
@@ -1258,7 +1301,6 @@ class AggregatedMetrics {
 
 /// Analysis pattern
 class AnalysisPattern {
-
   const AnalysisPattern({
     required this.type,
     required this.description,
@@ -1273,7 +1315,6 @@ class AnalysisPattern {
 
 /// Export result
 class ExportResult {
-
   const ExportResult({
     required this.format,
     required this.data,
@@ -1288,7 +1329,6 @@ class ExportResult {
 
 /// Cache statistics
 class CacheStatistics {
-
   const CacheStatistics({
     required this.size,
     required this.hits,

@@ -203,7 +203,8 @@ Future<void> fetchProgramFromNetwork() async {
   if (programFromNetwork != null) {
     print('  ✓ Successfully fetched program from network');
     print(
-        '  ✓ Program name: ${programFromNetwork.idl.metadata?.name ?? "Unknown"}',);
+      '  ✓ Program name: ${programFromNetwork.idl.metadata?.name ?? "Unknown"}',
+    );
   } else {
     print('  ⚠️  Program IDL not found on network (expected for this example)');
     print('  ℹ️  In production, use `anchor idl init` to deploy IDL');
@@ -229,7 +230,8 @@ Future<void> demonstrateAccountManagement() async {
   final userKeypair = await Keypair.generate();
 
   print(
-      '  ✓ Generated counter account: ${counterKeypair.publicKey.toBase58()}',);
+    '  ✓ Generated counter account: ${counterKeypair.publicKey.toBase58()}',
+  );
   print('  ✓ Generated user account: ${userKeypair.publicKey.toBase58()}');
 
   // Calculate account size
@@ -243,7 +245,8 @@ Future<void> demonstrateAccountManagement() async {
     //   counterKeypair.publicKey,
     // );
     print(
-        '  ℹ️  Account fetching requires deployed program and existing accounts',);
+      '  ℹ️  Account fetching requires deployed program and existing accounts',
+    );
   } catch (e) {
     print('  ⚠️  Account not found (expected for this example)');
   }
@@ -334,7 +337,8 @@ Future<void> demonstrateTransactionPatterns() async {
     // await transaction.sign([userKeypair]);
     // final signature = await connection.sendTransaction(transaction);
     print(
-        '    ℹ️  Transaction building allows for complex multi-instruction txs',);
+      '    ℹ️  Transaction building allows for complex multi-instruction txs',
+    );
   } catch (e) {
     print('    ⚠️  Expected error for demo');
   }
@@ -369,7 +373,8 @@ Future<void> demonstrateEventHandling() async {
   final idl = Idl.fromJson(counterIdl);
   final program = Program(idl);
   print(
-      '  ✓ Created program for event handling: ${program.programId.toBase58()}',);
+    '  ✓ Created program for event handling: ${program.programId.toBase58()}',
+  );
 
   // Note: Event handling would require actual event infrastructure
   print('  📡 Setting up event listeners...');
@@ -404,7 +409,8 @@ Future<void> demonstrateErrorHandling() async {
   final idl = Idl.fromJson(counterIdl);
   final program = Program(idl);
   print(
-      '  ✓ Program loaded for error handling tests: ${program.programId.toBase58()}',);
+    '  ✓ Program loaded for error handling tests: ${program.programId.toBase58()}',
+  );
 
   // Error handling patterns
   print('  🛡️  Error handling patterns...');
@@ -453,7 +459,6 @@ Future<void> demonstrateErrorHandling() async {
 
 /// Utility class to demonstrate advanced patterns
 class CounterManager {
-
   CounterManager(this.program, this.authority);
   final Program program;
   final Keypair authority;

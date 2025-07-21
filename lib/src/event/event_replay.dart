@@ -15,7 +15,6 @@ import 'package:coral_xyz_anchor/src/event/event_parser.dart';
 
 /// Service for replaying historical events
 class EventReplayService {
-
   EventReplayService({
     required this.provider,
     required this.programId,
@@ -71,7 +70,8 @@ class EventReplayService {
             signature: signature,
             blockTime: transaction.blockTime != null
                 ? DateTime.fromMillisecondsSinceEpoch(
-                    transaction.blockTime! * 1000,)
+                    transaction.blockTime! * 1000,
+                  )
                 : null,
           );
 
@@ -246,7 +246,9 @@ class EventReplayService {
 
   /// Check if a transaction involves our program
   bool _transactionInvolvesProgram(
-      TransactionDetail transaction, PublicKey programId,) {
+    TransactionDetail transaction,
+    PublicKey programId,
+  ) {
     // Check if any instruction in the transaction calls our program
     final instructions = transaction.transaction?.message?.instructions ?? [];
 
@@ -262,7 +264,6 @@ class EventReplayService {
 
 /// Simplified transaction detail structure for replay
 class TransactionDetail {
-
   TransactionDetail({
     this.slot,
     this.blockTime,
@@ -277,21 +278,18 @@ class TransactionDetail {
 
 /// Transaction information
 class TransactionInfo {
-
   TransactionInfo({this.message});
   final TransactionMessage? message;
 }
 
 /// Transaction message
 class TransactionMessage {
-
   TransactionMessage({required this.instructions});
   final List<InstructionInfo> instructions;
 }
 
 /// Instruction information
 class InstructionInfo {
-
   InstructionInfo({
     required this.programId,
     required this.accounts,
@@ -304,7 +302,6 @@ class InstructionInfo {
 
 /// Transaction metadata
 class TransactionMeta {
-
   TransactionMeta({
     this.err,
     this.logMessages,
@@ -315,7 +312,6 @@ class TransactionMeta {
 
 /// Event replay statistics
 class ReplayStatistics {
-
   const ReplayStatistics({
     required this.slotsProcessed,
     required this.transactionsProcessed,
@@ -334,12 +330,13 @@ class ReplayStatistics {
   final DateTime endTime;
 
   /// Events per second rate
-  double get eventsPerSecond => totalTime.inSeconds > 0 ? eventsFound / totalTime.inSeconds : 0.0;
+  double get eventsPerSecond =>
+      totalTime.inSeconds > 0 ? eventsFound / totalTime.inSeconds : 0.0;
 
   /// Transactions per second rate
   double get transactionsPerSecond => totalTime.inSeconds > 0
-        ? transactionsProcessed / totalTime.inSeconds
-        : 0.0;
+      ? transactionsProcessed / totalTime.inSeconds
+      : 0.0;
 
   /// Filter efficiency (percentage of events that passed filtering)
   double get filterEfficiency {
@@ -348,19 +345,19 @@ class ReplayStatistics {
   }
 
   @override
-  String toString() => 'ReplayStats(slots: $slotsProcessed, txns: $transactionsProcessed, '
-        'events: $eventsFound, time: ${totalTime.inSeconds}s)';
+  String toString() =>
+      'ReplayStats(slots: $slotsProcessed, txns: $transactionsProcessed, '
+      'events: $eventsFound, time: ${totalTime.inSeconds}s)';
 }
 
 /// Event replay progress information
 class ReplayProgress {
-
   const ReplayProgress({
     required this.currentSlot,
-    this.endSlot,
     required this.eventsFound,
     required this.transactionsProcessed,
     required this.progressPercent,
+    this.endSlot,
   });
   final int currentSlot;
   final int? endSlot;
@@ -370,18 +367,17 @@ class ReplayProgress {
 
   @override
   String toString() => 'Progress: ${progressPercent.toStringAsFixed(1)}% '
-        '(slot $currentSlot${endSlot != null ? '/$endSlot' : ''}, '
-        'events: $eventsFound)';
+      '(slot $currentSlot${endSlot != null ? '/$endSlot' : ''}, '
+      'events: $eventsFound)';
 }
 
 /// Advanced replay service with progress tracking and statistics
 class AdvancedEventReplayService extends EventReplayService {
-
   AdvancedEventReplayService({
-    required AnchorProvider provider,
-    required PublicKey programId,
-    required BorshCoder coder,
-  }) : super(provider: provider, programId: programId, coder: coder);
+    required super.provider,
+    required super.programId,
+    required super.coder,
+  });
   final StreamController<ReplayProgress> _progressController =
       StreamController.broadcast();
 
@@ -395,7 +391,8 @@ class AdvancedEventReplayService extends EventReplayService {
 
   /// Replay events with progress tracking
   Stream<ParsedEvent> replayEventsWithProgress(
-      EventReplayConfig config,) async* {
+    EventReplayConfig config,
+  ) async* {
     final startTime = DateTime.now();
     final slotsProcessed = 0;
     final transactionsProcessed = 0;
@@ -413,13 +410,15 @@ class AdvancedEventReplayService extends EventReplayService {
         final progressPercent =
             totalSlots != null ? (slotsProcessed / totalSlots) * 100.0 : 0.0;
 
-        _progressController.add(ReplayProgress(
-          currentSlot: config.fromSlot + slotsProcessed,
-          endSlot: config.toSlot,
-          eventsFound: eventsFound,
-          transactionsProcessed: transactionsProcessed,
-          progressPercent: progressPercent,
-        ),);
+        _progressController.add(
+          ReplayProgress(
+            currentSlot: config.fromSlot + slotsProcessed,
+            endSlot: config.toSlot,
+            eventsFound: eventsFound,
+            transactionsProcessed: transactionsProcessed,
+            progressPercent: progressPercent,
+          ),
+        );
       }
 
       yield event;
@@ -439,13 +438,15 @@ class AdvancedEventReplayService extends EventReplayService {
 
     // Send final progress update
     final finalProgressPercent = totalSlots != null ? 100.0 : 0.0;
-    _progressController.add(ReplayProgress(
-      currentSlot: config.toSlot ?? (config.fromSlot + slotsProcessed),
-      endSlot: config.toSlot,
-      eventsFound: eventsFound,
-      transactionsProcessed: transactionsProcessed,
-      progressPercent: finalProgressPercent,
-    ),);
+    _progressController.add(
+      ReplayProgress(
+        currentSlot: config.toSlot ?? (config.fromSlot + slotsProcessed),
+        endSlot: config.toSlot,
+        eventsFound: eventsFound,
+        transactionsProcessed: transactionsProcessed,
+        progressPercent: finalProgressPercent,
+      ),
+    );
   }
 
   /// Close the service and cleanup resources

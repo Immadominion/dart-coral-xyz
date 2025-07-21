@@ -44,7 +44,8 @@ class ProgramGenerator {
     buffer.writeln('    required PublicKey programId,');
     buffer.writeln('    AnchorProvider? provider,');
     buffer.writeln(
-        '  }) : super.withProgramId(Idl.fromJson(programIdl), programId, provider: provider);');
+      '  }) : super.withProgramId(Idl.fromJson(programIdl), programId, provider: provider);',
+    );
     buffer.writeln();
 
     // Generate instruction methods
@@ -61,7 +62,9 @@ class ProgramGenerator {
 
   /// Generate method for a single instruction
   void _generateInstructionMethod(
-      StringBuffer buffer, IdlInstruction instruction) {
+    StringBuffer buffer,
+    IdlInstruction instruction,
+  ) {
     final methodName = _toCamelCase(instruction.name);
     final className = _toPascalCase(instruction.name);
 
@@ -107,9 +110,11 @@ class ProgramGenerator {
 
     // Generate IDL structure
     buffer.writeln(
-        '    \'version\': \'${idl.metadata?.version ?? idl.version ?? '0.1.0'}\',');
+      '    \'version\': \'${idl.metadata?.version ?? idl.version ?? '0.1.0'}\',',
+    );
     buffer.writeln(
-        '    \'name\': \'${idl.metadata?.name ?? idl.name ?? 'program'}\',');
+      '    \'name\': \'${idl.metadata?.name ?? idl.name ?? 'program'}\',',
+    );
     buffer.writeln('    \'instructions\': [');
 
     for (final instruction in idl.instructions) {
@@ -121,7 +126,8 @@ class ProgramGenerator {
         buffer.writeln('          {');
         buffer.writeln('            \'name\': \'${arg.name}\',');
         buffer.writeln(
-            '            \'type\': \'${_serializeIdlType(arg.type)}\',');
+          '            \'type\': \'${_serializeIdlType(arg.type)}\',',
+        );
         buffer.writeln('          },');
       }
 
@@ -228,14 +234,14 @@ class ProgramGenerator {
   }
 
   /// Convert string to PascalCase
-  String _toPascalCase(String input) {
-    return input
-        .split('_')
-        .map((word) => word.isNotEmpty
+  String _toPascalCase(String input) => input
+      .split('_')
+      .map(
+        (word) => word.isNotEmpty
             ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : '')
-        .join('');
-  }
+            : '',
+      )
+      .join();
 
   /// Convert string to camelCase
   String _toCamelCase(String input) {

@@ -6,9 +6,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Comprehensive TypeScript Parity Validation', () {
@@ -207,8 +207,10 @@ void main() {
             PublicKey.fromBase58('BPFLoaderUpgradeab1e11111111111111111111111');
 
         // Since findProgramAddress returns a Future
-        expect(PdaUtils.findProgramAddress(seeds, programId),
-            isA<Future<PdaResult>>(),);
+        expect(
+          PdaUtils.findProgramAddress(seeds, programId),
+          isA<Future<PdaResult>>(),
+        );
       });
 
       test('PublicKey utilities are available', () {
@@ -224,9 +226,13 @@ void main() {
 
     // Skip platform-specific features for now as they're not fully implemented
     group('Platform Features', () {
-      test('Core platform components are available', () {
-        // Skip platform-specific tests
-      }, skip: 'Platform-specific features are not fully implemented yet',);
+      test(
+        'Core platform components are available',
+        () {
+          // Skip platform-specific tests
+        },
+        skip: 'Platform-specific features are not fully implemented yet',
+      );
     });
 
     // Skip performance features for now as they're not fully implemented

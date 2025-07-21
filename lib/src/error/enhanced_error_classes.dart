@@ -10,21 +10,6 @@ import 'package:coral_xyz_anchor/src/types/public_key.dart';
 
 /// Enhanced Account Discriminator Mismatch Error with detailed context
 class AccountDiscriminatorMismatchError extends AnchorError {
-  /// Expected discriminator bytes
-  final List<int> expected;
-
-  /// Actual discriminator bytes found
-  final List<int> actual;
-
-  /// The account address where the mismatch occurred
-  final PublicKey accountAddress;
-
-  /// The expected account type name
-  final String? expectedAccountType;
-
-  /// The program ID that owns the account
-  final PublicKey? programId;
-
   AccountDiscriminatorMismatchError({
     required this.expected,
     required this.actual,
@@ -35,7 +20,7 @@ class AccountDiscriminatorMismatchError extends AnchorError {
     List<String>? logs,
   }) : super(
           error: ErrorInfo(
-            errorCode: ErrorCode(
+            errorCode: const ErrorCode(
               code: 'AccountDiscriminatorMismatch',
               number: LangErrorCode.accountDiscriminatorMismatch,
             ),
@@ -51,15 +36,32 @@ class AccountDiscriminatorMismatchError extends AnchorError {
           logs: logs ?? [],
         );
 
+  /// Expected discriminator bytes
+  final List<int> expected;
+
+  /// Actual discriminator bytes found
+  final List<int> actual;
+
+  /// The account address where the mismatch occurred
+  final PublicKey accountAddress;
+
+  /// The expected account type name
+  final String? expectedAccountType;
+
+  /// The program ID that owns the account
+  final PublicKey? programId;
+
   @override
   String toString() {
     final buffer = StringBuffer();
     buffer.writeln('AccountDiscriminatorMismatchError:');
     buffer.writeln('  Account: ${accountAddress.toBase58()}');
     buffer.writeln(
-        '  Expected: ${expected.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+      '  Expected: ${expected.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}',
+    );
     buffer.writeln(
-        '  Actual: ${actual.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+      '  Actual: ${actual.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}',
+    );
 
     if (expectedAccountType != null) {
       buffer.writeln('  Expected Type: $expectedAccountType');
@@ -84,21 +86,6 @@ class AccountDiscriminatorMismatchError extends AnchorError {
 
 /// Enhanced Constraint Error with detailed constraint information
 class ConstraintError extends AnchorError {
-  /// The specific constraint that was violated
-  final String constraintType;
-
-  /// The account that violated the constraint
-  final PublicKey violatingAccount;
-
-  /// Expected value for the constraint
-  final dynamic expectedValue;
-
-  /// Actual value found
-  final dynamic actualValue;
-
-  /// Additional context about the constraint violation
-  final Map<String, dynamic>? context;
-
   ConstraintError({
     required this.constraintType,
     required this.violatingAccount,
@@ -128,6 +115,21 @@ class ConstraintError extends AnchorError {
           errorLogs: logs ?? [],
           logs: logs ?? [],
         );
+
+  /// The specific constraint that was violated
+  final String constraintType;
+
+  /// The account that violated the constraint
+  final PublicKey violatingAccount;
+
+  /// Expected value for the constraint
+  final dynamic expectedValue;
+
+  /// Actual value found
+  final dynamic actualValue;
+
+  /// Additional context about the constraint violation
+  final Map<String, dynamic>? context;
 
   @override
   String toString() {
@@ -161,21 +163,6 @@ class ConstraintError extends AnchorError {
 
 /// Enhanced Instruction Error with detailed instruction information
 class InstructionError extends AnchorError {
-  /// The instruction name that caused the error
-  final String? instructionName;
-
-  /// The program ID that owns the instruction
-  final PublicKey programId;
-
-  /// The instruction data (if available)
-  final List<int>? instructionData;
-
-  /// The accounts involved in the instruction
-  final List<PublicKey>? accounts;
-
-  /// Additional context about the instruction error
-  final Map<String, dynamic>? context;
-
   InstructionError({
     required this.programId,
     required int errorCode,
@@ -200,6 +187,21 @@ class InstructionError extends AnchorError {
           logs: logs ?? [],
         );
 
+  /// The instruction name that caused the error
+  final String? instructionName;
+
+  /// The program ID that owns the instruction
+  final PublicKey programId;
+
+  /// The instruction data (if available)
+  final List<int>? instructionData;
+
+  /// The accounts involved in the instruction
+  final List<PublicKey>? accounts;
+
+  /// Additional context about the instruction error
+  final Map<String, dynamic>? context;
+
   @override
   String toString() {
     final buffer = StringBuffer();
@@ -213,7 +215,8 @@ class InstructionError extends AnchorError {
 
     if (instructionData != null) {
       buffer.writeln(
-          '  Data: ${instructionData!.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+        '  Data: ${instructionData!.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}',
+      );
     }
 
     if (accounts != null && accounts!.isNotEmpty) {
@@ -243,21 +246,6 @@ class InstructionError extends AnchorError {
 
 /// Enhanced Program Error with detailed program information
 class EnhancedProgramError extends AnchorError {
-  /// The program ID that caused the error
-  final PublicKey programId;
-
-  /// The program name (if available)
-  final String? programName;
-
-  /// The instruction that caused the error
-  final String? instruction;
-
-  /// Custom error code from the program
-  final int? customErrorCode;
-
-  /// Additional context about the program error
-  final Map<String, dynamic>? context;
-
   EnhancedProgramError({
     required this.programId,
     required int errorCode,
@@ -281,6 +269,21 @@ class EnhancedProgramError extends AnchorError {
           errorLogs: logs ?? [],
           logs: logs ?? [],
         );
+
+  /// The program ID that caused the error
+  final PublicKey programId;
+
+  /// The program name (if available)
+  final String? programName;
+
+  /// The instruction that caused the error
+  final String? instruction;
+
+  /// Custom error code from the program
+  final int? customErrorCode;
+
+  /// Additional context about the program error
+  final Map<String, dynamic>? context;
 
   @override
   String toString() {
@@ -321,18 +324,6 @@ class EnhancedProgramError extends AnchorError {
 
 /// Enhanced IDL Error with detailed IDL information
 class EnhancedIdlError extends AnchorError {
-  /// The IDL field that caused the error
-  final String? idlField;
-
-  /// The IDL account type
-  final String? accountType;
-
-  /// The IDL instruction name
-  final String? instructionName;
-
-  /// Additional context about the IDL error
-  final Map<String, dynamic>? context;
-
   EnhancedIdlError({
     required int errorCode,
     this.idlField,
@@ -355,6 +346,18 @@ class EnhancedIdlError extends AnchorError {
           errorLogs: logs ?? [],
           logs: logs ?? [],
         );
+
+  /// The IDL field that caused the error
+  final String? idlField;
+
+  /// The IDL account type
+  final String? accountType;
+
+  /// The IDL instruction name
+  final String? instructionName;
+
+  /// Additional context about the IDL error
+  final Map<String, dynamic>? context;
 
   @override
   String toString() {
@@ -394,18 +397,6 @@ class EnhancedIdlError extends AnchorError {
 
 /// Enhanced Event Error with detailed event information
 class EnhancedEventError extends AnchorError {
-  /// The event name that caused the error
-  final String? eventName;
-
-  /// The program ID that owns the event
-  final PublicKey? programId;
-
-  /// The event data (if available)
-  final List<int>? eventData;
-
-  /// Additional context about the event error
-  final Map<String, dynamic>? context;
-
   EnhancedEventError({
     required int errorCode,
     this.eventName,
@@ -431,6 +422,18 @@ class EnhancedEventError extends AnchorError {
           logs: logs ?? [],
         );
 
+  /// The event name that caused the error
+  final String? eventName;
+
+  /// The program ID that owns the event
+  final PublicKey? programId;
+
+  /// The event data (if available)
+  final List<int>? eventData;
+
+  /// Additional context about the event error
+  final Map<String, dynamic>? context;
+
   @override
   String toString() {
     final buffer = StringBuffer();
@@ -447,7 +450,8 @@ class EnhancedEventError extends AnchorError {
 
     if (eventData != null) {
       buffer.writeln(
-          '  Data: ${eventData!.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+        '  Data: ${eventData!.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}',
+      );
     }
 
     if (context != null && context!.isNotEmpty) {
@@ -478,16 +482,15 @@ class EnhancedErrorFactory {
     String? expectedAccountType,
     PublicKey? programId,
     List<String>? logs,
-  }) {
-    return AccountDiscriminatorMismatchError(
-      expected: expected,
-      actual: actual,
-      accountAddress: accountAddress,
-      expectedAccountType: expectedAccountType,
-      programId: programId,
-      logs: logs,
-    );
-  }
+  }) =>
+      AccountDiscriminatorMismatchError(
+        expected: expected,
+        actual: actual,
+        accountAddress: accountAddress,
+        expectedAccountType: expectedAccountType,
+        programId: programId,
+        logs: logs,
+      );
 
   /// Create a ConstraintError with context
   static ConstraintError createConstraintError({
@@ -498,17 +501,16 @@ class EnhancedErrorFactory {
     dynamic actualValue,
     Map<String, dynamic>? context,
     List<String>? logs,
-  }) {
-    return ConstraintError(
-      constraintType: constraintType,
-      violatingAccount: violatingAccount,
-      errorCode: errorCode,
-      expectedValue: expectedValue,
-      actualValue: actualValue,
-      context: context,
-      logs: logs,
-    );
-  }
+  }) =>
+      ConstraintError(
+        constraintType: constraintType,
+        violatingAccount: violatingAccount,
+        errorCode: errorCode,
+        expectedValue: expectedValue,
+        actualValue: actualValue,
+        context: context,
+        logs: logs,
+      );
 
   /// Create an InstructionError with context
   static InstructionError createInstructionError({
@@ -519,17 +521,16 @@ class EnhancedErrorFactory {
     List<PublicKey>? accounts,
     Map<String, dynamic>? context,
     List<String>? logs,
-  }) {
-    return InstructionError(
-      programId: programId,
-      errorCode: errorCode,
-      instructionName: instructionName,
-      instructionData: instructionData,
-      accounts: accounts,
-      context: context,
-      logs: logs,
-    );
-  }
+  }) =>
+      InstructionError(
+        programId: programId,
+        errorCode: errorCode,
+        instructionName: instructionName,
+        instructionData: instructionData,
+        accounts: accounts,
+        context: context,
+        logs: logs,
+      );
 
   /// Create an EnhancedProgramError with context
   static EnhancedProgramError createProgramError({
@@ -540,17 +541,16 @@ class EnhancedErrorFactory {
     int? customErrorCode,
     Map<String, dynamic>? context,
     List<String>? logs,
-  }) {
-    return EnhancedProgramError(
-      programId: programId,
-      errorCode: errorCode,
-      programName: programName,
-      instruction: instruction,
-      customErrorCode: customErrorCode,
-      context: context,
-      logs: logs,
-    );
-  }
+  }) =>
+      EnhancedProgramError(
+        programId: programId,
+        errorCode: errorCode,
+        programName: programName,
+        instruction: instruction,
+        customErrorCode: customErrorCode,
+        context: context,
+        logs: logs,
+      );
 
   /// Create an EnhancedIdlError with context
   static EnhancedIdlError createIdlError({
@@ -560,16 +560,15 @@ class EnhancedErrorFactory {
     String? instructionName,
     Map<String, dynamic>? context,
     List<String>? logs,
-  }) {
-    return EnhancedIdlError(
-      errorCode: errorCode,
-      idlField: idlField,
-      accountType: accountType,
-      instructionName: instructionName,
-      context: context,
-      logs: logs,
-    );
-  }
+  }) =>
+      EnhancedIdlError(
+        errorCode: errorCode,
+        idlField: idlField,
+        accountType: accountType,
+        instructionName: instructionName,
+        context: context,
+        logs: logs,
+      );
 
   /// Create an EnhancedEventError with context
   static EnhancedEventError createEventError({
@@ -579,14 +578,13 @@ class EnhancedErrorFactory {
     List<int>? eventData,
     Map<String, dynamic>? context,
     List<String>? logs,
-  }) {
-    return EnhancedEventError(
-      errorCode: errorCode,
-      eventName: eventName,
-      programId: programId,
-      eventData: eventData,
-      context: context,
-      logs: logs,
-    );
-  }
+  }) =>
+      EnhancedEventError(
+        errorCode: errorCode,
+        eventName: eventName,
+        programId: programId,
+        eventData: eventData,
+        context: context,
+        logs: logs,
+      );
 }

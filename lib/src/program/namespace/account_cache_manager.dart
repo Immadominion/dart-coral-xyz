@@ -31,7 +31,6 @@ enum CacheInvalidationStrategy {
 
 /// Cache entry metadata
 class CacheEntry<T> {
-
   CacheEntry({
     required this.data,
     required this.timestamp,
@@ -39,6 +38,7 @@ class CacheEntry<T> {
     this.isPinned = false,
     this.sizeEstimate = 1024, // Default 1KB estimate
   }) : lastAccess = DateTime.now();
+
   /// Cached data
   final T data;
 
@@ -76,12 +76,12 @@ class CacheEntry<T> {
   }
 
   @override
-  String toString() => 'CacheEntry(timestamp: $timestamp, slot: $slot, accessCount: $accessCount, isPinned: $isPinned)';
+  String toString() =>
+      'CacheEntry(timestamp: $timestamp, slot: $slot, accessCount: $accessCount, isPinned: $isPinned)';
 }
 
 /// Cache statistics for monitoring
 class CacheStatistics {
-
   const CacheStatistics({
     required this.totalOperations,
     required this.hits,
@@ -91,9 +91,10 @@ class CacheStatistics {
     required this.currentSize,
     required this.maxSize,
     required this.memoryUsage,
-    this.lastCleanup,
     required this.averageAccessTime,
+    this.lastCleanup,
   });
+
   /// Total number of cache operations
   final int totalOperations;
 
@@ -134,12 +135,12 @@ class CacheStatistics {
   double get memoryUtilization => (currentSize / maxSize) * 100.0;
 
   @override
-  String toString() => 'CacheStatistics(hitRate: ${hitRate.toStringAsFixed(1)}%, size: $currentSize/$maxSize, memory: ${(memoryUsage / 1024).toStringAsFixed(1)}KB)';
+  String toString() =>
+      'CacheStatistics(hitRate: ${hitRate.toStringAsFixed(1)}%, size: $currentSize/$maxSize, memory: ${(memoryUsage / 1024).toStringAsFixed(1)}KB)';
 }
 
 /// Configuration for account cache manager
 class AccountCacheConfig {
-
   const AccountCacheConfig({
     this.maxEntries = 1000,
     this.ttl = const Duration(minutes: 5),
@@ -153,49 +154,38 @@ class AccountCacheConfig {
   });
 
   /// Create high-performance configuration
-  factory AccountCacheConfig.highPerformance() {
-    return const AccountCacheConfig(
-      maxEntries: 10000,
-      ttl: Duration(minutes: 10),
-      strategy: CacheInvalidationStrategy.slotBasedInvalidation,
-      maxMemoryBytes: 200 * 1024 * 1024, // 200MB
-      cleanupInterval: Duration(minutes: 2),
-      enableStatistics: true,
-      enableAutoCleanup: true,
-      memoryPressureThreshold: 0.9,
-      evictionBatchSize: 100,
-    );
-  }
+  factory AccountCacheConfig.highPerformance() => const AccountCacheConfig(
+        maxEntries: 10000,
+        ttl: Duration(minutes: 10),
+        strategy: CacheInvalidationStrategy.slotBasedInvalidation,
+        maxMemoryBytes: 200 * 1024 * 1024, // 200MB
+        cleanupInterval: Duration(minutes: 2),
+        memoryPressureThreshold: 0.9,
+        evictionBatchSize: 100,
+      );
 
   /// Create memory-constrained configuration
-  factory AccountCacheConfig.memoryConstrained() {
-    return const AccountCacheConfig(
-      maxEntries: 100,
-      ttl: Duration(minutes: 1),
-      strategy: CacheInvalidationStrategy.timeBasedExpiration,
-      maxMemoryBytes: 5 * 1024 * 1024, // 5MB
-      cleanupInterval: Duration(seconds: 30),
-      enableStatistics: false,
-      enableAutoCleanup: true,
-      memoryPressureThreshold: 0.7,
-      evictionBatchSize: 20,
-    );
-  }
+  factory AccountCacheConfig.memoryConstrained() => const AccountCacheConfig(
+        maxEntries: 100,
+        ttl: Duration(minutes: 1),
+        strategy: CacheInvalidationStrategy.timeBasedExpiration,
+        maxMemoryBytes: 5 * 1024 * 1024, // 5MB
+        cleanupInterval: Duration(seconds: 30),
+        enableStatistics: false,
+        memoryPressureThreshold: 0.7,
+        evictionBatchSize: 20,
+      );
 
   /// Create development configuration
-  factory AccountCacheConfig.development() {
-    return const AccountCacheConfig(
-      maxEntries: 500,
-      ttl: Duration(seconds: 30),
-      strategy: CacheInvalidationStrategy.writeThrough,
-      maxMemoryBytes: 10 * 1024 * 1024, // 10MB
-      cleanupInterval: Duration(seconds: 15),
-      enableStatistics: true,
-      enableAutoCleanup: true,
-      memoryPressureThreshold: 0.8,
-      evictionBatchSize: 25,
-    );
-  }
+  factory AccountCacheConfig.development() => const AccountCacheConfig(
+        maxEntries: 500,
+        ttl: Duration(seconds: 30),
+        strategy: CacheInvalidationStrategy.writeThrough,
+        maxMemoryBytes: 10 * 1024 * 1024, // 10MB
+        cleanupInterval: Duration(seconds: 15),
+        evictionBatchSize: 25,
+      );
+
   /// Maximum number of entries in cache
   final int maxEntries;
 
@@ -226,7 +216,6 @@ class AccountCacheConfig {
 
 /// Intelligent account cache manager
 class AccountCacheManager<T> {
-
   AccountCacheManager({
     AccountCacheConfig? config,
   }) : _config = config ?? const AccountCacheConfig() {
@@ -234,6 +223,7 @@ class AccountCacheManager<T> {
       _startCleanupTimer();
     }
   }
+
   /// Cache configuration
   final AccountCacheConfig _config;
 

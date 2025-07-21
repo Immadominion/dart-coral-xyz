@@ -54,11 +54,9 @@ class TransactionComposer {
   }
 
   /// Build the final transaction
-  Future<ns.AnchorTransaction> build() async {
-    return ns.AnchorTransaction(
-      instructions: _instructions,
-    );
-  }
+  Future<ns.AnchorTransaction> build() async => ns.AnchorTransaction(
+        instructions: _instructions,
+      );
 
   /// Get all resolved accounts
   Map<String, PublicKey> get resolvedAccounts => Map.from(_resolvedAccounts);
@@ -206,7 +204,7 @@ class TypeSafeMethodBuilder {
   bool _autoResolvePdas = true;
   bool _enableAccountCaching = true;
   TransactionComposer? _composer;
-  Map<String, PublicKey> _resolvedPdas = {};
+  final Map<String, PublicKey> _resolvedPdas = {};
 
   /// Initialize the method with typed arguments
   ///

@@ -20,7 +20,6 @@ import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
 /// final result = await program.views.getPrice(market);
 /// ```
 class ViewsNamespace {
-
   ViewsNamespace._();
   final Map<String, ViewFunction> _functions = {};
 
@@ -91,7 +90,6 @@ class ViewsNamespace {
 
 /// A view function that can be called to get read-only data from a program
 class ViewFunction {
-
   ViewFunction({
     required IdlInstruction instruction,
     required PublicKey programId,
@@ -115,7 +113,8 @@ class ViewFunction {
     final simulateFn = _simulateNamespace[_instruction.name];
     if (simulateFn == null) {
       throw ArgumentError(
-          'Simulate function not found for view: ${_instruction.name}',);
+        'Simulate function not found for view: ${_instruction.name}',
+      );
     }
 
     // Simulate the instruction
@@ -146,7 +145,8 @@ class ViewFunction {
           return _decodeBase64(returnDataBase64);
         } catch (e) {
           throw FormatException(
-              'Failed to decode return data from log: $log, error: $e',);
+            'Failed to decode return data from log: $log, error: $e',
+          );
         }
       }
     }
@@ -205,11 +205,13 @@ class ViewFunction {
         return borshCoder.types.decode(returnTypeName, data);
       } else {
         throw UnsupportedError(
-            'View functions require BorshCoder for return data decoding',);
+          'View functions require BorshCoder for return data decoding',
+        );
       }
     } catch (e) {
       throw FormatException(
-          'Failed to decode return data for ${_instruction.name}: $e',);
+        'Failed to decode return data for ${_instruction.name}: $e',
+      );
     }
   }
 
@@ -223,5 +225,6 @@ class ViewFunction {
   bool get hasReturnType => _instruction.returns != null;
 
   @override
-  String toString() => 'ViewFunction(name: ${_instruction.name}, returnType: ${_instruction.returns})';
+  String toString() =>
+      'ViewFunction(name: ${_instruction.name}, returnType: ${_instruction.returns})';
 }

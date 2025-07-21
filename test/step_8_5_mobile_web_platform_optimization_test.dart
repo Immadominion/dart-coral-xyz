@@ -4,15 +4,10 @@
 /// mobile features, web integrations, Flutter widgets, and platform detection.
 library;
 
-import 'package:test/test.dart';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:coral_xyz_anchor/src/platform/mobile_optimization.dart'
     as mobile;
-import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
-import 'package:coral_xyz_anchor/src/platform/platform_integration.dart';
-import 'package:coral_xyz_anchor/src/platform/web_optimization.dart';
-import 'package:coral_xyz_anchor/src/platform/mobile_optimization.dart';
-import 'package:coral_xyz_anchor/src/platform/flutter_widgets.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Step 8.5: Mobile and Web Platform Optimization', () {
@@ -36,8 +31,10 @@ void main() {
       test('should provide platform-specific retry configuration', () {
         final retryDelay = PlatformOptimization.retryDelay;
         expect(retryDelay.inMilliseconds, greaterThan(0));
-        expect(retryDelay.inSeconds,
-            lessThanOrEqualTo(5),); // Reasonable retry delay
+        expect(
+          retryDelay.inSeconds,
+          lessThanOrEqualTo(5),
+        ); // Reasonable retry delay
       });
 
       test('should provide platform-specific connection limits', () {
@@ -119,9 +116,15 @@ void main() {
 
         // Register multiple tasks
         BackgroundTaskManager.registerTask(
-            'task1', const Duration(milliseconds: 10), testCallback,);
+          'task1',
+          const Duration(milliseconds: 10),
+          testCallback,
+        );
         BackgroundTaskManager.registerTask(
-            'task2', const Duration(milliseconds: 10), testCallback,);
+          'task2',
+          const Duration(milliseconds: 10),
+          testCallback,
+        );
 
         expect(BackgroundTaskManager.activeTaskIds.length, equals(2));
 
@@ -246,12 +249,18 @@ void main() {
 
         // Record some requests
         WebPerformanceMonitor.recordRequest(
-            endpoint, const Duration(milliseconds: 100),);
+          endpoint,
+          const Duration(milliseconds: 100),
+        );
         WebPerformanceMonitor.recordRequest(
-            endpoint, const Duration(milliseconds: 200),);
+          endpoint,
+          const Duration(milliseconds: 200),
+        );
         WebPerformanceMonitor.recordRequest(
-            endpoint, const Duration(milliseconds: 150),
-            success: false,);
+          endpoint,
+          const Duration(milliseconds: 150),
+          success: false,
+        );
 
         // Check stats
         final avgTime = WebPerformanceMonitor.getAverageRequestTime(endpoint);
@@ -397,7 +406,9 @@ void main() {
         final widget = SolanaWalletWidget();
 
         expect(
-            widget.connectionState, equals(WalletConnectionState.disconnected),);
+          widget.connectionState,
+          equals(WalletConnectionState.disconnected),
+        );
         expect(widget.wallet, isNull);
         expect(widget.provider, isNull);
         expect(widget.publicKey, isNull);
@@ -516,16 +527,24 @@ void main() {
 
       test('should provide platform utilities', () {
         // Test feature support detection
-        expect(PlatformUtils.isFeatureSupported(PlatformFeature.localStorage),
-            isA<bool>(),);
         expect(
-            PlatformUtils.isFeatureSupported(
-                PlatformFeature.backgroundProcessing,),
-            isA<bool>(),);
-        expect(PlatformUtils.isFeatureSupported(PlatformFeature.deepLinks),
-            isA<bool>(),);
-        expect(PlatformUtils.isFeatureSupported(PlatformFeature.webWallets),
-            isA<bool>(),);
+          PlatformUtils.isFeatureSupported(PlatformFeature.localStorage),
+          isA<bool>(),
+        );
+        expect(
+          PlatformUtils.isFeatureSupported(
+            PlatformFeature.backgroundProcessing,
+          ),
+          isA<bool>(),
+        );
+        expect(
+          PlatformUtils.isFeatureSupported(PlatformFeature.deepLinks),
+          isA<bool>(),
+        );
+        expect(
+          PlatformUtils.isFeatureSupported(PlatformFeature.webWallets),
+          isA<bool>(),
+        );
 
         // Test configuration recommendations
         final recommendations = PlatformUtils.getConfigurationRecommendations();
@@ -554,7 +573,6 @@ void main() {
 
 /// Test implementation of BackgroundSyncTask
 class TestBackgroundSyncTask implements BackgroundSyncTask {
-
   const TestBackgroundSyncTask(this.onExecute);
   final VoidCallback onExecute;
 

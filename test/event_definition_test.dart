@@ -1,7 +1,6 @@
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
 
-
 void main() {
   group('EventDefinition Tests', () {
     late Map<String, IdlTypeDef> customTypes;
@@ -51,7 +50,10 @@ void main() {
         final eventDef = EventDefinition.fromIdl(idlEvent);
 
         expect(eventDef.name, equals('UserCreated'));
-        expect(eventDef.docs, equals(['Event emitted when a new user is created']));
+        expect(
+          eventDef.docs,
+          equals(['Event emitted when a new user is created']),
+        );
         expect(eventDef.fields.length, equals(3));
         expect(eventDef.discriminator, equals([1, 2, 3, 4, 5, 6, 7, 8]));
         expect(eventDef.metadata.totalFields, equals(3));
@@ -68,7 +70,8 @@ void main() {
         );
 
         final eventDef = EventDefinition.fromIdl(idlEvent);
-        final expectedDiscriminator = DiscriminatorComputer.computeEventDiscriminator('TestEvent');
+        final expectedDiscriminator =
+            DiscriminatorComputer.computeEventDiscriminator('TestEvent');
 
         expect(eventDef.discriminator, equals(expectedDiscriminator));
       });
@@ -84,7 +87,8 @@ void main() {
           ],
         );
 
-        final eventDef = EventDefinition.fromIdl(idlEvent, customTypes: customTypes);
+        final eventDef =
+            EventDefinition.fromIdl(idlEvent, customTypes: customTypes);
 
         expect(eventDef.fields.length, equals(4));
         expect(eventDef.fields[0].typeInfo.isOptional, isTrue);
@@ -115,7 +119,8 @@ void main() {
       test('should validate optional field types correctly', () {
         final fieldDef = EventFieldDefinition(
           name: 'optionalField',
-          typeInfo: EventFieldTypeInfo.fromIdlType(idlTypeOption(idlTypeString())),
+          typeInfo:
+              EventFieldTypeInfo.fromIdlType(idlTypeOption(idlTypeString())),
         );
 
         final nullResult = fieldDef.validateValue(null);
@@ -229,7 +234,10 @@ void main() {
           fields: [
             IdlField(name: 'id', type: idlTypeU64()), // 8 bytes
             IdlField(name: 'flag', type: idlTypeBool()), // 1 byte
-            IdlField(name: 'data', type: idlTypeArray(idlTypeU8(), 32)), // 32 bytes
+            IdlField(
+              name: 'data',
+              type: idlTypeArray(idlTypeU8(), 32),
+            ), // 32 bytes
           ],
         );
 
@@ -281,7 +289,10 @@ void main() {
 
         expect(eventDef.inheritanceInfo, isNotNull);
         expect(eventDef.inheritanceInfo!.parentEvent, equals('BaseEvent'));
-        expect(eventDef.inheritanceInfo!.inheritanceType, equals(EventInheritanceType.extendsType));
+        expect(
+          eventDef.inheritanceInfo!.inheritanceType,
+          equals(EventInheritanceType.extendsType),
+        );
       });
 
       test('should parse version information from docs', () {
@@ -316,14 +327,20 @@ void main() {
           fields: [
             IdlField(name: 'id', type: idlTypeU64()),
             IdlField(name: 'name', type: idlTypeString()),
-            IdlField(name: 'extra', type: idlTypeU32()), // Additional optional field
+            IdlField(
+              name: 'extra',
+              type: idlTypeU32(),
+            ), // Additional optional field
           ],
         );
 
         final incompatibleEvent = IdlEvent(
           name: 'BaseEvent',
           fields: [
-            IdlField(name: 'id', type: idlTypeString()), // Changed type from u64 to string
+            IdlField(
+              name: 'id',
+              type: idlTypeString(),
+            ), // Changed type from u64 to string
             IdlField(name: 'name', type: idlTypeString()),
           ],
         );
@@ -340,7 +357,7 @@ void main() {
     group('Configuration and Error Handling', () {
       test('should respect configuration settings', () {
         final config = EventDefinitionConfig.strict();
-        
+
         final idlEvent = IdlEvent(
           name: 'ConfigTestEvent',
           fields: [
@@ -351,7 +368,10 @@ void main() {
         final eventDef = EventDefinition.fromIdl(idlEvent, config: config);
 
         expect(eventDef.validationRules.enforceRequiredFields, isTrue);
-        expect(eventDef.validationRules.typeStrictness, equals(TypeValidationStrictness.strict));
+        expect(
+          eventDef.validationRules.typeStrictness,
+          equals(TypeValidationStrictness.strict),
+        );
         expect(eventDef.validationRules.maxEventSize, isNotNull);
       });
 
@@ -417,13 +437,22 @@ void main() {
         final eventDef = EventDefinition.fromIdl(idlEvent);
 
         expect(eventDef.fields[0].constraints.length, equals(2));
-        expect(eventDef.fields[0].constraints[0].type, equals(EventConstraintType.min));
+        expect(
+          eventDef.fields[0].constraints[0].type,
+          equals(EventConstraintType.min),
+        );
         expect(eventDef.fields[0].constraints[0].value, equals(10));
-        expect(eventDef.fields[0].constraints[1].type, equals(EventConstraintType.max));
+        expect(
+          eventDef.fields[0].constraints[1].type,
+          equals(EventConstraintType.max),
+        );
         expect(eventDef.fields[0].constraints[1].value, equals(100));
 
         expect(eventDef.fields[1].constraints.length, equals(1));
-        expect(eventDef.fields[1].constraints[0].type, equals(EventConstraintType.length));
+        expect(
+          eventDef.fields[1].constraints[0].type,
+          equals(EventConstraintType.length),
+        );
         expect(eventDef.fields[1].constraints[0].value, equals(50));
       });
 
