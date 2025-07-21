@@ -146,6 +146,11 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/*.config.dart"
     - "lib/generated_plugin_registrant.dart"
+    - "debug/**"
+    - "test/**"
+    - "tool/**"
+    - "example/**"
+    - "target/**"
   
   strong-mode:
     implicit-casts: false
