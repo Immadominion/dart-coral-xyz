@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/program/pda_utils.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/utils/multisig.dart';
-import 'package:coral_xyz_anchor/src/utils/pubkey.dart';
+import 'package:coral_xyz/src/program/pda_utils.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/utils/multisig.dart';
+import 'package:coral_xyz/src/utils/pubkey.dart';
 import 'package:test/test.dart';
 
 void main() {

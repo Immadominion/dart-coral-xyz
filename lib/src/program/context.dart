@@ -6,10 +6,10 @@
 
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
 
 /// Context provides all non-argument inputs for generating Anchor transactions
 ///

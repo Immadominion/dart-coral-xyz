@@ -132,7 +132,7 @@ class AnchorGenerator extends GeneratorForAnnotation<AnchorProgram> {
     // Add imports
     buffer.writeln('import \'dart:typed_data\';');
     buffer
-        .writeln('import \'package:coral_xyz_anchor/coral_xyz_anchor.dart\';');
+        .writeln('import \'package:coral_xyz/coral_xyz_anchor.dart\';');
     buffer.writeln('import \'package:solana/solana.dart\' as solana;');
     buffer.writeln();
 

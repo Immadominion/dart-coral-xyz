@@ -1,5 +1,5 @@
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart' as event_types;
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/event/types.dart' as event_types;
 import 'package:test/test.dart';
 
 /// Comprehensive test suite for the event system

@@ -2,17 +2,17 @@ library;
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/coder/coder.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/account_cache_manager.dart'
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/coder/coder.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/program/namespace/account_cache_manager.dart'
     as cache_mgr;
-import 'package:coral_xyz_anchor/src/program/namespace/account_subscription_manager.dart';
-import 'package:coral_xyz_anchor/src/native/system_program.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart' show IdlAccount;
+import 'package:coral_xyz/src/program/namespace/account_subscription_manager.dart';
+import 'package:coral_xyz/src/native/system_program.dart';
+import 'package:coral_xyz/src/idl/idl.dart' show IdlAccount;
 
 // Missing types - define as placeholders for robust implementation
 class AccountCreationParams {

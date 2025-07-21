@@ -4,7 +4,8 @@
 /// interacting with Anchor programs using the Dart client library.
 library;
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'dart:convert';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 
 void main() async {
   print('🌊 Coral XYZ Anchor - Basic Usage Example');
@@ -147,6 +148,10 @@ Future<void> demonstrateIdlHandling() async {
       {
         'name': 'UserAccount',
         'discriminator': [159, 117, 95, 227, 239, 151, 58, 236],
+        'type': {
+          'kind': 'struct',
+          'fields': [],
+        },
       },
     ],
     'types': [
@@ -169,8 +174,9 @@ Future<void> demonstrateIdlHandling() async {
     ],
   };
 
-  // Parse IDL
-  final idl = Idl.fromJson(exampleIdl);
+  // Parse IDL by encoding/decoding to ensure correct Map<String, dynamic>
+  final idlJson = jsonDecode(jsonEncode(exampleIdl)) as Map<String, dynamic>;
+  final idl = Idl.fromJson(idlJson);
   print('   ✓ Parsed IDL successfully');
   print('   ✓ Program name: ${idl.metadata?.name ?? "Unknown"}');
   print('   ✓ Program version: ${idl.metadata?.version ?? "Unknown"}');

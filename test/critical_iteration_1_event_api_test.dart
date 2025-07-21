@@ -4,7 +4,7 @@
 /// matches TypeScript Anchor's exact API behavior.
 library;
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
 
 void main() {

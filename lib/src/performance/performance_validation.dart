@@ -7,10 +7,10 @@
 library;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/provider/connection_pool.dart';
-import 'package:coral_xyz_anchor/src/performance/performance_optimization.dart';
-import 'package:coral_xyz_anchor/src/platform/mobile_optimization.dart';
-import 'package:coral_xyz_anchor/src/idl/lazy_idl_loader.dart';
+import 'package:coral_xyz/src/provider/connection_pool.dart';
+import 'package:coral_xyz/src/performance/performance_optimization.dart';
+import 'package:coral_xyz/src/platform/mobile_optimization.dart';
+import 'package:coral_xyz/src/idl/lazy_idl_loader.dart';
 
 /// Comprehensive performance optimization validator
 class PerformanceOptimizationValidator {

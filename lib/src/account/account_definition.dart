@@ -5,8 +5,8 @@
 /// and validation requirements.
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/error/error.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/error/error.dart';
 
 /// Comprehensive account definition with metadata handling
 class AccountDefinition {

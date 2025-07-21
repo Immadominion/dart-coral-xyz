@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
 
 /// Tests for the enhanced event system (Step 7.3)

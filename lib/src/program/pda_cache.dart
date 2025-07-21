@@ -6,7 +6,7 @@
 library;
 
 import 'dart:convert';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Global PDA cache for storing computed program derived addresses
 class PdaCache {

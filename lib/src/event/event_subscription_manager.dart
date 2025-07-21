@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:coral_xyz_anchor/src/provider/connection.dart'
+import 'package:coral_xyz/src/provider/connection.dart'
     show Connection, LogsNotification;
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/event/event_definition.dart';
-import 'package:coral_xyz_anchor/src/event/event_log_parser.dart'
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/event/event_definition.dart';
+import 'package:coral_xyz/src/event/event_log_parser.dart'
     show EventLogParser, ParsedEvent;
-import 'package:coral_xyz_anchor/src/event/types.dart'
+import 'package:coral_xyz/src/event/types.dart'
     show EventSubscriptionConfig;
 
 /// Event subscription manager for real-time event monitoring

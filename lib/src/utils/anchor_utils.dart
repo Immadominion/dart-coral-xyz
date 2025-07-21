@@ -3,8 +3,8 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/external/encoding_wrapper.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/external/encoding_wrapper.dart';
 
 /// Anchor utility functions similar to TypeScript @coral-xyz/anchor utils
 class AnchorUtils {

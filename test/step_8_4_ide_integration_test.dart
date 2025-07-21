@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:coral_xyz_anchor/src/ide/ide.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/ide/ide.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:test/test.dart';
 
 void main() {

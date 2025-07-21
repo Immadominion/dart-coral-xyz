@@ -1,5 +1,5 @@
-import 'package:coral_xyz_anchor/src/coder/borsh_utils.dart';
-import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
+import 'package:coral_xyz/src/coder/borsh_utils.dart';
+import 'package:coral_xyz/src/coder/discriminator_computer.dart';
 
 void main() {
   print('Testing discriminator computation...');

@@ -7,13 +7,13 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:logging/logging.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/program/program_class.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/program/program_class.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
 
 // Export workspace configuration system
 export 'workspace_config.dart';
@@ -22,7 +22,7 @@ export 'workspace_config.dart';
 export 'program_manager.dart';
 
 // Import workspace configuration
-import 'package:coral_xyz_anchor/src/workspace/workspace_config.dart';
+import 'package:coral_xyz/src/workspace/workspace_config.dart';
 
 /// TypeScript-like workspace for managing multiple Anchor programs
 class Workspace extends Object {

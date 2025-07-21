@@ -15,7 +15,7 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 
 Future<void> main() async {
   print('🧮 Counter Basic Example');
@@ -62,13 +62,13 @@ Future<void> main() async {
     initAccounts.forEach((name, pubkey) {
       print('     $name: $pubkey');
     });
-    // Create program instance
-    final program = Program(counterIdl, programId, provider: provider);
+    // Create program instance (use withProgramId when passing programId)
+    final program =
+        Program.withProgramId(counterIdl, programId, provider: provider);
     print('   ✓ Program created with ID: $programId');
     // Call initialize RPC (demo mode)
     try {
-      final sig1 = await program.methods
-          .initialize()
+      final sig1 = await program.methods['initialize']()
           .accounts(initAccounts)
           .signers([counterKeypair]).rpc();
       print('   ✓ initialize RPC signature: $sig1');
@@ -87,8 +87,9 @@ Future<void> main() async {
     });
     // Call increment RPC (demo mode)
     try {
-      final sig2 =
-          await program.methods.increment().accounts(incrementAccounts).rpc();
+      final sig2 = await program.methods['increment']()
+          .accounts(incrementAccounts)
+          .rpc();
       print('   ✓ increment RPC signature: $sig2');
     } catch (e) {
       print('   ⚠ increment RPC skipped (demo): $e');
@@ -98,7 +99,7 @@ Future<void> main() async {
     print('\n7. Fetching counter account data...');
     try {
       final counterData =
-          await program.account.counter.fetch(counterKeypair.publicKey);
+          await program.account.Counter.fetch(counterKeypair.publicKey);
       print('   ✓ Counter value: ${counterData.count}');
     } catch (e) {
       print('   ⚠ Fetch skipped (demo): $e');

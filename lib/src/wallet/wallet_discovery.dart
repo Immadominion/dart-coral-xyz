@@ -9,10 +9,10 @@ library;
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/wallet/wallet_adapter.dart';
-import 'package:coral_xyz_anchor/src/wallet/mobile_wallet_adapter.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/wallet/wallet_adapter.dart';
+import 'package:coral_xyz/src/wallet/mobile_wallet_adapter.dart';
 
 /// Wallet discovery service for automatic wallet detection and management
 ///

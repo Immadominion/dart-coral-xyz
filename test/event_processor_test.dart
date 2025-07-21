@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/event/event_definition.dart';
-import 'package:coral_xyz_anchor/src/event/event_log_parser.dart';
-import 'package:coral_xyz_anchor/src/event/event_processor.dart';
+import 'package:coral_xyz/src/event/event_definition.dart';
+import 'package:coral_xyz/src/event/event_log_parser.dart';
+import 'package:coral_xyz/src/event/event_processor.dart';
 import 'package:test/test.dart';
 
 void main() {

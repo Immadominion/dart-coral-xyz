@@ -1,8 +1,8 @@
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/coder/instruction_coder.dart';
-import 'package:coral_xyz_anchor/src/coder/borsh_accounts_coder.dart';
-import 'package:coral_xyz_anchor/src/coder/event_coder.dart';
-import 'package:coral_xyz_anchor/src/coder/types_coder.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/coder/instruction_coder.dart';
+import 'package:coral_xyz/src/coder/borsh_accounts_coder.dart';
+import 'package:coral_xyz/src/coder/event_coder.dart';
+import 'package:coral_xyz/src/coder/types_coder.dart';
 
 /// Main coder interface for all serialization/deserialization operations
 ///

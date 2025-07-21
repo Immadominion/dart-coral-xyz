@@ -9,7 +9,7 @@
 /// - Program instance creation
 /// - Initialize RPC call pattern
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 
 Future<void> main() async {
   print('🔰 Basic-0 Example: Simple initialize() call');
@@ -49,9 +49,9 @@ Future<void> main() async {
       print('- \\${instr.name}');
     }
 
-    // Step 3: Create program instance
+    // Step 3: Create program instance (use withProgramId for custom ID)
     final programId = PublicKey.fromBase58('11111111111111111111111111111111');
-    final program = Program(idl, programId, provider: provider);
+    final program = Program.withProgramId(idl, programId, provider: provider);
     print('Program instance created for ID: \\${programId}');
 
     // Step 4: Initialize RPC call (demo)

@@ -11,9 +11,9 @@ import 'dart:convert';
 
 import 'package:web_socket_channel/io.dart';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
 
 /// Configuration for account subscription manager
 class AccountSubscriptionConfig {

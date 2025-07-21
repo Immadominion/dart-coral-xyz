@@ -8,11 +8,11 @@ library;
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/wallet/mobile_wallet_adapter.dart';
-import 'package:coral_xyz_anchor/src/wallet/wallet_adapter.dart';
-import 'package:coral_xyz_anchor/src/wallet/wallet_discovery.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/wallet/mobile_wallet_adapter.dart';
+import 'package:coral_xyz/src/wallet/wallet_adapter.dart';
+import 'package:coral_xyz/src/wallet/wallet_discovery.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -8,15 +8,15 @@ library;
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/program/program.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/transaction.dart' as tx;
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/program/program.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/platform/platform_optimization.dart';
 
 /// Abstract widget interface for Flutter integration
 /// This would extend StatefulWidget in a real Flutter environment

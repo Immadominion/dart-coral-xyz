@@ -13,13 +13,13 @@ library;
 import 'dart:typed_data';
 import 'dart:math' as math;
 
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
 
 /// Transaction fee configuration
 class TransactionFeeConfig {

@@ -4,8 +4,8 @@
 /// hierarchy with exact error code compatibility and comprehensive error handling.
 library;
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Represents an error code with both string and numeric representations
 class ErrorCode {

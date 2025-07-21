@@ -6,10 +6,10 @@
 /// attributed to their originating programs.
 library;
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/event/types.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Parser for extracting events from transaction logs
 ///

@@ -9,15 +9,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/program/program_class.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/workspace/workspace.dart';
+import 'package:coral_xyz/src/coder/discriminator_computer.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/program/program_class.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/workspace/workspace.dart';
 import 'package:test/test.dart';
 
 void main() {

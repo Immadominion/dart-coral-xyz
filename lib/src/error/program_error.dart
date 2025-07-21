@@ -4,9 +4,9 @@
 /// the TypeScript Anchor SDK's ProgramError functionality.
 library;
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/error/error_constants.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/error/anchor_error.dart';
+import 'package:coral_xyz/src/error/error_constants.dart';
 
 /// Error from a user-defined program
 class ProgramError extends Error {

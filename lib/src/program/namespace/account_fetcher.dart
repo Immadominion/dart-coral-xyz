@@ -8,13 +8,13 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/error/account_errors.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/error/account_errors.dart';
 
 /// Enhanced account fetcher with caching and batch operations
 class AccountFetcher<T> {

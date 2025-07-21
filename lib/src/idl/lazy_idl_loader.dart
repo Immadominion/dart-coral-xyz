@@ -10,7 +10,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Configuration for lazy IDL loading
 class LazyIdlConfig {

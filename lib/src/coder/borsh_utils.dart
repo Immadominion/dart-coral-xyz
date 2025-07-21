@@ -8,7 +8,7 @@ library;
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
+import 'package:coral_xyz/src/coder/borsh_types.dart';
 
 /// Borsh utilities for Anchor-specific serialization
 class BorshUtils {

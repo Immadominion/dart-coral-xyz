@@ -95,8 +95,9 @@ These examples are designed to provide equivalent functionality to the TypeScrip
 Before running these examples, ensure you have:
 
 1. **Dart SDK** (>= 3.0.0)
-2. **coral_xyz_anchor** package added to your project
+2. **coral_xyz** package added to your project
 3. **Network connectivity** for RPC calls (examples use devnet)
+
    ```
 
    ```

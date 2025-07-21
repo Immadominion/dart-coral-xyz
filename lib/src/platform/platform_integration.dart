@@ -19,13 +19,13 @@ export 'web_optimization.dart' hide CacheEntry;
 export 'mobile_optimization.dart' hide TransactionStatus, MobileWalletSession;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
-import 'package:coral_xyz_anchor/src/platform/web_optimization.dart';
-import 'package:coral_xyz_anchor/src/platform/mobile_optimization.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/platform/platform_optimization.dart';
+import 'package:coral_xyz/src/platform/web_optimization.dart';
+import 'package:coral_xyz/src/platform/mobile_optimization.dart';
 
 /// Unified platform manager for the Coral XYZ Anchor client
 class PlatformManager {

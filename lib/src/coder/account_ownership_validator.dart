@@ -5,8 +5,8 @@
 /// support for complex ownership patterns, edge cases, and detailed error context.
 library;
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
 
 /// Result of account ownership validation
 class AccountOwnershipValidationResult {

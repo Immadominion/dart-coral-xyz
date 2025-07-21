@@ -7,10 +7,10 @@ library;
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:convert/convert.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/error/account_errors.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/error/account_errors.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/coder/discriminator_computer.dart';
 
 /// Interface for encoding and decoding program accounts matching TypeScript AccountsCoder
 abstract class AccountsCoder<A extends String> {

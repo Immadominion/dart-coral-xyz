@@ -4,9 +4,9 @@
 /// for parsing and decoding program events from transaction logs.
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
-import 'package:coral_xyz_anchor/src/types/common.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/coder/borsh_types.dart';
+import 'package:coral_xyz/src/types/common.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 

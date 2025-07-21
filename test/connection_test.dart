@@ -5,8 +5,8 @@
 
 library;
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart' as rpc_errors;
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/utils/rpc_errors.dart' as rpc_errors;
 import 'package:test/test.dart';
 
 void main() {

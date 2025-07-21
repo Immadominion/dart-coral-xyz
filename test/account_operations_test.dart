@@ -1,6 +1,6 @@
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/account_operations.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/account_subscription_manager.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/program/namespace/account_operations.dart';
+import 'package:coral_xyz/src/program/namespace/account_subscription_manager.dart';
 import 'package:test/test.dart';
 
 void main() {

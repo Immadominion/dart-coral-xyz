@@ -6,16 +6,16 @@
 
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/program/context.dart';
-import 'package:coral_xyz_anchor/src/program/instruction_builder.dart';
-import 'package:coral_xyz_anchor/src/program/accounts_resolver.dart';
-import 'package:coral_xyz_anchor/src/coder/instruction_coder.dart';
-import 'package:coral_xyz_anchor/src/types/common.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/program/context.dart';
+import 'package:coral_xyz/src/program/instruction_builder.dart';
+import 'package:coral_xyz/src/program/accounts_resolver.dart';
+import 'package:coral_xyz/src/coder/instruction_coder.dart';
+import 'package:coral_xyz/src/types/common.dart';
 
 /// Builder for creating typed methods from IDL instructions
 class MethodBuilder {

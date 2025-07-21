@@ -1,23 +1,23 @@
-name: coral_xyz_anchor
+name: coral_xyz
 description: |
   A comprehensive Dart client for Anchor programs on Solana.
   Provides type-safe program interactions, IDL parsing, and seamless integration
   with Solana's Anchor framework.
-version: 1.0.0
+version: 1.0.0-beta.1
 homepage: https://github.com/coral-xyz/dart-coral-xyz
 repository: https://github.com/coral-xyz/dart-coral-xyz
 issue_tracker: https://github.com/coral-xyz/dart-coral-xyz/issues
-documentation: https://pub.dev/documentation/coral_xyz_anchor
+documentation: https://pub.dev/documentation/coral_xyz
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   # Core Dart dependencies
-  http: ^1.1.0                         # Required by solana package
   convert: ^3.1.1
-  web_socket_channel: ^3.0.0           # WebSocket support for event system
+  http: ^1.1.0                         # Required by solana package
   logging: ^1.3.0                      # Proper logging framework
+  web_socket_channel: ^3.0.0           # WebSocket support for event system
   
   # Solana Web3 dependencies
   solana: ^0.31.2+1                    # Primary Solana RPC client
@@ -33,6 +33,7 @@ dependencies:
   
   # Cryptography dependencies  
   cryptography: ^2.7.0                 # ED25519, X25519, and other crypto
+  crypto: ^3.0.2                       # SHA256, HMAC, and other hash functions
   ed25519_hd_key: ^2.3.0               # HD key derivation for wallet support
   
   # Encoding dependencies
@@ -64,8 +65,8 @@ dev_dependencies:
 # Build configuration for code generation
 build_runner:
   builders:
-    coral_xyz_anchor:
-      import: "package:coral_xyz_anchor/builder.dart"
+    coral_xyz:
+      import: "package:coral_xyz/builder.dart"
       builder_factories:
         - anchorBuilder
       build_extensions:

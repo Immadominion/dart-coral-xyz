@@ -5,14 +5,14 @@
 /// all Program operations.
 library;
 
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/error/program_error.dart'
+import 'package:coral_xyz/src/error/anchor_error.dart';
+import 'package:coral_xyz/src/error/program_error.dart'
     as programErrorLib;
-import 'package:coral_xyz_anchor/src/error/account_errors.dart'
+import 'package:coral_xyz/src/error/account_errors.dart'
     hide AccountDiscriminatorMismatchError;
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart'
+import 'package:coral_xyz/src/error/anchor_error.dart'
     show AccountDiscriminatorMismatchError;
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Unified Program error for all Program operations
 ///

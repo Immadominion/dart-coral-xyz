@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/event/event_definition.dart';
-import 'package:coral_xyz_anchor/src/coder/event_coder.dart'; // Use canonical BorshEventCoder
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/event/event_definition.dart';
+import 'package:coral_xyz/src/coder/event_coder.dart'; // Use canonical BorshEventCoder
 
 /// Constants for log parsing matching TypeScript implementation
 const String programLog = 'Program log: ';

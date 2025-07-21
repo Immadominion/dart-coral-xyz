@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
 
 /// Enhanced simulation analyzer providing comprehensive analysis,
 /// optimization recommendations, and debugging capabilities

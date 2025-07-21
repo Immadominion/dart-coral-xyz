@@ -7,16 +7,16 @@
 library;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart'
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/transaction.dart'
     as transaction_types;
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/types/connection_config.dart';
-import 'package:coral_xyz_anchor/src/provider/provider_interface.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/types/connection_config.dart';
+import 'package:coral_xyz/src/provider/provider_interface.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
 
 /// Factory for creating and configuring providers
 ///

@@ -7,10 +7,10 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:coral_xyz_anchor/src/provider/connection_pool.dart';
-import 'package:coral_xyz_anchor/src/provider/enhanced_connection.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
+import 'package:coral_xyz/src/provider/connection_pool.dart';
+import 'package:coral_xyz/src/provider/enhanced_connection.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/utils/rpc_errors.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 

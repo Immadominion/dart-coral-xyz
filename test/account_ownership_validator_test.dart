@@ -1,7 +1,7 @@
-import 'package:coral_xyz_anchor/src/coder/account_ownership_validator.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/coder/account_ownership_validator.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:test/test.dart';
 
 /// Mock connection for testing account ownership validation

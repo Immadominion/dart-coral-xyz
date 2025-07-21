@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:build/build.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/account_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/error_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/instruction_generator.dart';
-import 'package:coral_xyz_anchor/src/codegen/generators/program_generator.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/codegen/generators/account_generator.dart';
+import 'package:coral_xyz/src/codegen/generators/error_generator.dart';
+import 'package:coral_xyz/src/codegen/generators/instruction_generator.dart';
+import 'package:coral_xyz/src/codegen/generators/program_generator.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -105,12 +105,12 @@ void _generateHeader(StringBuffer buffer, Idl idl) {
 
   // Add imports
   buffer.writeln('import \'dart:typed_data\';');
-  buffer.writeln('import \'package:coral_xyz_anchor/coral_xyz_anchor.dart\';');
+  buffer.writeln('import \'package:coral_xyz/coral_xyz_anchor.dart\';');
   buffer.writeln(
-    'import \'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart\';',
+    'import \'package:coral_xyz/src/transaction/transaction_simulator.dart\';',
   );
   buffer.writeln(
-    'import \'package:coral_xyz_anchor/src/types/transaction.dart\' as tx;',
+    'import \'package:coral_xyz/src/types/transaction.dart\' as tx;',
   );
   buffer.writeln('import \'package:solana/solana.dart\' as solana;');
   buffer.writeln();

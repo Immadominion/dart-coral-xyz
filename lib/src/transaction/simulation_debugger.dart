@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
-import 'package:coral_xyz_anchor/src/transaction/enhanced_simulation_analyzer.dart';
-import 'package:coral_xyz_anchor/src/transaction/simulation_cache_manager.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/transaction/enhanced_simulation_analyzer.dart';
+import 'package:coral_xyz/src/transaction/simulation_cache_manager.dart';
 
 /// Comprehensive debugging and development tools for transaction simulation
 class SimulationDebugger {

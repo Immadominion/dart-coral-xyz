@@ -5,7 +5,7 @@
 library;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz/src/event/types.dart';
 
 /// Interface for event subscriptions
 ///

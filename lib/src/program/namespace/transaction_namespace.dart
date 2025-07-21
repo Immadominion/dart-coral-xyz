@@ -1,6 +1,6 @@
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz/src/program/namespace/types.dart';
 
 /// The transaction namespace provides functions to build Transaction objects
 /// for each method of a program.

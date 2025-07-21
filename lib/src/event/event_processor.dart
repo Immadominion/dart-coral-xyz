@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:coral_xyz_anchor/src/event/event_definition.dart';
-import 'package:coral_xyz_anchor/src/event/event_log_parser.dart';
+import 'package:coral_xyz/src/event/event_definition.dart';
+import 'package:coral_xyz/src/event/event_log_parser.dart';
 
 /// Event processing framework for handling events with middleware and pipelines
 /// Matches TypeScript's event processing capabilities with handler management

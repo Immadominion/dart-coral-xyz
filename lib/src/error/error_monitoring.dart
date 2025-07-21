@@ -5,8 +5,8 @@
 library;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/error/error_context.dart';
-import 'package:coral_xyz_anchor/src/utils/logger.dart';
+import 'package:coral_xyz/src/error/error_context.dart';
+import 'package:coral_xyz/src/utils/logger.dart';
 
 /// Error metrics data point
 class ErrorMetric {

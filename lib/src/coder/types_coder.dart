@@ -7,10 +7,10 @@
 library;
 
 import 'dart:math' as math;
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/idl/enhanced_types.dart' as enhanced;
-import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
-import 'package:coral_xyz_anchor/src/types/common.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/idl/enhanced_types.dart' as enhanced;
+import 'package:coral_xyz/src/coder/borsh_types.dart';
+import 'package:coral_xyz/src/types/common.dart';
 import 'dart:typed_data';
 
 /// Interface for encoding and decoding user-defined types

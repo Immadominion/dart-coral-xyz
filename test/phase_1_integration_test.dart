@@ -10,10 +10,10 @@
 
 import 'dart:typed_data';
 import 'package:test/test.dart';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart'
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/types/transaction.dart'
     as transaction_types;
-import 'package:coral_xyz_anchor/src/program/enhanced_transaction_builder.dart'
+import 'package:coral_xyz/src/program/enhanced_transaction_builder.dart'
     show TransactionSimulationResult;
 
 // Import the generated test program

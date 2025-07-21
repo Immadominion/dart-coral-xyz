@@ -10,8 +10,8 @@ library;
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Interface for Borsh-serializable types
 abstract class BorshSerializable {

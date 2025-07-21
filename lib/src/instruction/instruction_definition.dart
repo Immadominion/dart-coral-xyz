@@ -5,8 +5,8 @@
 /// complete argument validation, account metadata, and constraint checking.
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Enhanced instruction definition with comprehensive metadata and validation
 class InstructionDefinition {

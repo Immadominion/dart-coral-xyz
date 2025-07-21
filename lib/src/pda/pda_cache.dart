@@ -10,8 +10,8 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/pda/pda_derivation_engine.dart' as pda;
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/pda/pda_derivation_engine.dart' as pda;
 
 /// Cache entry for storing PDA derivation results with metadata
 class PdaCacheEntry {

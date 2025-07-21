@@ -6,10 +6,10 @@ library;
 
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/provider/provider.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/utils/pubkey.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/provider/provider.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/utils/pubkey.dart';
 
 /// IDL Program Account structure for on-chain IDL storage
 class IdlProgramAccount {

@@ -5,7 +5,7 @@
 /// experience with IntelliSense, debugging, and development tools.
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Configuration for code generation
 class CodeGenerationConfig {
@@ -235,7 +235,7 @@ class AnchorCodeGenerator {
     for (final import in config.customImports) {
       buffer.writeln("import '$import';");
     }
-    buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
+    buffer.writeln("import 'package:coral_xyz/coral_xyz_anchor.dart';");
     buffer.writeln();
 
     // Program interface
@@ -322,7 +322,7 @@ class AnchorCodeGenerator {
     buffer.writeln();
 
     // Imports
-    buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
+    buffer.writeln("import 'package:coral_xyz/coral_xyz_anchor.dart';");
     buffer.writeln();
 
     // Generate each account class
@@ -389,7 +389,7 @@ class AnchorCodeGenerator {
     buffer.writeln();
 
     // Imports
-    buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
+    buffer.writeln("import 'package:coral_xyz/coral_xyz_anchor.dart';");
     buffer.writeln();
 
     // Generate method builder class
@@ -445,7 +445,7 @@ class AnchorCodeGenerator {
     buffer.writeln();
 
     // Imports
-    buffer.writeln("import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';");
+    buffer.writeln("import 'package:coral_xyz/coral_xyz_anchor.dart';");
     buffer.writeln();
 
     // Generate each error class

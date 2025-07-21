@@ -6,7 +6,7 @@
 
 library;
 
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
 
 /// Configuration for Solana RPC connection
 class ConnectionConfig {

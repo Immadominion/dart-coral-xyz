@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart'
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart'
     as transaction_types;
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/utils/rpc_utils.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/transaction/preflight_validator.dart';
-import 'package:coral_xyz_anchor/src/transaction/simulation_result_processor.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/utils/rpc_utils.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/transaction/preflight_validator.dart';
+import 'package:coral_xyz/src/transaction/simulation_result_processor.dart';
 
 /// Transaction simulation configuration
 class TransactionSimulationConfig {

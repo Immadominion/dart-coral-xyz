@@ -8,7 +8,7 @@ library;
 import 'dart:async';
 
 // Import the performance module directly to access hidden types
-import 'package:coral_xyz_anchor/src/performance/performance_optimization.dart'
+import 'package:coral_xyz/src/performance/performance_optimization.dart'
     as perf;
 import 'package:test/test.dart';
 

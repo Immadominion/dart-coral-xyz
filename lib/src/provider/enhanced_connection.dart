@@ -12,10 +12,10 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/utils/rpc_errors.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
 
 /// Configuration for retry strategies
 class RetryConfig {

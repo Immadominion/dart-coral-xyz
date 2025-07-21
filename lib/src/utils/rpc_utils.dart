@@ -14,11 +14,11 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/connection_config.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/connection_config.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/utils/rpc_errors.dart';
 
 /// Network types supported by the RPC utilities
 enum SolanaNetwork {

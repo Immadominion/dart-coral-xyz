@@ -6,8 +6,8 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/external/encoding_wrapper.dart';
-import 'package:coral_xyz_anchor/src/crypto/solana_crypto.dart';
+import 'package:coral_xyz/src/external/encoding_wrapper.dart';
+import 'package:coral_xyz/src/crypto/solana_crypto.dart';
 
 export '../crypto/solana_crypto.dart' show PdaResult;
 

@@ -7,9 +7,9 @@ library;
 
 import 'dart:typed_data';
 import 'package:bs58/bs58.dart';
-import 'package:coral_xyz_anchor/src/utils/binary_writer.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
+import 'package:coral_xyz/src/utils/binary_writer.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
 
 // Helper functions for collections comparison
 bool _listEquals<T>(List<T>? a, List<T>? b) {

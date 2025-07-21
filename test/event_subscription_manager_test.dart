@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:coral_xyz_anchor/src/event/event_definition.dart';
-import 'package:coral_xyz_anchor/src/event/event_subscription_manager.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/event/event_definition.dart';
+import 'package:coral_xyz/src/event/event_subscription_manager.dart';
+import 'package:coral_xyz/src/event/types.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:test/test.dart';
 
 void main() {

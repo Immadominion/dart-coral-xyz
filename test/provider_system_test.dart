@@ -4,14 +4,14 @@
 /// and provider lifecycle management to ensure TypeScript compatibility.
 library;
 
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/provider/provider_factory.dart';
-import 'package:coral_xyz_anchor/src/provider/provider_interface.dart';
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/connection_config.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/provider/provider_factory.dart';
+import 'package:coral_xyz/src/provider/provider_interface.dart';
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/connection_config.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
 import 'package:test/test.dart';
 
 void main() {

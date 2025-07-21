@@ -8,8 +8,8 @@ library;
 
 import 'dart:typed_data';
 import 'dart:convert';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Address utilities for Solana and Anchor programs
 class AddressUtils {

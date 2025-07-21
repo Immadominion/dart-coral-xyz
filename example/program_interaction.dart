@@ -11,7 +11,7 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 
 Future<void> main() async {
   print('🔗 Program Interaction Example');
@@ -25,8 +25,8 @@ Future<void> main() async {
 
     // Step 2: Setup wallet and provider
     print('\\n2. Setting up wallet and provider...');
-    final keypair =
-        Keypair.fromSecretKey(Uint8List.fromList(List.filled(32, 1)));
+    // Generate a new keypair for demo (avoids invalid secret key length)
+    final keypair = await Keypair.generate();
     final wallet = KeypairWallet(keypair);
     final provider = AnchorProvider(connection, wallet);
     print(

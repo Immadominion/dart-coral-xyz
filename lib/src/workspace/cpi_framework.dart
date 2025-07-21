@@ -9,13 +9,13 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/program/program_class.dart';
-import 'package:coral_xyz_anchor/src/provider/provider.dart';
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/workspace/program_manager.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/program/program_class.dart';
+import 'package:coral_xyz/src/provider/provider.dart';
+import 'package:coral_xyz/src/error/anchor_error.dart';
+import 'package:coral_xyz/src/workspace/program_manager.dart';
 
 /// Exception thrown during CPI operations.
 class CpiException extends AnchorError {

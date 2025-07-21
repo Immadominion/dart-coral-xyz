@@ -1,10 +1,10 @@
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
-import 'package:coral_xyz_anchor/src/program/accounts_resolver.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/program/pda_cache.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/program/namespace/types.dart';
+import 'package:coral_xyz/src/program/accounts_resolver.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/program/pda_cache.dart';
 
 /// The instruction namespace provides functions to build TransactionInstruction
 /// objects for each method of a program.

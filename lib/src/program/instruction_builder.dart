@@ -1,14 +1,14 @@
 // Instruction Builder for Dart Coral XYZ Anchor Client
 // Phase 7.1: Implements fluent API for instruction building, account meta generation, data serialization, and validation.
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/coder/instruction_coder.dart';
-import 'package:coral_xyz_anchor/src/program/accounts_resolver.dart';
-import 'package:coral_xyz_anchor/src/program/context.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart' show Signer;
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/coder/instruction_coder.dart';
+import 'package:coral_xyz/src/program/accounts_resolver.dart';
+import 'package:coral_xyz/src/program/context.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/error/anchor_error.dart';
+import 'package:coral_xyz/src/types/transaction.dart' as tx;
+import 'package:coral_xyz/src/program/namespace/types.dart' show Signer;
 import 'dart:typed_data';
 
 /// Builds instructions for Anchor programs with a fluent API

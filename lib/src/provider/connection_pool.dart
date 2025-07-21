@@ -10,8 +10,8 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:coral_xyz_anchor/src/utils/rpc_errors.dart';
-import 'package:coral_xyz_anchor/src/provider/enhanced_connection.dart';
+import 'package:coral_xyz/src/utils/rpc_errors.dart';
+import 'package:coral_xyz/src/provider/enhanced_connection.dart';
 import '../utils/logger.dart';
 
 /// Connection pool configuration

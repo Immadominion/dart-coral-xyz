@@ -4,11 +4,11 @@
 /// for encoding and decoding program instructions using Borsh serialization.
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
-import 'package:coral_xyz_anchor/src/coder/discriminator_computer.dart';
-import 'package:coral_xyz_anchor/src/types/common.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart'; // <-- Add this import for AccountMeta
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/coder/borsh_types.dart';
+import 'package:coral_xyz/src/coder/discriminator_computer.dart';
+import 'package:coral_xyz/src/types/common.dart';
+import 'package:coral_xyz/src/types/transaction.dart'; // <-- Add this import for AccountMeta
 import 'dart:typed_data';
 
 /// Interface for encoding and decoding program instructions

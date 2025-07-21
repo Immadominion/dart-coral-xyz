@@ -8,10 +8,10 @@ library;
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/program/namespace/account_cache_manager.dart';
-import 'package:coral_xyz_anchor/src/provider/connection_pool.dart';
-import 'package:coral_xyz_anchor/src/idl/lazy_idl_loader.dart';
-import 'package:coral_xyz_anchor/src/performance/performance_optimization.dart';
+import 'package:coral_xyz/src/program/namespace/account_cache_manager.dart';
+import 'package:coral_xyz/src/provider/connection_pool.dart';
+import 'package:coral_xyz/src/idl/lazy_idl_loader.dart';
+import 'package:coral_xyz/src/performance/performance_optimization.dart';
 
 /// Mobile-specific configuration for optimal performance
 class MobileOptimizationConfig {

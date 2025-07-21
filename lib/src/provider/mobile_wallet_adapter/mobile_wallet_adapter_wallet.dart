@@ -1,7 +1,7 @@
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
 
 /// Abstract interface for a Mobile Wallet Adapter client.
 /// This should be implemented by the actual MWA client integration.

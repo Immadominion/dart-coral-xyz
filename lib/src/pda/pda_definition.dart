@@ -7,9 +7,9 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/pda/pda_derivation_engine.dart' as pda;
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/pda/pda_derivation_engine.dart' as pda;
 
 /// Enumeration of seed types for PDA patterns
 enum PdaSeedType {

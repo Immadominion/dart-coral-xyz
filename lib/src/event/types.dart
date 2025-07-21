@@ -4,9 +4,9 @@
 /// used throughout the event system.
 library;
 
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Callback function type for event listeners
 typedef EventCallback<T> = void Function(T event, int slot, String signature);

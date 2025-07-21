@@ -8,10 +8,10 @@ library;
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/provider/wallet.dart';
-import 'package:coral_xyz_anchor/src/platform/platform_optimization.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/platform/platform_optimization.dart';
 
 /// Web-specific storage implementation using browser APIs
 class WebStorage implements PlatformStorage {

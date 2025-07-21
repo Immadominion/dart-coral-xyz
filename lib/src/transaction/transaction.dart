@@ -7,7 +7,7 @@ library;
 import 'dart:typed_data';
 import 'package:solana/solana.dart' as solana;
 import 'package:solana/encoder.dart' as encoder;
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Account metadata for transaction building
 class AccountMeta {

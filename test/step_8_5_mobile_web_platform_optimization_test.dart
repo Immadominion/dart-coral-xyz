@@ -4,8 +4,8 @@
 /// mobile features, web integrations, Flutter widgets, and platform detection.
 library;
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/platform/mobile_optimization.dart'
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/platform/mobile_optimization.dart'
     as mobile;
 import 'package:test/test.dart';
 

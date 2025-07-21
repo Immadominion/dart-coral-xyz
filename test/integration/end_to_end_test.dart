@@ -1,6 +1,6 @@
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction.dart' as tx;
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx_types;
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/transaction/transaction.dart' as tx;
+import 'package:coral_xyz/src/types/transaction.dart' as tx_types;
 import 'package:test/test.dart';
 
 import '../test_helpers.dart';

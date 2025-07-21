@@ -4,12 +4,12 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/transaction/preflight_validator.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/transaction/preflight_validator.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
 
 void main() async {
   print('Testing Pre-flight Account Validation System...\n');

@@ -7,10 +7,10 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
-import 'package:coral_xyz_anchor/src/testing/test_infrastructure.dart';
-import 'package:coral_xyz_anchor/src/types/keypair.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/testing/test_infrastructure.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
 import 'package:test/test.dart';
 
 void main() {

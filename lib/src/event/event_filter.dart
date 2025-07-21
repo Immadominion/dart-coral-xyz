@@ -5,8 +5,8 @@
 /// optimizations for high-throughput event processing.
 library;
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/event/types.dart';
 
 /// Advanced event filter with complex logic
 class AdvancedEventFilter {

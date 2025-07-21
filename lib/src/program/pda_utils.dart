@@ -7,9 +7,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/utils/pubkey.dart' as pubkey_utils;
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/utils/pubkey.dart' as pubkey_utils;
 
 /// Utilities for working with Program Derived Addresses (PDAs)
 class PdaUtils {

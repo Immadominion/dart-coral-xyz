@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart' hide AccountMeta;
-import 'package:coral_xyz_anchor/src/types/transaction.dart' show AccountMeta;
+import 'package:coral_xyz/coral_xyz_anchor.dart' hide AccountMeta;
+import 'package:coral_xyz/src/types/transaction.dart' show AccountMeta;
 import 'package:test/test.dart';
 
 void main() {

@@ -1,5 +1,5 @@
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
 
 /// Compute unit analysis and fee estimation for transactions
 class ComputeUnitAnalyzer {

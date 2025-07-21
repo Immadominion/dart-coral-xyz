@@ -7,8 +7,8 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/event/types.dart';
 
 /// Service for persisting and restoring events
 class EventPersistenceService {

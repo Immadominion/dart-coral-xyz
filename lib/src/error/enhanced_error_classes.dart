@@ -4,9 +4,9 @@
 /// Anchor client with comprehensive error context and debugging information.
 library;
 
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/error/error_constants.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/error/anchor_error.dart';
+import 'package:coral_xyz/src/error/error_constants.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Enhanced Account Discriminator Mismatch Error with detailed context
 class AccountDiscriminatorMismatchError extends AnchorError {

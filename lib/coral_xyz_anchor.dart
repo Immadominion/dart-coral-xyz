@@ -18,7 +18,7 @@
 /// ## Quick Start
 ///
 /// ```dart
-/// import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+/// import 'package:coral_xyz/coral_xyz_anchor.dart';
 ///
 /// // Connect to Solana devnet
 /// final connection = Connection('https://api.devnet.solana.com');
@@ -176,7 +176,7 @@
 /// - [Examples](https://github.com/coral-xyz/dart-coral-xyz/tree/main/example) - Working examples
 /// - [Anchor Documentation](https://www.anchor-lang.com/) - Learn Anchor framework
 /// - [Solana Documentation](https://docs.solana.com/) - Solana blockchain docs
-library coral_xyz_anchor;
+library coral_xyz;
 
 export 'src/account/account_definition.dart'; // Account Definition Metadata System (Phase 2.1 - COMPLETED)
 // Core exports - these will be implemented in phases
@@ -400,7 +400,7 @@ export 'src/utils/pubkey.dart';
 // Export TypeScript-like utilities and compatibility features
 export 'src/utils/typescript_compatibility.dart';
 // Enhanced types available via qualified import:
-// import 'package:coral_xyz_anchor/src/idl/enhanced_types.dart' as enhanced;
+// import 'package:coral_xyz/src/idl/enhanced_types.dart' as enhanced;
 export 'src/utils/utils.dart';
 export 'src/wallet/mobile_wallet_adapter.dart';
 // Advanced Wallet Integration System (Phase 6.3 - COMPLETED)
@@ -410,8 +410,8 @@ export 'src/workspace/cpi_framework.dart'; // Cross-Program Invocation Framework
 // Note: error_utils.dart is deprecated in favor of src/error.dart
 export 'src/workspace/workspace.dart';
 
-/// Version of the coral_xyz_anchor package
-const String packageVersion = '0.1.0';
+/// Version of the coral_xyz package
+const String packageVersion = '1.0.0-beta.1';
 
 /// Supported Anchor IDL specification version
 const String supportedIdlVersion = '0.1.0';

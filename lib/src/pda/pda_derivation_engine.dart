@@ -9,7 +9,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Exception thrown during PDA derivation operations
 class PdaDerivationException implements Exception {

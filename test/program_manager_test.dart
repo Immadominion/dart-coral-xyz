@@ -8,8 +8,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as types;
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/types/transaction.dart' as types;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

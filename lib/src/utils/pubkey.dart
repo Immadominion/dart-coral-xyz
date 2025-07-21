@@ -7,7 +7,7 @@ library;
 
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Utilities for working with PublicKeys and derived addresses
 class PublicKeyUtils {

@@ -7,8 +7,8 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
-import 'package:coral_xyz_anchor/src/coder/borsh_utils.dart';
+import 'package:coral_xyz/src/coder/borsh_types.dart';
+import 'package:coral_xyz/src/coder/borsh_utils.dart';
 
 /// Wrapper around Borsh serialization with Anchor-specific enhancements
 class BorshWrapper {

@@ -5,9 +5,9 @@
 library;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/event/types.dart';
 
 /// Event processor interface for event pipelines
 abstract class EventProcessor {

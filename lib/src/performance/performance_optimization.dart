@@ -18,8 +18,8 @@ library;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/provider/connection.dart';
 
 /// Global performance optimization manager
 class PerformanceOptimizer {

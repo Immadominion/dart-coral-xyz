@@ -9,7 +9,7 @@ library;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Cache invalidation strategy
 enum CacheInvalidationStrategy {

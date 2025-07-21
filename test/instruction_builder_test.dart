@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/types/transaction.dart' as tx;
 import 'package:test/test.dart';
 
 void main() {

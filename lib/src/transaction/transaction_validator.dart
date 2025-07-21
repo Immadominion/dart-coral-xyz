@@ -6,8 +6,8 @@
 
 library;
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/transaction/transaction.dart';
 
 /// Transaction validation configuration
 class TransactionValidationConfig {

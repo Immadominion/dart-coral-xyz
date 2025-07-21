@@ -11,12 +11,12 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/types/transaction.dart'
+import 'package:coral_xyz/src/types/transaction.dart'
     as transaction_types;
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
-import 'package:coral_xyz_anchor/src/error/rpc_error_parser.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/program/namespace/types.dart';
+import 'package:coral_xyz/src/error/rpc_error_parser.dart';
 
 /// Builds and manages Solana transactions
 class TransactionBuilder {

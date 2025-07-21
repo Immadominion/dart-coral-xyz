@@ -7,7 +7,7 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
 
 // Exception classes for testing documentation examples

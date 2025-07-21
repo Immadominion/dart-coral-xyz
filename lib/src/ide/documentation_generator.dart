@@ -5,7 +5,7 @@
 library;
 
 import 'dart:convert';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Configuration for documentation generation
 class DocumentationConfig {

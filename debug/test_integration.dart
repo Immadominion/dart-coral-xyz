@@ -1,4 +1,4 @@
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 
 void main() {
   // Test that BorshAccountsCoder can be imported and used

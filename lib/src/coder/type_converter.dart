@@ -7,9 +7,9 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/coder/borsh_types.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/coder/borsh_types.dart';
 
 /// Unified type conversion utilities
 class TypeConverter {

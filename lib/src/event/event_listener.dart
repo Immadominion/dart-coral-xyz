@@ -6,8 +6,8 @@
 library;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/event/types.dart';
-import 'package:coral_xyz_anchor/src/event/event_subscription.dart';
+import 'package:coral_xyz/src/event/types.dart';
+import 'package:coral_xyz/src/event/event_subscription.dart';
 
 /// Event listener that can be paused and resumed
 class PausableEventListener {

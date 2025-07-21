@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/program/namespace/simulate_namespace.dart';
+import 'package:coral_xyz/src/program/namespace/types.dart';
 
 /// The views namespace provides read-only method calls that return data
 /// without modifying blockchain state.

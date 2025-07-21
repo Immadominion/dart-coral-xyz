@@ -6,17 +6,17 @@
 
 library;
 
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/account_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/instruction_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/rpc_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/simulate_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/type_safe_method_builder.dart';
-import 'package:coral_xyz_anchor/src/program/method_validator.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/program/namespace/account_namespace.dart';
+import 'package:coral_xyz/src/program/namespace/instruction_namespace.dart';
+import 'package:coral_xyz/src/program/namespace/transaction_namespace.dart';
+import 'package:coral_xyz/src/program/namespace/rpc_namespace.dart';
+import 'package:coral_xyz/src/program/namespace/simulate_namespace.dart';
+import 'package:coral_xyz/src/program/type_safe_method_builder.dart';
+import 'package:coral_xyz/src/program/method_validator.dart';
 
 /// Generates type-safe method interfaces from IDL instructions
 ///

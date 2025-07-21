@@ -4,9 +4,9 @@
 // Generated at: 2025-07-21T22:47:40.160471
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart' as tx;
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/types/transaction.dart' as tx;
 import 'package:solana/solana.dart' as solana;
 
 /// Program ID for test_program

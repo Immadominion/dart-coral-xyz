@@ -7,12 +7,12 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/program/pda_utils.dart';
-import 'package:coral_xyz_anchor/src/program/context.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/program/pda_utils.dart';
+import 'package:coral_xyz/src/program/context.dart';
 
 /// Resolves account addresses for instruction contexts
 ///

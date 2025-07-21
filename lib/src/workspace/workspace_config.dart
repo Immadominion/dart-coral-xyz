@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:toml/toml.dart';
 import 'package:path/path.dart' as path;
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Exception thrown when workspace configuration is invalid
 class WorkspaceConfigException implements Exception {

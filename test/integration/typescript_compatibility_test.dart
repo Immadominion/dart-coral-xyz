@@ -1,4 +1,4 @@
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 import 'package:test/test.dart';
 
 import 'integration_test_utils.dart';

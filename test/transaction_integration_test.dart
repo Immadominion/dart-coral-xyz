@@ -6,9 +6,9 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart'
+import 'package:coral_xyz/coral_xyz_anchor.dart'
     hide TransactionInstruction, AccountMeta, Transaction;
-import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
+import 'package:coral_xyz/src/transaction/transaction.dart';
 import 'package:solana/solana.dart' as solana;
 import 'package:test/test.dart';
 

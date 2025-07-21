@@ -9,12 +9,12 @@
 library;
 
 import 'dart:async';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/commitment.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart';
-import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
-import 'package:coral_xyz_anchor/src/event/types.dart';
-import 'package:coral_xyz_anchor/src/event/event_parser.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/commitment.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart';
+import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/event/types.dart';
+import 'package:coral_xyz/src/event/event_parser.dart';
 
 /// TypeScript-compatible event callback type
 typedef EventCallback<T> = void Function(T event, int slot, String signature);

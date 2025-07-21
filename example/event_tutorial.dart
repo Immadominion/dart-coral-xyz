@@ -7,7 +7,7 @@
 /// - Batch process ParsedEvent lists
 /// - Configure subscription and replay patterns
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 
 Future<void> main() async {
   print('🎉 Event Tutorial Example');

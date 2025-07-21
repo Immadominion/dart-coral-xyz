@@ -1,15 +1,15 @@
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
-import 'package:coral_xyz_anchor/src/types/transaction.dart'
+import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/transaction.dart'
     as transaction_types;
-import 'package:coral_xyz_anchor/src/coder/main_coder.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
-import 'package:coral_xyz_anchor/src/provider/anchor_provider.dart'
+import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
+import 'package:coral_xyz/src/provider/anchor_provider.dart'
     hide SimulationResult;
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/transaction_namespace.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/program/namespace/transaction_namespace.dart';
+import 'package:coral_xyz/src/program/namespace/types.dart';
 
 /// The simulation namespace provides functions to simulate transactions for
 /// each method of a program without sending them to the blockchain.

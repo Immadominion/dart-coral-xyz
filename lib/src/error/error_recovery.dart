@@ -6,10 +6,10 @@ library;
 
 import 'dart:async';
 import 'dart:math';
-import 'package:coral_xyz_anchor/src/error/anchor_error.dart';
-import 'package:coral_xyz_anchor/src/error/error_context.dart';
-import 'package:coral_xyz_anchor/src/error/anchor_logging.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/error/anchor_error.dart';
+import 'package:coral_xyz/src/error/error_context.dart';
+import 'package:coral_xyz/src/error/anchor_logging.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Retry strategy interface
 abstract class RetryStrategy {

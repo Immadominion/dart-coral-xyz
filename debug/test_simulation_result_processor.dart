@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:coral_xyz_anchor/src/transaction/simulation_result_processor.dart';
-import 'package:coral_xyz_anchor/src/transaction/transaction_simulator.dart';
+import 'package:coral_xyz/src/transaction/simulation_result_processor.dart';
+import 'package:coral_xyz/src/transaction/transaction_simulator.dart';
 import 'package:test/test.dart';
 
 void main() {

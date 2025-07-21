@@ -5,8 +5,8 @@
 
 library;
 
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
-import 'package:coral_xyz_anchor/src/program/namespace/types.dart' as ns;
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/src/program/namespace/types.dart' as ns;
 import 'package:test/test.dart';
 
 // Mock Signer implementation for testing

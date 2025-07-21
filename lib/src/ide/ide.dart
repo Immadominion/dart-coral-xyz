@@ -10,10 +10,10 @@ export 'documentation_generator.dart';
 export 'debug_utilities.dart';
 
 import 'dart:io';
-import 'package:coral_xyz_anchor/src/ide/code_generator.dart';
-import 'package:coral_xyz_anchor/src/ide/documentation_generator.dart';
-import 'package:coral_xyz_anchor/src/ide/debug_utilities.dart';
-import 'package:coral_xyz_anchor/src/idl/idl.dart';
+import 'package:coral_xyz/src/ide/code_generator.dart';
+import 'package:coral_xyz/src/ide/documentation_generator.dart';
+import 'package:coral_xyz/src/ide/debug_utilities.dart';
+import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Main IDE integration facade
 class AnchorIdeIntegration {

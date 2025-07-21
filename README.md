@@ -1,6 +1,6 @@
 # 🌊 Coral XYZ Anchor for Dart
 
-[![pub package](https://img.shields.io/pub/v/coral_xyz_anchor.svg)](https://pub.dev/packages/coral_xyz_anchor)
+[![pub package](https://img.shields.io/pub/v/coral_xyz.svg)](https://pub.dev/packages/coral_xyz)
 [![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -12,13 +12,13 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  coral_xyz_anchor: ^1.0.0
+  coral_xyz: ^1.0.0
 ```
 
 Simple counter example:
 
 ```dart
-import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz_anchor.dart';
 
 void main() async {
   // Connect to Solana devnet
@@ -299,8 +299,11 @@ Explore comprehensive examples in the [`example/`](example/) directory:
 - **[`program_interaction.dart`](example/program_interaction.dart)** - Production interaction patterns
 - **[`event_system_example.dart`](example/event_system_example.dart)** - Event listening and parsing
 - **[`complete_example.dart`](example/complete_example.dart)** - Advanced workflows and error handling
+- See the [example README](example/README.md) for detailed explanations and run instructions.
 
-See the [example README](example/README.md) for detailed explanations and run instructions.
+**More Flutter Example Apps:**
+You can find additional Flutter integration examples and sample apps at:
+[https://github.com/Immadominion/coral-xyz-examples](https://github.com/Immadominion/coral-xyz-examples)
 
 ## 🧪 Testing
 
@@ -400,7 +403,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [📖 API Documentation](https://pub.dev/documentation/coral_xyz_anchor/latest/)
+- [📖 API Documentation](https://pub.dev/documentation/coral_xyz/latest/)
 - [🌐 Anchor Framework](https://www.anchor-lang.com/)
 - [⚡ Solana Documentation](https://docs.solana.com/)
 - [🎯 TypeScript Anchor Client](https://github.com/coral-xyz/anchor)

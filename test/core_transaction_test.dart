@@ -6,8 +6,8 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
-import 'package:coral_xyz_anchor/src/types/public_key.dart';
+import 'package:coral_xyz/src/transaction/transaction.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:solana/solana.dart' as solana;
 import 'package:test/test.dart';
 

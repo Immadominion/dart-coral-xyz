@@ -5,7 +5,7 @@
 library;
 
 import 'package:solana/solana.dart' as solana;
-import 'package:coral_xyz_anchor/src/transaction/transaction.dart';
+import 'package:coral_xyz/src/transaction/transaction.dart';
 
 /// Clean RPC wrapper using espresso-cash solana package
 class SolanaRpcClient {
