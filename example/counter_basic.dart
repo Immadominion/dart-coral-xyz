@@ -51,8 +51,8 @@ Future<void> main() async {
     print(
         '   Instructions: ${counterIdl.instructions.map((IdlInstruction i) => i.name).join(', ')}');
 
-    // Step 5: Demonstrate account creation parameters
-    print('\\n5. Building initialize instruction...');
+    // Step 5: Demonstrate account creation parameters and initialize RPC
+    print('\n5. Building initialize instruction and calling RPC...');
     final initAccounts = {
       'counter': counterKeypair.publicKey,
       'user': provider.wallet!.publicKey,
@@ -62,9 +62,22 @@ Future<void> main() async {
     initAccounts.forEach((name, pubkey) {
       print('     $name: $pubkey');
     });
+    // Create program instance
+    final program = Program(counterIdl, programId, provider: provider);
+    print('   ✓ Program created with ID: $programId');
+    // Call initialize RPC (demo mode)
+    try {
+      final sig1 = await program.methods
+          .initialize()
+          .accounts(initAccounts)
+          .signers([counterKeypair]).rpc();
+      print('   ✓ initialize RPC signature: $sig1');
+    } catch (e) {
+      print('   ⚠ initialize RPC skipped (demo): $e');
+    }
 
-    // Step 6: Demonstrate increment instruction
-    print('\\n6. Building increment instruction...');
+    // Step 6: Demonstrate increment instruction and call RPC
+    print('\n6. Building increment instruction and calling RPC...');
     final incrementAccounts = {
       'counter': counterKeypair.publicKey,
     };
@@ -72,8 +85,25 @@ Future<void> main() async {
     incrementAccounts.forEach((name, pubkey) {
       print('     $name: $pubkey');
     });
+    // Call increment RPC (demo mode)
+    try {
+      final sig2 =
+          await program.methods.increment().accounts(incrementAccounts).rpc();
+      print('   ✓ increment RPC signature: $sig2');
+    } catch (e) {
+      print('   ⚠ increment RPC skipped (demo): $e');
+    }
 
-    // Step 7: Show TypeScript equivalent patterns
+    // Step 7: Fetch and verify account data
+    print('\n7. Fetching counter account data...');
+    try {
+      final counterData =
+          await program.account.counter.fetch(counterKeypair.publicKey);
+      print('   ✓ Counter value: ${counterData.count}');
+    } catch (e) {
+      print('   ⚠ Fetch skipped (demo): $e');
+    }
+    // Step 8: Show TypeScript equivalent patterns
     print('\\n7. TypeScript Equivalent Patterns:');
     print('   TypeScript: const program = anchor.workspace.Counter;');
     print('   Dart:       final program = Program(idl, provider);');

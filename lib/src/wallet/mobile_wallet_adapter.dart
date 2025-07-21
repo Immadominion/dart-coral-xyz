@@ -797,7 +797,7 @@ class MobileWalletErrorResponse extends MobileWalletResponse {
 /// Deep link handler for mobile wallet communication
 class MobileWalletDeepLinkHandler {
   static final _logger = Logger('MobileWalletDeepLinkHandler');
-  
+
   /// Stream controller for responses
   final StreamController<MobileWalletResponse> _responseController =
       StreamController<MobileWalletResponse>.broadcast();

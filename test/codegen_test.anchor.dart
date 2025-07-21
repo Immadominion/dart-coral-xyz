@@ -1,7 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // Generated from IDL: test_program
 // Version: 0.1.0
-// Generated at: 2025-07-21T21:28:50.515869
+// Generated at: 2025-07-21T22:47:40.160471
 
 import 'dart:typed_data';
 import 'package:coral_xyz_anchor/coral_xyz_anchor.dart';
