@@ -303,3 +303,29 @@ During development, the following dependency decisions were made:
 - Comprehensive roadmap for development
 - Core architecture planning
 - Documentation framework
+
+## [1.0.0-beta.2] - 2025-01-28
+
+### 🔧 Fixes and Improvements
+
+#### Code Quality and Robustness
+- **Enhanced Error Handling** - Improved error handling and logging across core modules including account_fetcher and anchor_provider
+- **Code Formatting** - Consistent formatting applied across borsh_accounts_coder, borsh_types, and test files
+- **Transaction Conversion** - Enhanced transaction conversion logic with better error messages and debugging support
+- **Debugging Support** - Added proper offset tracking in BorshDeserializer for improved debugging capabilities
+
+#### Developer Experience
+- **Import Consistency** - Standardized import formatting across all modules for better code readability
+- **Test Quality** - Improved test formatting and readability in borsh_accounts_coder_test.dart
+- **Documentation** - Enhanced inline documentation and error messages
+
+#### Compatibility
+- **API Stability** - All improvements maintain full backward compatibility with existing API
+- **TypeScript Parity** - Continues to provide 1:1 feature compatibility with `@coral-xyz/anchor`
+
+### 🎯 Featured Example
+- **Voting App Example** - Added comprehensive voting application in coral-xyz-examples showcasing:
+  - **57% Code Reduction** - 327 lines vs 766+ lines compared to manual Solana integration
+  - **Real-time Updates** - Live vote count updates using automatic Borsh deserialization
+  - **Production Patterns** - Error handling, state management, and modern Flutter UI
+  - **Setup Templates** - Safe configuration templates for easy project setup
