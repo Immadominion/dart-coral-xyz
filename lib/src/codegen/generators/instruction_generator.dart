@@ -58,7 +58,6 @@ class InstructionGenerator {
 
     // Add instruction arguments as constructor parameters
     for (final arg in instruction.args) {
-      final paramType = _dartTypeFromIdlType(arg.type);
       final paramName = _toCamelCase(arg.name);
       buffer.writeln('    this.$paramName,');
     }
