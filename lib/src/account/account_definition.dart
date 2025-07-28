@@ -520,14 +520,15 @@ class FieldTypeInfo {
           innerType: innerTypeInfo,
         );
       case 'defined':
-        // Look up the defined type
+        // Look up the defined type for validation
         final typeDef = types.firstWhere(
           (t) => t.name == type.defined,
           orElse: () =>
               throw IdlError('Defined type not found: ${type.defined}'),
         );
-        return const FieldTypeInfo(
-          typeName: 'defined',
+        // For now, we treat defined types as variable size since they need complex resolution
+        return FieldTypeInfo(
+          typeName: 'defined:${typeDef.name}',
           isFixedSize: false, // Assume variable size for complex types
           isOptional: false,
           isNested: true,
