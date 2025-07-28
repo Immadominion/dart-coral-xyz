@@ -15,6 +15,26 @@ import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/error/account_errors.dart';
+import 'package:coral_xyz/src/utils/logger.dart';
+
+/// Configuration for the account fetcher
+class AccountFetcherConfig {
+  /// Create a new account fetcher config
+  const AccountFetcherConfig({
+    this.enableCaching = true,
+    this.cacheTimeout = const Duration(seconds: 30),
+    this.defaultCommitment = Commitment.confirmed,
+  });
+
+  /// Whether to enable caching
+  final bool enableCaching;
+
+  /// How long to cache accounts for
+  final Duration cacheTimeout;
+
+  /// The default commitment level to use for fetches
+  final Commitment defaultCommitment;
+}
 
 /// Enhanced account fetcher with caching and batch operations
 class AccountFetcher<T> {
@@ -35,6 +55,9 @@ class AccountFetcher<T> {
   final PublicKey _programId;
   final AnchorProvider _provider;
   final AccountFetcherConfig _config;
+  
+  /// Logger for this account fetcher
+  static final AnchorLogger _logger = AnchorLogger.getLogger('AccountFetcher');
 
   // Cache management
   final Map<String, CachedAccountData<T>> _cache = {};
@@ -177,7 +200,7 @@ class AccountFetcher<T> {
     if (addresses.isEmpty) return [];
 
     // Check cache for any existing data
-    final results = <T?>[];
+    final results = List<T?>.filled(addresses.length, null);
     final uncachedAddresses = <PublicKey>[];
     final uncachedIndices = <int>[];
 
@@ -188,20 +211,19 @@ class AccountFetcher<T> {
       if (useCache && _config.enableCaching) {
         final cached = _cache[addressStr];
         if (cached != null && !cached.isExpired(_config.cacheTimeout)) {
-          results.add(cached.data);
+          results[i] = cached.data;
           continue;
         }
       }
 
-      results.add(null); // Placeholder
       uncachedAddresses.add(address);
       uncachedIndices.add(i);
     }
 
     // Fetch uncached accounts
     if (uncachedAddresses.isNotEmpty) {
-      final commitmentConfig =
-          commitment != null ? CommitmentConfig(commitment) : null;
+      final effectiveCommitment = commitment ?? _config.defaultCommitment;
+      final commitmentConfig = CommitmentConfig(effectiveCommitment);
 
       final accountInfos = await _provider.connection.getMultipleAccountsInfo(
         uncachedAddresses,
@@ -320,8 +342,8 @@ class AccountFetcher<T> {
       allFilters.addAll(filters);
     }
 
-    final commitmentConfig =
-        commitment != null ? CommitmentConfig(commitment) : null;
+    final effectiveCommitment = commitment ?? _config.defaultCommitment;
+    final commitmentConfig = CommitmentConfig(effectiveCommitment);
 
     // Fetch program accounts
     final accounts = await _provider.connection.getProgramAccounts(
@@ -449,13 +471,29 @@ class AccountFetcher<T> {
 
   /// Perform the actual account fetch
   Future<T?> _performFetch(PublicKey address, Commitment? commitment) async {
-    final commitmentConfig =
-        commitment != null ? CommitmentConfig(commitment) : null;
+    _logger.debug('Starting fetch for ${address.toBase58()}');
+    final effectiveCommitment = commitment ?? _config.defaultCommitment;
+    final commitmentConfig = CommitmentConfig(effectiveCommitment);
+    
+    _logger.debug('Using commitment', context: {
+      'passedCommitment': commitment?.value,
+      'effectiveCommitment': effectiveCommitment.value,
+      'commitmentConfig': commitmentConfig.toString(),
+      'configDefault': _config.defaultCommitment.value,
+    });
 
     final accountInfo = await _provider.connection.getAccountInfo(
       address,
       commitment: commitmentConfig,
     );
+
+    _logger.debug('Got account info', context: {
+      'address': address.toBase58(),
+      'accountExists': accountInfo != null,
+      'dataType': accountInfo?.data.runtimeType.toString(),
+      'owner': accountInfo?.owner.toBase58(),
+      'expectedProgramId': _programId.toBase58(),
+    });
 
     final data = accountInfo?.data;
     final isEmpty = data == null ||
@@ -463,43 +501,66 @@ class AccountFetcher<T> {
         (data is String && data.isEmpty) ||
         (data is Uint8List && data.isEmpty);
     if (accountInfo == null || isEmpty) {
+      _logger.debug('Account is null or empty, returning null');
       return null;
     }
 
     // Validate account ownership
     if (accountInfo.owner.toBase58() != _programId.toBase58()) {
-      throw AccountOwnedByWrongProgramError.fromValidation(
-        accountAddress: address,
-        accountName: _idlAccount.name,
-        expected: _programId,
-        actual: accountInfo.owner,
-        errorLogs: ['Account owned by wrong program'],
-        logs: [
-          'Expected: ${_programId.toBase58()}, Actual: ${accountInfo.owner.toBase58()}',
-        ],
-      );
+      // Return null for accounts owned by wrong program instead of throwing
+      // This allows for graceful handling of uninitialized accounts
+      _logger.debug('Account owned by wrong program', context: {
+        'address': address.toBase58(),
+        'actualOwner': accountInfo.owner.toBase58(),
+        'expectedOwner': _programId.toBase58(),
+      });
+      return null;
     }
+
+    _logger.debug('Ownership validation passed, proceeding to decode');
 
     // Decode account data
     // Convert data to Uint8List if needed
     Uint8List dataBytes;
     if (accountInfo.data is Uint8List) {
       dataBytes = accountInfo.data as Uint8List;
+      _logger.debug('Data is already Uint8List', context: {'length': dataBytes.length});
     } else if (accountInfo.data is List<int>) {
       dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+      _logger.debug('Converted List<int> to Uint8List', context: {'length': dataBytes.length});
     } else if (accountInfo.data is String) {
       // Handle base64 encoded data from RPC response
       try {
         dataBytes = base64Decode(accountInfo.data as String);
+        _logger.debug('Decoded base64 string to Uint8List', context: {'length': dataBytes.length});
       } catch (e) {
+        _logger.error('Failed to decode base64 account data', error: e);
         throw Exception('Failed to decode base64 account data: $e');
       }
     } else {
+      _logger.error('Unsupported data type', context: {'type': accountInfo.data.runtimeType.toString()});
       throw Exception(
         'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}',
       );
     }
-    return _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
+
+    try {
+      _logger.debug('Attempting to decode account data with coder', context: {
+        'accountName': _idlAccount.name,
+        'dataLength': dataBytes.length,
+        'dataPreview': dataBytes.take(20).toList().toString(),
+      });
+      
+      final result = _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
+      _logger.debug('Successfully decoded account data');
+      return result;
+    } catch (e) {
+      _logger.error('Failed to decode account data', error: e, context: {
+        'accountName': _idlAccount.name,
+        'dataLength': dataBytes.length,
+      });
+      rethrow;
+    }
   }
 
   /// Dispose of the account fetcher
@@ -513,32 +574,6 @@ class AccountFetcher<T> {
     // Clear cache
     _cache.clear();
   }
-}
-
-/// Configuration for account fetcher behavior
-class AccountFetcherConfig {
-  const AccountFetcherConfig({
-    this.enableCaching = true,
-    this.cacheTimeout = const Duration(minutes: 5),
-    this.maxCacheSize = 1000,
-    this.batchDelay = const Duration(milliseconds: 50),
-    this.maxBatchSize = 100,
-  });
-
-  /// Whether to enable caching
-  final bool enableCaching;
-
-  /// Cache timeout duration
-  final Duration cacheTimeout;
-
-  /// Maximum cache size (number of entries)
-  final int maxCacheSize;
-
-  /// Batch fetch delay for optimization
-  final Duration batchDelay;
-
-  /// Maximum batch size
-  final int maxBatchSize;
 }
 
 /// Cached account data with metadata

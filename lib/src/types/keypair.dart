@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/external/crypto_wrapper.dart';
 import 'package:coral_xyz/src/external/encoding_wrapper.dart';
+import 'package:coral_xyz/src/program/namespace/types.dart' as namespace_types;
 
 /// A Solana keypair containing both public and private keys
 ///
@@ -17,7 +18,7 @@ import 'package:coral_xyz/src/external/encoding_wrapper.dart';
 /// - Transaction signing
 /// - Key serialization and deserialization
 /// - Secure key management
-class Keypair {
+class Keypair implements namespace_types.Signer {
   /// Private constructor to ensure proper validation
   Keypair._(this._secretKey, this._publicKey);
 
@@ -86,6 +87,7 @@ class Keypair {
   }
 
   /// Get the public key
+  @override
   PublicKey get publicKey => _publicKey;
 
   /// Get the secret key bytes
@@ -100,6 +102,13 @@ class Keypair {
   /// Sign a message with this keypair
   Future<Uint8List> sign(Uint8List message) async =>
       CryptoWrapper.sign(message, _secretKey);
+
+  /// Implementation of namespace Signer interface
+  @override
+  Future<List<int>> signMessage(List<int> message) async {
+    final signature = await sign(Uint8List.fromList(message));
+    return signature.toList();
+  }
 
   /// Verify a signature against this keypair's public key
   Future<bool> verify(Uint8List message, Uint8List signature) async =>

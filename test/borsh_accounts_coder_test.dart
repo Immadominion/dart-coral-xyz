@@ -455,5 +455,185 @@ void main() {
         }
       });
     });
+
+    group('Generic Borsh Decoding', () {
+      late BorshAccountsCoder<String> complexCoder;
+
+      setUp(() {
+        // Create an IDL with complex types similar to a voting program
+        final complexIdl = const Idl(
+          instructions: [],
+          accounts: [
+            // Inline account type definition (like Poll)
+            IdlAccount(
+              name: 'Poll',
+              type: IdlTypeDefType(
+                kind: 'struct',
+                fields: [
+                  IdlField(name: 'finished', type: IdlType(kind: 'bool')),
+                  IdlField(name: 'title', type: IdlType(kind: 'string')),
+                  IdlField(name: 'voteCount', type: IdlType(kind: 'u64')),
+                  IdlField(
+                    name: 'options',
+                    type: IdlType(
+                      kind: 'vec',
+                      inner: IdlType(kind: 'defined', defined: 'PollOption'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Counter account for compatibility testing
+            IdlAccount(
+              name: 'Counter',
+              type: IdlTypeDefType(
+                kind: 'struct',
+                fields: [
+                  IdlField(name: 'count', type: IdlType(kind: 'u64')),
+                  IdlField(name: 'bump', type: IdlType(kind: 'u8')),
+                ],
+              ),
+            ),
+          ],
+          types: [
+            // Separate type definition referenced by Poll
+            IdlTypeDef(
+              name: 'PollOption',
+              type: IdlTypeDefType(
+                kind: 'struct',
+                fields: [
+                  IdlField(name: 'name', type: IdlType(kind: 'string')),
+                  IdlField(name: 'votes', type: IdlType(kind: 'u32')),
+                ],
+              ),
+            ),
+          ],
+        );
+
+        complexCoder = BorshAccountsCoder<String>(complexIdl);
+      });
+
+      test('should decode inline account type (Poll) correctly', () async {
+        // Create test data for a Poll account
+        final pollData = {
+          'finished': false,
+          'title': 'Test Poll',
+          'voteCount': BigInt.from(42),
+          'options': [
+            {'name': 'Option A', 'votes': 10},
+            {'name': 'Option B', 'votes': 32},
+          ],
+        };
+
+        // Encode and decode to test roundtrip
+        final encoded = await complexCoder.encode('Poll', pollData);
+        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
+
+        expect(decoded['finished'], equals(false));
+        expect(decoded['title'], equals('Test Poll'));
+        expect(decoded['voteCount'], equals(BigInt.from(42)));
+        expect(decoded['options'], isA<List>());
+        expect((decoded['options'] as List).length, equals(2));
+        expect((decoded['options'] as List)[0]['name'], equals('Option A'));
+        expect((decoded['options'] as List)[0]['votes'], equals(10));
+      });
+
+      test('should decode separate type definition (Counter) correctly', () async {
+        // Create test data for a Counter account
+        final counterData = {
+          'count': BigInt.from(100),
+          'bump': 255,
+        };
+
+        // Encode and decode to test roundtrip
+        final encoded = await complexCoder.encode('Counter', counterData);
+        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Counter', encoded);
+
+        expect(decoded['count'], equals(BigInt.from(100)));
+        expect(decoded['bump'], equals(255));
+      });
+
+      test('should handle nested defined types correctly', () async {
+        // Test that PollOption type can be resolved from Poll's vec<defined<PollOption>>
+        final pollWithComplexOptions = {
+          'finished': true,
+          'title': 'Complex Poll',
+          'voteCount': BigInt.from(1000),
+          'options': [
+            {'name': 'First Option', 'votes': 250},
+            {'name': 'Second Option', 'votes': 300},
+            {'name': 'Third Option', 'votes': 450},
+          ],
+        };
+
+        final encoded = await complexCoder.encode('Poll', pollWithComplexOptions);
+        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
+
+        expect(decoded['finished'], equals(true));
+        expect(decoded['title'], equals('Complex Poll'));
+        expect(decoded['voteCount'], equals(BigInt.from(1000)));
+        
+        final options = decoded['options'] as List;
+        expect(options.length, equals(3));
+        expect(options[0]['name'], equals('First Option'));
+        expect(options[0]['votes'], equals(250));
+        expect(options[2]['name'], equals('Third Option'));
+        expect(options[2]['votes'], equals(450));
+      });
+
+      test('should handle discriminator validation for complex types', () async {
+        // Create valid Poll data
+        final pollData = {
+          'finished': false,
+          'title': 'Valid Poll',
+          'voteCount': BigInt.from(5),
+          'options': <Map<String, dynamic>>[],
+        };
+
+        final encoded = await complexCoder.encode('Poll', pollData);
+        
+        // Should decode successfully with correct discriminator
+        expect(
+          () => complexCoder.decode<Map<String, dynamic>>('Poll', encoded),
+          returnsNormally,
+        );
+
+        // Should fail with wrong account type
+        expect(
+          () => complexCoder.decode<Map<String, dynamic>>('Counter', encoded),
+          throwsA(isA<AccountDiscriminatorMismatchError>()),
+        );
+      });
+
+      test('should handle empty vectors correctly', () async {
+        final pollWithNoOptions = {
+          'finished': false,
+          'title': 'Empty Poll',
+          'voteCount': BigInt.zero,
+          'options': <Map<String, dynamic>>[],
+        };
+
+        final encoded = await complexCoder.encode('Poll', pollWithNoOptions);
+        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
+
+        expect(decoded['title'], equals('Empty Poll'));
+        expect(decoded['options'], isA<List>());
+        expect((decoded['options'] as List).isEmpty, isTrue);
+      });
+
+      test('should provide meaningful error for invalid field types', () async {
+        final invalidPollData = {
+          'finished': 'not a boolean', // Wrong type
+          'title': 'Invalid Poll',
+          'voteCount': BigInt.from(10),
+          'options': <Map<String, dynamic>>[],
+        };
+
+        expect(
+          () async => await complexCoder.encode('Poll', invalidPollData),
+          throwsA(isA<AccountCoderError>()),
+        );
+      });
+    });
   });
 }

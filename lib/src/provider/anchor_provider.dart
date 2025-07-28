@@ -157,6 +157,8 @@
 library;
 
 import 'dart:async';
+import 'package:solana/solana.dart' as solana;
+import 'package:solana/encoder.dart' as encoder;
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/provider/wallet.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
@@ -342,7 +344,10 @@ class AnchorProvider implements Provider {
     this.connection,
     this.wallet, {
     this.options = ConfirmOptions.defaultOptions,
-  });
+  }) : _solanaClient = solana.SolanaClient(
+          rpcUrl: Uri.parse(connection.endpoint),
+          websocketUrl: Uri.parse(connection.endpoint.replaceFirst('http', 'ws')),
+        );
 
   /// Create a provider with a specific wallet
   ///
@@ -368,6 +373,9 @@ class AnchorProvider implements Provider {
 
   /// Logger instance for AnchorProvider
   static final AnchorLogger _logger = AnchorLogger.getLogger('AnchorProvider');
+
+  /// The underlying Solana client for transaction operations
+  final solana.SolanaClient _solanaClient;
 
   /// The connection to the Solana cluster
   @override
@@ -452,80 +460,116 @@ class AnchorProvider implements Provider {
 
     final opts = options ?? this.options;
 
-    // Retry logic for blockhash-related errors
-    const maxRetries = 3;
-    for (int attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        // Always get a fresh blockhash for each attempt
-        _logger.debug(
-          'Attempt ${attempt + 1}/$maxRetries - Getting fresh blockhash...',
-        );
-        final blockhashResult = await connection.getLatestBlockhash(
-          commitment: opts.preflightCommitment ?? opts.commitment,
-        );
-        _logger.debug(
-          'Fresh blockhash for attempt ${attempt + 1}: ${blockhashResult.blockhash}',
-        );
-
-        // Create a new transaction with fresh blockhash
-        final transactionWithFreshBlockhash =
-            transaction.setRecentBlockhash(blockhashResult.blockhash);
-
-        // Prepare the transaction
-        final preparedTransaction = await _prepareTransaction(
-          transactionWithFreshBlockhash,
-          signers,
-          opts,
-        );
-
-        // Sign the transaction with the wallet
-        final signedTransaction =
-            await wallet!.signTransaction(preparedTransaction);
-
-        _logger.debug(
-          'signedTransaction type: ${signedTransaction.runtimeType}',
-        );
-        _logger.debug(
-          'signedTransaction.serialize() type: ${signedTransaction.serialize().runtimeType}',
-        );
-        _logger.debug(
-          'signedTransaction.serialize() value: ${signedTransaction.serialize()}',
-        );
-
-        // Use the connection to send the transaction
-        final signature = await connection.sendAndConfirmTransaction(
-          signedTransaction.serialize(),
-          commitment: opts.commitment,
-        );
-
-        _logger.info('Transaction sent successfully on attempt ${attempt + 1}');
-        return signature;
-      } catch (e) {
-        final errorString = e.toString();
-        final isBlockhashError = errorString.contains('Blockhash not found') ||
-            errorString.contains('BlockhashNotFound') ||
-            errorString.contains('Invalid blockhash');
-
-        if (isBlockhashError && attempt < maxRetries - 1) {
-          _logger.warn(
-            'Blockhash error on attempt ${attempt + 1}, retrying...',
+    try {
+      _logger.debug('Using native solana package for transaction sending...');
+      
+      // Create signer from wallet keypair
+      final walletKeypair = wallet as KeypairWallet;
+      final solanaKeypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
+        privateKey: walletKeypair.keypair.secretKey.sublist(0, 32),
+      );
+      
+      // Add additional signers if provided
+      final allSigners = [solanaKeypair];
+      if (signers != null) {
+        for (final signer in signers) {
+          final signerKeypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
+            privateKey: signer.secretKey.sublist(0, 32),
           );
-          // Wait a bit before retry
-          await Future<void>.delayed(const Duration(milliseconds: 500));
-          continue;
+          allSigners.add(signerKeypair);
         }
-
-        // If it's not a blockhash error or we've exhausted retries, throw
-        final enhancedError = translateRpcError(e);
-        throw ProviderException(
-          'Failed to send and confirm transaction: ${enhancedError.toString()}',
-          e,
-        );
       }
+      
+      // Convert dart-coral-xyz transaction to solana package format
+      final solanaMessage = await _convertToSolanaMessage(transaction, allSigners);
+      
+      // Send transaction using the solana package's native method
+      _logger.debug('Sending transaction via solana package sendAndConfirmTransaction...');
+      final signature = await _solanaClient.sendAndConfirmTransaction(
+        message: solanaMessage,
+        signers: allSigners,
+        commitment: _convertCommitment(opts.commitment),
+      );
+      
+      _logger.info('Transaction sent successfully via solana package');
+      _logger.debug('Received signature: $signature (length: ${signature.length})');
+      
+      // Validate signature format (Solana signatures should be 88 characters in base58)
+      if (signature.length != 88) {
+        _logger.warn('Unusual signature length: ${signature.length}, expected 88. This might be a mock signature.');
+      }
+      
+      return signature;
+    } catch (e) {
+      final enhancedError = translateRpcError(e);
+      throw ProviderException(
+        'Failed to send and confirm transaction: ${enhancedError.toString()}',
+        e,
+      );
     }
+  }
 
-    // This should never be reached due to the loop structure, but just in case
-    throw const ProviderException('Maximum retry attempts exceeded');
+  /// Convert dart-coral-xyz transaction to solana package Message format
+  /// 
+  /// This method properly converts a dart-coral-xyz transaction to a solana.Message
+  /// by leveraging the solana package's built-in account ordering, duplicate removal,
+  /// and fee payer handling logic. This ensures compatibility with the solana
+  /// package's transaction signing and sending pipeline.
+  Future<solana.Message> _convertToSolanaMessage(
+    transaction_types.Transaction transaction,
+    List<solana.Ed25519HDKeyPair> signers,
+  ) async {
+    _logger.debug('Converting dart-coral-xyz transaction to solana.Message...');
+    
+    // Convert instructions from dart-coral-xyz format to solana package format
+    final solanaInstructions = <encoder.Instruction>[];
+    
+    for (final instruction in transaction.instructions) {
+      _logger.debug('Converting instruction for program: ${instruction.programId.toBase58()}');
+      
+      // Convert account metas
+      final accounts = <encoder.AccountMeta>[];
+      for (final account in instruction.accounts) {
+        final pubKey = solana.Ed25519HDPublicKey.fromBase58(account.pubkey.toBase58());
+        
+        final accountMeta = account.isWritable
+            ? encoder.AccountMeta.writeable(pubKey: pubKey, isSigner: account.isSigner)
+            : encoder.AccountMeta.readonly(pubKey: pubKey, isSigner: account.isSigner);
+        
+        accounts.add(accountMeta);
+        _logger.debug('  Account: ${account.pubkey.toBase58()}, writable: ${account.isWritable}, signer: ${account.isSigner}');
+      }
+      
+      // Create solana package instruction
+      final solanaInstruction = encoder.Instruction(
+        programId: solana.Ed25519HDPublicKey.fromBase58(instruction.programId.toBase58()),
+        accounts: accounts,
+        data: encoder.ByteArray(instruction.data),
+      );
+      
+      solanaInstructions.add(solanaInstruction);
+    }
+    
+    // Create message using solana package's Message constructor
+    // This will handle proper account ordering, duplicate removal, and fee payer logic
+    final message = solana.Message(instructions: solanaInstructions);
+    
+    _logger.debug('Successfully converted ${solanaInstructions.length} instructions to solana.Message');
+    return message;
+  }
+
+  /// Convert dart-coral-xyz commitment to solana package commitment
+  solana.Commitment _convertCommitment(CommitmentConfig commitment) {
+    switch (commitment.commitment.value) {
+      case 'processed':
+        return solana.Commitment.processed;
+      case 'confirmed':
+        return solana.Commitment.confirmed;
+      case 'finalized':
+        return solana.Commitment.finalized;
+      default:
+        return solana.Commitment.confirmed;
+    }
   }
 
   @override

@@ -7,10 +7,10 @@ library;
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:convert/convert.dart';
-import 'package:coral_xyz/src/idl/idl.dart';
-import 'package:coral_xyz/src/error/account_errors.dart';
-import 'package:coral_xyz/src/types/public_key.dart';
-import 'package:coral_xyz/src/coder/discriminator_computer.dart';
+import '../idl/idl.dart';
+import '../error/account_errors.dart';
+import '../types/public_key.dart';
+import '../coder/discriminator_computer.dart';
 
 /// Interface for encoding and decoding program accounts matching TypeScript AccountsCoder
 abstract class AccountsCoder<A extends String> {
@@ -59,18 +59,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       return;
     }
 
-    // For IDLs with inline account type definitions (older format),
-    // types field may be null or empty
-    if (idl.types == null && _hasInlineAccountTypes()) {
-      // Continue with inline account type processing
-      _buildAccountLayoutsFromInlineTypes();
-    } else if (idl.types == null) {
-      throw AccountCoderError(
-        'Accounts require `idl.types` or inline account type definitions',
-      );
-    } else {
-      _buildAccountLayouts();
-    }
+    // Use hybrid approach to handle both inline and separate type definitions
+    _buildAccountLayouts();
   }
 
   /// The IDL containing account definitions
@@ -79,57 +69,46 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
   /// Cached account layouts with discriminators and type definitions
   late final Map<A, AccountLayout> _accountLayouts;
 
-  /// Check if accounts have inline type definitions
-  bool _hasInlineAccountTypes() {
-    if (idl.accounts == null) return false;
-
-    return idl.accounts!.any(
-      (account) => account.type.kind == 'struct' || account.type.kind == 'enum',
-    );
-  }
-
-  /// Build account layouts from inline account type definitions
-  void _buildAccountLayoutsFromInlineTypes() {
-    final accounts = idl.accounts!;
-    final layouts = <A, AccountLayout>{};
-
-    for (final acc in accounts) {
-      // For inline type definitions, use the account's type directly
-      final typeDef = IdlTypeDef(
-        name: acc.name,
-        type: acc.type, // acc.type is already IdlTypeDefType
-      );
-
-      // Use existing discriminator or compute one if missing
-      final Uint8List discriminator = acc.discriminator != null
-          ? Uint8List.fromList(acc.discriminator!)
-          : DiscriminatorComputer.computeAccountDiscriminator(acc.name);
-
-      layouts[acc.name as A] = AccountLayout(
-        discriminator: discriminator,
-        typeDef: typeDef,
-      );
-    }
-
-    _accountLayouts = layouts;
-  }
-
-  /// Build account layouts from IDL matching TypeScript constructor logic
+  /// Build account layouts using hybrid approach (Phase 1 implementation)
+  /// Handles both inline and separate type definitions in a single method
   void _buildAccountLayouts() {
     final accounts = idl.accounts!;
-    final types = idl.types!;
+    final types = idl.types ?? [];
     final layouts = <A, AccountLayout>{};
 
     for (final acc in accounts) {
-      final typeDef = types.firstWhere(
-        (ty) => ty.name == acc.name,
-        orElse: () => throw AccountCoderError('Account not found: ${acc.name}'),
-      );
+      // Try to find type in types section first
+      final separateTypeDef = types.cast<IdlTypeDef?>().firstWhere(
+            (ty) => ty?.name == acc.name,
+            orElse: () => null,
+          );
+
+      final IdlTypeDef typeDef;
+
+      if (separateTypeDef != null) {
+        // Use separate type definition
+        typeDef = separateTypeDef;
+      } else {
+        // Check if account has inline type definition
+        if (acc.type.kind == 'struct' || acc.type.kind == 'enum') {
+          // Use inline type definition - directly use the IdlTypeDefType
+          typeDef = IdlTypeDef(
+            name: acc.name,
+            type: acc.type, // Use the IdlTypeDefType directly
+          );
+        } else {
+          throw AccountCoderError(
+              'Account ${acc.name} has no valid type definition. '
+              'Must be defined either in types section or inline with kind struct/enum. '
+              'Found: kind="${acc.type.kind}", available types: ${types.map((t) => t.name).join(', ')}');
+        }
+      }
 
       // Use predefined discriminator or compute if missing
       final Uint8List discriminator = acc.discriminator != null
           ? Uint8List.fromList(acc.discriminator!)
           : DiscriminatorComputer.computeAccountDiscriminator(acc.name);
+
       layouts[acc.name as A] = AccountLayout(
         discriminator: discriminator,
         typeDef: typeDef,
@@ -401,6 +380,76 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       result |= bytes[i] << (i * 8);
     }
     return result;
+  }
+
+  /// Analyze and debug IDL structure for development purposes
+  ///
+  /// This method provides detailed information about account types,
+  /// helping developers understand how their IDL is structured and
+  /// why certain accounts might fail to load.
+  void analyzeIdl() {
+    print('=== IDL Analysis ===');
+    print('Accounts: ${idl.accounts?.length ?? 0}');
+    print('Types: ${idl.types?.length ?? 0}');
+    print('Instructions: ${idl.instructions.length}');
+    print('');
+
+    if (idl.accounts != null) {
+      print('Account Type Analysis:');
+      for (final account in idl.accounts!) {
+        final hasInlineType =
+            account.type.kind == 'struct' || account.type.kind == 'enum';
+        final hasTypeDefinition =
+            idl.types?.any((t) => t.name == account.name) ?? false;
+
+        String typeSource;
+        if (hasTypeDefinition && hasInlineType) {
+          typeSource = 'both (types section + inline)';
+        } else if (hasTypeDefinition) {
+          typeSource = 'types section';
+        } else if (hasInlineType) {
+          typeSource = 'inline';
+        } else {
+          typeSource = 'MISSING';
+        }
+
+        print('  ${account.name}: ${typeSource} (kind: ${account.type.kind})');
+      }
+      print('');
+    }
+
+    if (idl.types != null && idl.types!.isNotEmpty) {
+      print('Available Types in types section:');
+      for (final type in idl.types!) {
+        print('  ${type.name}: ${type.type.kind}');
+      }
+      print('');
+    }
+
+    // Check for potential issues
+    final issues = <String>[];
+    if (idl.accounts != null) {
+      for (final account in idl.accounts!) {
+        final hasInlineType =
+            account.type.kind == 'struct' || account.type.kind == 'enum';
+        final hasTypeDefinition =
+            idl.types?.any((t) => t.name == account.name) ?? false;
+
+        if (!hasInlineType && !hasTypeDefinition) {
+          issues.add('Account ${account.name} has no valid type definition');
+        }
+      }
+    }
+
+    if (issues.isNotEmpty) {
+      print('❌ Issues Found:');
+      for (final issue in issues) {
+        print('  - $issue');
+      }
+    } else {
+      print('✅ No issues found - all accounts have valid type definitions');
+    }
+    print('===================');
   }
 }
 

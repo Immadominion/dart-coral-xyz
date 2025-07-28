@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:coral_xyz/src/types/transaction.dart'
     as transaction_types;
+import 'package:coral_xyz/src/types/keypair.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
 import 'package:coral_xyz/src/program/namespace/transaction_namespace.dart';
@@ -117,8 +118,25 @@ class RpcFunction {
 
     // Send the transaction using the provider (which will sign it with the wallet)
     try {
+      // Convert namespace signers to Keypair objects for the provider
+      List<Keypair>? signers;
+      if (context.signers != null && context.signers!.isNotEmpty) {
+        signers = <Keypair>[];
+        for (final signer in context.signers!) {
+          if (signer is Keypair) {
+            signers.add(signer);
+          } else {
+            throw ArgumentError(
+              'Expected Keypair, got ${signer.runtimeType}. '
+              'All signers must be Keypair instances.',
+            );
+          }
+        }
+      }
+
       final signature = await _provider.sendAndConfirm(
         transaction,
+        signers: signers,
         options: _provider.options,
       );
 

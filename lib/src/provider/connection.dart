@@ -8,7 +8,28 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+imp  /// Get account information for a given public key
+  ///
+  /// Returns account information or null if account doesn't exist
+  Future<AccountInfo?> getAccountInfo(
+    PublicKey publicKey, {
+    CommitmentConfig? commitment,
+  }) async {
+    final effectiveCommitment = commitment ?? _config.commitment;
+    _logger.debug('getAccountInfo called', context: {
+      'address': publicKey.toBase58(),
+      'passedCommitment': commitment?.toString(),
+      'configCommitment': _config.commitment.toString(),
+      'effectiveCommitment': effectiveCommitment.toString(),
+    });
+    
+    final result = await _makeRpcRequest('getAccountInfo', [
+      publicKey.toBase58(),
+      {
+        'commitment': effectiveCommitment.commitment.value,
+        'encoding': 'base64',
+      }
+    ]);d_data';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 
