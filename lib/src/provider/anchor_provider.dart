@@ -162,8 +162,7 @@ import 'package:solana/encoder.dart' as encoder;
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/provider/wallet.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
-import 'package:coral_xyz/src/types/transaction.dart'
-    as transaction_types;
+import 'package:coral_xyz/src/types/transaction.dart' as transaction_types;
 import 'package:coral_xyz/src/transaction/transaction_simulator.dart'
     show TransactionSimulationResult;
 import 'package:coral_xyz/src/types/commitment.dart';
@@ -346,7 +345,8 @@ class AnchorProvider implements Provider {
     this.options = ConfirmOptions.defaultOptions,
   }) : _solanaClient = solana.SolanaClient(
           rpcUrl: Uri.parse(connection.endpoint),
-          websocketUrl: Uri.parse(connection.endpoint.replaceFirst('http', 'ws')),
+          websocketUrl:
+              Uri.parse(connection.endpoint.replaceFirst('http', 'ws')),
         );
 
   /// Create a provider with a specific wallet
@@ -462,43 +462,48 @@ class AnchorProvider implements Provider {
 
     try {
       _logger.debug('Using native solana package for transaction sending...');
-      
+
       // Create signer from wallet keypair
       final walletKeypair = wallet as KeypairWallet;
       final solanaKeypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
         privateKey: walletKeypair.keypair.secretKey.sublist(0, 32),
       );
-      
+
       // Add additional signers if provided
       final allSigners = [solanaKeypair];
       if (signers != null) {
         for (final signer in signers) {
-          final signerKeypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
+          final signerKeypair =
+              await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
             privateKey: signer.secretKey.sublist(0, 32),
           );
           allSigners.add(signerKeypair);
         }
       }
-      
+
       // Convert dart-coral-xyz transaction to solana package format
-      final solanaMessage = await _convertToSolanaMessage(transaction, allSigners);
-      
+      final solanaMessage =
+          await _convertToSolanaMessage(transaction, allSigners);
+
       // Send transaction using the solana package's native method
-      _logger.debug('Sending transaction via solana package sendAndConfirmTransaction...');
+      _logger.debug(
+          'Sending transaction via solana package sendAndConfirmTransaction...');
       final signature = await _solanaClient.sendAndConfirmTransaction(
         message: solanaMessage,
         signers: allSigners,
         commitment: _convertCommitment(opts.commitment),
       );
-      
+
       _logger.info('Transaction sent successfully via solana package');
-      _logger.debug('Received signature: $signature (length: ${signature.length})');
-      
+      _logger.debug(
+          'Received signature: $signature (length: ${signature.length})');
+
       // Validate signature format (Solana signatures should be 88 characters in base58)
       if (signature.length != 88) {
-        _logger.warn('Unusual signature length: ${signature.length}, expected 88. This might be a mock signature.');
+        _logger.warn(
+            'Unusual signature length: ${signature.length}, expected 88. This might be a mock signature.');
       }
-      
+
       return signature;
     } catch (e) {
       final enhancedError = translateRpcError(e);
@@ -510,7 +515,7 @@ class AnchorProvider implements Provider {
   }
 
   /// Convert dart-coral-xyz transaction to solana package Message format
-  /// 
+  ///
   /// This method properly converts a dart-coral-xyz transaction to a solana.Message
   /// by leveraging the solana package's built-in account ordering, duplicate removal,
   /// and fee payer handling logic. This ensures compatibility with the solana
@@ -520,41 +525,48 @@ class AnchorProvider implements Provider {
     List<solana.Ed25519HDKeyPair> signers,
   ) async {
     _logger.debug('Converting dart-coral-xyz transaction to solana.Message...');
-    
+
     // Convert instructions from dart-coral-xyz format to solana package format
     final solanaInstructions = <encoder.Instruction>[];
-    
+
     for (final instruction in transaction.instructions) {
-      _logger.debug('Converting instruction for program: ${instruction.programId.toBase58()}');
-      
+      _logger.debug(
+          'Converting instruction for program: ${instruction.programId.toBase58()}');
+
       // Convert account metas
       final accounts = <encoder.AccountMeta>[];
       for (final account in instruction.accounts) {
-        final pubKey = solana.Ed25519HDPublicKey.fromBase58(account.pubkey.toBase58());
-        
+        final pubKey =
+            solana.Ed25519HDPublicKey.fromBase58(account.pubkey.toBase58());
+
         final accountMeta = account.isWritable
-            ? encoder.AccountMeta.writeable(pubKey: pubKey, isSigner: account.isSigner)
-            : encoder.AccountMeta.readonly(pubKey: pubKey, isSigner: account.isSigner);
-        
+            ? encoder.AccountMeta.writeable(
+                pubKey: pubKey, isSigner: account.isSigner)
+            : encoder.AccountMeta.readonly(
+                pubKey: pubKey, isSigner: account.isSigner);
+
         accounts.add(accountMeta);
-        _logger.debug('  Account: ${account.pubkey.toBase58()}, writable: ${account.isWritable}, signer: ${account.isSigner}');
+        _logger.debug(
+            '  Account: ${account.pubkey.toBase58()}, writable: ${account.isWritable}, signer: ${account.isSigner}');
       }
-      
+
       // Create solana package instruction
       final solanaInstruction = encoder.Instruction(
-        programId: solana.Ed25519HDPublicKey.fromBase58(instruction.programId.toBase58()),
+        programId: solana.Ed25519HDPublicKey.fromBase58(
+            instruction.programId.toBase58()),
         accounts: accounts,
         data: encoder.ByteArray(instruction.data),
       );
-      
+
       solanaInstructions.add(solanaInstruction);
     }
-    
+
     // Create message using solana package's Message constructor
     // This will handle proper account ordering, duplicate removal, and fee payer logic
     final message = solana.Message(instructions: solanaInstructions);
-    
-    _logger.debug('Successfully converted ${solanaInstructions.length} instructions to solana.Message');
+
+    _logger.debug(
+        'Successfully converted ${solanaInstructions.length} instructions to solana.Message');
     return message;
   }
 

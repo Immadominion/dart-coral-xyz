@@ -196,6 +196,9 @@ class BorshDeserializer {
   /// Check if there are more bytes to read
   bool get hasMore => _offset < _data.length;
 
+  /// Get current offset (for debugging)
+  int get offset => _offset;
+
   /// Read a u8 (unsigned 8-bit integer)
   int readU8() {
     if (_offset >= _data.length) {

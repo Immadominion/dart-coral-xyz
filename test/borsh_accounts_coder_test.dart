@@ -527,7 +527,8 @@ void main() {
 
         // Encode and decode to test roundtrip
         final encoded = await complexCoder.encode('Poll', pollData);
-        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
+        final decoded =
+            complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
 
         expect(decoded['finished'], equals(false));
         expect(decoded['title'], equals('Test Poll'));
@@ -538,7 +539,8 @@ void main() {
         expect((decoded['options'] as List)[0]['votes'], equals(10));
       });
 
-      test('should decode separate type definition (Counter) correctly', () async {
+      test('should decode separate type definition (Counter) correctly',
+          () async {
         // Create test data for a Counter account
         final counterData = {
           'count': BigInt.from(100),
@@ -547,7 +549,8 @@ void main() {
 
         // Encode and decode to test roundtrip
         final encoded = await complexCoder.encode('Counter', counterData);
-        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Counter', encoded);
+        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>(
+            'Counter', encoded);
 
         expect(decoded['count'], equals(BigInt.from(100)));
         expect(decoded['bump'], equals(255));
@@ -566,13 +569,15 @@ void main() {
           ],
         };
 
-        final encoded = await complexCoder.encode('Poll', pollWithComplexOptions);
-        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
+        final encoded =
+            await complexCoder.encode('Poll', pollWithComplexOptions);
+        final decoded =
+            complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
 
         expect(decoded['finished'], equals(true));
         expect(decoded['title'], equals('Complex Poll'));
         expect(decoded['voteCount'], equals(BigInt.from(1000)));
-        
+
         final options = decoded['options'] as List;
         expect(options.length, equals(3));
         expect(options[0]['name'], equals('First Option'));
@@ -581,7 +586,8 @@ void main() {
         expect(options[2]['votes'], equals(450));
       });
 
-      test('should handle discriminator validation for complex types', () async {
+      test('should handle discriminator validation for complex types',
+          () async {
         // Create valid Poll data
         final pollData = {
           'finished': false,
@@ -591,7 +597,7 @@ void main() {
         };
 
         final encoded = await complexCoder.encode('Poll', pollData);
-        
+
         // Should decode successfully with correct discriminator
         expect(
           () => complexCoder.decode<Map<String, dynamic>>('Poll', encoded),
@@ -614,7 +620,8 @@ void main() {
         };
 
         final encoded = await complexCoder.encode('Poll', pollWithNoOptions);
-        final decoded = complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
+        final decoded =
+            complexCoder.decodeUnchecked<Map<String, dynamic>>('Poll', encoded);
 
         expect(decoded['title'], equals('Empty Poll'));
         expect(decoded['options'], isA<List>());

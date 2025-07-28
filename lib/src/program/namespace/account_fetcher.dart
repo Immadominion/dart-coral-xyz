@@ -55,7 +55,7 @@ class AccountFetcher<T> {
   final PublicKey _programId;
   final AnchorProvider _provider;
   final AccountFetcherConfig _config;
-  
+
   /// Logger for this account fetcher
   static final AnchorLogger _logger = AnchorLogger.getLogger('AccountFetcher');
 
@@ -474,7 +474,7 @@ class AccountFetcher<T> {
     _logger.debug('Starting fetch for ${address.toBase58()}');
     final effectiveCommitment = commitment ?? _config.defaultCommitment;
     final commitmentConfig = CommitmentConfig(effectiveCommitment);
-    
+
     _logger.debug('Using commitment', context: {
       'passedCommitment': commitment?.value,
       'effectiveCommitment': effectiveCommitment.value,
@@ -524,21 +524,25 @@ class AccountFetcher<T> {
     Uint8List dataBytes;
     if (accountInfo.data is Uint8List) {
       dataBytes = accountInfo.data as Uint8List;
-      _logger.debug('Data is already Uint8List', context: {'length': dataBytes.length});
+      _logger.debug('Data is already Uint8List',
+          context: {'length': dataBytes.length});
     } else if (accountInfo.data is List<int>) {
       dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
-      _logger.debug('Converted List<int> to Uint8List', context: {'length': dataBytes.length});
+      _logger.debug('Converted List<int> to Uint8List',
+          context: {'length': dataBytes.length});
     } else if (accountInfo.data is String) {
       // Handle base64 encoded data from RPC response
       try {
         dataBytes = base64Decode(accountInfo.data as String);
-        _logger.debug('Decoded base64 string to Uint8List', context: {'length': dataBytes.length});
+        _logger.debug('Decoded base64 string to Uint8List',
+            context: {'length': dataBytes.length});
       } catch (e) {
         _logger.error('Failed to decode base64 account data', error: e);
         throw Exception('Failed to decode base64 account data: $e');
       }
     } else {
-      _logger.error('Unsupported data type', context: {'type': accountInfo.data.runtimeType.toString()});
+      _logger.error('Unsupported data type',
+          context: {'type': accountInfo.data.runtimeType.toString()});
       throw Exception(
         'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}',
       );
@@ -550,7 +554,7 @@ class AccountFetcher<T> {
         'dataLength': dataBytes.length,
         'dataPreview': dataBytes.take(20).toList().toString(),
       });
-      
+
       final result = _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
       _logger.debug('Successfully decoded account data');
       return result;

@@ -338,7 +338,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
   ) {
     final deserializer = BorshDeserializer(data);
     final decoded = _decodeType(deserializer, typeDef.type, idl.types ?? []);
-    
+
     if (decoded is Map<String, dynamic>) {
       result.addAll(decoded);
     } else {
@@ -426,7 +426,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       case 'u16':
         return deserializer.readU16();
       case 'u32':
-        return deserializer.readU32();
+        final value = deserializer.readU32();
+        return value;
       case 'u64':
         return BigInt.from(deserializer.readU64());
       case 'i8':
@@ -442,7 +443,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       case 'f64':
         return deserializer.readF64();
       case 'string':
-        return deserializer.readString();
+        final value = deserializer.readString();
+        return value;
       case 'publicKey':
         final bytes = deserializer.readBytes(32);
         return PublicKey.fromBytes(bytes);

@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:coral_xyz/src/types/transaction.dart'
-    as transaction_types;
+import 'package:coral_xyz/src/types/transaction.dart' as transaction_types;
 import 'package:coral_xyz/src/types/keypair.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
