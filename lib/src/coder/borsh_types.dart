@@ -167,6 +167,20 @@ class BorshSerializer {
       writeValue(value);
     }
   }
+
+  /// Serialize a 32-bit float (f32, little endian)
+  void writeF32(double value) {
+    final data = ByteData(4);
+    data.setFloat32(0, value, Endian.little);
+    _buffer.addAll(data.buffer.asUint8List());
+  }
+
+  /// Serialize a 64-bit float (f64, little endian)
+  void writeF64(double value) {
+    final data = ByteData(8);
+    data.setFloat64(0, value, Endian.little);
+    _buffer.addAll(data.buffer.asUint8List());
+  }
 }
 
 /// Borsh deserializer
@@ -319,6 +333,28 @@ class BorshDeserializer {
   /// Read a fixed number of bytes
   Uint8List readBytes(int length) => readFixedArray(length);
 
+  /// Read a 32-bit float (f32, little endian)
+  double readF32() {
+    if (_offset + 4 > _data.length) {
+      throw const BorshException('Not enough bytes to read f32');
+    }
+    final bytes = _data.sublist(_offset, _offset + 4);
+    _offset += 4;
+    final data = ByteData.sublistView(bytes);
+    return data.getFloat32(0, Endian.little);
+  }
+
+  /// Read a 64-bit float (f64, little endian)
+  double readF64() {
+    if (_offset + 8 > _data.length) {
+      throw const BorshException('Not enough bytes to read f64');
+    }
+    final bytes = _data.sublist(_offset, _offset + 8);
+    _offset += 8;
+    final data = ByteData.sublistView(bytes);
+    return data.getFloat64(0, Endian.little);
+  }
+
   /// Read a vector (same as array but explicitly named for IDL compatibility)
   List<T> readVec<T>(T Function() readItem) => readArray<T>(readItem);
 
@@ -352,6 +388,10 @@ class BorshDeserializer {
         return readI32();
       case 'i64':
         return readI64();
+      case 'f32':
+        return readF32();
+      case 'f64':
+        return readF64();
       case 'string':
         return readString();
       case 'publicKey':

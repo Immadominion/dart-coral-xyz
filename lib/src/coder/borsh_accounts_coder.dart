@@ -11,6 +11,7 @@ import '../idl/idl.dart';
 import '../error/account_errors.dart';
 import '../types/public_key.dart';
 import '../coder/discriminator_computer.dart';
+import 'borsh_types.dart';
 
 /// Interface for encoding and decoding program accounts matching TypeScript AccountsCoder
 abstract class AccountsCoder<A extends String> {
@@ -328,58 +329,198 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     }
   }
 
-  /// Simple account data decoding
+  /// Generic account data decoding using IDL type definition
   void _decodeAccountData(
     Uint8List data,
     IdlTypeDef typeDef,
     Map<String, dynamic> result,
     int offset,
   ) {
-    try {
-      // Handle Counter account specifically with proper Borsh decoding
-      if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
-        final fields = typeDef.type.fields;
-        if (fields != null && fields.length == 2) {
-          // Decode u64 count (8 bytes, little endian) as BigInt
-          if (data.length >= 8) {
-            final countBytes = data.sublist(0, 8);
-            final countValue = _decodeU64LittleEndian(countBytes);
-            result['count'] = BigInt.from(countValue);
-          }
-          // Decode u8 bump (1 byte)
-          if (data.length >= 9) {
-            final bump = data[8];
-            result['bump'] = bump;
-          }
-          return;
-        }
-      }
-
-      // Fallback to JSON decoding for other account types
-      final jsonStr = utf8.decode(data);
-      final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
+    final deserializer = BorshDeserializer(data);
+    final decoded = _decodeType(deserializer, typeDef.type, idl.types ?? []);
+    
+    if (decoded is Map<String, dynamic>) {
       result.addAll(decoded);
-    } catch (e) {
-      // If both Borsh and JSON decoding fail, throw appropriate error
+    } else {
       throw AccountDidNotDeserializeError(
-        errorLogs: ['Account deserialization failed'],
-        logs: ['Data length: ${data.length}, Error: $e'],
+        errorLogs: ['Decoded value is not a Map'],
+        logs: ['Got: ${decoded.runtimeType}'],
         accountDataSize: data.length,
       );
     }
   }
 
-  /// Decode a u64 from little-endian bytes
-  int _decodeU64LittleEndian(Uint8List bytes) {
-    if (bytes.length != 8) {
-      throw ArgumentError('Expected 8 bytes for u64, got ${bytes.length}');
+  /// Generic type decoding based on IDL type definition
+  dynamic _decodeType(
+    BorshDeserializer deserializer,
+    IdlTypeDefType typeDefType,
+    List<IdlTypeDef> types,
+  ) {
+    switch (typeDefType.kind) {
+      case 'struct':
+        return _decodeStruct(deserializer, typeDefType, types);
+      case 'enum':
+        return _decodeEnum(deserializer, typeDefType, types);
+      default:
+        throw AccountCoderError('Unsupported type kind: ${typeDefType.kind}');
+    }
+  }
+
+  /// Decode a struct type
+  Map<String, dynamic> _decodeStruct(
+    BorshDeserializer deserializer,
+    IdlTypeDefType typeDefType,
+    List<IdlTypeDef> types,
+  ) {
+    final fields = typeDefType.fields;
+    if (fields == null) {
+      throw AccountCoderError('Struct type missing fields');
     }
 
-    int result = 0;
-    for (int i = 0; i < 8; i++) {
-      result |= bytes[i] << (i * 8);
+    final result = <String, dynamic>{};
+    for (final field in fields) {
+      result[field.name] = _decodeValue(deserializer, field.type, types);
     }
     return result;
+  }
+
+  /// Decode an enum type
+  dynamic _decodeEnum(
+    BorshDeserializer deserializer,
+    IdlTypeDefType typeDefType,
+    List<IdlTypeDef> types,
+  ) {
+    final variants = typeDefType.variants;
+    if (variants == null) {
+      throw AccountCoderError('Enum type missing variants');
+    }
+
+    final discriminator = deserializer.readU8();
+    if (discriminator >= variants.length) {
+      throw AccountCoderError('Invalid enum discriminator: $discriminator');
+    }
+
+    final variant = variants[discriminator];
+    if (variant.fields == null || variant.fields!.isEmpty) {
+      return {variant.name: null};
+    }
+
+    final variantData = <String, dynamic>{};
+    for (final field in variant.fields!) {
+      variantData[field.name] = _decodeValue(deserializer, field.type, types);
+    }
+    return {variant.name: variantData};
+  }
+
+  /// Decode a single value based on its IDL type
+  dynamic _decodeValue(
+    BorshDeserializer deserializer,
+    IdlType idlType,
+    List<IdlTypeDef> types,
+  ) {
+    switch (idlType.kind) {
+      case 'bool':
+        return deserializer.readU8() != 0;
+      case 'u8':
+        return deserializer.readU8();
+      case 'u16':
+        return deserializer.readU16();
+      case 'u32':
+        return deserializer.readU32();
+      case 'u64':
+        return BigInt.from(deserializer.readU64());
+      case 'i8':
+        return deserializer.readI8();
+      case 'i16':
+        return deserializer.readI16();
+      case 'i32':
+        return deserializer.readI32();
+      case 'i64':
+        return BigInt.from(deserializer.readI64());
+      case 'f32':
+        return deserializer.readF32();
+      case 'f64':
+        return deserializer.readF64();
+      case 'string':
+        return deserializer.readString();
+      case 'publicKey':
+        final bytes = deserializer.readBytes(32);
+        return PublicKey.fromBytes(bytes);
+      case 'defined':
+        final typeName = idlType.defined;
+        if (typeName == null) {
+          throw AccountCoderError('Defined type missing name');
+        }
+        final typeDef = types.firstWhere(
+          (t) => t.name == typeName,
+          orElse: () => throw AccountCoderError('Type not found: $typeName'),
+        );
+        return _decodeType(deserializer, typeDef.type, types);
+      case 'array':
+        return _decodeArray(deserializer, idlType, types);
+      case 'vec':
+        return _decodeVec(deserializer, idlType, types);
+      case 'option':
+        return _decodeOption(deserializer, idlType, types);
+      default:
+        throw AccountCoderError('Unsupported type: ${idlType.kind}');
+    }
+  }
+
+  /// Decode an array type
+  List<dynamic> _decodeArray(
+    BorshDeserializer deserializer,
+    IdlType idlType,
+    List<IdlTypeDef> types,
+  ) {
+    final elementType = idlType.inner;
+    final length = idlType.size;
+    if (elementType == null || length == null) {
+      throw AccountCoderError('Array type missing element type or length');
+    }
+
+    final result = <dynamic>[];
+    for (int i = 0; i < length; i++) {
+      result.add(_decodeValue(deserializer, elementType, types));
+    }
+    return result;
+  }
+
+  /// Decode a vec type
+  List<dynamic> _decodeVec(
+    BorshDeserializer deserializer,
+    IdlType idlType,
+    List<IdlTypeDef> types,
+  ) {
+    final length = deserializer.readU32();
+    final elementType = idlType.inner;
+    if (elementType == null) {
+      throw AccountCoderError('Vec type missing element type');
+    }
+
+    final result = <dynamic>[];
+    for (int i = 0; i < length; i++) {
+      result.add(_decodeValue(deserializer, elementType, types));
+    }
+    return result;
+  }
+
+  /// Decode an option type
+  dynamic _decodeOption(
+    BorshDeserializer deserializer,
+    IdlType idlType,
+    List<IdlTypeDef> types,
+  ) {
+    final hasValue = deserializer.readU8() != 0;
+    if (!hasValue) {
+      return null;
+    }
+
+    final innerType = idlType.inner;
+    if (innerType == null) {
+      throw AccountCoderError('Option type missing inner type');
+    }
+    return _decodeValue(deserializer, innerType, types);
   }
 
   /// Analyze and debug IDL structure for development purposes
