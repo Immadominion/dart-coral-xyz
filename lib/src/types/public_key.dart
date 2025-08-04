@@ -134,7 +134,7 @@ class PublicKey {
     PublicKey programId,
   ) async {
     try {
-      final cryptoResult = SolanaCrypto.findProgramAddress(
+      final cryptoResult = await SolanaCrypto.findProgramAddress(
         seeds,
         programId.toBytes(),
       );

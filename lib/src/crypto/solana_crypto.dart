@@ -7,6 +7,7 @@ library;
 
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:solana/solana.dart' as solana;
 
 /// Solana-specific cryptographic utilities
 class SolanaCrypto {
@@ -98,26 +99,46 @@ class SolanaCrypto {
 
   /// Find a program derived address by trying different nonces
   ///
-  /// This tries nonces from 255 down to 1 until it finds a valid PDA
-  /// (one that's not on the ed25519 curve).
-  static PdaResult findProgramAddress(
+  /// This delegates to the proven solana package implementation
+  /// to ensure compatibility with the canonical Solana PDA algorithm.
+  static Future<PdaResult> findProgramAddress(
     List<Uint8List> seeds,
     Uint8List programId,
-  ) {
-    for (int nonce = 255; nonce >= 1; nonce--) {
-      try {
-        final seedsWithNonce = List<Uint8List>.from(seeds)
-          ..add(Uint8List.fromList([nonce]));
+  ) async {
+    try {
+      // Convert to the solana package types
+      final solanaSeeds = seeds.map((seed) => seed.toList()).toList();
+      final solanaProgramId = solana.Ed25519HDPublicKey(programId.toList());
 
-        final address = createProgramAddress(seedsWithNonce, programId);
-        return PdaResult(address, nonce);
-      } catch (e) {
-        // Continue to next nonce if this one failed
-        continue;
+      // Implement the canonical algorithm using the solana package's createProgramAddress
+      const maxBumpSeed = 255;
+      for (int bumpSeed = maxBumpSeed; bumpSeed >= 0; bumpSeed--) {
+        try {
+          final seedsWithBump = [
+            ...solanaSeeds,
+            [bumpSeed]
+          ];
+          final result = await solana.Ed25519HDPublicKey.createProgramAddress(
+            seeds: seedsWithBump.expand((seed) => seed),
+            programId: solanaProgramId,
+          );
+
+          final address = Uint8List.fromList(result.bytes);
+          return PdaResult(address, bumpSeed);
+        } on FormatException {
+          // Address is on curve, try next bump
+          continue;
+        }
       }
-    }
 
-    throw Exception('Unable to find a viable program address nonce');
+      throw const FormatException(
+        'Unable to find a viable program address nonce',
+      );
+    } catch (e) {
+      if (e is FormatException) rethrow;
+      throw FormatException(
+          'Unable to find a viable program address nonce: $e');
+    }
   }
 
   /// Validate that an address was derived from the given seeds and program ID

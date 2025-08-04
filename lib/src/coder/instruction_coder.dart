@@ -9,6 +9,7 @@ import 'package:coral_xyz/src/coder/borsh_types.dart';
 import 'package:coral_xyz/src/coder/discriminator_computer.dart';
 import 'package:coral_xyz/src/types/common.dart';
 import 'package:coral_xyz/src/types/transaction.dart'; // <-- Add this import for AccountMeta
+import 'package:coral_xyz/src/utils/logger.dart';
 import 'dart:typed_data';
 
 /// Interface for encoding and decoding program instructions
@@ -148,6 +149,9 @@ class BorshInstructionCoder implements InstructionCoder {
   /// Cached instruction layouts with discriminators
   late final Map<String, InstructionLayout> _ixLayouts;
 
+  /// Logger for instruction encoding/decoding operations
+  static final _logger = AnchorLoggers.program;
+
   @override
   Uint8List encode(String ixName, Map<String, dynamic> ix) {
     final layout = _ixLayouts[ixName];
@@ -156,15 +160,19 @@ class BorshInstructionCoder implements InstructionCoder {
     }
 
     try {
-      print('InstructionCoder: Encoding instruction: $ixName');
-      print('InstructionCoder: Discriminator: ${layout.discriminator}');
+      _logger.debug('Encoding instruction: $ixName', context: {
+        'discriminator': layout.discriminator,
+      });
 
       // Encode the instruction arguments using a basic Borsh serializer
       final serializer = BorshSerializer();
       _encodeInstructionArgs(ix, layout.instruction, serializer);
       final argsData = serializer.toBytes();
 
-      print('InstructionCoder: Args data length: ${argsData.length}');
+      _logger.debug('Instruction encoding details', context: {
+        'instruction': ixName,
+        'argsDataLength': argsData.length,
+      });
 
       // Prepend the discriminator
       final discriminator = Uint8List.fromList(layout.discriminator);
@@ -172,14 +180,15 @@ class BorshInstructionCoder implements InstructionCoder {
       result.setRange(0, discriminator.length, discriminator);
       result.setRange(discriminator.length, result.length, argsData);
 
-      print(
-        'InstructionCoder: Final instruction data length: ${result.length}',
-      );
-      print('InstructionCoder: Final instruction data: ${result.toList()}');
+      _logger.debug('Final instruction data', context: {
+        'instruction': ixName,
+        'dataLength': result.length,
+        'data': result.toList(),
+      });
 
       return result;
     } catch (e) {
-      print('InstructionCoder: Error encoding instruction $ixName: $e');
+      _logger.error('Error encoding instruction $ixName: $e');
       throw InstructionCoderException(
         'Failed to encode instruction $ixName: $e',
       );
@@ -307,10 +316,27 @@ class BorshInstructionCoder implements InstructionCoder {
 
   /// Compute discriminator for an instruction name using Anchor convention
   /// The discriminator is the first 8 bytes of SHA256("global:<instruction_name>")
+  /// Note: Must use the original snake_case function name, not the camelCase IDL name
   List<int> _computeDiscriminator(String instructionName) {
+    // Convert camelCase back to snake_case for discriminator computation
+    // since Anchor computes discriminators from original Rust function names
+    final snakeCaseName = _toSnakeCase(instructionName);
     final discriminator =
-        DiscriminatorComputer.computeInstructionDiscriminator(instructionName);
+        DiscriminatorComputer.computeInstructionDiscriminator(snakeCaseName);
     return discriminator.toList();
+  }
+
+  /// Convert camelCase to snake_case
+  /// This is needed to convert IDL instruction names back to original Rust function names
+  /// for correct discriminator computation
+  String _toSnakeCase(String camelCase) {
+    if (camelCase.isEmpty) return camelCase;
+
+    return camelCase
+        .replaceAllMapped(
+            RegExp(r'[A-Z]'), (match) => '_${match.group(0)!.toLowerCase()}')
+        .replaceFirst(
+            RegExp(r'^_'), ''); // Remove leading underscore if present
   }
 
   /// Encode instruction arguments

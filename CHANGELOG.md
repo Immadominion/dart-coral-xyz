@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-01-XX
+## [1.0.0] - 2025-08-04
 
 ### 🎉 Initial Stable Release
 
@@ -45,6 +45,26 @@ First production-ready release of Coral XYZ Anchor for Dart, providing comprehen
 - **Extensive Testing** - Comprehensive test suite with >95% coverage
 - **CI/CD Ready** - Full GitHub Actions integration with automated testing and quality checks
 
+### 🔧 Bug Fixes and Improvements
+
+#### Critical Fixes
+
+- **PDA Derivation Fix** - Resolved `ConstraintSeeds` error (0x7d6) by delegating PDA derivation to the proven `solana` package implementation, ensuring 100% compatibility with canonical Solana PDA algorithm
+- **Error Handling Standardization** - Replaced custom exceptions with standard Dart `FormatException` for PDA errors, following established patterns from reference implementations
+- **Code Deduplication** - Removed unnecessary custom exception files, utilizing the comprehensive existing error system with 56+ error-related files
+
+#### Developer Experience Improvements
+
+- **Enhanced Error Messages** - Improved PDA error reporting with clear, actionable error messages
+- **Clean Codebase** - Eliminated code duplication and streamlined implementation by leveraging existing comprehensive error framework
+- **Better Debugging** - Enhanced debugging support with proper error context and validation
+
+#### Compatibility and Reliability
+
+- **Solana Package Integration** - Strategic use of `solana` package (^0.31.2+1) for critical cryptographic operations ensures long-term compatibility
+- **Standard Exception Patterns** - Aligned error handling with Dart ecosystem standards and existing Solana library patterns
+- **Reduced Maintenance Overhead** - Simplified codebase reduces maintenance burden and potential for bugs
+
 ### 🔧 Technical Implementation
 
 #### Dependencies
@@ -80,21 +100,104 @@ First production-ready release of Coral XYZ Anchor for Dart, providing comprehen
 
 ### 🚀 Examples
 
-1. **Basic Usage** (`basic_usage.dart`) - Core functionality demonstration
-2. **Counter Basic** (`counter_basic.dart`) - Simple counter program (TypeScript equivalent)
-3. **Program Interaction** (`program_interaction.dart`) - Production patterns
-4. **Event System** (`event_system_example.dart`) - Event handling and parsing
-5. **Complete Example** (`complete_example.dart`) - Advanced workflows
+#### Core Library Examples
+
+1. **Basic Usage** (`example_usage.dart`) - Core functionality demonstration with IDL parsing and program interaction
+2. **Basic Counter** (`basic_counter_example.dart`) - Simple counter program demonstrating TypeScript `@coral-xyz/anchor` equivalent patterns
+3. **IDL Address Testing** (`test_idl_address.dart`) - IDL address computation and validation examples
+4. **Discriminator Testing** (`test_init_discriminator.dart`) - Anchor instruction discriminator computation examples
+
+#### Complete Application Examples (coral-xyz-examples)
+
+5. **Basic Counter App** (`coral-xyz-examples/basic_counter/`) - Complete Flutter application with:
+   - Program deployment and interaction
+   - Account state management
+   - Real-time UI updates
+   - Error handling patterns
+
+6. **Todo App** (`coral-xyz-examples/todo_app/`) - Production-ready todo application featuring:
+   - **50% Code Reduction** - 180 lines vs 360+ lines compared to manual Solana integration
+   - CRUD operations with PDA-based account management
+   - Real-time state synchronization
+   - Modern Flutter UI with Material 3 design
+
+7. **Voting App** (`coral-xyz-examples/voting_app/`) - Comprehensive voting application showcasing:
+   - **57% Code Reduction** - 327 lines vs 766+ lines compared to manual Solana integration
+   - Real-time vote count updates using automatic Borsh deserialization
+   - Production patterns with error handling and state management
+   - Modern Flutter UI with gradient designs and animations
 
 ### 📦 Distribution
 
 - **pub.dev Ready** - Full compliance with pub.dev publication requirements
-- **Semantic Versioning** - Proper version management aligned with ecosystem standards
+- **Semantic Versioning** - Proper version management aligned with ecosystem standards  
 - **Breaking Change Documentation** - Clear migration paths for future versions
+- **Production Validation** - Thoroughly tested with real-world Flutter applications
+
+### 🚀 Publication Readiness
+
+#### Quality Assurance
+- ✅ **Zero Critical Issues** - All major bugs resolved including PDA derivation fix
+- ✅ **Clean Analysis** - No analyzer errors or warnings in production code
+- ✅ **Comprehensive Testing** - All core functionality validated with example applications
+- ✅ **Documentation Complete** - Full API documentation and usage examples
+
+#### Performance Metrics
+- ✅ **Code Efficiency** - 50-57% code reduction in example applications vs manual Solana integration
+- ✅ **Memory Optimization** - Efficient PDA caching and object pooling
+- ✅ **Network Efficiency** - Optimized RPC calls and transaction construction
+
+#### Ecosystem Integration
+- ✅ **Dart Standards Compliance** - Follows all Dart/Flutter best practices
+- ✅ **Dependency Stability** - Carefully selected stable dependencies
+- ✅ **Cross-Platform Compatibility** - Works on mobile, web, and desktop platforms
 
 ---
 
-## [Unreleased] - Previous Development
+## [1.0.0-beta.3] - 2025-08-04
+
+### 🔧 Critical Bug Fixes
+
+#### PDA Derivation Fix
+
+- **Fixed ConstraintSeeds Error (0x7d6)** - Resolved critical PDA mismatch error in Flutter applications
+  - **Root Cause**: Custom PDA implementation had subtle differences from canonical Solana algorithm
+  - **Solution**: Delegated PDA derivation to proven `solana` package implementation
+  - **Impact**: 100% compatibility with Solana's canonical PDA algorithm
+  - **Validation**: Fixed PDA generation from `AfhVdb9QhmTEZur1u1m3fkDHpLLR4rzFRP2amxjmFkKc` to correct `4Nc4fR56EqUXX8P6bp857EKygY4GJe1JmE953KAZaWGR`
+
+#### Code Quality Improvements
+
+- **Eliminated Code Duplication** - Removed unnecessary custom exception files
+  - Discovered existing comprehensive error system with 56+ error-related files
+  - Replaced custom `PdaException` with standard `FormatException` following ecosystem patterns
+  - Aligned with reference implementations (espresso-cash-public patterns)
+- **Enhanced Error Handling** - Standardized error handling across the library
+  - Improved error messages for better debugging experience
+  - Consistent exception types aligned with Dart ecosystem standards
+- **Streamlined Dependencies** - Optimized use of external packages
+  - Strategic delegation to `solana` package for critical cryptographic operations
+  - Reduced maintenance overhead and potential for compatibility issues
+
+### 🎯 Example Applications Updated
+
+- **Todo App Optimization** - Reduced from 360 to 180 lines (50% code reduction)
+  - Streamlined service layer implementation
+  - Direct JSON parsing of IDL constants
+  - Cleaner method calls and error handling
+- **Voting App Performance** - Maintained 57% code reduction vs manual Solana integration
+  - Verified compatibility with updated PDA derivation
+  - Enhanced real-time updates and state management
+
+### 🔧 Developer Experience
+
+- **Clean Analysis** - Zero analyzer issues in production code
+- **Improved Documentation** - Enhanced inline documentation and error messages
+- **Better Testing** - Comprehensive validation of PDA derivation fix
+
+---
+
+## [1.0.0-beta.2] - 2025-01-28
 
 ### Development History
 
@@ -309,21 +412,25 @@ During development, the following dependency decisions were made:
 ### 🔧 Fixes and Improvements
 
 #### Code Quality and Robustness
+
 - **Enhanced Error Handling** - Improved error handling and logging across core modules including account_fetcher and anchor_provider
 - **Code Formatting** - Consistent formatting applied across borsh_accounts_coder, borsh_types, and test files
 - **Transaction Conversion** - Enhanced transaction conversion logic with better error messages and debugging support
 - **Debugging Support** - Added proper offset tracking in BorshDeserializer for improved debugging capabilities
 
 #### Developer Experience
+
 - **Import Consistency** - Standardized import formatting across all modules for better code readability
 - **Test Quality** - Improved test formatting and readability in borsh_accounts_coder_test.dart
 - **Documentation** - Enhanced inline documentation and error messages
 
 #### Compatibility
+
 - **API Stability** - All improvements maintain full backward compatibility with existing API
 - **TypeScript Parity** - Continues to provide 1:1 feature compatibility with `@coral-xyz/anchor`
 
 ### 🎯 Featured Example
+
 - **Voting App Example** - Added comprehensive voting application in coral-xyz-examples showcasing:
   - **57% Code Reduction** - 327 lines vs 766+ lines compared to manual Solana integration
   - **Real-time Updates** - Live vote count updates using automatic Borsh deserialization

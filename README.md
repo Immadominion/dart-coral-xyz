@@ -306,14 +306,16 @@ You can find additional Flutter integration examples and sample apps at:
 [https://github.com/Immadominion/coral-xyz-examples](https://github.com/Immadominion/coral-xyz-examples)
 
 ### 🎯 **Featured Example: Voting App**
+
 The [`voting_app`](https://github.com/Immadominion/coral-xyz-examples/tree/main/voting_app) showcases the **revolutionary simplicity** of dart-coral-xyz:
 
 - **57% Less Code**: 327 lines vs 766+ lines compared to manual Solana integration
-- **Real-time Updates**: Live vote count updates using automatic Borsh deserialization  
+- **Real-time Updates**: Live vote count updates using automatic Borsh deserialization
 - **Production Ready**: Modern Flutter UI with error handling and state management
 - **Type Safety**: Full Dart type safety with automatic IDL-driven development
 
 **Before dart-coral-xyz (Manual Implementation):**
+
 ```dart
 // 😰 Hundreds of lines of manual Borsh serialization
 List<int> accountBytes = base64Decode(data);
@@ -323,6 +325,7 @@ int offset = 0;
 ```
 
 **After dart-coral-xyz:**
+
 ```dart
 // 🎉 Simple, clean, reliable
 final accountData = await program.account['Poll']!.fetch(pollAddress);
