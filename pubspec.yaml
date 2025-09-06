@@ -32,8 +32,8 @@ dependencies:
   toml: ^0.16.0                        # TOML parsing for Anchor.toml files
   
   # Cryptography dependencies  
+  crypto: ^3.0.3                       # SHA256 and other hash functions
   cryptography: ^2.7.0                 # ED25519, X25519, and other crypto
-  crypto: ^3.0.2                       # SHA256, HMAC, and other hash functions
   ed25519_hd_key: ^2.3.0               # HD key derivation for wallet support
   
   # Encoding dependencies
@@ -47,9 +47,9 @@ dependencies:
   
   # Additional blockchain utilities
   blockchain_utils: ^5.0.0             # Enhanced blockchain utilities
-  build: ^2.4.1                       # Builder API for code generation
-  source_gen: ^1.4.0                  # Source code generation support
-  analyzer: ^6.0.0                    # Dart analyzer APIs
+  build: ^2.4.1                        # Builder API for code generation (compatible with source_gen)
+  source_gen: ^1.5.0                   # Source code generation support (compatible with borsh)
+  analyzer: ^6.11.0                    # Dart analyzer APIs (compatible with source_gen)
 
   # Optional mobile/Flutter dependencies
   # flutter: 

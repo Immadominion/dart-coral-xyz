@@ -76,7 +76,7 @@ class AddressUtils {
     } else if (seed is BigInt) {
       return bigIntToSeedBytes(seed);
     } else if (seed is PublicKey) {
-      return seed.bytes;
+      return Uint8List.fromList(seed.bytes);
     } else if (seed is Uint8List) {
       return seed;
     } else if (seed is List<int>) {
@@ -98,7 +98,7 @@ class AddressUtils {
     PublicKey programId,
   ) async {
     final seedBytes = toSeedBytesList(seeds);
-    return PublicKey.findProgramAddress(seedBytes, programId);
+    return PublicKeyUtils.findProgramAddress(seedBytes, programId);
   }
 
   /// Derive a PDA from IDL seed specifications
@@ -116,7 +116,7 @@ class AddressUtils {
       seedBytes.add(bytes);
     }
 
-    return PublicKey.findProgramAddress(seedBytes, programId);
+    return PublicKeyUtils.findProgramAddress(seedBytes, programId);
   }
 
   /// Convert an IDL seed specification to bytes
@@ -137,9 +137,9 @@ class AddressUtils {
       }
       final account = context[seed.path];
       if (account is PublicKey) {
-        return account.bytes;
+        return Uint8List.fromList(account.bytes);
       } else if (account is String) {
-        return PublicKey.fromBase58(account).bytes;
+        return Uint8List.fromList(PublicKey.fromBase58(account).bytes);
       } else {
         throw ArgumentError(
           'Invalid account type for seed: ${account.runtimeType}',
@@ -170,7 +170,7 @@ class AddressValidator {
   /// Returns true if the string is a valid hex-encoded Solana address.
   static bool isValidHex(String address) {
     try {
-      PublicKey.fromHex(address);
+      PublicKeyUtils.fromHex(address);
       return true;
     } catch (e) {
       return false;
@@ -179,11 +179,11 @@ class AddressValidator {
 
   /// Check if an address is the system program
   static bool isSystemProgram(PublicKey address) =>
-      address == PublicKey.systemProgram;
+      address == PublicKeyUtils.systemProgram;
 
   /// Check if an address is the default (all zeros) address
   static bool isDefaultAddress(PublicKey address) =>
-      address == PublicKey.defaultPubkey;
+      address == PublicKeyUtils.defaultPubkey;
 
   /// Validate that an address matches expected PDA derivation
   ///
@@ -290,9 +290,9 @@ class AddressFormatter {
 
   /// Create a human-readable label for common addresses
   static String labelAddress(PublicKey address) {
-    if (address == PublicKey.systemProgram) {
+    if (address == PublicKeyUtils.systemProgram) {
       return 'System Program';
-    } else if (address == PublicKey.defaultPubkey) {
+    } else if (address == PublicKeyUtils.defaultPubkey) {
       return 'Default Address';
     } else {
       return formatShortBase58(address);
@@ -314,19 +314,19 @@ class KeyConverter {
     // Remove 0x prefix if present
     final cleanHex =
         hexAddress.startsWith('0x') ? hexAddress.substring(2) : hexAddress;
-    final publicKey = PublicKey.fromHex(cleanHex);
+    final publicKey = PublicKeyUtils.fromHex(cleanHex);
     return publicKey.toBase58();
   }
 
   /// Convert bytes to base58 address
   static String bytesToBase58(Uint8List bytes) {
-    final publicKey = PublicKey.fromBytes(bytes);
+    final publicKey = PublicKeyUtils.fromBytes(bytes);
     return publicKey.toBase58();
   }
 
   /// Convert bytes to hex address
   static String bytesToHex(Uint8List bytes, {bool includePrefix = true}) {
-    final publicKey = PublicKey.fromBytes(bytes);
+    final publicKey = PublicKeyUtils.fromBytes(bytes);
     final hex = publicKey.toHex();
     return includePrefix ? '0x$hex' : hex;
   }
@@ -339,7 +339,7 @@ class KeyConverter {
     } catch (e) {
       // Try hex format
       try {
-        return PublicKey.fromHex(address);
+        return PublicKeyUtils.fromHex(address);
       } catch (e) {
         throw ArgumentError('Invalid address format: $address');
       }

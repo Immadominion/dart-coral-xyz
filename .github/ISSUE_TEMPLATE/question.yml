@@ -1,0 +1,42 @@
+---
+name: Question
+about: Ask a question about using coral_xyz
+title: '[QUESTION] '
+labels: ['question', 'needs-triage']
+assignees: ''
+---
+
+## Question
+What would you like to know?
+
+## Context
+Provide some context about what you're trying to achieve:
+
+## What I've Tried
+Describe what you've already attempted:
+
+```dart
+// Code you've tried
+```
+
+## Expected Outcome
+What are you trying to accomplish?
+
+## Documentation References
+Have you checked the following?
+- [ ] README.md
+- [ ] API documentation
+- [ ] Examples in `/example` directory
+- [ ] TypeScript SDK documentation for comparison
+
+## Environment (if relevant)
+- **coral_xyz version**: 
+- **Dart version**: 
+- **Platform**: (Web/Mobile/Desktop)
+
+## Additional Context
+Add any other context about your question here.
+
+---
+
+💡 **Tip**: For general Dart/Flutter questions, consider asking on [Stack Overflow](https://stackoverflow.com/questions/tagged/dart) or [Flutter Community](https://flutter.dev/community). For Solana-specific questions, check [Solana Stack Exchange](https://solana.stackexchange.com/).

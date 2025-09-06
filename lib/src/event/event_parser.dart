@@ -8,6 +8,7 @@ library;
 
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/coder/main_coder.dart';
+import 'package:coral_xyz/src/coder/event_coder.dart';
 import 'package:coral_xyz/src/event/types.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
 
@@ -18,10 +19,10 @@ import 'package:coral_xyz/src/idl/idl.dart';
 /// to track which program is currently executing, enabling proper event
 /// attribution across CPI boundaries.
 class EventParser {
-  const EventParser({
-    required this.programId,
-    required this.coder,
-  });
+  const EventParser(
+    this.programId,
+    this.coder,
+  );
 
   /// The program ID this parser is configured for
   final PublicKey programId;
@@ -50,13 +51,11 @@ class EventParser {
   ///
   /// [logs] - The transaction log messages
   /// [errorOnDecodeFailure] - Whether to throw on decode failures
-  /// [context] - Additional context for the events
   ///
-  /// Returns an iterable of parsed events
-  Iterable<ParsedEvent<dynamic>> parseLogs(
+  /// Returns an iterable of events with EXACT TypeScript interface
+  Iterable<Event<IdlEvent, dynamic>> parseLogs(
     List<String> logs, {
     bool errorOnDecodeFailure = false,
-    EventContext? context,
   }) sync* {
     if (logs.isEmpty) return;
 
@@ -84,20 +83,9 @@ class EventParser {
       final newProgram = result.newProgram;
       final didPop = result.didPop;
 
-      // Yield event with context if found
+      // Yield event if found (EXACT TypeScript interface)
       if (event != null) {
-        final eventContext = context ??
-            const EventContext(
-              slot: 0, // Will be filled by caller
-              signature: '', // Will be filled by caller
-            );
-
-        yield ParsedEvent<dynamic>(
-          name: event.name as String,
-          data: event.data,
-          context: eventContext,
-          eventDef: event.eventDef as IdlEvent,
-        );
+        yield event;
       }
 
       // Update execution context
@@ -262,7 +250,7 @@ class _LogHandleResult {
     required this.newProgram,
     required this.didPop,
   });
-  final dynamic event;
+  final Event<IdlEvent, dynamic>? event;
   final String? newProgram;
   final bool didPop;
 }

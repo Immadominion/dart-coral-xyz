@@ -19,7 +19,7 @@ class EventReplayService {
     required this.provider,
     required this.programId,
     required BorshCoder coder,
-  }) : eventParser = EventParser(programId: programId, coder: coder);
+  }) : eventParser = EventParser(programId, coder);
   final AnchorProvider provider;
   final PublicKey programId;
   final EventParser eventParser;
@@ -28,7 +28,7 @@ class EventReplayService {
   ///
   /// [config] - Configuration for the replay operation
   /// Returns a stream of replayed events
-  Stream<ParsedEvent> replayEvents(EventReplayConfig config) async* {
+  Stream<ParsedEvent<dynamic>> replayEvents(EventReplayConfig config) async* {
     var currentSlot = config.fromSlot;
     final endSlot = config.toSlot;
     var eventCount = 0;
@@ -75,16 +75,24 @@ class EventReplayService {
                 : null,
           );
 
-          final events = eventParser.parseLogs(logs, context: eventContext);
+          final events = eventParser.parseLogs(logs);
 
           for (final event in events) {
+            // Convert Event to ParsedEvent
+            final parsedEvent = ParsedEvent<dynamic>(
+              name: event.name,
+              data: event.data,
+              context: eventContext,
+              eventDef: event.eventDef,
+            );
+
             // Apply filter if configured
             if (config.filter != null &&
-                !config.filter!.matches(event, programId)) {
+                !config.filter!.matches(parsedEvent, programId)) {
               continue;
             }
 
-            yield event;
+            yield parsedEvent;
             eventCount++;
 
             if (maxEvents != null && eventCount >= maxEvents) break;
@@ -94,7 +102,7 @@ class EventReplayService {
         currentSlot++;
 
         // Add small delay to avoid overwhelming RPC
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
       } catch (e) {
         // Log error and continue with next slot
         currentSlot++;
@@ -108,7 +116,7 @@ class EventReplayService {
   /// [signature] - Transaction signature to replay
   /// [filter] - Optional filter for events
   /// Returns events from the transaction
-  Future<List<ParsedEvent>> replayTransactionEvents(
+  Future<List<ParsedEvent<dynamic>>> replayTransactionEvents(
     String signature, {
     EventFilter? filter,
   }) async {
@@ -128,14 +136,22 @@ class EventReplayService {
             : null,
       );
 
-      final events = eventParser.parseLogs(logs, context: eventContext);
-      final results = <ParsedEvent>[];
+      final events = eventParser.parseLogs(logs);
+      final results = <ParsedEvent<dynamic>>[];
 
       for (final event in events) {
-        if (filter != null && !filter.matches(event, programId)) {
+        // Convert Event to ParsedEvent
+        final parsedEvent = ParsedEvent<dynamic>(
+          name: event.name,
+          data: event.data,
+          context: eventContext,
+          eventDef: event.eventDef,
+        );
+
+        if (filter != null && !filter.matches(parsedEvent, programId)) {
           continue;
         }
-        results.add(event);
+        results.add(parsedEvent);
       }
 
       return results;
@@ -149,13 +165,13 @@ class EventReplayService {
   /// [lookbackSlots] - Number of slots to look back from current
   /// [filter] - Optional filter for events
   /// Returns stream of recent events
-  Stream<ParsedEvent> getRecentEvents(
+  Stream<ParsedEvent<dynamic>> getRecentEvents(
     int lookbackSlots, {
     EventFilter? filter,
   }) async* {
     try {
       // Get current slot from the connection
-      final connection = provider.connection;
+      // Removed unused connection variable
       final currentSlot =
           200000; // Temporary fallback while getSlot is being fixed
       final fromSlot = currentSlot - lookbackSlots;
@@ -179,7 +195,7 @@ class EventReplayService {
   /// [config] - Configuration for the replay operation
   /// [batchSize] - Number of slots to process in each batch
   /// Returns stream of event batches
-  Stream<List<ParsedEvent>> replayEventsBatched(
+  Stream<List<ParsedEvent<dynamic>>> replayEventsBatched(
     EventReplayConfig config, {
     int batchSize = 100,
   }) async* {
@@ -203,7 +219,7 @@ class EventReplayService {
         includeFailed: config.includeFailed,
       );
 
-      final batchEvents = <ParsedEvent>[];
+      final batchEvents = <ParsedEvent<dynamic>>[];
       await for (final event in replayEvents(batchConfig)) {
         batchEvents.add(event);
         totalEventCount++;
@@ -390,7 +406,7 @@ class AdvancedEventReplayService extends EventReplayService {
   ReplayStatistics? get lastReplayStats => _lastReplayStats;
 
   /// Replay events with progress tracking
-  Stream<ParsedEvent> replayEventsWithProgress(
+  Stream<ParsedEvent<dynamic>> replayEventsWithProgress(
     EventReplayConfig config,
   ) async* {
     final startTime = DateTime.now();

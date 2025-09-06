@@ -239,7 +239,8 @@ class AccountOwnershipValidator {
       }
 
       // Fetch account info
-      final accountInfo = await connection.getAccountInfo(accountAddress);
+      final accountInfo =
+          await connection.getAccountInfo(accountAddress.toBase58());
 
       // Check if account exists
       if (accountInfo == null) {
@@ -262,15 +263,15 @@ class AccountOwnershipValidator {
       final actualOwner = accountInfo.owner;
 
       // Check for exact match first
-      if (actualOwner == expectedProgramId) {
+      if (actualOwner == expectedProgramId.toBase58()) {
         _successCount++;
         return AccountOwnershipValidationResult.success(
           accountAddress: accountAddress,
-          actualOwner: actualOwner,
+          actualOwner: PublicKey.fromBase58(actualOwner),
           context: config.includeContext
               ? {
                   'validation_type': 'exact_match',
-                  'account_data_length': accountInfo.data?.length ?? 0,
+                  'account_data_length': 0, // data length not available
                   'timestamp': DateTime.now().toIso8601String(),
                 }
               : null,
@@ -282,11 +283,11 @@ class AccountOwnershipValidator {
         _successCount++;
         return AccountOwnershipValidationResult.success(
           accountAddress: accountAddress,
-          actualOwner: actualOwner,
+          actualOwner: PublicKey.fromBase58(actualOwner),
           context: config.includeContext
               ? {
                   'validation_type': 'custom_allowed_owner',
-                  'matched_owner': actualOwner.toBase58(),
+                  'matched_owner': actualOwner, // Already a String
                   'timestamp': DateTime.now().toIso8601String(),
                 }
               : null,
@@ -294,11 +295,12 @@ class AccountOwnershipValidator {
       }
 
       // Check system program ownership (if allowed)
-      if (config.allowSystemOwned && actualOwner == systemProgramId) {
+      if (config.allowSystemOwned &&
+          actualOwner == systemProgramId.toBase58()) {
         _successCount++;
         return AccountOwnershipValidationResult.success(
           accountAddress: accountAddress,
-          actualOwner: actualOwner,
+          actualOwner: PublicKey.fromBase58(actualOwner),
           context: config.includeContext
               ? {
                   'validation_type': 'system_owned_allowed',
@@ -310,18 +312,19 @@ class AccountOwnershipValidator {
 
       // Check token program ownership (if allowed)
       if (config.allowTokenProgramOwned &&
-          (actualOwner == tokenProgramId ||
-              actualOwner == token2022ProgramId)) {
+          (actualOwner == tokenProgramId.toBase58() ||
+              actualOwner == token2022ProgramId.toBase58())) {
         _successCount++;
         return AccountOwnershipValidationResult.success(
           accountAddress: accountAddress,
-          actualOwner: actualOwner,
+          actualOwner: PublicKey.fromBase58(actualOwner),
           context: config.includeContext
               ? {
                   'validation_type': 'token_program_owned_allowed',
-                  'token_program_variant': actualOwner == tokenProgramId
-                      ? 'spl_token'
-                      : 'token_2022',
+                  'token_program_variant':
+                      actualOwner == tokenProgramId.toBase58()
+                          ? 'spl_token'
+                          : 'token_2022',
                   'timestamp': DateTime.now().toIso8601String(),
                 }
               : null,
@@ -333,11 +336,11 @@ class AccountOwnershipValidator {
         _successCount++;
         return AccountOwnershipValidationResult.success(
           accountAddress: accountAddress,
-          actualOwner: actualOwner,
+          actualOwner: PublicKey.fromBase58(actualOwner),
           context: config.includeContext
               ? {
                   'validation_type': 'permissive_allowed',
-                  'actual_owner': actualOwner.toBase58(),
+                  'actual_owner': actualOwner, // Already a String
                   'expected_owner': expectedProgramId.toBase58(),
                   'timestamp': DateTime.now().toIso8601String(),
                 }
@@ -352,16 +355,16 @@ class AccountOwnershipValidator {
         errorMessage: _formatOwnershipMismatchError(
           accountAddress,
           expectedProgramId,
-          actualOwner,
+          PublicKey.fromBase58(actualOwner),
         ),
         expectedOwner: expectedProgramId,
-        actualOwner: actualOwner,
+        actualOwner: PublicKey.fromBase58(actualOwner),
         context: config.includeContext
             ? {
                 'validation_type': 'ownership_mismatch',
                 'expected_owner': expectedProgramId.toBase58(),
-                'actual_owner': actualOwner.toBase58(),
-                'account_data_length': accountInfo.data?.length ?? 0,
+                'actual_owner': actualOwner, // Already a String
+                'account_data_length': 0, // data length not available
                 'timestamp': DateTime.now().toIso8601String(),
               }
             : null,
@@ -455,12 +458,13 @@ class AccountOwnershipValidator {
     required Connection connection,
   }) async {
     try {
-      final accountInfo = await connection.getAccountInfo(accountAddress);
+      final accountInfo =
+          await connection.getAccountInfo(accountAddress.toBase58());
       if (accountInfo == null) return null;
 
       final actualOwner = accountInfo.owner;
       for (final programId in programIds) {
-        if (actualOwner == programId) {
+        if (actualOwner == programId.toBase58()) {
           return programId;
         }
       }

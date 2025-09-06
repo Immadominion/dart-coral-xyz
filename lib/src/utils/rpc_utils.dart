@@ -13,12 +13,16 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:solana/dto.dart' as dto;
 
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/types/commitment.dart';
 import 'package:coral_xyz/src/types/connection_config.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/utils/rpc_errors.dart';
+
+// Type alias for consistency with the library's API
+typedef AccountInfo = dto.Account;
 
 /// Network types supported by the RPC utilities
 enum SolanaNetwork {

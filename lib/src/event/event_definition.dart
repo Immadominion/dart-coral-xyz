@@ -541,7 +541,7 @@ class EventFieldTypeInfo {
           }
 
           return EventFieldTypeInfo(
-            typeName: typeName,
+            typeName: typeName.name,
             isPrimitive: false,
             isComplex: true,
             isOptional: false,

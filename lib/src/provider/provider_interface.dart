@@ -330,11 +330,10 @@ abstract class BaseProvider implements ProviderInterface {
     CommitmentConfig? commitment,
     List<PublicKey>? includeAccounts,
   }) async {
-    // For now, return a mock simulation result
-    // This should be overridden by concrete provider implementations
+    // For now, return a stub simulation result consistent with TransactionSimulator
     return const TransactionSimulationResult(
-      success: true,
-      logs: ['Program log: Simulation not yet implemented in base provider'],
+      error: null,
+      logs: ['Program log: Simulation not implemented in base provider'],
     );
   }
 }

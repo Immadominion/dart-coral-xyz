@@ -251,7 +251,7 @@ class PdaDerivationEngine {
     final hashBytes = Uint8List.fromList(digest.bytes);
 
     try {
-      return PublicKey.fromBytes(hashBytes);
+      return PublicKeyUtils.fromBytes(hashBytes);
     } catch (e) {
       throw PdaDerivationException(
         'Failed to create PublicKey from derived bytes: $e',
@@ -277,7 +277,7 @@ class PdaDerivationEngine {
     try {
       // A valid PDA should NOT be on the ed25519 curve
       // This is equivalent to TypeScript's !PublicKey.isOnCurve()
-      return !address.isOnCurve();
+      return !PublicKeyUtils.isOnCurve(address.toBytes());
     } catch (e) {
       // If we can't determine curve status, assume invalid
       return false;

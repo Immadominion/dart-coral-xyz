@@ -29,39 +29,56 @@ class MobileWalletAdapterWallet implements Wallet {
   PublicKey get publicKey => _publicKey;
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async {
-    final message = transaction.compileMessage();
-    final signatures = await _client.signTransactions([message]);
-    if (signatures.isEmpty) {
-      throw Exception('No signature returned from MWA client');
+  Future<T> signTransaction<T>(T transaction) async {
+    if (transaction is Transaction) {
+      final message = transaction.compileMessage();
+      final signatures = await _client.signTransactions([message]);
+      if (signatures.isEmpty) {
+        throw Exception('No signature returned from MWA client');
+      }
+      transaction.addSignature(publicKey, signatures.first);
+      return transaction as T;
     }
-    transaction.addSignature(publicKey, signatures.first);
-    return transaction;
+    throw ArgumentError(
+        'Unsupported transaction type: ${transaction.runtimeType}');
   }
 
   @override
-  Future<List<Transaction>> signAllTransactions(
-    List<Transaction> transactions,
-  ) async {
+  Future<List<T>> signAllTransactions<T>(List<T> transactions) async {
     if (transactions.isEmpty) return [];
-    final messages = transactions.map((tx) => tx.compileMessage()).toList();
+
+    // Verify all transactions are of supported type
+    for (final tx in transactions) {
+      if (tx is! Transaction) {
+        throw ArgumentError('Unsupported transaction type: ${tx.runtimeType}');
+      }
+    }
+
+    final messages = transactions
+        .cast<Transaction>()
+        .map((tx) => tx.compileMessage())
+        .toList();
     final signatures = await _client.signTransactions(messages);
     if (signatures.length != transactions.length) {
       throw Exception('MWA client returned wrong number of signatures');
     }
+
     for (int i = 0; i < transactions.length; i++) {
-      transactions[i].addSignature(publicKey, signatures[i]);
+      final tx = transactions[i] as Transaction;
+      tx.addSignature(publicKey, signatures[i]);
     }
     return transactions;
   }
 
   @override
   Future<Uint8List> signMessage(Uint8List message) async {
-    // If not supported, throw. Otherwise, delegate to client.
+    // Try to delegate to the MWA client
     try {
       return await _client.signMessage(message);
-    } catch (_) {
-      throw UnimplementedError('signMessage is not supported by this wallet');
+    } catch (e) {
+      // If the client doesn't support message signing, provide a clearer error
+      throw UnsupportedError(
+          'Message signing is not supported by this Mobile Wallet Adapter client: $e');
     }
   }
 }

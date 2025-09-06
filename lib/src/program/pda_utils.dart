@@ -9,7 +9,6 @@ library;
 import 'dart:typed_data';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
-import 'package:coral_xyz/src/utils/pubkey.dart' as pubkey_utils;
 
 /// Utilities for working with Program Derived Addresses (PDAs)
 class PdaUtils {
@@ -21,7 +20,7 @@ class PdaUtils {
     List<Uint8List> seeds,
     PublicKey programId,
   ) async =>
-      PublicKey.findProgramAddress(seeds, programId);
+      PublicKeyUtils.findProgramAddress(seeds, programId);
 
   /// Create a program address directly (without finding bump)
   ///
@@ -31,7 +30,7 @@ class PdaUtils {
     List<Uint8List> seeds,
     PublicKey programId,
   ) async =>
-      PublicKey.createProgramAddress(seeds, programId);
+      PublicKeyUtils.createProgramAddress(seeds, programId);
 
   /// Convert various seed types to bytes for PDA derivation
   ///
@@ -51,7 +50,7 @@ class PdaUtils {
       }
       return bytes;
     } else if (seed is PublicKey) {
-      return seed.bytes;
+      return Uint8List.fromList(seed.bytes);
     } else if (seed is Uint8List) {
       return seed;
     } else if (seed is List<int>) {
@@ -109,7 +108,7 @@ class PdaUtils {
     } else if (seed is bool) {
       return Uint8List.fromList([seed ? 1 : 0]);
     } else if (seed is PublicKey) {
-      return seed.bytes;
+      return Uint8List.fromList(seed.bytes);
     } else if (seed is Uint8List) {
       return seed;
     } else if (seed is List<int>) {
@@ -163,7 +162,7 @@ class PdaUtils {
       throw ArgumentError('Too many seeds: ${seeds.length} (max 16)');
     }
 
-    return PublicKey.createProgramAddress(seeds, programId);
+    return PublicKeyUtils.createProgramAddressSync(seeds, programId);
   }
 
   /// Create a PublicKey with seed (sync version)
@@ -174,7 +173,7 @@ class PdaUtils {
     String seed,
     PublicKey programId,
   ) =>
-      pubkey_utils.PublicKeyUtils.createWithSeedSync(
+      PublicKeyUtils.createWithSeedSync(
         fromPublicKey,
         seed,
         programId,
@@ -311,7 +310,7 @@ class AddressResolver {
     } else if (value is bool) {
       return Uint8List.fromList([value ? 1 : 0]);
     } else if (value is PublicKey) {
-      return value.bytes;
+      return Uint8List.fromList(value.bytes);
     } else if (value is Uint8List) {
       return value;
     } else if (value is List<int>) {
@@ -342,7 +341,7 @@ class AddressValidator {
 
   /// Validate that an address is a valid PublicKey
   static bool validatePublicKey(String address) =>
-      PublicKey.isValidBase58(address);
+      PublicKeyUtils.isValidBase58(address);
 
   /// Validate account relationships based on IDL specification
   ///

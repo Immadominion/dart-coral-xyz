@@ -367,7 +367,7 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
       case 'defined':
         if (type.defined != null) {
           return enhanced.IdlTypeDefined(
-            enhanced.IdlTypeDefinedSimple(type.defined!),
+            enhanced.IdlTypeDefinedSimple(type.defined!.name),
           );
         }
         break;
@@ -1358,7 +1358,15 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
   }
 
   void _writeI256(BorshSerializer serializer, BigInt value) {
-    _writeU256(serializer, value);
+    // Handle negative values by converting to two's complement representation
+    if (value.isNegative) {
+      // Convert to unsigned representation: add 2^256 to the negative value
+      final maxU256 = BigInt.one << 256;
+      final unsignedValue = maxU256 + value;
+      _writeU256(serializer, unsignedValue);
+    } else {
+      _writeU256(serializer, value);
+    }
   }
 
   double _readF32(BorshDeserializer deserializer) {
@@ -1391,7 +1399,19 @@ class BorshTypesCoder<N extends String> implements TypesCoder<N> {
     return result;
   }
 
-  BigInt _readI256(BorshDeserializer deserializer) => _readU256(deserializer);
+  BigInt _readI256(BorshDeserializer deserializer) {
+    final unsignedValue = _readU256(deserializer);
+
+    // Check if this is a negative value in two's complement representation
+    final signBit = BigInt.one << 255; // 2^255
+    if (unsignedValue >= signBit) {
+      // Convert from unsigned back to signed: subtract 2^256
+      final maxU256 = BigInt.one << 256;
+      return unsignedValue - maxU256;
+    } else {
+      return unsignedValue;
+    }
+  }
 }
 
 /// Exception thrown by types coder operations

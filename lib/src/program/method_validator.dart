@@ -1,7 +1,7 @@
 /// Method parameter and type validation for IDL-based methods
 ///
 /// This module provides comprehensive validation for method parameters,
-/// accounts, and types based on IDL definitions to ensure type safety
+/// accounts, and types based on IDL definitions to ens          await _validateDefinedType(value, expectedType.defined!.name, argumentName);re type safety
 /// and correct program interaction.
 
 library;
@@ -193,7 +193,8 @@ class MethodValidator {
         break;
 
       case 'defined':
-        await _validateDefinedType(value, expectedType.defined!, argumentName);
+        await _validateDefinedType(
+            value, expectedType.defined!.name, argumentName);
         break;
 
       default:

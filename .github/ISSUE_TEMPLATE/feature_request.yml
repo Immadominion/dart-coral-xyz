@@ -1,0 +1,51 @@
+---
+name: Feature Request
+about: Suggest an idea for this project
+title: '[FEATURE] '
+labels: ['enhancement', 'needs-triage']
+assignees: ''
+---
+
+## Feature Description
+A clear and concise description of what you want to happen.
+
+## Problem Statement
+A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+
+## Proposed Solution
+A clear and concise description of the feature you'd like to see implemented.
+
+## Alternative Solutions
+A clear and concise description of any alternative solutions or features you've considered.
+
+## Use Case
+Describe your specific use case and how this feature would benefit your project:
+
+```dart
+// Example code showing how you would use this feature
+```
+
+## TypeScript SDK Parity
+- [ ] This feature exists in TypeScript `@coral-xyz/anchor` SDK
+- [ ] This is a Dart-specific enhancement
+- [ ] This improves upon TypeScript SDK functionality
+
+If this exists in TypeScript SDK, please provide:
+- TypeScript example:
+```typescript
+// Example from @coral-xyz/anchor
+```
+
+## Implementation Considerations
+- **Breaking changes**: Yes/No - explain if yes
+- **Performance impact**: Describe any potential performance implications
+- **Dependencies**: List any new dependencies this might require
+
+## Additional Context
+Add any other context, screenshots, or examples about the feature request here.
+
+## Checklist
+- [ ] I have searched existing issues to make sure this is not a duplicate
+- [ ] I have provided a clear use case for this feature
+- [ ] I have considered how this fits with the TypeScript SDK parity goal
+- [ ] I have thought about potential breaking changes

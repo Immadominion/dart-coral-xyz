@@ -111,14 +111,14 @@ class AnchorBorsh {
   /// Serialize a PublicKey using Borsh format
   static Uint8List serializePublicKey(PublicKey publicKey) {
     final serializer = BorshSerializer();
-    BorshUtils.writePublicKey(serializer, publicKey.bytes);
+    BorshUtils.writePublicKey(serializer, Uint8List.fromList(publicKey.bytes));
     return serializer.toBytes();
   }
 
   /// Deserialize a PublicKey from Borsh format
   static PublicKey deserializePublicKey(Uint8List data) {
     final deserializer = BorshDeserializer(data);
-    return deserializer.readPublicKey();
+    return deserializer.readPublicKeyObject();
   }
 
   /// Serialize an event with discriminator (Anchor events)
@@ -176,7 +176,7 @@ extension PublicKeyBorsh on PublicKey {
 extension AnchorBorshSerializer on BorshSerializer {
   /// Write a PublicKey from PublicKey object
   void writePublicKeyObject(PublicKey publicKey) {
-    BorshUtils.writePublicKey(this, publicKey.bytes);
+    BorshUtils.writePublicKey(this, Uint8List.fromList(publicKey.bytes));
   }
 
   /// Write an account discriminator
@@ -201,7 +201,7 @@ extension AnchorBorshDeserializer on BorshDeserializer {
   /// Read a PublicKey as PublicKey object
   PublicKey readPublicKeyObject() {
     final keyBytes = readPublicKeyBytes();
-    return PublicKey.fromBytes(keyBytes);
+    return PublicKeyUtils.fromBytes(keyBytes);
   }
 
   /// Verify an account discriminator

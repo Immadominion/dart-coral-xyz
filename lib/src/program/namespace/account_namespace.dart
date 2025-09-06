@@ -3,8 +3,8 @@ import 'package:coral_xyz/src/types/commitment.dart';
 import 'package:coral_xyz/src/coder/main_coder.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
-import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/program/namespace/account_fetcher.dart';
+import 'package:coral_xyz/src/types/account_filter.dart';
 
 /// The account namespace provides handles to AccountClient objects for each
 /// account type in a program.
@@ -16,7 +16,7 @@ import 'package:coral_xyz/src/program/namespace/account_fetcher.dart';
 /// ```
 class AccountNamespace {
   AccountNamespace._();
-  final Map<String, AccountClient> _clients = {};
+  final Map<String, AccountClient<dynamic>> _clients = {};
 
   /// Build account namespace from IDL
   static AccountNamespace build({
@@ -30,7 +30,7 @@ class AccountNamespace {
     // Create account clients for each IDL account
     if (idl.accounts != null) {
       for (final account in idl.accounts!) {
-        namespace._clients[account.name] = AccountClient(
+        namespace._clients[account.name] = AccountClient<dynamic>(
           account: account,
           coder: coder,
           programId: programId,
@@ -43,7 +43,7 @@ class AccountNamespace {
   }
 
   /// Get an account client by name
-  AccountClient? operator [](String name) => _clients[name];
+  AccountClient<dynamic>? operator [](String name) => _clients[name];
 
   /// Get all account type names
   Iterable<String> get names => _clients.keys;
@@ -119,7 +119,7 @@ class AccountClient<T> {
   PublicKey get programId => _fetcher.programId;
 
   /// Create a subscription to account changes
-  Stream<T?> subscribe(PublicKey address) => _fetcher.subscribe(address);
+  Stream<T> subscribe(PublicKey address) => _fetcher.subscribe(address);
 
   /// Unsubscribe from account changes
   void unsubscribe(PublicKey address) {

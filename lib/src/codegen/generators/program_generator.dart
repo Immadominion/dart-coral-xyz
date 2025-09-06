@@ -185,7 +185,7 @@ class ProgramGenerator {
         }
         return 'dynamic?';
       case 'defined':
-        return _toPascalCase(type.defined ?? 'Unknown');
+        return _toPascalCase(type.defined?.name ?? 'Unknown');
       default:
         return 'dynamic';
     }
@@ -227,7 +227,7 @@ class ProgramGenerator {
         }
         return 'option';
       case 'defined':
-        return type.defined ?? 'unknown';
+        return type.defined?.name ?? 'unknown';
       default:
         return type.kind;
     }

@@ -5,6 +5,8 @@
 
 library;
 
+import 'package:solana/dto.dart' as dto;
+
 /// Commitment level for Solana transactions and queries
 ///
 /// These levels indicate how confirmed a transaction should be
@@ -86,6 +88,24 @@ class CommitmentConfig {
 
   /// Convert to JSON representation for RPC calls
   Map<String, dynamic> toJson() => {'commitment': commitment.value};
+
+  /// Convert to espresso-cash dto.Commitment format
+  dto.Commitment toDto() {
+    switch (commitment) {
+      case Commitment.processed:
+        return dto.Commitment.processed;
+      case Commitment.confirmed:
+        return dto.Commitment.confirmed;
+      case Commitment.finalized:
+      case Commitment.max:
+      case Commitment.root:
+        return dto.Commitment.finalized;
+      case Commitment.single:
+      case Commitment.singleGossip:
+      case Commitment.recent:
+        return dto.Commitment.confirmed;
+    }
+  }
 
   @override
   String toString() => 'CommitmentConfig(${commitment.value})';

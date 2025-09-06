@@ -49,7 +49,7 @@ class AnchorUtils {
     for (int i = 0; i < 32; i++) {
       bytes[i] = DateTime.now().millisecondsSinceEpoch % 256;
     }
-    return PublicKey.fromBytes(bytes);
+    return PublicKeyUtils.fromBytes(bytes);
   }
 
   /// Check if a string is a valid base58 public key

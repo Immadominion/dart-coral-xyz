@@ -2,7 +2,7 @@
 ///
 /// A comprehensive Dart client for Anchor programs on Solana, providing complete
 /// feature parity with the TypeScript `@coral-xyz/anchor` package. This library
-/// enables type-safe, idiomatic Dart interactions with Anchor programs on the
+/// enables type-s// IDE Support// Performance optimizations - removed for production cleanup- removed for production cleanupfe, idiomatic Dart interactions with Anchor programs on the
 /// Solana blockchain.
 ///
 /// ## Features
@@ -187,7 +187,7 @@ export 'src/coder/instruction_coder.dart';
 export 'src/coder/type_converter.dart'; // Unified type conversion system (Phase 5.5.3)
 export 'src/coder/types_coder.dart'; // Types Coder (Phase 5.3 - COMPLETED)
 // Export additional TypeScript-compatible features
-export 'src/compat/bn_js_compat.dart';
+// Compat - removed for production cleanup
 // Error types (comprehensive error handling system)
 export 'src/error/error.dart';
 export 'src/event/event.dart'
@@ -214,12 +214,7 @@ export 'src/event/types.dart'
         EventReplayConfig; // Event types for public API
 // External package wrappers for consistent API
 export 'src/external/external.dart';
-// IDE Integration and Developer Experience (Step 8.4 - COMPLETED)
-export 'src/ide/ide.dart'
-    hide
-        DebugConfig,
-        AccountChange,
-        DebugSession; // Hide to avoid conflicts with simulation modules
+
 export 'src/idl/idl.dart'; // IDL system for program interface definitions (Phase 2.1 - COMPLETED)
 export 'src/idl/idl_utils.dart'; // IDL utilities for fetching and processing on-chain IDLs
 export 'src/instruction/instruction_definition.dart';
@@ -227,22 +222,14 @@ export 'src/instruction/instruction_definition.dart';
 export 'src/native/system_program.dart';
 export 'src/pda/pda_cache.dart'; // PDA Caching and Performance Optimization (Phase 5.2 - COMPLETED)
 export 'src/pda/pda_definition.dart'; // PDA Definition and Metadata System (Phase 5.3 - COMPLETED)
-export 'src/pda/pda_derivation_engine.dart' hide PdaUtils;
-// Performance Optimization and Monitoring (Step 8.3 - COMPLETED)
-export 'src/performance/performance_optimization.dart'
-    hide
-        PerformanceMetrics,
-        MonitoringMetrics,
-        OptimizationRecommendation,
-        OptimizationType; // Avoid conflicts with simulation modules
-export 'src/platform/flutter_widgets.dart';
-export 'src/platform/mobile_optimization.dart'
-    hide TransactionStatus, MobileWalletSession;
-export 'src/platform/platform_integration.dart';
-// Mobile and Web Platform Optimization (Step 8.5 - COMPLETED)
-export 'src/platform/platform_optimization.dart';
-export 'src/platform/web_optimization.dart' hide CacheEntry;
+export 'src/pda/pda_derivation_engine.dart' hide PdaUtils, PdaResult;
+// Performance optimization - removed for production cleanup
+// Platform widgets - simplified for production
 export 'src/program/accounts_resolver.dart'; // Accounts resolution system
+export 'src/program/common.dart'
+    show
+        ProgramCommon,
+        NodeWallet; // Program common utilities - TypeScript parity
 export 'src/program/context.dart'
     hide ConfirmOptions, Context, Accounts; // Context and account management
 export 'src/program/instruction_builder.dart'
@@ -296,22 +283,7 @@ export 'src/program/program.dart';
 export 'src/program/program_class.dart'; // Core Program class with TypeScript compatibility
 export 'src/program/program_error_handler.dart'; // Unified error handling system
 export 'src/program/type_safe_method_builder.dart'; // Type-safe method builder for fluent API
-export 'src/provider/connection.dart'
-    show
-        Connection,
-        AccountInfo,
-        LatestBlockhash,
-        AccountFilter,
-        MemcmpFilter,
-        DataSizeFilter,
-        TokenAccountFilter,
-        ProgramAccountInfo,
-        LogsNotification,
-        SendTransactionOptions,
-        RpcTransactionConfirmation,
-        memcmpFilter,
-        dataSizeFilter,
-        tokenAccountFilter;
+export 'src/provider/connection.dart' show Connection;
 // Connection pooling for high-performance applications
 export 'src/provider/connection_pool.dart'
     show
@@ -347,42 +319,26 @@ export 'src/provider/wallet.dart'
         WalletNotConnectedException,
         WalletNotAvailableException,
         WalletAdapter,
-        AdapterWallet,
-        MockWalletAdapter;
-// Testing Infrastructure exports (Step 8.2 - COMPLETED)
-export 'src/testing/test_infrastructure.dart';
-// Compute Unit Analysis and Fee Estimation (Phase 3.3 - COMPLETED)
-export 'src/transaction/compute_unit_analyzer.dart';
-// Enhanced Simulation Analysis and Optimization (Step 7.4 - COMPLETED)
-export 'src/transaction/enhanced_simulation_analyzer.dart'
-    hide
-        OptimizationRecommendation,
-        ComparisonResult,
-        CacheStatistics,
-        OptimizationType; // Avoid conflicts
-// Pre-flight Account Validation (Phase 3.2 - COMPLETED)
-export 'src/transaction/preflight_validator.dart';
-// Simulation Caching and Replay System (Step 7.4 - COMPLETED)
-export 'src/transaction/simulation_cache_manager.dart'
-    hide CacheStatistics; // Avoid conflict with account_cache_manager.dart
-// Simulation Debugging and Development Tools (Step 7.4 - COMPLETED)
-export 'src/transaction/simulation_debugger.dart';
-// Simulation Result Processing and Analysis (Phase 3.4 - COMPLETED)
-export 'src/transaction/simulation_result_processor.dart';
-// Transaction Building and Serialization Infrastructure
-export 'src/transaction/transaction.dart'
-    hide AccountMeta, TransactionInstruction;
+        AdapterWallet;
+// SPL (Solana Program Library) Integration (Phase 2 - COMPLETED)
+export 'src/spl/spl.dart'; // SPL Token and other Solana Program Library integrations
 // Transaction simulation (Phase 3.1 - COMPLETED)
+// Note: Advanced analysis modules (compute_unit_analyzer, enhanced_simulation_analyzer,
+// preflight_validator, simulation_cache_manager, simulation_debugger, simulation_result_processor)
+// are not exported as they are not part of TypeScript SDK parity and should use espresso-cash
+// directly for transaction analysis capabilities.
 export 'src/transaction/transaction_simulator.dart'
     hide TransactionSimulationResult; // Avoid conflict with types.dart
 // PDA Derivation Engine (Phase 5.1 - COMPLETED)
-// Note: PdaResult from pda_derivation_engine takes precedence over types/public_key.dart
-export 'src/types/public_key.dart' hide PdaResult;
+// PublicKey now uses production-ready espresso-cash implementation
+export 'src/types/public_key.dart';
 // Re-export commonly used types for convenience
 // export 'src/types/public_key.dart';
 // export 'src/types/keypair.dart';
 export 'src/types/transaction.dart'
     hide TransactionInstruction, AccountMeta, Transaction;
+// VersionedTransaction support for TypeScript SDK parity
+export 'src/types/versioned_transaction.dart';
 // Type definitions (Phase 1.3 - COMPLETED)
 export 'src/types/types.dart'
     hide AccountMeta, TransactionInstruction, Transaction;
@@ -409,6 +365,113 @@ export 'src/wallet/wallet_discovery.dart';
 export 'src/workspace/cpi_framework.dart'; // Cross-Program Invocation Framework (Step 5.6 - COMPLETED)
 // Note: error_utils.dart is deprecated in favor of src/error.dart
 export 'src/workspace/workspace.dart';
+
+// Import necessary classes for workspace functionality
+import 'src/provider/anchor_provider.dart';
+import 'src/workspace/workspace.dart';
+
+/// Global workspace instance providing TypeScript-like lazy loading
+///
+/// This global workspace provides the same convenient access pattern as
+/// the TypeScript SDK, allowing programs to be accessed like:
+/// ```dart
+/// workspace.myProgram  // Returns Program instance
+/// workspace.MyProgram  // Same program, case-insensitive
+/// workspace["my-program"]  // Also works with string accessor
+/// ```
+///
+/// The workspace automatically loads programs from Anchor.toml configuration
+/// and implements lazy loading - programs are only loaded when first accessed.
+///
+/// **Usage with default provider:**
+/// ```dart
+/// import 'package:coral_xyz/coral_xyz_anchor.dart';
+///
+/// // Access programs directly (will use AnchorProvider.env())
+/// final program = workspace.counterProgram;
+/// await program.methods.increment().rpc();
+/// ```
+///
+/// **Usage with custom provider:**
+/// ```dart
+/// import 'package:coral_xyz/coral_xyz_anchor.dart';
+///
+/// // Set custom provider first
+/// setProvider(myCustomProvider);
+///
+/// // Now workspace uses your provider
+/// final program = workspace.myProgram;
+/// ```
+///
+/// **Workspace lazy loading behavior:**
+/// - Programs are loaded on first access (matching TypeScript behavior)
+/// - IDL files are automatically discovered from `target/idl/` directory
+/// - Anchor.toml configuration is respected for program addresses
+/// - Case-insensitive program access (camelCase, PascalCase, snake_case, kebab-case)
+/// - Error thrown if program IDL or configuration is not found
+WorkspaceProxy get workspace => WorkspaceProxy._instance;
+
+/// Get current provider instance (TypeScript-compatible API)
+AnchorProvider getProvider() {
+  return AnchorProvider.defaultProvider();
+}
+
+/// Set the global provider instance (TypeScript-compatible API)
+void setProvider(AnchorProvider provider) {
+  AnchorProvider.setDefaultProvider(provider);
+  // Reset workspace to use new provider
+  workspace.reset();
+}
+
+/// Proxy class that provides TypeScript-like workspace access with lazy loading
+class WorkspaceProxy {
+  static final WorkspaceProxy _instance = WorkspaceProxy._();
+  WorkspaceProxy._();
+
+  /// Get current provider, defaulting to AnchorProvider.env() if not set
+  AnchorProvider get _currentProvider {
+    try {
+      return getProvider();
+    } catch (_) {
+      // If no provider is set, use default provider
+      return AnchorProvider.defaultProvider();
+    }
+  }
+
+  /// Lazy-loaded workspace instance
+  Workspace? _workspace;
+
+  /// Get or create workspace instance
+  Workspace get _workspaceInstance {
+    return _workspace ??= Workspace(_currentProvider);
+  }
+
+  /// Reset workspace (useful for provider changes)
+  void reset() {
+    _workspace = null;
+  }
+
+  /// Dynamic program access using noSuchMethod proxy pattern
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.isGetter) {
+      final memberName = invocation.memberName;
+      final programName = _symbolToProgramName(memberName);
+
+      // Use the workspace's lazy loading functionality
+      return _workspaceInstance.lazyLoadProgram(programName);
+    }
+
+    return super.noSuchMethod(invocation);
+  }
+
+  String _symbolToProgramName(Symbol symbol) {
+    final s = symbol.toString();
+    // Symbol("ProgramName") => ProgramName
+    final match = RegExp('"(.*)"').firstMatch(s);
+    return match != null ? match.group(1)! : s;
+  }
+}
 
 /// Version of the coral_xyz package
 const String packageVersion = '1.0.0-beta.1';

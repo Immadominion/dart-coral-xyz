@@ -279,20 +279,34 @@ class EnhancedTransactionBuilder {
     final transactions = await batchInstructions(instructions, config: config);
     final signatures = <String>[];
 
+    // Combine signers from builder and composition options
+    List<Keypair> _combinedSigners() {
+      final list = <Keypair>[];
+      list.addAll(_signers);
+      if (_compositionOptions?.signers != null) {
+        list.addAll(_compositionOptions!.signers!);
+      }
+      return list;
+    }
+
     if (config.parallel) {
-      // Send transactions in parallel
+      // Send transactions in parallel via provider
       final futures = transactions.map((tx) async {
-        await _signTransaction(tx);
-        return connection.sendAndConfirmTransaction(tx);
+        return _provider.sendAndConfirm(
+          tx,
+          signers: _combinedSigners(),
+        );
       });
 
       final results = await Future.wait(futures);
       signatures.addAll(results);
     } else {
-      // Send transactions sequentially
+      // Send transactions sequentially via provider
       for (final tx in transactions) {
-        await _signTransaction(tx);
-        final signature = await connection.sendAndConfirmTransaction(tx);
+        final signature = await _provider.sendAndConfirm(
+          tx,
+          signers: _combinedSigners(),
+        );
         signatures.add(signature);
 
         // Add delay between transactions if configured
@@ -408,21 +422,24 @@ class EnhancedTransactionBuilder {
 
       // Create simulation config
       final simulationConfig = TransactionSimulationConfig(
-        commitment: commitment?.value,
+        commitment: commitment?.value ?? 'confirmed',
         includeAccounts: includeAccounts,
         accountsToInclude: accountsToInclude,
         sigVerify: true,
         replaceRecentBlockhash: true,
       );
 
-      // Use the existing transaction simulator
-      final simulator = TransactionSimulator(_provider);
-      final result = await simulator.simulate(tx, config: simulationConfig);
+      // Use the TransactionSimulator with the Connection
+      final simulator = TransactionSimulator(_provider.connection);
+      final result = await simulator.simulateTransactionBytes(
+        tx.serialize(),
+        config: simulationConfig,
+      );
 
       return TransactionSimulationResult(
-        success: result.success,
+        success: result.isSuccess,
         computeUnitsConsumed: result.unitsConsumed,
-        logs: result.logs,
+        logs: result.logs ?? const <String>[],
         error: result.error?.toString(),
         accounts: result.accounts,
       );
@@ -595,11 +612,25 @@ class EnhancedTransactionBuilder {
     int? maxRetries,
   }) async {
     final tx = await build();
-    final signedTx = await _signTransaction(tx);
 
-    return connection.sendAndConfirmTransaction(
-      signedTx,
-      // These parameters might need adjustment based on the actual sendAndConfirmTransaction method signature
+    // Combine signers from builder and composition options
+    final allSigners = <Keypair>[..._signers];
+    if (_compositionOptions?.signers != null) {
+      allSigners.addAll(_compositionOptions!.signers!);
+    }
+
+    final options = ConfirmOptions(
+      skipPreflight: skipPreflight,
+      commitment: commitment != null
+          ? CommitmentConfig(commitment)
+          : CommitmentConfigs.processed,
+      maxRetries: maxRetries,
+    );
+
+    return _provider.sendAndConfirm(
+      tx,
+      signers: allSigners,
+      options: options,
     );
   }
 

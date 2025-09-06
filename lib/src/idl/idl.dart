@@ -464,27 +464,23 @@ class IdlInstruction {
 class IdlAccount {
   const IdlAccount({
     required this.name,
-    required this.type,
     this.docs,
-    this.discriminator,
+    required this.discriminator,
   });
 
   factory IdlAccount.fromJson(Map<String, dynamic> json) => IdlAccount(
         name: json['name'] as String,
         docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
-        type: IdlTypeDefType.fromJson(json['type'] as Map<String, dynamic>),
-        discriminator: (json['discriminator'] as List<dynamic>?)?.cast<int>(),
+        discriminator: (json['discriminator'] as List<dynamic>).cast<int>(),
       );
   final String name;
   final List<String>? docs;
-  final IdlTypeDefType type;
-  final IdlDiscriminator? discriminator;
+  final IdlDiscriminator discriminator;
 
   Map<String, dynamic> toJson() => {
         'name': name,
         if (docs != null) 'docs': docs,
-        'type': type.toJson(),
-        if (discriminator != null) 'discriminator': discriminator,
+        'discriminator': discriminator,
       };
 
   @override
@@ -818,33 +814,108 @@ class IdlConst {
 
 /// Type definition
 class IdlTypeDef {
-  const IdlTypeDef({required this.name, required this.type, this.docs});
+  const IdlTypeDef({
+    required this.name,
+    required this.type,
+    this.docs,
+    this.generics,
+    this.serialization,
+    this.repr,
+  });
 
   factory IdlTypeDef.fromJson(Map<String, dynamic> json) => IdlTypeDef(
         name: json['name'] as String,
         docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
         type: IdlTypeDefType.fromJson(json['type'] as Map<String, dynamic>),
+        generics: json['generics'] != null
+            ? (json['generics'] as List<dynamic>)
+                .map((e) =>
+                    IdlTypeDefGeneric.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : null,
+        serialization: json['serialization'] as String?,
+        repr: json['repr'] != null
+            ? IdlRepr.fromJson(json['repr'] as Map<String, dynamic>)
+            : null,
       );
   final String name;
   final List<String>? docs;
   final IdlTypeDefType type;
+  final List<IdlTypeDefGeneric>? generics;
+  final String? serialization;
+  final IdlRepr? repr;
 
   Map<String, dynamic> toJson() => {
         'name': name,
         if (docs != null) 'docs': docs,
         'type': type.toJson(),
+        if (generics != null)
+          'generics': generics!.map((e) => e.toJson()).toList(),
+        if (serialization != null) 'serialization': serialization,
+        if (repr != null) 'repr': repr!.toJson(),
       };
 
   @override
   String toString() => 'IdlTypeDef(name: $name)';
 }
 
-/// Type definition type (struct, enum, etc.)
+/// Generic type parameter definition for type definitions
+class IdlTypeDefGeneric {
+  const IdlTypeDefGeneric({
+    required this.name,
+    required this.kind,
+  });
+
+  factory IdlTypeDefGeneric.fromJson(Map<String, dynamic> json) =>
+      IdlTypeDefGeneric(
+        name: json['name'] as String,
+        kind: json['kind'] as String,
+      );
+
+  final String name;
+  final String kind;
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'kind': kind,
+      };
+
+  @override
+  String toString() => 'IdlTypeDefGeneric(name: $name, kind: $kind)';
+}
+
+/// Representation attribute for type definitions
+class IdlRepr {
+  const IdlRepr({
+    required this.kind,
+    this.modifier,
+  });
+
+  factory IdlRepr.fromJson(Map<String, dynamic> json) => IdlRepr(
+        kind: json['kind'] as String,
+        modifier: json['modifier'] as String?,
+      );
+
+  final String kind;
+  final String? modifier;
+
+  Map<String, dynamic> toJson() => {
+        'kind': kind,
+        if (modifier != null) 'modifier': modifier,
+      };
+
+  @override
+  String toString() =>
+      'IdlRepr(kind: $kind${modifier != null ? ', modifier: $modifier' : ''})';
+}
+
+/// Type definition type (struct, enum, type alias)
 class IdlTypeDefType {
   const IdlTypeDefType({
     required this.kind,
     this.fields,
     this.variants,
+    this.alias,
   });
 
   factory IdlTypeDefType.fromJson(Map<String, dynamic> json) => IdlTypeDefType(
@@ -859,16 +930,19 @@ class IdlTypeDefType {
                 .map((e) => IdlEnumVariant.fromJson(e as Map<String, dynamic>))
                 .toList()
             : null,
+        alias: json['alias'] != null ? IdlType.fromJson(json['alias']) : null,
       );
   final String kind;
   final List<IdlField>? fields;
   final List<IdlEnumVariant>? variants;
+  final IdlType? alias;
 
   Map<String, dynamic> toJson() => {
         'kind': kind,
         if (fields != null) 'fields': fields!.map((e) => e.toJson()).toList(),
         if (variants != null)
           'variants': variants!.map((e) => e.toJson()).toList(),
+        if (alias != null) 'alias': alias!.toJson(),
       };
 }
 
@@ -900,6 +974,7 @@ class IdlType {
     this.inner,
     this.size,
     this.defined,
+    this.generic,
   });
 
   factory IdlType.fromJson(dynamic json) {
@@ -916,7 +991,13 @@ class IdlType {
             json.containsKey('inner') ? IdlType.fromJson(json['inner']) : null;
         final int? size = json['size']
             as int?; // Typically for 'array' if structured this way
-        final String? definedName = json['defined'] as String?;
+        final IdlDefinedType? definedType = json['defined'] != null
+            ? (json['defined'] is String
+                ? IdlDefinedType(name: json['defined'] as String)
+                : IdlDefinedType.fromJson(
+                    json['defined'] as Map<String, dynamic>))
+            : null;
+        final String? generic = json['generic'] as String?;
 
         // If kind is 'array' but inner/size are not directly under 'inner'/'size' but under the kind key
         if (kind == 'array' && json.containsKey(kind) && json[kind] is List) {
@@ -926,7 +1007,8 @@ class IdlType {
               kind: kind,
               inner: IdlType.fromJson(list[0]),
               size: list[1] as int,
-              defined: definedName,
+              defined: definedType,
+              generic: generic,
             );
           }
         }
@@ -934,7 +1016,8 @@ class IdlType {
           kind: kind,
           inner: inner,
           size: size,
-          defined: definedName,
+          defined: definedType,
+          generic: generic,
         );
       }
 
@@ -956,7 +1039,13 @@ class IdlType {
             }
             throw ArgumentError('Invalid array type definition: $json');
           case 'defined':
-            return IdlType(kind: kind, defined: value as String);
+            if (value is String) {
+              return IdlType(kind: kind, defined: IdlDefinedType(name: value));
+            } else if (value is Map<String, dynamic>) {
+              return IdlType(
+                  kind: kind, defined: IdlDefinedType.fromJson(value));
+            }
+            throw ArgumentError('Invalid defined type definition: $json');
           default:
             // This case handles simple types that might have been incorrectly wrapped in a map
             // or custom types not following the standard structure.
@@ -975,7 +1064,8 @@ class IdlType {
   final String kind;
   final IdlType? inner;
   final int? size;
-  final String? defined;
+  final IdlDefinedType? defined;
+  final String? generic;
 
   // Static factory methods for better API compatibility
   static IdlType bool() => const IdlType(kind: 'bool');
@@ -994,7 +1084,7 @@ class IdlType {
   static IdlType array(IdlType inner, int size) =>
       IdlType(kind: 'array', inner: inner, size: size);
   static IdlType definedType(String name) =>
-      IdlType(kind: 'defined', defined: name);
+      IdlType(kind: 'defined', defined: IdlDefinedType(name: name));
 
   dynamic toJson() {
     // Standard Anchor IDL JSON representation
@@ -1008,7 +1098,9 @@ class IdlType {
           'array': [inner?.toJson(), size],
         };
       case 'defined':
-        return {'defined': defined};
+        return {'defined': defined?.toJson()};
+      case 'generic':
+        return {'generic': generic};
       default: // Simple types: "u8", "string", "bool", "publicKey", etc.
         return kind;
     }
@@ -1016,6 +1108,63 @@ class IdlType {
 
   @override
   String toString() => 'IdlType(kind: $kind)';
+}
+
+/// Generic parameter specification for defined types
+class IdlTypeGeneric {
+  const IdlTypeGeneric({
+    required this.kind,
+    this.type,
+    this.value,
+  });
+
+  factory IdlTypeGeneric.fromJson(Map<String, dynamic> json) => IdlTypeGeneric(
+        kind: json['kind'] as String,
+        type: json['type'] != null ? IdlType.fromJson(json['type']) : null,
+        value: json['value'] as String?,
+      );
+
+  final String kind;
+  final IdlType? type;
+  final String? value;
+
+  Map<String, dynamic> toJson() => {
+        'kind': kind,
+        if (type != null) 'type': type!.toJson(),
+        if (value != null) 'value': value,
+      };
+
+  @override
+  String toString() => 'IdlTypeGeneric(kind: $kind)';
+}
+
+/// Defined type with optional generic parameters
+class IdlDefinedType {
+  const IdlDefinedType({
+    required this.name,
+    this.generics = const [],
+  });
+
+  factory IdlDefinedType.fromJson(Map<String, dynamic> json) => IdlDefinedType(
+        name: json['name'] as String,
+        generics: json['generics'] != null
+            ? (json['generics'] as List<dynamic>)
+                .map((e) => IdlTypeGeneric.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : const [],
+      );
+
+  final String name;
+  final List<IdlTypeGeneric> generics;
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        if (generics.isNotEmpty)
+          'generics': generics.map((e) => e.toJson()).toList(),
+      };
+
+  @override
+  String toString() => 'IdlDefinedType(name: $name)';
 }
 
 // Factory functions for common types
@@ -1034,7 +1183,8 @@ IdlType idlTypeVec(IdlType inner) => IdlType(kind: 'vec', inner: inner);
 IdlType idlTypeOption(IdlType inner) => IdlType(kind: 'option', inner: inner);
 IdlType idlTypeArray(IdlType inner, int size) =>
     IdlType(kind: 'array', inner: inner, size: size);
-IdlType idlTypeDefined(String name) => IdlType(kind: 'defined', defined: name);
+IdlType idlTypeDefined(String name) =>
+    IdlType(kind: 'defined', defined: IdlDefinedType(name: name));
 
 /// Utility function to check if an account item is a composite accounts group
 bool isCompositeAccounts(IdlInstructionAccountItem accountItem) =>

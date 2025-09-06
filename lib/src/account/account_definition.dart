@@ -53,7 +53,7 @@ class AccountDefinition {
       name: idlAccount.name,
       docs: idlAccount.docs,
       discriminator: idlAccount.discriminator,
-      type: idlAccount.type,
+      type: typeDef.type,
       fields: fields,
       validationRules: validationRules,
       structureMetadata: structureMetadata,

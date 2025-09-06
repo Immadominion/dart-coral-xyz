@@ -1,193 +1,286 @@
-/// PublicKey implementation for Solana addresses
-///
-/// This class represents a Solana public key (address) and provides
-/// utilities for validation, serialization, and conversion.
-
-library;
+// Copyright 2024 Dart Coral XYZ
+// SPDX-License-Identifier: Apache-2.0
 
 import 'dart:typed_data';
-import 'package:coral_xyz/src/external/encoding_wrapper.dart';
-import 'package:coral_xyz/src/crypto/solana_crypto.dart';
+import 'package:crypto/crypto.dart';
+import 'package:solana/solana.dart' as solana;
+import 'package:solana/base58.dart';
 
-export '../crypto/solana_crypto.dart' show PdaResult;
+/// Re-export Ed25519HDPublicKey as PublicKey for compatibility
+typedef PublicKey = solana.Ed25519HDPublicKey;
 
-/// A Solana public key/address representation
-///
-/// This class provides a type-safe way to work with Solana addresses,
-/// including validation, serialization, and utility functions for
-/// common operations like PDA derivation.
-class PublicKey {
-  /// Creates a PublicKey from a 32-byte array
-  PublicKey._(this._bytes) {
-    if (_bytes.length != publicKeyLength) {
-      throw ArgumentError(
-        'Invalid public key input. Expected $publicKeyLength bytes, '
-        'got ${_bytes.length}',
-      );
-    }
-  }
-
-  /// Creates a PublicKey from a base58 string
-  factory PublicKey.fromBase58(String base58String) {
-    try {
-      final bytes = EncodingWrapper.decodeBase58(base58String);
-      return PublicKey._(bytes);
-    } catch (e) {
-      throw ArgumentError('Invalid base58 string: $base58String');
-    }
-  }
-
-  /// Creates a PublicKey from a byte array
-  factory PublicKey.fromBytes(List<int> bytes) =>
-      PublicKey._(Uint8List.fromList(bytes));
-
-  /// Creates a PublicKey from a hex string
-  factory PublicKey.fromHex(String hex) {
-    // Remove 0x prefix if present
-    final cleanHex = hex.startsWith('0x') ? hex.substring(2) : hex;
-
-    if (cleanHex.length != publicKeyLength * 2) {
-      throw ArgumentError(
-        'Invalid hex string length. Expected ${publicKeyLength * 2} characters, '
-        'got ${cleanHex.length}',
-      );
-    }
-
-    final bytes = Uint8List(publicKeyLength);
-    for (int i = 0; i < publicKeyLength; i++) {
-      bytes[i] = int.parse(cleanHex.substring(i * 2, i * 2 + 2), radix: 16);
-    }
-
-    return PublicKey._(bytes);
-  }
-  static const int publicKeyLength = 32;
-
-  final Uint8List _bytes;
-
-  /// Get the raw bytes of the public key
-  Uint8List toBytes() => _bytes;
-
-  /// The default public key (all zeros)
-  static final PublicKey defaultPubkey = PublicKey._(
-    Uint8List(publicKeyLength),
-  );
-
-  /// System program ID
-  static final PublicKey systemProgram = PublicKey.fromBase58(
-    '11111111111111111111111111111111',
-  );
-
-  /// Get the public key as bytes
-  Uint8List get bytes => Uint8List.fromList(_bytes);
-
-  /// Convert to base58 string representation
-  String toBase58() => EncodingWrapper.encodeBase58(_bytes);
-
-  /// Convert to hex string representation
-  String toHex() =>
-      _bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
-
-  /// Check if this public key equals another
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! PublicKey) return false;
-
-    if (_bytes.length != other._bytes.length) return false;
-    for (int i = 0; i < _bytes.length; i++) {
-      if (_bytes[i] != other._bytes[i]) return false;
-    }
-    return true;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 17;
-    for (final byte in _bytes) {
-      hash = hash * 31 + byte;
-    }
-    return hash;
-  }
-
-  /// String representation (base58)
-  @override
-  String toString() => toBase58();
+/// Extensions for PublicKey to maintain API compatibility
+extension PublicKeyExtensions on PublicKey {
+  /// Get the raw bytes of the public key as Uint8List
+  Uint8List toBytes() => Uint8List.fromList(bytes);
 
   /// Check if this is the default public key (all zeros)
-  bool get isDefault => _bytes.every((byte) => byte == 0);
+  bool get isDefault => bytes.every((byte) => byte == 0);
 
-  /// Validate that a string is a valid base58 public key
-  static bool isValidBase58(String address) {
+  /// Convert to hex string
+  String toHex() =>
+      bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+
+  /// Convert to base58 string (compatibility method)
+  String toBase58String() => toBase58();
+
+  // Static getters and methods for compatibility
+  static PublicKey get systemProgram => PublicKeyUtils.systemProgram;
+  static PublicKey get defaultPubkey => PublicKeyUtils.defaultPubkey;
+  static PublicKey fromBytes(List<int> bytes) =>
+      PublicKeyUtils.fromBytes(bytes);
+  static PublicKey fromHex(String hex) => PublicKeyUtils.fromHex(hex);
+  static bool isOnCurve(List<int> bytes) => PublicKeyUtils.isOnCurve(bytes);
+  static bool isValidBase58(String value) =>
+      PublicKeyUtils.isValidBase58(value);
+  static Future<PdaResult> findProgramAddress(
+          List<List<int>> seeds, PublicKey programId) =>
+      PublicKeyUtils.findProgramAddress(seeds, programId);
+}
+
+/// Static utilities for PublicKey operations
+///
+/// This class provides all the static methods that would normally be on PublicKey
+/// in the TypeScript SDK, building on top of espresso-cash-public implementation.
+class PublicKeyUtils {
+  /// System Program PublicKey
+  static PublicKey get systemProgram => solana.SystemProgram.id;
+
+  /// Default PublicKey (all zeros)
+  static final PublicKey defaultPubkey =
+      solana.Ed25519HDPublicKey(Uint8List(32));
+
+  /// Create PublicKey from base58 string
+  static PublicKey fromBase58(String base58) {
     try {
-      final decoded = EncodingWrapper.decodeBase58(address);
-      return decoded.length == publicKeyLength;
+      return solana.Ed25519HDPublicKey.fromBase58(base58);
+    } catch (e) {
+      throw ArgumentError('Invalid base58 string: $e');
+    }
+  }
+
+  /// Create PublicKey from bytes
+  static PublicKey fromBytes(List<int> bytes) {
+    try {
+      if (bytes is Uint8List) {
+        return solana.Ed25519HDPublicKey(bytes);
+      }
+      return solana.Ed25519HDPublicKey(Uint8List.fromList(bytes));
+    } catch (e) {
+      throw ArgumentError('Invalid bytes for PublicKey: $e');
+    }
+  }
+
+  /// Create PublicKey from hex string
+  static PublicKey fromHex(String hex) {
+    try {
+      final cleanHex = hex.startsWith('0x') ? hex.substring(2) : hex;
+      if (cleanHex.length != 64) {
+        throw ArgumentError(
+            'Expected 64 hex characters, got ${cleanHex.length}');
+      }
+
+      final bytes = Uint8List.fromList(
+        List<int>.generate(
+          cleanHex.length ~/ 2,
+          (i) => int.parse(cleanHex.substring(i * 2, i * 2 + 2), radix: 16),
+        ),
+      );
+      return solana.Ed25519HDPublicKey(bytes);
+    } catch (e) {
+      throw ArgumentError('Invalid hex string: $e');
+    }
+  }
+
+  /// Check if a point is on the Ed25519 curve
+  static bool isOnCurve(List<int> bytes) {
+    try {
+      // Try to create a PublicKey - if it fails, it's not on curve
+      solana.Ed25519HDPublicKey(Uint8List.fromList(bytes));
+      return true;
     } catch (e) {
       return false;
     }
   }
 
-  /// Find a program derived address (PDA)
-  ///
-  /// This is a core Solana concept for deterministic address generation
+  /// Validate if a string is valid base58
+  static bool isValidBase58(String value) {
+    try {
+      if (value.isEmpty) return false;
+      base58decode(value);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Create PublicKey with seed - sync version matching TypeScript utils.pubkey.createWithSeedSync
+  static PublicKey createWithSeedSync(
+    PublicKey fromPublicKey,
+    String seed,
+    PublicKey programId,
+  ) {
+    final buffer = Uint8List.fromList([
+      ...fromPublicKey.bytes,
+      ...seed.codeUnits,
+      ...programId.bytes,
+    ]);
+
+    final hash = sha256.convert(buffer).bytes;
+    return solana.Ed25519HDPublicKey(Uint8List.fromList(hash));
+  }
+
+  /// Create PublicKey with seed - async version using espresso-cash implementation
+  static Future<PublicKey> createWithSeed({
+    required PublicKey fromPublicKey,
+    required String seed,
+    required PublicKey programId,
+  }) =>
+      solana.Ed25519HDPublicKey.createWithSeed(
+        fromPublicKey: fromPublicKey,
+        seed: seed,
+        programId: programId,
+      );
+
+  /// Find a program derived address with bump seed tracking
   static Future<PdaResult> findProgramAddress(
-    List<Uint8List> seeds,
+    List<List<int>> seeds,
     PublicKey programId,
   ) async {
     try {
-      final cryptoResult = await SolanaCrypto.findProgramAddress(
-        seeds,
-        programId.toBytes(),
-      );
-      final publicKey = PublicKey._(cryptoResult.address);
-      return PdaResult(publicKey, cryptoResult.bump);
+      // Use espresso-cash findProgramAddress but track the bump seed manually
+      // This matches the TypeScript SDK behavior
+      if (seeds.length > 16) {
+        throw ArgumentError('You can provide up to 16 seeds');
+      }
+
+      for (final seedList in seeds) {
+        if (seedList.length > 32) {
+          throw ArgumentError('One or more of the seeds provided is too big');
+        }
+      }
+
+      int bumpSeed = 255;
+      while (bumpSeed >= 0) {
+        try {
+          final seedsWithBump = [
+            ...seeds,
+            [bumpSeed]
+          ];
+          final address = await solana.Ed25519HDPublicKey.findProgramAddress(
+            seeds: seedsWithBump,
+            programId: programId,
+          );
+          return PdaResult(address, bumpSeed);
+        } catch (e) {
+          bumpSeed--;
+        }
+      }
+      throw ArgumentError('Cannot find valid program address');
     } catch (e) {
-      throw Exception('Failed to find program address: $e');
+      throw ArgumentError('Failed to find PDA: $e');
     }
   }
 
-  /// Create a program address
+  /// Create program address from seeds and program ID (async version)
   static Future<PublicKey> createProgramAddress(
-    List<Uint8List> seeds,
+    List<List<int>> seeds,
     PublicKey programId,
   ) async {
     try {
-      final addressBytes = SolanaCrypto.createProgramAddress(
-        seeds,
-        programId.toBytes(),
-      );
-      return PublicKey._(addressBytes);
+      final flatSeeds = seeds.expand((seed) => seed).toList();
+      return _createProgramAddressSync(flatSeeds, programId);
     } catch (e) {
-      throw Exception('Failed to create program address: $e');
+      throw ArgumentError('Failed to create program address: $e');
     }
   }
 
-  /// Check if this public key is on the ed25519 curve
-  ///
-  /// This is used for PDA validation. A valid PDA should NOT be on the curve.
-  bool isOnCurve() {
-    // Check if the leftmost bit of the last byte is set
-    // This is a simplified version of the curve check that matches
-    // Solana's implementation for PDA validation
-    return (_bytes[31] & 0x80) != 0;
+  /// Create program address from seeds and program ID (sync version)
+  static PublicKey createProgramAddressSync(
+    List<List<int>> seeds,
+    PublicKey programId,
+  ) {
+    try {
+      final flatSeeds = seeds.expand((seed) => seed).toList();
+      return _createProgramAddressSync(flatSeeds, programId);
+    } catch (e) {
+      throw ArgumentError('Failed to create program address: $e');
+    }
   }
 
-  /// Create a new random public key (for testing)
-  static PublicKey unique() {
-    // Generate random bytes for testing purposes
-    final bytes = Uint8List(publicKeyLength);
-    for (int i = 0; i < publicKeyLength; i++) {
-      bytes[i] = DateTime.now().millisecondsSinceEpoch % 256;
+  /// Find program address synchronously - matches TypeScript SDK
+  static PdaResult findProgramAddressSync(
+    List<List<int>> seeds,
+    PublicKey programId,
+  ) {
+    try {
+      if (seeds.length > 16) {
+        throw ArgumentError('You can provide up to 16 seeds');
+      }
+
+      for (final seedList in seeds) {
+        if (seedList.length > 32) {
+          throw ArgumentError('One or more of the seeds provided is too big');
+        }
+      }
+
+      int bumpSeed = 255;
+      while (bumpSeed >= 0) {
+        try {
+          final flatSeeds = seeds.expand((seed) => seed).toList()
+            ..add(bumpSeed);
+          final address = _createProgramAddressSync(flatSeeds, programId);
+          return PdaResult(address, bumpSeed);
+        } catch (e) {
+          bumpSeed--;
+        }
+      }
+      throw ArgumentError('Cannot find valid program address');
+    } catch (e) {
+      throw ArgumentError('Failed to find PDA: $e');
     }
-    return PublicKey._(bytes);
+  }
+
+  /// Create program address synchronously - internal helper
+  static PublicKey _createProgramAddressSync(
+    List<int> seeds,
+    PublicKey programId,
+  ) {
+    final seedBytes = [
+      ...seeds,
+      ...programId.bytes,
+      ...'ProgramDerivedAddress'.codeUnits,
+    ];
+
+    final hash = sha256.convert(seedBytes).bytes;
+
+    // Check if point is on curve (invalid for PDA)
+    if (isOnCurve(hash)) {
+      throw ArgumentError('Invalid seeds: address must fall off the curve');
+    }
+
+    return solana.Ed25519HDPublicKey(Uint8List.fromList(hash));
   }
 }
 
-/// Result of a PDA (Program Derived Address) operation
+/// Result of PDA derivation containing address and bump seed
 class PdaResult {
   const PdaResult(this.address, this.bump);
+
+  /// The derived program address
   final PublicKey address;
+
+  /// The bump seed used for derivation
   final int bump;
 
   @override
   String toString() => 'PdaResult(address: $address, bump: $bump)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PdaResult && address == other.address && bump == other.bump;
+
+  @override
+  int get hashCode => address.hashCode ^ bump.hashCode;
 }

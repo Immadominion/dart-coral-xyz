@@ -157,16 +157,17 @@
 library;
 
 import 'dart:async';
-import 'package:solana/solana.dart' as solana;
-import 'package:solana/encoder.dart' as encoder;
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:solana/dto.dart' as dto;
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/provider/wallet.dart';
+import 'package:coral_xyz/src/types/keypair.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/types/transaction.dart' as transaction_types;
 import 'package:coral_xyz/src/transaction/transaction_simulator.dart'
-    show TransactionSimulationResult;
+    show TransactionSimulationResult, TransactionSimulator;
 import 'package:coral_xyz/src/types/commitment.dart';
-import 'package:coral_xyz/src/types/keypair.dart';
 import 'package:coral_xyz/src/error/rpc_error_parser.dart';
 import '../utils/logger.dart';
 
@@ -343,11 +344,7 @@ class AnchorProvider implements Provider {
     this.connection,
     this.wallet, {
     this.options = ConfirmOptions.defaultOptions,
-  }) : _solanaClient = solana.SolanaClient(
-          rpcUrl: Uri.parse(connection.endpoint),
-          websocketUrl:
-              Uri.parse(connection.endpoint.replaceFirst('http', 'ws')),
-        );
+  });
 
   /// Create a provider with a specific wallet
   ///
@@ -373,9 +370,6 @@ class AnchorProvider implements Provider {
 
   /// Logger instance for AnchorProvider
   static final AnchorLogger _logger = AnchorLogger.getLogger('AnchorProvider');
-
-  /// The underlying Solana client for transaction operations
-  final solana.SolanaClient _solanaClient;
 
   /// The connection to the Solana cluster
   @override
@@ -417,12 +411,35 @@ class AnchorProvider implements Provider {
   ///
   /// This method would read configuration from environment variables
   /// in a real implementation. For now, it returns a local provider.
+  /// Returns a Provider read from the ANCHOR_PROVIDER_URL environment variable
+  ///
+  /// This method reads the provider configuration from environment variables,
+  /// specifically ANCHOR_PROVIDER_URL. This matches the TypeScript SDK's env() method.
   static Future<AnchorProvider> env({
     ConfirmOptions options = ConfirmOptions.defaultOptions,
   }) async {
-    // In a real implementation, this would read from environment variables
-    // For now, default to local development setup
-    return local(options: options);
+    // Read from environment variables (matching TypeScript behavior)
+    final anchorProviderUrl = Platform.environment['ANCHOR_PROVIDER_URL'];
+
+    if (anchorProviderUrl == null) {
+      throw const ProviderException('ANCHOR_PROVIDER_URL is not defined');
+    }
+
+    final connection = Connection(anchorProviderUrl);
+
+    // Try to load local wallet (matching TypeScript NodeWallet.local())
+    KeypairWallet? wallet;
+    try {
+      final localKeypairPath = Platform.environment['ANCHOR_WALLET'] ??
+          '${Platform.environment['HOME']}/.config/solana/id.json';
+      final localKeypair = await Keypair.fromFile(localKeypairPath);
+      wallet = await KeypairWallet.fromCustomKeypairAsync(localKeypair);
+    } catch (e) {
+      // If no local wallet found, proceed without wallet
+      wallet = null;
+    }
+
+    return AnchorProvider(connection, wallet, options: options);
   }
 
   /// Get a default provider instance
@@ -461,37 +478,51 @@ class AnchorProvider implements Provider {
     final opts = options ?? this.options;
 
     try {
-      _logger.debug('Using native solana package for transaction sending...');
+      _logger.debug('Using wallet interface for transaction signing (matching TypeScript SDK)...');
 
-      // Create signer from wallet keypair
-      final walletKeypair = wallet as KeypairWallet;
-      final solanaKeypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
-        privateKey: walletKeypair.keypair.secretKey.sublist(0, 32),
-      );
+      // Create a properly constructed transaction with feePayer and recentBlockhash
+      var txToSign = transaction;
+      
+      // Set fee payer if not already set (matching TypeScript SDK behavior)
+      if (txToSign.feePayer == null) {
+        txToSign = txToSign.setFeePayer(wallet!.publicKey);
+      }
 
-      // Add additional signers if provided
-      final allSigners = [solanaKeypair];
+      // Get recent blockhash if not set
+      if (txToSign.recentBlockhash == null) {
+        final blockhashResult = await connection.getLatestBlockhash(
+          commitment: _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+        );
+        txToSign = txToSign.setRecentBlockhash(blockhashResult.blockhash);
+      }
+
+      // Add partial signatures from additional signers first (matching TypeScript SDK)
       if (signers != null) {
+        final messageBytes = txToSign.compileMessage();
         for (final signer in signers) {
-          final signerKeypair =
-              await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
-            privateKey: signer.secretKey.sublist(0, 32),
-          );
-          allSigners.add(signerKeypair);
+          final signature = await signer.sign(messageBytes);
+          txToSign.addSignature(signer.publicKey, signature);
         }
       }
 
-      // Convert dart-coral-xyz transaction to solana package format
-      final solanaMessage =
-          await _convertToSolanaMessage(transaction, allSigners);
+      // Sign transaction with wallet (matching TypeScript SDK: await this.wallet.signTransaction(tx))
+      final signedTransaction = await wallet!.signTransaction(txToSign);
 
-      // Send transaction using the solana package's native method
-      _logger.debug(
-          'Sending transaction via solana package sendAndConfirmTransaction...');
-      final signature = await _solanaClient.sendAndConfirmTransaction(
-        message: solanaMessage,
-        signers: allSigners,
-        commitment: _convertCommitment(opts.commitment),
+      // Serialize and send the signed transaction using the connection's sendRawTransaction
+      final serializedTx = signedTransaction.serialize();
+      
+      _logger.debug('Sending serialized transaction to network...');
+      final signature = await connection.sendRawTransaction(
+        serializedTx,
+        skipPreflight: opts.skipPreflight,
+        preflightCommitment: _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+        maxRetries: opts.maxRetries,
+      );
+
+      // Confirm the transaction using connection's confirmTransaction
+      await connection.confirmTransaction(
+        signature,
+        status: _toDtoCommitment(opts.commitment),
       );
 
       _logger.info('Transaction sent successfully via solana package');
@@ -514,73 +545,17 @@ class AnchorProvider implements Provider {
     }
   }
 
-  /// Convert dart-coral-xyz transaction to solana package Message format
-  ///
-  /// This method properly converts a dart-coral-xyz transaction to a solana.Message
-  /// by leveraging the solana package's built-in account ordering, duplicate removal,
-  /// and fee payer handling logic. This ensures compatibility with the solana
-  /// package's transaction signing and sending pipeline.
-  Future<solana.Message> _convertToSolanaMessage(
-    transaction_types.Transaction transaction,
-    List<solana.Ed25519HDKeyPair> signers,
-  ) async {
-    _logger.debug('Converting dart-coral-xyz transaction to solana.Message...');
-
-    // Convert instructions from dart-coral-xyz format to solana package format
-    final solanaInstructions = <encoder.Instruction>[];
-
-    for (final instruction in transaction.instructions) {
-      _logger.debug(
-          'Converting instruction for program: ${instruction.programId.toBase58()}');
-
-      // Convert account metas
-      final accounts = <encoder.AccountMeta>[];
-      for (final account in instruction.accounts) {
-        final pubKey =
-            solana.Ed25519HDPublicKey.fromBase58(account.pubkey.toBase58());
-
-        final accountMeta = account.isWritable
-            ? encoder.AccountMeta.writeable(
-                pubKey: pubKey, isSigner: account.isSigner)
-            : encoder.AccountMeta.readonly(
-                pubKey: pubKey, isSigner: account.isSigner);
-
-        accounts.add(accountMeta);
-        _logger.debug(
-            '  Account: ${account.pubkey.toBase58()}, writable: ${account.isWritable}, signer: ${account.isSigner}');
-      }
-
-      // Create solana package instruction
-      final solanaInstruction = encoder.Instruction(
-        programId: solana.Ed25519HDPublicKey.fromBase58(
-            instruction.programId.toBase58()),
-        accounts: accounts,
-        data: encoder.ByteArray(instruction.data),
-      );
-
-      solanaInstructions.add(solanaInstruction);
-    }
-
-    // Create message using solana package's Message constructor
-    // This will handle proper account ordering, duplicate removal, and fee payer logic
-    final message = solana.Message(instructions: solanaInstructions);
-
-    _logger.debug(
-        'Successfully converted ${solanaInstructions.length} instructions to solana.Message');
-    return message;
-  }
-
-  /// Convert dart-coral-xyz commitment to solana package commitment
-  solana.Commitment _convertCommitment(CommitmentConfig commitment) {
-    switch (commitment.commitment.value) {
+  /// Convert dart-coral-xyz commitment to solana dto commitment
+  dto.Commitment _toDtoCommitment(CommitmentConfig config) {
+    switch (config.commitment.value) {
       case 'processed':
-        return solana.Commitment.processed;
+        return dto.Commitment.processed;
       case 'confirmed':
-        return solana.Commitment.confirmed;
+        return dto.Commitment.confirmed;
       case 'finalized':
-        return solana.Commitment.finalized;
+        return dto.Commitment.finalized;
       default:
-        return solana.Commitment.confirmed;
+        return dto.Commitment.confirmed;
     }
   }
 
@@ -603,7 +578,9 @@ class AnchorProvider implements Provider {
     String blockhash;
     try {
       final blockhashResult = await connection.getLatestBlockhash(
-        commitment: opts.preflightCommitment ?? opts.commitment,
+        commitment: _toDtoCommitment(
+          (opts.preflightCommitment ?? opts.commitment),
+        ),
       );
       blockhash = blockhashResult.blockhash;
     } catch (e) {
@@ -639,20 +616,36 @@ class AnchorProvider implements Provider {
     final signedTransactions =
         await wallet!.signAllTransactions(preparedTransactions);
 
-    // Send all transactions (mock for now)
+    // Send all signed transactions using connection's sendRawTransaction
     for (int i = 0; i < signedTransactions.length; i++) {
-      try {
-        // Transaction sending is currently implemented through mock signatures
-        // for development and testing purposes. In production, this should be
-        // replaced with actual Solana RPC transaction sending once full
-        // serialization compatibility is established with the underlying
-        // solana package dependency.
-        final mockSignature =
-            'mock_batch_signature_${i}_${DateTime.now().millisecondsSinceEpoch}';
+      final signedTx = signedTransactions[i];
 
-        signatures.add(mockSignature);
+      try {
+        // Serialize and send the signed transaction
+        final serializedTx = signedTx.serialize();
+        
+        final signature = await connection.sendRawTransaction(
+          serializedTx,
+          skipPreflight: opts.skipPreflight,
+          preflightCommitment: _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+          maxRetries: opts.maxRetries,
+        );
+
+        // Confirm the transaction
+        await connection.confirmTransaction(
+          signature,
+          status: _toDtoCommitment(opts.commitment),
+        );
+
+        signatures.add(signature);
+        _logger.debug(
+            'Transaction ${i + 1}/${signedTransactions.length} sent with signature: $signature');
       } catch (e) {
-        throw ProviderException('Failed to send transaction in batch: $e', e);
+        final enhancedError = translateRpcError(e);
+        throw ProviderException(
+          'Failed to send transaction ${i + 1}/${signedTransactions.length}: ${enhancedError.toString()}',
+          e,
+        );
       }
     }
 
@@ -666,20 +659,33 @@ class AnchorProvider implements Provider {
     CommitmentConfig? commitment,
     List<PublicKey>? includeAccounts,
   }) async {
+    if (wallet == null) {
+      throw ProviderException('Wallet is not connected');
+    }
+
     try {
       // Prepare transaction for simulation
-      await _prepareTransaction(transaction, signers, null);
+      final preparedTx = await _prepareTransaction(transaction, signers, null);
 
-      // For now, return a mock simulation result since transaction serialization
-      // and connection.simulateTransaction are not yet implemented
-      return const TransactionSimulationResult(
-        success: true,
-        logs: ['Program log: Simulation not yet implemented'],
-      );
+      final verifySignatures = signers != null && signers.isNotEmpty;
+
+      Uint8List serializedTx;
+      if (verifySignatures) {
+        final signedTx = await wallet!.signTransaction(preparedTx);
+        serializedTx = signedTx.serialize();
+      } else {
+        serializedTx = preparedTx.serialize();
+      }
+
+      // Delegate to TransactionSimulator (espresso-cash backend)
+      final simulator = TransactionSimulator(connection);
+      final result = await simulator.simulateTransactionBytes(serializedTx);
+      return result;
     } catch (e) {
-      return TransactionSimulationResult(
-        success: false,
-        logs: ['Program log: Simulation failed: $e'],
+      // Return a structured failure result
+      return const TransactionSimulationResult(
+        error: {'SimulationError': 'Failed to simulate transaction'},
+        logs: ['Program log: Simulation error encountered'],
       );
     }
   }
@@ -701,12 +707,12 @@ class AnchorProvider implements Provider {
     if (transaction.recentBlockhash == null) {
       try {
         _logger.debug('Fetching fresh blockhash in _prepareTransaction...');
-        final commitment = options?.preflightCommitment ??
+        final useCommitment = options?.preflightCommitment ??
             options?.commitment ??
             this.options.commitment;
 
         final blockhashResult = await connection.getLatestBlockhash(
-          commitment: commitment,
+          commitment: _toDtoCommitment(useCommitment),
         );
         preparedTx = preparedTx.setRecentBlockhash(blockhashResult.blockhash);
         _logger.debug(
@@ -726,12 +732,7 @@ class AnchorProvider implements Provider {
       );
     }
 
-    // Add additional signers when available
-    if (signers != null) {
-      // Note: Additional signers are handled by the wallet.signTransaction method
-      // Individual partialSign is not needed as the wallet handles all required signatures
-    }
-
+    // Additional signers are handled by wallet signing
     return preparedTx;
   }
 

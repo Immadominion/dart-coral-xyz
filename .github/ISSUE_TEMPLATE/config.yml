@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Community Discussion
+    url: https://github.com/coral-xyz/dart-coral-xyz/discussions
+    about: Ask questions and discuss with the community
+  - name: 📚 Documentation
+    url: https://pub.dev/documentation/coral_xyz
+    about: Read the API documentation
+  - name: 🔗 TypeScript SDK Reference
+    url: https://coral-xyz.github.io/anchor/
+    about: Compare with TypeScript @coral-xyz/anchor documentation
+  - name: 🐦 Solana Stack Exchange
+    url: https://solana.stackexchange.com/
+    about: Ask general Solana development questions

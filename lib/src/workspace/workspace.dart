@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:logging/logging.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
-import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:solana/solana.dart' as solana;
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/program/program_class.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
@@ -24,13 +24,16 @@ export 'program_manager.dart';
 // Import workspace configuration
 import 'package:coral_xyz/src/workspace/workspace_config.dart';
 
-/// TypeScript-like workspace for managing multiple Anchor programs
+/// TypeScript-like workspace for managing multiple Anchor programs with lazy loading
 class Workspace extends Object {
   Workspace(this._provider);
   final Map<String, Program> _programs = {};
   final AnchorProvider _provider;
   static final _logger = Logger('Workspace');
   final Map<String, Idl> _idls = {};
+
+  // Cache for lazy-loaded programs (matches TypeScript workspaceCache)
+  static final Map<String, Program> _workspaceCache = {};
 
   /// Get provider instance
   AnchorProvider get provider => _provider;
@@ -52,15 +55,16 @@ class Workspace extends Object {
   /// Remove a program from workspace
   bool removeProgram(String name) => _programs.remove(name) != null;
 
-  /// Dynamic proxy for TypeScript-like workspace.ProgramName access
+  /// Dynamic proxy for TypeScript-like workspace.ProgramName access with lazy loading
+  /// This exactly matches the TypeScript SDK's workspace proxy behavior
   @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       final memberName = invocation.memberName;
-      final name = _symbolToProgramName(memberName);
-      final program = getProgram(name);
-      if (program != null) return program;
-      throw ArgumentError('Program "$name" not found in workspace');
+      final programName = _symbolToProgramName(memberName);
+
+      // Lazy load program using TypeScript-compatible approach
+      return lazyLoadProgram(programName);
     }
     return super.noSuchMethod(invocation);
   }
@@ -70,6 +74,140 @@ class Workspace extends Object {
     // Symbol("ProgramName") => ProgramName
     final match = RegExp('"(.*)"').firstMatch(s);
     return match != null ? match.group(1)! : s;
+  }
+
+  /// Lazy load program matching TypeScript SDK workspace proxy behavior
+  /// This implements the exact same logic as TypeScript's workspace.ts
+  Program lazyLoadProgram(String programName) {
+    // Convert programName to camelCase (matching TypeScript camelcase() function)
+    final camelCaseName = _toCamelCase(programName);
+
+    // Return early if the program is in cache
+    if (_workspaceCache.containsKey(camelCaseName)) {
+      return _workspaceCache[camelCaseName]!;
+    }
+
+    try {
+      // Load workspace configuration from Anchor.toml
+      final workspaceConfig = _loadWorkspaceConfig();
+      final clusterId = workspaceConfig.provider.cluster;
+      final programs = workspaceConfig.getProgramsForCluster(clusterId);
+
+      // Find program entry by camelCase comparison (matching TypeScript)
+      ProgramEntry? programEntry;
+
+      for (final entry in programs.entries) {
+        if (_toCamelCase(entry.key) == camelCaseName) {
+          programEntry = entry.value;
+          break;
+        }
+      }
+
+      String? idlPath;
+      String? programId;
+
+      if (programEntry != null && programEntry.idl != null) {
+        // Use specified IDL path from Anchor.toml
+        idlPath = programEntry.idl;
+        programId = programEntry.address;
+      } else {
+        // Auto-discover IDL file (matching TypeScript logic)
+        idlPath = _discoverIdlPath(camelCaseName);
+      }
+
+      if (idlPath == null || !File(idlPath).existsSync()) {
+        throw ArgumentError('Failed to find IDL of program `$programName`. '
+            'IDL path: $idlPath doesn\'t exist. Did you run `anchor build`?');
+      }
+
+      // Load and parse IDL
+      final idlJson = File(idlPath).readAsStringSync();
+      final idlMap = jsonDecode(idlJson) as Map<String, dynamic>;
+
+      // Set program ID if specified in config
+      if (programId != null) {
+        idlMap['address'] = programId;
+      }
+
+      final idl = Idl.fromJson(idlMap);
+
+      final program = Program.withProgramId(
+        idl,
+        PublicKey.fromBase58(programId ?? idl.address!),
+        provider: _provider,
+      );
+
+      _workspaceCache[camelCaseName] = program;
+      return program;
+    } catch (e) {
+      throw ArgumentError('Failed to load program `$programName`: $e');
+    }
+  }
+
+  /// Load workspace configuration (similar to TypeScript toml.parse)
+  WorkspaceConfig _loadWorkspaceConfig() {
+    try {
+      return WorkspaceConfig.fromFile('Anchor.toml');
+    } catch (e) {
+      try {
+        return WorkspaceConfig.fromCurrentDirectory();
+      } catch (e2) {
+        throw ArgumentError('Failed to load workspace configuration: $e2');
+      }
+    }
+  }
+
+  /// Discover IDL path matching TypeScript's directory scanning logic
+  String? _discoverIdlPath(String camelCaseName) {
+    final idlDirPath = path.join('target', 'idl');
+    final idlDir = Directory(idlDirPath);
+
+    if (!idlDir.existsSync()) {
+      return null;
+    }
+
+    // Read directory and find matching file (like TypeScript fs.readdirSync)
+    final files = idlDir
+        .listSync()
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.json'))
+        .toList();
+
+    // Compare camelCased version of file names (matching TypeScript logic)
+    for (final file in files) {
+      final fileName = path.basenameWithoutExtension(file.path);
+      if (_toCamelCase(fileName) == camelCaseName) {
+        return file.path;
+      }
+    }
+
+    return null;
+  }
+
+  /// Convert string to camelCase (matching TypeScript camelcase() function behavior)
+  String _toCamelCase(String input) {
+    if (input.isEmpty) return input;
+
+    // Handle snake_case, kebab-case, and spaces
+    final parts = input.split(RegExp(r'[-_\s]'));
+
+    if (parts.length <= 1) {
+      // No separators, just lowercase first character
+      return input[0].toLowerCase() + input.substring(1);
+    }
+
+    // First part is lowercase, subsequent parts are title case
+    final camelCase = StringBuffer(parts.first.toLowerCase());
+    for (int i = 1; i < parts.length; i++) {
+      if (parts[i].isNotEmpty) {
+        camelCase.write(parts[i][0].toUpperCase());
+        if (parts[i].length > 1) {
+          camelCase.write(parts[i].substring(1).toLowerCase());
+        }
+      }
+    }
+
+    return camelCase.toString();
   }
 
   /// Load program from IDL and program ID
@@ -243,7 +381,7 @@ class Workspace extends Object {
     // Check provider health
     try {
       final connection = _provider.connection;
-      await connection.checkHealth();
+      await connection.getLatestBlockhash();
     } catch (e) {
       issues.add(
         WorkspaceIssue(
@@ -260,8 +398,8 @@ class Workspace extends Object {
 
       try {
         // Try to get account info for program
-        final accountInfo =
-            await _provider.connection.getAccountInfo(program.programId);
+        final accountInfo = await _provider.connection
+            .getAccountInfo(program.programId.toBase58());
         if (accountInfo != null) {
           programStatuses[name] = accountInfo.executable
               ? ProgramStatus.healthy
@@ -316,7 +454,12 @@ class Workspace extends Object {
     final keyData = jsonDecode(walletData)
         as List<dynamic>; // Convert to Uint8List and create keypair
     final secretKey = Uint8List.fromList(keyData.cast<int>());
-    final keypair = Keypair.fromSecretKey(secretKey);
+
+    // Extract private key (first 32 bytes) for espresso-cash Ed25519HDKeyPair
+    final privateKey = secretKey.sublist(0, 32);
+    final keypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
+      privateKey: privateKey.toList(),
+    );
 
     return KeypairWallet(keypair);
   }
@@ -456,11 +599,11 @@ class Workspace extends Object {
   /// Create a test environment setup
   static Future<Workspace> createTestEnvironment({
     String? cluster,
-    Keypair? payer,
+    solana.Ed25519HDKeyPair? payer,
     Map<String, String>? programIds,
   }) async {
     cluster ??= 'http://localhost:8899';
-    payer ??= await Keypair.generate();
+    payer ??= await solana.Ed25519HDKeyPair.random();
 
     final connection = Connection(cluster);
 
@@ -570,7 +713,7 @@ class Workspace extends Object {
   Future<DeploymentResult> deployProgram(
     String programName,
     Uint8List programData,
-    Keypair programKeypair, {
+    solana.Ed25519HDKeyPair programKeypair, {
     String? cluster,
   }) async {
     try {
@@ -582,7 +725,7 @@ class Workspace extends Object {
 
       return DeploymentResult(
         success: true,
-        programId: programKeypair.publicKey,
+        programId: PublicKey.fromBase58(programKeypair.publicKey.toBase58()),
         transactionId: 'placeholder_tx_id',
         deployedAt: DateTime.now(),
       );

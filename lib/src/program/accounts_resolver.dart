@@ -106,7 +106,7 @@ class AccountsResolver {
 
       // Resolve well-known program accounts
       if (name.toLowerCase().contains('system')) {
-        resolved[name] = PublicKey.systemProgram;
+        resolved[name] = PublicKeyUtils.systemProgram;
       }
 
       // Resolve accounts with fixed addresses
@@ -223,7 +223,7 @@ class AccountsResolver {
       final programSeedBytes = await _seedToBytes(pda.programId!, resolved);
       if (programSeedBytes != null) {
         try {
-          programId = PublicKey.fromBytes(programSeedBytes);
+          programId = PublicKeyUtils.fromBytes(programSeedBytes);
         } catch (e) {
           return null;
         }
@@ -232,7 +232,7 @@ class AccountsResolver {
 
     // Use proper PDA derivation
     try {
-      final result = await PublicKey.findProgramAddress(seeds, programId);
+      final result = await PublicKeyUtils.findProgramAddress(seeds, programId);
       return result.address;
     } catch (e) {
       return null;

@@ -319,7 +319,7 @@ class ErrorTestUtils {
   static PublicKey createRandomPublicKey() {
     final random = Random();
     final bytes = List.generate(32, (_) => random.nextInt(256));
-    return PublicKey.fromBytes(bytes);
+    return PublicKeyUtils.fromBytes(bytes);
   }
 
   /// Create a test error with specific error code

@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:coral_xyz/src/types/transaction.dart';
 import 'package:coral_xyz/src/types/commitment.dart';
-import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:solana/solana.dart' as solana;
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/coder/coder.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
@@ -13,6 +13,7 @@ import 'package:coral_xyz/src/program/namespace/account_cache_manager.dart'
 import 'package:coral_xyz/src/program/namespace/account_subscription_manager.dart';
 import 'package:coral_xyz/src/native/system_program.dart';
 import 'package:coral_xyz/src/idl/idl.dart' show IdlAccount;
+import 'package:solana/dto.dart' as dto;
 
 // Missing types - define as placeholders for robust implementation
 class AccountCreationParams {
@@ -33,7 +34,7 @@ class AccountCreationParams {
   final PublicKey? programId;
   final PublicKey? fromPubkey;
   final PublicKey? owner;
-  final Keypair? keypair;
+  final solana.Ed25519HDKeyPair? keypair;
   final bool executable;
   final Map<String, dynamic>? initData;
 }
@@ -270,30 +271,33 @@ class AccountOperationsManager<T> {
     try {
       // Fetch account info
       final accountInfo = await _provider.connection.getAccountInfo(
-        address,
-        commitment: commitment != null ? CommitmentConfig(commitment) : null,
+        address.toBase58(),
+        commitment: commitment != null
+            ? (commitment == Commitment.processed
+                ? dto.Commitment.processed
+                : commitment == Commitment.finalized
+                    ? dto.Commitment.finalized
+                    : dto.Commitment.confirmed)
+            : null,
       );
 
       if (accountInfo == null) return null;
 
       // Validate ownership if requested
-      if (validateOwnership && accountInfo.owner != _programId) {
+      if (validateOwnership && accountInfo.owner != _programId.toBase58()) {
         throw AccountOwnedByWrongProgramError.fromValidation(
           expected: _programId,
-          actual: accountInfo.owner,
+          actual: PublicKey.fromBase58(accountInfo.owner),
           accountAddress: address,
         );
       }
 
       // Convert data to Uint8List if needed
-      Uint8List dataBytes;
-      if (accountInfo.data is Uint8List) {
-        dataBytes = accountInfo.data as Uint8List;
-      } else if (accountInfo.data is List<int>) {
-        dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
-      } else {
+      if (accountInfo.data is! dto.BinaryAccountData) {
         throw Exception('Account data is not a valid byte array');
       }
+      final dataBytes =
+          Uint8List.fromList((accountInfo.data as dto.BinaryAccountData).data);
 
       // Decode account data
       final decoded = _coder.accounts.decode<T>(
@@ -432,8 +436,9 @@ class AccountOperationsManager<T> {
     AccountCreationParams params,
   ) async {
     try {
-      // Generate keypair if not provided
-      final accountKeypair = params.keypair ?? await Keypair.generate();
+      // Generate keypair if not provided using espresso-cash Ed25519HDKeyPair
+      final accountKeypair =
+          params.keypair ?? await solana.Ed25519HDKeyPair.random();
 
       // Determine the owner program
       final owner = params.owner ?? _programId;
@@ -458,7 +463,8 @@ class AccountOperationsManager<T> {
       // Create the system program instruction using our existing SystemProgram class
       return SystemProgram.createAccount(
         fromPubkey: feePayer,
-        newAccountPubkey: accountKeypair.publicKey,
+        newAccountPubkey:
+            PublicKey.fromBase58(accountKeypair.publicKey.toBase58()),
         lamports: lamports,
         space: params.space,
         programId: owner,
@@ -477,7 +483,7 @@ class AccountOperationsManager<T> {
   }) async {
     try {
       // Derive the PDA
-      final pdaResult = await PublicKey.findProgramAddress(
+      final pdaResult = await PublicKeyUtils.findProgramAddress(
         seeds,
         owner ?? _programId,
       );
@@ -561,7 +567,7 @@ class AccountOperationsManager<T> {
 
       // Get current account info
       final accountInfo =
-          await _provider.connection.getAccountInfo(accountAddress);
+          await _provider.connection.getAccountInfo(accountAddress.toBase58());
       if (accountInfo == null) {
         throw AccountNotInitializedError.fromAddress(
           accountAddress: accountAddress,
@@ -708,8 +714,14 @@ class AccountOperationsManager<T> {
     Commitment? commitment,
   }) async {
     final programAccounts = await _provider.connection.getProgramAccounts(
-      _programId,
-      commitment: commitment != null ? CommitmentConfig(commitment) : null,
+      _programId.toBase58(),
+      commitment: commitment == Commitment.processed
+          ? dto.Commitment.processed
+          : commitment == Commitment.finalized
+              ? dto.Commitment.finalized
+              : commitment == null
+                  ? null
+                  : dto.Commitment.confirmed,
     );
 
     final addresses = <PublicKey>[];
@@ -717,13 +729,9 @@ class AccountOperationsManager<T> {
     for (final account in programAccounts) {
       // Convert data to Uint8List if needed
       Uint8List? dataBytes;
-      if (account.account.data is Uint8List) {
-        dataBytes = account.account.data as Uint8List;
-      } else if (account.account.data is List<int>) {
-        dataBytes = Uint8List.fromList(account.account.data as List<int>);
-      } else if (account.account.data is String) {
-        // Skip if data is still in string format - needs proper decoding
-        continue;
+      if (account.account.data is dto.BinaryAccountData) {
+        dataBytes = Uint8List.fromList(
+            (account.account.data as dto.BinaryAccountData).data);
       }
 
       if (dataBytes == null) continue;
@@ -796,7 +804,7 @@ class AccountOperationsManager<T> {
         if (!passesFilters) continue;
       }
 
-      addresses.add(account.pubkey);
+      addresses.add(PublicKey.fromBase58(account.pubkey));
     }
 
     return addresses;
@@ -805,7 +813,8 @@ class AccountOperationsManager<T> {
   /// Get comprehensive debugging information for account
   Future<AccountDebugInfo> getDebugInfo(PublicKey address) async {
     try {
-      final accountInfo = await _provider.connection.getAccountInfo(address);
+      final accountInfo =
+          await _provider.connection.getAccountInfo(address.toBase58());
 
       if (accountInfo == null) {
         throw AccountNotInitializedError.fromAddress(
@@ -818,10 +827,9 @@ class AccountOperationsManager<T> {
 
       // Convert data to Uint8List if needed
       Uint8List? dataBytes;
-      if (accountInfo.data is Uint8List) {
-        dataBytes = accountInfo.data as Uint8List;
-      } else if (accountInfo.data is List<int>) {
-        dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+      if (accountInfo.data is dto.BinaryAccountData) {
+        dataBytes = Uint8List.fromList(
+            (accountInfo.data as dto.BinaryAccountData).data);
       } else {
         dataBytes = null;
       }
@@ -852,10 +860,10 @@ class AccountOperationsManager<T> {
       return AccountDebugInfo(
         publicKey: address,
         size: dataBytes?.length ?? 0,
-        owner: accountInfo.owner,
+        owner: PublicKey.fromBase58(accountInfo.owner),
         lamports: accountInfo.lamports,
         executable: accountInfo.executable,
-        rentEpoch: accountInfo.rentEpoch,
+        rentEpoch: accountInfo.rentEpoch.toInt(),
         discriminator: discriminator,
         data: dataBytes,
         parsedData: parsedData,
@@ -882,15 +890,14 @@ class AccountOperationsManager<T> {
   /// Validate account size against expected size
   Future<bool> validateAccountSize(PublicKey address, int expectedSize) async {
     try {
-      final accountInfo = await _provider.connection.getAccountInfo(address);
+      final accountInfo =
+          await _provider.connection.getAccountInfo(address.toBase58());
       if (accountInfo == null) return false;
 
       // Get actual size from account data
       int actualSize = 0;
-      if (accountInfo.data is Uint8List) {
-        actualSize = (accountInfo.data as Uint8List).length;
-      } else if (accountInfo.data is List<int>) {
-        actualSize = (accountInfo.data as List<int>).length;
+      if (accountInfo.data is dto.BinaryAccountData) {
+        actualSize = (accountInfo.data as dto.BinaryAccountData).data.length;
       }
 
       return actualSize == expectedSize;
@@ -907,7 +914,8 @@ class AccountOperationsManager<T> {
 
   /// Check if account is rent exempt
   Future<bool> isRentExempt(PublicKey address) async {
-    final accountInfo = await _provider.connection.getAccountInfo(address);
+    final accountInfo =
+        await _provider.connection.getAccountInfo(address.toBase58());
     if (accountInfo == null) return false;
 
     final minimumBalance = await calculateMinimumBalance();
@@ -945,8 +953,14 @@ class AccountOperationsManager<T> {
     if (uncachedAddresses.isNotEmpty) {
       try {
         final accountInfos = await _provider.connection.getMultipleAccountsInfo(
-          uncachedAddresses,
-          commitment: commitment != null ? CommitmentConfig(commitment) : null,
+          uncachedAddresses.map((pk) => pk.toBase58()).toList(),
+          commitment: commitment == Commitment.processed
+              ? dto.Commitment.processed
+              : commitment == Commitment.finalized
+                  ? dto.Commitment.finalized
+                  : commitment == null
+                      ? null
+                      : dto.Commitment.confirmed,
         );
 
         for (int i = 0; i < uncachedAddresses.length; i++) {
@@ -961,21 +975,19 @@ class AccountOperationsManager<T> {
 
           try {
             // Validate ownership if needed
-            if (accountInfo.owner != _programId) {
+            if (accountInfo.owner != _programId.toBase58()) {
               results[resultIndex] = null;
               continue;
             }
 
             // Convert data to Uint8List if needed
-            Uint8List dataBytes;
-            if (accountInfo.data is Uint8List) {
-              dataBytes = accountInfo.data as Uint8List;
-            } else if (accountInfo.data is List<int>) {
-              dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
-            } else {
+            if (accountInfo.data is! dto.BinaryAccountData) {
               results[resultIndex] = null;
               continue;
             }
+
+            final dataBytes = Uint8List.fromList(
+                (accountInfo.data as dto.BinaryAccountData).data);
 
             // Decode account data
             final decoded = _coder.accounts.decode<T>(
@@ -1029,8 +1041,9 @@ class AccountOperationsManager<T> {
 
     for (final address in addresses) {
       try {
-        final accountInfo = await _provider.connection.getAccountInfo(address);
-        result[address] = accountInfo?.owner == owner;
+        final accountInfo =
+            await _provider.connection.getAccountInfo(address.toBase58());
+        result[address] = accountInfo?.owner == owner.toBase58();
       } catch (e) {
         result[address] = false;
       }
@@ -1057,21 +1070,20 @@ class AccountOperationsManager<T> {
 
     for (final address in addresses) {
       try {
-        final accountInfo = await _provider.connection.getAccountInfo(address);
+        final accountInfo =
+            await _provider.connection.getAccountInfo(address.toBase58());
         if (accountInfo?.data == null) {
           result[address] = false;
           continue;
         }
 
-        Uint8List dataBytes;
-        if (accountInfo!.data is Uint8List) {
-          dataBytes = accountInfo.data as Uint8List;
-        } else if (accountInfo.data is List<int>) {
-          dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
-        } else {
+        if (accountInfo!.data is! dto.BinaryAccountData) {
           result[address] = false;
           continue;
         }
+
+        final dataBytes = Uint8List.fromList(
+            (accountInfo.data as dto.BinaryAccountData).data);
 
         if (dataBytes.length < discriminator.length) {
           result[address] = false;
@@ -1138,7 +1150,8 @@ class AccountOperationsManager<T> {
 
     try {
       // Basic existence check
-      final accountInfo = await _provider.connection.getAccountInfo(address);
+      final accountInfo =
+          await _provider.connection.getAccountInfo(address.toBase58());
       healthInfo['exists'] = accountInfo != null;
 
       if (accountInfo == null) {
@@ -1147,8 +1160,8 @@ class AccountOperationsManager<T> {
       }
 
       // Ownership validation
-      healthInfo['correct_owner'] = accountInfo.owner == _programId;
-      healthInfo['owner'] = accountInfo.owner.toBase58();
+      healthInfo['correct_owner'] = accountInfo.owner == _programId.toBase58();
+      healthInfo['owner'] = accountInfo.owner;
 
       // Rent exemption check
       final isRentExempt = await this.isRentExempt(address);
@@ -1157,8 +1170,12 @@ class AccountOperationsManager<T> {
 
       // Size validation
       final expectedSize = _coder.accounts.size(_idlAccount.name);
-      healthInfo['correct_size'] = accountInfo.data?.length == expectedSize;
-      healthInfo['actual_size'] = accountInfo.data?.length ?? 0;
+      int actualSize = 0;
+      if (accountInfo.data is dto.BinaryAccountData) {
+        actualSize = (accountInfo.data as dto.BinaryAccountData).data.length;
+      }
+      healthInfo['correct_size'] = actualSize == expectedSize;
+      healthInfo['actual_size'] = actualSize;
       healthInfo['expected_size'] = expectedSize;
 
       // Discriminator validation
@@ -1166,14 +1183,11 @@ class AccountOperationsManager<T> {
           _idlAccount.discriminator!.isNotEmpty) {
         bool validDiscriminator = false;
         if (accountInfo.data != null) {
-          Uint8List dataBytes;
-          if (accountInfo.data is Uint8List) {
-            dataBytes = accountInfo.data as Uint8List;
-          } else if (accountInfo.data is List<int>) {
-            dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
-          } else {
-            dataBytes = Uint8List(0);
+          if (accountInfo.data is! dto.BinaryAccountData) {
+            throw Exception('Invalid data type');
           }
+          final dataBytes = Uint8List.fromList(
+              (accountInfo.data as dto.BinaryAccountData).data);
 
           if (dataBytes.length >= _idlAccount.discriminator!.length) {
             validDiscriminator = true;
@@ -1191,14 +1205,11 @@ class AccountOperationsManager<T> {
       // Try to decode data
       try {
         if (accountInfo.data != null) {
-          Uint8List dataBytes;
-          if (accountInfo.data is Uint8List) {
-            dataBytes = accountInfo.data as Uint8List;
-          } else if (accountInfo.data is List<int>) {
-            dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
-          } else {
+          if (accountInfo.data is! dto.BinaryAccountData) {
             throw Exception('Invalid data type');
           }
+          final dataBytes = Uint8List.fromList(
+              (accountInfo.data as dto.BinaryAccountData).data);
 
           final decoded =
               _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
@@ -1231,7 +1242,8 @@ class AccountOperationsManager<T> {
 
   /// Export account data for backup/migration
   Future<Map<String, dynamic>> exportAccountData(PublicKey address) async {
-    final accountInfo = await _provider.connection.getAccountInfo(address);
+    final accountInfo =
+        await _provider.connection.getAccountInfo(address.toBase58());
     if (accountInfo == null) {
       throw AccountNotInitializedError.fromAddress(
         accountAddress: address,
@@ -1243,21 +1255,22 @@ class AccountOperationsManager<T> {
 
     final export = <String, dynamic>{
       'address': address.toBase58(),
-      'owner': accountInfo.owner.toBase58(),
+      'owner': accountInfo.owner,
       'lamports': accountInfo.lamports,
       'executable': accountInfo.executable,
-      'rent_epoch': accountInfo.rentEpoch,
-      'data_length': accountInfo.data?.length ?? 0,
+      'rent_epoch': accountInfo.rentEpoch.toInt(),
+      'data_length': accountInfo.data is dto.BinaryAccountData
+          ? (accountInfo.data as dto.BinaryAccountData).data.length
+          : 0,
       'export_timestamp': DateTime.now().toIso8601String(),
       'account_type': _idlAccount.name,
     };
 
     if (accountInfo.data != null) {
       Uint8List dataBytes;
-      if (accountInfo.data is Uint8List) {
-        dataBytes = accountInfo.data as Uint8List;
-      } else if (accountInfo.data is List<int>) {
-        dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+      if (accountInfo.data is dto.BinaryAccountData) {
+        dataBytes = Uint8List.fromList(
+            (accountInfo.data as dto.BinaryAccountData).data);
       } else {
         dataBytes = Uint8List(0);
       }
@@ -1345,7 +1358,7 @@ class AccountOperationsManager<T> {
       for (final address in addresses) {
         try {
           final accountInfo =
-              await _provider.connection.getAccountInfo(address);
+              await _provider.connection.getAccountInfo(address.toBase58());
           if (accountInfo != null && accountInfo.executable == executable) {
             results.add(address);
           }
@@ -1445,8 +1458,8 @@ class AccountOperationsManager<T> {
     // Check if account already exists
     try {
       if (params.newAccountPubkey != null) {
-        final existing =
-            await _provider.connection.getAccountInfo(params.newAccountPubkey!);
+        final existing = await _provider.connection
+            .getAccountInfo(params.newAccountPubkey!.toBase58());
         if (existing != null) {
           validation['valid'] = false;
           validation['errors'].add('Account already exists');

@@ -1,0 +1,59 @@
+---
+name: TypeScript Parity Issue
+about: Report differences from TypeScript @coral-xyz/anchor SDK
+title: '[PARITY] '
+labels: ['parity', 'typescript-sdk', 'needs-triage']
+assignees: ''
+---
+
+## Parity Issue Description
+A clear description of how coral_xyz (Dart) behavior differs from the TypeScript `@coral-xyz/anchor` SDK.
+
+## TypeScript SDK Behavior
+Describe the expected behavior from the TypeScript SDK:
+
+```typescript
+// TypeScript @coral-xyz/anchor example
+import * as anchor from '@coral-xyz/anchor';
+
+// Example code showing TypeScript SDK behavior
+```
+
+## Dart SDK Behavior
+Describe the current behavior in coral_xyz:
+
+```dart
+// coral_xyz (Dart) equivalent
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+
+// Example code showing current Dart behavior
+```
+
+## Environment
+- **@coral-xyz/anchor version**: 
+- **coral_xyz version**: 
+- **TypeScript/Node.js version**: 
+- **Dart version**: 
+
+## Expected Result
+What should happen to achieve parity:
+
+## Actual Result
+What currently happens in the Dart SDK:
+
+## Severity
+- [ ] Critical - Core functionality missing
+- [ ] High - Important feature differs significantly
+- [ ] Medium - Minor behavioral difference
+- [ ] Low - Documentation/example difference
+
+## Additional Context
+- Documentation references:
+- Related TypeScript SDK issues:
+- Anchor framework version compatibility:
+
+## Checklist
+- [ ] I have verified this behavior in the latest TypeScript SDK
+- [ ] I have tested with the latest coral_xyz version
+- [ ] I have provided working examples for both SDKs
+- [ ] I have checked existing parity issues to avoid duplicates

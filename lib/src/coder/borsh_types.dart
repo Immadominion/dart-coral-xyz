@@ -330,7 +330,7 @@ class BorshDeserializer {
   /// Read a PublicKey (32 bytes)
   PublicKey readPublicKey() {
     final bytes = readFixedArray(32);
-    return PublicKey.fromBytes(bytes);
+    return PublicKeyUtils.fromBytes(bytes);
   }
 
   /// Read a fixed number of bytes

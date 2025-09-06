@@ -10,8 +10,7 @@ import 'dart:async';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/types/commitment.dart';
 import 'package:coral_xyz/src/types/keypair.dart';
-import 'package:coral_xyz/src/types/transaction.dart'
-    as transaction_types;
+import 'package:coral_xyz/src/types/transaction.dart' as transaction_types;
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/provider/wallet.dart';
 import 'package:coral_xyz/src/types/connection_config.dart';
@@ -185,7 +184,10 @@ class ProviderFactory {
     ProviderCreationConfig config,
   ) async {
     // Create connection
-    final connection = Connection.fromConfig(config.connectionConfig);
+    final connection = Connection(
+      config.connectionConfig.rpcUrl,
+      config: config.connectionConfig,
+    );
 
     // Create wallet
     final wallet = await _createWallet(config.walletConfig);
@@ -205,9 +207,9 @@ class ProviderFactory {
       case WalletType.keypair:
         if (config.autoGenerate) {
           final keypair = await Keypair.generate();
-          return KeypairWallet(keypair);
+          return await KeypairWallet.fromCustomKeypairAsync(keypair);
         } else if (config.keypair != null) {
-          return KeypairWallet(config.keypair!);
+          return await KeypairWallet.fromCustomKeypairAsync(config.keypair!);
         } else {
           throw const ProviderConfigurationException(
             'Keypair wallet requires either autoGenerate=true or explicit keypair',

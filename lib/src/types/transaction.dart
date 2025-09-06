@@ -63,7 +63,7 @@ class TransactionInstruction {
 
   /// Create an empty instruction (for testing)
   factory TransactionInstruction.empty() => TransactionInstruction(
-        programId: PublicKey.systemProgram,
+        programId: PublicKeyUtils.systemProgram,
         accounts: [],
         data: Uint8List(0),
       );

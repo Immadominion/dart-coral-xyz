@@ -437,6 +437,11 @@ class BorshInstructionCoder implements InstructionCoder {
           _encodeValue(item, type.inner!, serializer);
         }
         break;
+      case 'defined':
+        // Handle defined types (including type aliases)
+        final resolvedType = _resolveDefinedType(type.defined!.name);
+        _encodeValue(value, resolvedType, serializer);
+        break;
       default:
         throw InstructionCoderException(
           'Unsupported type for encoding: ${type.kind}',
@@ -504,6 +509,10 @@ class BorshInstructionCoder implements InstructionCoder {
           list.add(_decodeValue(type.inner!, deserializer));
         }
         return list;
+      case 'defined':
+        // Handle defined types (including type aliases)
+        final resolvedType = _resolveDefinedType(type.defined!.name);
+        return _decodeValue(resolvedType, deserializer);
       default:
         throw InstructionCoderException(
           'Unsupported type for decoding: ${type.kind}',
@@ -521,7 +530,7 @@ class BorshInstructionCoder implements InstructionCoder {
       case 'array':
         return 'Array<${_formatIdlType(type.inner!)}; ${type.size}>';
       case 'defined':
-        return type.defined ?? 'Unknown';
+        return type.defined?.name ?? 'Unknown';
       default:
         return type.kind;
     }
@@ -552,6 +561,47 @@ class BorshInstructionCoder implements InstructionCoder {
     }
 
     return value.toString();
+  }
+
+  /// Resolve a defined type by looking up its definition in the IDL
+  IdlType _resolveDefinedType(String typeName) {
+    // Find the type definition in the IDL
+    final typeDef = idl.types?.firstWhere(
+      (t) => t.name == typeName,
+      orElse: () => throw InstructionCoderException(
+        'Type definition not found: $typeName',
+      ),
+    );
+
+    if (typeDef == null) {
+      throw InstructionCoderException('Type definition not found: $typeName');
+    }
+
+    // Handle different type definition kinds
+    switch (typeDef.type.kind) {
+      case 'type':
+        // Type alias - return the aliased type
+        if (typeDef.type.alias == null) {
+          throw InstructionCoderException(
+            'Type alias missing alias field: $typeName',
+          );
+        }
+        return typeDef.type.alias!;
+      case 'struct':
+        // Struct types not yet fully supported in instruction args
+        throw InstructionCoderException(
+          'Struct types in instruction arguments not yet supported: $typeName',
+        );
+      case 'enum':
+        // Enum types not yet fully supported in instruction args
+        throw InstructionCoderException(
+          'Enum types in instruction arguments not yet supported: $typeName',
+        );
+      default:
+        throw InstructionCoderException(
+          'Unknown type definition kind: ${typeDef.type.kind}',
+        );
+    }
   }
 }
 

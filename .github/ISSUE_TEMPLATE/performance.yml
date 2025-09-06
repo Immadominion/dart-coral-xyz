@@ -1,0 +1,73 @@
+---
+name: Performance Issue
+about: Report performance problems or optimization opportunities
+title: '[PERFORMANCE] '
+labels: ['performance', 'needs-triage']
+assignees: ''
+---
+
+## Performance Issue Description
+A clear and concise description of the performance problem.
+
+## Environment
+- **coral_xyz version**: 
+- **Dart version**: 
+- **Platform**: (Web/Mobile/Desktop)
+- **Device/Hardware**: (if relevant)
+- **Solana cluster**: (mainnet-beta/devnet/testnet/localnet)
+
+## Performance Metrics
+### Current Performance
+- **Operation**: (e.g., transaction signing, account fetching, IDL parsing)
+- **Duration**: (e.g., 2.5 seconds, 500ms)
+- **Memory usage**: (if applicable)
+- **CPU usage**: (if applicable)
+
+### Expected Performance
+- **Target duration**: 
+- **Comparison**: (e.g., TypeScript SDK performance, other benchmarks)
+
+## Reproduction Steps
+1. Step 1
+2. Step 2
+3. Step 3
+4. Measure performance
+
+## Code Sample
+```dart
+// Minimal code that demonstrates the performance issue
+import 'package:coral_xyz/coral_xyz_anchor.dart';
+
+void main() async {
+  // Performance-critical code here
+}
+```
+
+## Profiling Data
+```
+Paste any profiling output, performance measurements, or benchmarks here
+```
+
+## Potential Optimization
+If you have ideas for optimization, describe them here:
+
+## TypeScript SDK Comparison
+How does this compare to the TypeScript `@coral-xyz/anchor` SDK performance?
+- TypeScript performance: 
+- Dart performance: 
+- Performance ratio: 
+
+## Impact
+- [ ] Blocking production use
+- [ ] Significant user experience impact  
+- [ ] Minor optimization opportunity
+- [ ] Academic/benchmark interest
+
+## Additional Context
+Add any other context about the performance issue here.
+
+## Checklist
+- [ ] I have measured the performance issue with specific metrics
+- [ ] I have compared with TypeScript SDK performance (if applicable)
+- [ ] I have provided a minimal reproduction case
+- [ ] I have checked for existing performance issues

@@ -331,7 +331,7 @@ class TypeGenerator {
         }
         return 'reader.readOption(() => reader.readU8())';
       case 'defined':
-        final typeName = _toPascalCase(type.defined ?? 'Unknown');
+        final typeName = _toPascalCase(type.defined?.name ?? 'Unknown');
         return '$typeName.fromReader(reader)';
       default:
         return 'reader.readU8()';
@@ -429,7 +429,7 @@ class TypeGenerator {
         }
         return 'dynamic?';
       case 'defined':
-        return _toPascalCase(type.defined ?? 'Unknown');
+        return _toPascalCase(type.defined?.name ?? 'Unknown');
       default:
         return 'dynamic';
     }

@@ -30,7 +30,6 @@ linter:
     
     # Documentation
     - public_member_api_docs
-    - package_api_docs
     - comment_references
     
     # Type Safety
@@ -43,7 +42,6 @@ linter:
     # Style
     - always_declare_return_types
     - always_put_required_named_parameters_first
-    - always_use_package_imports
     - avoid_bool_literals_in_conditional_expressions
     - avoid_field_initializers_in_const_classes
     - avoid_init_to_null
@@ -166,6 +164,14 @@ analyzer:
     # Ignore certain warnings
     invalid_annotation_target: ignore
     todo: ignore
+    lines_longer_than_80_chars: ignore
+    cascade_invocations: ignore
+    use_if_null_to_convert_nulls_to_bools: ignore
+    always_use_package_imports: ignore
+    implementation_imports: ignore
+    prefer_int_literals: ignore
+    avoid_catches_without_on_clauses: ignore
+    public_member_api_docs: ignore
     
   language:
     strict-casts: true

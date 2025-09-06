@@ -6,16 +6,16 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/types/commitment.dart';
 import 'package:coral_xyz/src/coder/main_coder.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
-import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/error/account_errors.dart';
 import 'package:coral_xyz/src/utils/logger.dart';
+import 'package:coral_xyz/src/types/account_filter.dart';
+import 'package:solana/dto.dart' as dto;
 
 /// Configuration for the account fetcher
 class AccountFetcherConfig {
@@ -226,8 +226,11 @@ class AccountFetcher<T> {
       final commitmentConfig = CommitmentConfig(effectiveCommitment);
 
       final accountInfos = await _provider.connection.getMultipleAccountsInfo(
-        uncachedAddresses,
-        commitment: commitmentConfig,
+        uncachedAddresses.map((pk) => pk.toBase58()).toList(),
+        commitment: dto.Commitment.values.firstWhere(
+          (c) => c.name == (commitmentConfig.commitment.value),
+          orElse: () => dto.Commitment.confirmed,
+        ),
       );
 
       for (int i = 0; i < accountInfos.length; i++) {
@@ -237,31 +240,25 @@ class AccountFetcher<T> {
 
         final data = accountInfo?.data;
         final isEmpty = data == null ||
-            (data is List && data.isEmpty) ||
-            (data is String && data.isEmpty) ||
-            (data is Uint8List && data.isEmpty);
+            (data is dto.BinaryAccountData && data.data.isEmpty);
         if (accountInfo == null || isEmpty) {
           results[resultIndex] = null;
           continue;
         }
 
         // Validate account ownership
-        if (accountInfo.owner.toBase58() != _programId.toBase58()) {
+        if (accountInfo.owner != _programId.toBase58()) {
           results[resultIndex] = null;
           continue;
         }
 
         try {
           // Decode account data
-
-          // Convert data to Uint8List if needed
           Uint8List dataBytes;
-          if (accountInfo.data is Uint8List) {
-            dataBytes = accountInfo.data as Uint8List;
-          } else if (accountInfo.data is List<int>) {
-            dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
+          if (data is dto.BinaryAccountData) {
+            dataBytes = Uint8List.fromList(data.data);
           } else {
-            throw Exception('Account data is not a valid byte array');
+            throw Exception('Account data is not binary');
           }
 
           final decodedData = _coder.accounts.decode<T>(
@@ -347,9 +344,11 @@ class AccountFetcher<T> {
 
     // Fetch program accounts
     final accounts = await _provider.connection.getProgramAccounts(
-      _programId,
-      filters: allFilters,
-      commitment: commitmentConfig,
+      _programId.toBase58(),
+      commitment: dto.Commitment.values.firstWhere(
+        (c) => c.name == (commitmentConfig.commitment.value),
+        orElse: () => dto.Commitment.confirmed,
+      ),
     );
 
     // Decode accounts
@@ -357,22 +356,11 @@ class AccountFetcher<T> {
     for (final account in accounts) {
       try {
         final data = account.account.data;
-        if (data == null ||
-            (data is List && data.isEmpty) ||
-            (data is String && data.isEmpty) ||
-            (data is Uint8List && data.isEmpty)) {
+        if (data is! dto.BinaryAccountData || data.data.isEmpty) {
           continue;
         }
 
-        // Convert data to Uint8List if needed
-        Uint8List dataBytes;
-        if (data is Uint8List) {
-          dataBytes = data;
-        } else if (data is List<int>) {
-          dataBytes = Uint8List.fromList(data);
-        } else {
-          continue;
-        }
+        final dataBytes = Uint8List.fromList(data.data);
         final decodedData = _coder.accounts.decode<T>(
           _idlAccount.name,
           dataBytes,
@@ -380,7 +368,7 @@ class AccountFetcher<T> {
 
         results.add(
           ProgramAccount<T>(
-            publicKey: account.pubkey,
+            publicKey: PublicKey.fromBase58(account.pubkey),
             account: decodedData,
           ),
         );
@@ -483,35 +471,34 @@ class AccountFetcher<T> {
     });
 
     final accountInfo = await _provider.connection.getAccountInfo(
-      address,
-      commitment: commitmentConfig,
+      address.toBase58(),
+      commitment: dto.Commitment.values.firstWhere(
+        (c) => c.name == (commitmentConfig.commitment.value),
+        orElse: () => dto.Commitment.confirmed,
+      ),
     );
 
     _logger.debug('Got account info', context: {
       'address': address.toBase58(),
       'accountExists': accountInfo != null,
       'dataType': accountInfo?.data.runtimeType.toString(),
-      'owner': accountInfo?.owner.toBase58(),
+      'owner': accountInfo?.owner,
       'expectedProgramId': _programId.toBase58(),
     });
 
     final data = accountInfo?.data;
-    final isEmpty = data == null ||
-        (data is List && data.isEmpty) ||
-        (data is String && data.isEmpty) ||
-        (data is Uint8List && data.isEmpty);
+    final isEmpty =
+        data == null || (data is dto.BinaryAccountData && data.data.isEmpty);
     if (accountInfo == null || isEmpty) {
       _logger.debug('Account is null or empty, returning null');
       return null;
     }
 
     // Validate account ownership
-    if (accountInfo.owner.toBase58() != _programId.toBase58()) {
-      // Return null for accounts owned by wrong program instead of throwing
-      // This allows for graceful handling of uninitialized accounts
+    if (accountInfo.owner != _programId.toBase58()) {
       _logger.debug('Account owned by wrong program', context: {
         'address': address.toBase58(),
-        'actualOwner': accountInfo.owner.toBase58(),
+        'actualOwner': accountInfo.owner,
         'expectedOwner': _programId.toBase58(),
       });
       return null;
@@ -520,33 +507,16 @@ class AccountFetcher<T> {
     _logger.debug('Ownership validation passed, proceeding to decode');
 
     // Decode account data
-    // Convert data to Uint8List if needed
-    Uint8List dataBytes;
-    if (accountInfo.data is Uint8List) {
-      dataBytes = accountInfo.data as Uint8List;
-      _logger.debug('Data is already Uint8List',
-          context: {'length': dataBytes.length});
-    } else if (accountInfo.data is List<int>) {
-      dataBytes = Uint8List.fromList(accountInfo.data as List<int>);
-      _logger.debug('Converted List<int> to Uint8List',
-          context: {'length': dataBytes.length});
-    } else if (accountInfo.data is String) {
-      // Handle base64 encoded data from RPC response
-      try {
-        dataBytes = base64Decode(accountInfo.data as String);
-        _logger.debug('Decoded base64 string to Uint8List',
-            context: {'length': dataBytes.length});
-      } catch (e) {
-        _logger.error('Failed to decode base64 account data', error: e);
-        throw Exception('Failed to decode base64 account data: $e');
-      }
-    } else {
+    if (accountInfo.data is! dto.BinaryAccountData) {
       _logger.error('Unsupported data type',
           context: {'type': accountInfo.data.runtimeType.toString()});
       throw Exception(
-        'Account data is not a valid byte array, got: ${accountInfo.data.runtimeType}',
+        'Account data is not binary',
       );
     }
+
+    final dataBytes =
+        Uint8List.fromList((accountInfo.data as dto.BinaryAccountData).data);
 
     try {
       _logger.debug('Attempting to decode account data with coder', context: {

@@ -1,8 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:coral_xyz/src/types/public_key.dart';
-import 'package:coral_xyz/src/types/transaction.dart'
-    as transaction_types;
+import 'package:coral_xyz/src/types/transaction.dart' as transaction_types;
 import 'package:coral_xyz/src/coder/main_coder.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart'
@@ -91,16 +90,17 @@ class SimulateFunction {
       // Convert AnchorTransaction to Transaction for simulation
       final transaction = _convertToTransaction(anchorTransaction);
 
-      // Create a transaction simulator
-      final simulator = TransactionSimulator(_provider);
+      // Create a transaction simulator using provider.connection
+      final simulator = TransactionSimulator(_provider.connection);
 
-      // Simulate the transaction using the new simulator
-      final result = await simulator.simulate(transaction);
+      // Simulate the transaction using the simulator
+      final result =
+          await simulator.simulateTransactionBytes(transaction.serialize());
 
       // Convert to the namespace's SimulationResult format
       return SimulationResult(
-        success: result.success,
-        logs: result.logs,
+        success: result.isSuccess,
+        logs: result.logs ?? const [],
         error: result.error?.toString(),
         unitsConsumed: result.unitsConsumed,
       );

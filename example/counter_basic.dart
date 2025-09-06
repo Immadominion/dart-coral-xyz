@@ -25,17 +25,21 @@ Future<void> main() async {
     // Step 1: Setup connection (same as TypeScript anchor.setProvider())
     print('1. Setting up connection and provider...');
     final connection = Connection('https://api.devnet.solana.com');
-    final keypair =
-        Keypair.fromSecretKey(Uint8List.fromList(List.filled(32, 1)));
-    final wallet = KeypairWallet(keypair); // Use built-in KeypairWallet
+    final keypair = await Keypair.fromSecretKeyAsync(
+      Uint8List.fromList(List.filled(32, 1)),
+    );
+    final wallet = await KeypairWallet.fromCustomKeypairAsync(
+      keypair,
+    ); // Use bridge method
     final provider = AnchorProvider(connection, wallet);
     print('   ✓ Connection: ${connection.rpcUrl}');
     print('   ✓ Wallet: ${wallet.publicKey}');
 
     // Step 2: Define program ID
     print('\\n2. Setting up program...');
-    final programId =
-        PublicKey.fromBase58('Counter111111111111111111111111111111111111');
+    final programId = PublicKey.fromBase58(
+      'Counter111111111111111111111111111111111111',
+    );
     print('   Program ID: $programId');
 
     // Step 3: Generate counter account keypair
@@ -47,9 +51,11 @@ Future<void> main() async {
     print('\\n4. Loading program IDL...');
     final counterIdl = createCounterIdl();
     print(
-        '   ✓ IDL loaded with ${counterIdl.instructions.length} instructions');
+      '   ✓ IDL loaded with ${counterIdl.instructions.length} instructions',
+    );
     print(
-        '   Instructions: ${counterIdl.instructions.map((IdlInstruction i) => i.name).join(', ')}');
+      '   Instructions: ${counterIdl.instructions.map((IdlInstruction i) => i.name).join(', ')}',
+    );
 
     // Step 5: Demonstrate account creation parameters and initialize RPC
     print('\n5. Building initialize instruction and calling RPC...');
@@ -63,14 +69,18 @@ Future<void> main() async {
       print('     $name: $pubkey');
     });
     // Create program instance (use withProgramId when passing programId)
-    final program =
-        Program.withProgramId(counterIdl, programId, provider: provider);
+    final program = Program.withProgramId(
+      counterIdl,
+      programId,
+      provider: provider,
+    );
     print('   ✓ Program created with ID: $programId');
     // Call initialize RPC (demo mode)
     try {
       final sig1 = await program.methods['initialize']()
           .accounts(initAccounts)
-          .signers([counterKeypair]).rpc();
+          .signers([counterKeypair])
+          .rpc();
       print('   ✓ initialize RPC signature: $sig1');
     } catch (e) {
       print('   ⚠ initialize RPC skipped (demo): $e');
@@ -78,9 +88,7 @@ Future<void> main() async {
 
     // Step 6: Demonstrate increment instruction and call RPC
     print('\n6. Building increment instruction and calling RPC...');
-    final incrementAccounts = {
-      'counter': counterKeypair.publicKey,
-    };
+    final incrementAccounts = {'counter': counterKeypair.publicKey};
     print('   ✓ Increment accounts configured:');
     incrementAccounts.forEach((name, pubkey) {
       print('     $name: $pubkey');
@@ -98,8 +106,9 @@ Future<void> main() async {
     // Step 7: Fetch and verify account data
     print('\n7. Fetching counter account data...');
     try {
-      final counterData =
-          await program.account.Counter.fetch(counterKeypair.publicKey);
+      final counterData = await program.account.Counter.fetch(
+        counterKeypair.publicKey,
+      );
       print('   ✓ Counter value: ${counterData.count}');
     } catch (e) {
       print('   ⚠ Fetch skipped (demo): $e');
@@ -110,18 +119,23 @@ Future<void> main() async {
     print('   Dart:       final program = Program(idl, provider);');
     print('');
     print(
-        '   TypeScript: await program.methods.initialize().accounts({...}).rpc();');
+      '   TypeScript: await program.methods.initialize().accounts({...}).rpc();',
+    );
     print(
-        '   Dart:       await program.methods.initialize().accounts({...}).rpc();');
+      '   Dart:       await program.methods.initialize().accounts({...}).rpc();',
+    );
     print('');
     print(
-        '   TypeScript: const counter = await program.account.counter.fetch(pubkey);');
+      '   TypeScript: const counter = await program.account.counter.fetch(pubkey);',
+    );
     print(
-        '   Dart:       final counter = await program.account.counter.fetch(pubkey);');
+      '   Dart:       final counter = await program.account.counter.fetch(pubkey);',
+    );
 
     print('\\n✅ Counter basic example completed!');
     print(
-        '\\n📚 This example shows the core patterns for Anchor program interaction.');
+      '\\n📚 This example shows the core patterns for Anchor program interaction.',
+    );
     print('   In a real application, you would:');
     print('   - Deploy the counter program to devnet/mainnet');
     print('   - Fund your wallet with SOL');
@@ -136,11 +150,7 @@ Future<void> main() async {
 Idl createCounterIdl() {
   return const Idl(
     address: 'Counter111111111111111111111111111111111111',
-    metadata: IdlMetadata(
-      name: 'counter',
-      version: '0.1.0',
-      spec: '0.1.0',
-    ),
+    metadata: IdlMetadata(name: 'counter', version: '0.1.0', spec: '0.1.0'),
     instructions: [
       IdlInstruction(
         name: 'initialize',
@@ -158,9 +168,7 @@ Idl createCounterIdl() {
       IdlInstruction(
         name: 'increment',
         discriminator: [11, 18, 104, 9, 104, 174, 59, 33],
-        accounts: [
-          IdlInstructionAccount(name: 'counter', writable: true),
-        ],
+        accounts: [IdlInstructionAccount(name: 'counter', writable: true)],
         args: [],
       ),
     ],
@@ -171,7 +179,10 @@ Idl createCounterIdl() {
         type: IdlTypeDefType(
           kind: 'struct',
           fields: [
-            IdlField(name: 'count', type: IdlType(kind: 'u64')),
+            IdlField(
+              name: 'count',
+              type: IdlType(kind: 'u64'),
+            ),
           ],
         ),
       ),
@@ -182,7 +193,10 @@ Idl createCounterIdl() {
         type: IdlTypeDefType(
           kind: 'struct',
           fields: [
-            IdlField(name: 'count', type: IdlType(kind: 'u64')),
+            IdlField(
+              name: 'count',
+              type: IdlType(kind: 'u64'),
+            ),
           ],
         ),
       ),

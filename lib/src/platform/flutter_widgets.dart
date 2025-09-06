@@ -9,14 +9,14 @@ library;
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:coral_xyz/src/types/public_key.dart';
-import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:solana/solana.dart' as solana;
 import 'package:coral_xyz/src/types/transaction.dart' as tx;
 import 'package:coral_xyz/src/provider/wallet.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/program/program.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
-import 'package:coral_xyz/src/platform/platform_optimization.dart';
+// Platform optimization removed for production cleanup
 
 /// Abstract widget interface for Flutter integration
 /// This would extend StatefulWidget in a real Flutter environment
@@ -80,14 +80,8 @@ class SolanaWalletWidget implements SolanaWidget {
       // Initialize connection
       _connection = Connection(config.rpcUrl);
 
-      // Platform-specific initialization
-      if (PlatformOptimization.isMobile) {
-        await _initializeMobileWallet();
-      } else if (PlatformOptimization.isWeb) {
-        await _initializeWebWallet();
-      } else {
-        await _initializeDesktopWallet();
-      }
+      // Basic initialization without platform optimization
+      await _initializeBasicWallet();
 
       _updateState(WalletConnectionState.connected);
     } catch (e) {
@@ -96,29 +90,10 @@ class SolanaWalletWidget implements SolanaWidget {
     }
   }
 
-  /// Initialize mobile wallet (simplified - would use actual MWA in production)
-  Future<void> _initializeMobileWallet() async {
-    // For demo purposes, create a keypair wallet
-    // In production, this would integrate with Mobile Wallet Adapter
-    final keypair = await Keypair.generate();
-    _wallet = KeypairWallet(keypair);
-    _provider = AnchorProvider(_connection!, _wallet);
-  }
-
-  /// Initialize web wallet (placeholder)
-  Future<void> _initializeWebWallet() async {
-    // This would integrate with browser wallet adapters like Phantom, Sollet, etc.
-    // For demo, create a keypair wallet
-    final keypair = await Keypair.generate();
-    _wallet = KeypairWallet(keypair);
-    _provider = AnchorProvider(_connection!, _wallet);
-  }
-
-  /// Initialize desktop wallet (simplified)
-  Future<void> _initializeDesktopWallet() async {
-    // This would load from local storage or prompt for wallet file
-    // For demo, create a keypair wallet
-    final keypair = await Keypair.generate();
+  /// Initialize basic wallet (simplified version)
+  Future<void> _initializeBasicWallet() async {
+    // Create a keypair wallet for basic functionality
+    final keypair = await solana.Ed25519HDKeyPair.random();
     _wallet = KeypairWallet(keypair);
     _provider = AnchorProvider(_connection!, _wallet);
   }
@@ -188,7 +163,7 @@ class SolanaWalletWidget implements SolanaWidget {
       throw Exception('No address provided and wallet not connected');
     }
 
-    return _connection!.getBalance(targetAddress);
+    return _connection!.getBalance(targetAddress.toBase58());
   }
 
   /// Update connection state and notify listeners
@@ -200,7 +175,7 @@ class SolanaWalletWidget implements SolanaWidget {
   @override
   void dispose() {
     _connectionStateController.close();
-    _connection?.close();
+    // Removed _connection?.close(); as Connection does not expose close()
   }
 }
 
@@ -333,7 +308,7 @@ class SolanaProgramWidget implements SolanaWidget {
     String methodName,
     List<dynamic> args, {
     Map<String, PublicKey>? accounts,
-    List<Keypair>? signers,
+    List<solana.Ed25519HDKeyPair>? signers,
   }) async {
     if (_program == null) {
       throw Exception('Program not initialized');
@@ -609,7 +584,7 @@ class SolanaAccountMonitor implements SolanaWidget {
     final subscription =
         Stream.periodic(updateInterval, (int _) => _).asyncMap((_) async {
       try {
-        final balance = await connection.getBalance(address);
+        final balance = await connection.getBalance(address.toBase58());
         return AccountUpdate(
           address: address,
           balance: balance,

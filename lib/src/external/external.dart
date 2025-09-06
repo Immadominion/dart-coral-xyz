@@ -8,5 +8,5 @@ library;
 
 // Note: solana_rpc_wrapper.dart removed - using clean RPC implementation
 export 'borsh_wrapper.dart';
-export 'crypto_wrapper.dart';
+// Crypto wrapper removed - now handled by espresso-cash integration
 export 'encoding_wrapper.dart';

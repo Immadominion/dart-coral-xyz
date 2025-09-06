@@ -4,18 +4,18 @@
 /// sophisticated RPC handling with retry mechanisms, connection pooling,
 /// and failure recovery capabilities.
 
-library;
-
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show SocketException;
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 
-import 'package:coral_xyz/src/types/commitment.dart';
-import 'package:coral_xyz/src/types/public_key.dart';
+import 'package:coral_xyz/src/types/account_filter.dart';
 import 'package:coral_xyz/src/utils/rpc_errors.dart';
 import 'package:coral_xyz/src/provider/connection.dart';
+import 'package:coral_xyz/src/types/connection_config.dart';
+import 'package:solana/dto.dart' as dto;
+
 
 /// Configuration for retry strategies
 class RetryConfig {
@@ -233,20 +233,19 @@ class RequestDeduplicator {
 class EnhancedConnection extends Connection {
   /// Create enhanced connection
   EnhancedConnection(
-    super.endpoint, {
-    super.config,
-    super.httpClient,
+    String endpoint, {
+    ConnectionConfig? config,
     RetryConfig? retryConfig,
     CircuitBreakerConfig? circuitBreakerConfig,
   })  : _retryConfig = retryConfig ?? const RetryConfig(),
         _circuitBreaker = CircuitBreaker(
           circuitBreakerConfig ?? const CircuitBreakerConfig(),
         ),
-        _deduplicator = RequestDeduplicator();
+        _deduplicator = RequestDeduplicator(),
+        super(endpoint, config: config);
   final RetryConfig _retryConfig;
   final CircuitBreaker _circuitBreaker;
   final RequestDeduplicator _deduplicator;
-  final math.Random _random = math.Random();
 
   /// Connection metrics
   int _totalRequests = 0;
@@ -272,52 +271,56 @@ class EnhancedConnection extends Connection {
   /// Enhanced account balance fetching with retry
   @override
   Future<int> getBalance(
-    PublicKey publicKey, {
-    CommitmentConfig? commitment,
+    String address, {
+    dto.Commitment? commitment,
   }) async =>
       _executeWithRetry(
-        () => super.getBalance(publicKey, commitment: commitment),
+        () => super.getBalance(address, commitment: commitment),
       );
 
   /// Enhanced account info fetching with retry
   @override
-  Future<AccountInfo?> getAccountInfo(
-    PublicKey publicKey, {
-    CommitmentConfig? commitment,
+  Future<dto.Account?> getAccountInfo(
+    String address, {
+    dto.Commitment? commitment,
+    dto.Encoding? encoding,
   }) async =>
       _executeWithRetry(
-        () => super.getAccountInfo(publicKey, commitment: commitment),
+        () => super.getAccountInfo(address, commitment: commitment, encoding: encoding),
       );
 
   /// Enhanced latest blockhash fetching with retry
   @override
-  Future<LatestBlockhash> getLatestBlockhash({
-    CommitmentConfig? commitment,
+  Future<dto.LatestBlockhash> getLatestBlockhash({
+    dto.Commitment? commitment,
   }) async =>
       _executeWithRetry(() => super.getLatestBlockhash(commitment: commitment));
 
   /// Enhanced multiple accounts fetching with retry
   @override
-  Future<List<AccountInfo?>> getMultipleAccountsInfo(
-    List<PublicKey> publicKeys, {
-    CommitmentConfig? commitment,
+  Future<List<dto.Account?>> getMultipleAccountsInfo(
+    List<String> addresses, {
+    dto.Commitment? commitment,
+    dto.Encoding? encoding,
   }) async =>
       _executeWithRetry(
-        () => super.getMultipleAccountsInfo(publicKeys, commitment: commitment),
+        () => super.getMultipleAccountsInfo(addresses, commitment: commitment, encoding: encoding),
       );
 
   /// Enhanced program accounts fetching with retry
   @override
-  Future<List<ProgramAccountInfo>> getProgramAccounts(
-    PublicKey programId, {
+  Future<List<dto.ProgramAccount>> getProgramAccounts(
+    String programId, {
+    dto.Commitment? commitment,
+    dto.Encoding? encoding,
     List<AccountFilter>? filters,
-    CommitmentConfig? commitment,
   }) async =>
       _executeWithRetry(
         () => super.getProgramAccounts(
           programId,
-          filters: filters,
           commitment: commitment,
+          encoding: encoding,
+          filters: filters,
         ),
       );
 
@@ -325,7 +328,7 @@ class EnhancedConnection extends Connection {
   @override
   Future<int> getMinimumBalanceForRentExemption(
     int dataLength, {
-    CommitmentConfig? commitment,
+    dto.Commitment? commitment,
   }) async =>
       _executeWithRetry(
         () => super.getMinimumBalanceForRentExemption(
@@ -333,11 +336,6 @@ class EnhancedConnection extends Connection {
           commitment: commitment,
         ),
       );
-
-  /// Enhanced health check with retry
-  @override
-  Future<String> checkHealth() async =>
-      _executeWithRetry(() => super.checkHealth());
 
   /// Execute operation with retry logic
   Future<T> _executeWithRetry<T>(Future<T> Function() operation) async {
@@ -381,7 +379,7 @@ class EnhancedConnection extends Connection {
         }
 
         // Calculate delay with exponential backoff and jitter
-        final delay = _calculateDelay(attempt);
+        final delay = _calculateDelay(attempt + 1);
         await Future<void>.delayed(Duration(milliseconds: delay));
       }
     }
@@ -430,7 +428,7 @@ class EnhancedConnection extends Connection {
 
     if (_retryConfig.enableJitter) {
       final jitter =
-          (delay * _retryConfig.jitterFactor * (_random.nextDouble() * 2 - 1))
+          (delay * _retryConfig.jitterFactor * (math.Random().nextDouble() * 2 - 1))
               .round();
       delay += jitter;
       delay = math.max(delay, 0);
@@ -454,20 +452,18 @@ class EnhancedConnection extends Connection {
   /// Get circuit breaker for testing
   CircuitBreaker get circuitBreakerForTesting => _circuitBreaker;
 
-  /// Get health status
+  /// Get health status via lightweight call
   Future<bool> isHealthy() async {
     try {
-      await checkHealth();
+      await getLatestBlockhash();
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
 
   /// Close connection and cleanup resources
-  @override
   void close() {
-    super.close();
     // Clean up timers and resources
     for (final timer in _deduplicator._timeouts.values) {
       timer.cancel();

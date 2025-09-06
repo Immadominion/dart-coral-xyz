@@ -1,72 +1,131 @@
-/// Wallet interface and implementations for Solana transaction signing
+/// Wallet interface for TypeScript SDK parity
 ///
-/// This module provides the wallet abstraction that enables different wallet
-/// implementations to be used with the Anchor provider system. It includes
-/// both a basic keypair-based wallet and extension points for external wallets.
+/// This module provides the wallet abstraction matching the TypeScript Anchor SDK
+/// exactly. It uses espresso-cash Ed25519HDKeyPair internally for battle-tested
+/// cryptographic operations while maintaining the TypeScript API surface.
 
 library;
 
 import 'dart:typed_data';
 import 'dart:async';
-import 'package:coral_xyz/src/types/keypair.dart';
+import 'package:solana/solana.dart' as solana;
+import 'package:coral_xyz/src/types/keypair.dart' as custom_keypair;
+import 'package:solana/base58.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:coral_xyz/src/types/versioned_transaction.dart';
 import '../utils/logger.dart';
 
-/// Abstract wallet interface for signing Solana transactions
+/// Abstract wallet interface matching TypeScript SDK exactly
 ///
-/// This interface defines the contract that all wallet implementations must
-/// follow to be compatible with the Anchor provider system. It supports both
-/// regular transactions and message signing.
+/// From TypeScript @coral-xyz/anchor/src/provider.ts:
+/// ```typescript
+/// export interface Wallet {
+///   signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T>;
+///   signAllTransactions<T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]>;
+///   publicKey: PublicKey;
+///   payer?: Keypair;  // Node only
+/// }
+/// ```
 abstract class Wallet {
-  /// The public key of this wallet
+  /// The public key of this wallet (matching TS SDK)
   PublicKey get publicKey;
 
-  /// Sign a single transaction
+  /// Sign a single transaction (matching TS SDK)
   ///
-  /// Takes a transaction and returns the same transaction with signatures applied.
-  /// The transaction may already contain partial signatures from other signers.
-  ///
-  /// [transaction] - The transaction to sign
-  /// Returns the signed transaction
-  Future<Transaction> signTransaction(Transaction transaction);
+  /// Returns the same transaction with signatures applied.
+  /// Generic type support for both Transaction and VersionedTransaction types.
+  /// This matches TypeScript SDK's generic constraint exactly.
+  Future<T> signTransaction<T>(T transaction);
 
-  /// Sign multiple transactions
+  /// Sign multiple transactions (matching TS SDK)
   ///
-  /// Takes a list of transactions and returns the same transactions with
-  /// signatures applied. This is more efficient than signing transactions
-  /// individually when multiple transactions need to be signed.
-  ///
-  /// [transactions] - The list of transactions to sign
-  /// Returns the list of signed transactions
-  Future<List<Transaction>> signAllTransactions(List<Transaction> transactions);
+  /// Returns the same transactions with signatures applied.
+  /// More efficient than signing transactions individually.
+  /// Supports both Transaction and VersionedTransaction types.
+  Future<List<T>> signAllTransactions<T>(List<T> transactions);
 
-  /// Sign an arbitrary message
+  /// Optional: Sign arbitrary message (Dart extension for mobile wallets)
   ///
-  /// This method signs raw message bytes. It's typically used for authentication
-  /// or for signing data that isn't a transaction.
-  ///
-  /// [message] - The message bytes to sign
-  /// Returns the signature bytes
+  /// Note: This is not in TypeScript SDK but needed for mobile wallet integrations
   Future<Uint8List> signMessage(Uint8List message);
 }
 
-/// A wallet implementation backed by a Keypair
+/// A wallet implementation backed by espresso-cash Ed25519HDKeyPair
 ///
-/// This is the most basic wallet implementation that directly uses a Keypair
-/// for signing. It's suitable for server-side applications or development
+/// This is the most basic wallet implementation that directly uses espresso-cash
+/// Ed25519HDKeyPair for signing. It's suitable for server-side applications or development
 /// environments where the private key can be safely stored in memory.
 class KeypairWallet implements Wallet {
-  /// Create a wallet from a keypair
+  /// Create a wallet from an espresso-cash Ed25519HDKeyPair
   ///
-  /// [keypair] - The keypair to use for signing
+  /// [keypair] - The espresso-cash keypair to use for signing
   KeypairWallet(this._keypair);
+
+  /// Create a wallet from a custom Keypair (converts to espresso-cash internally)
+  ///
+  /// This is a temporary bridge to maintain compatibility while we migrate to espresso-cash
+  factory KeypairWallet.fromCustomKeypair(
+      custom_keypair.Keypair customKeypair) {
+    // Create espresso-cash keypair from the custom keypair's private key
+    final privateKey = customKeypair.secretKey.sublist(0, 32);
+    return KeypairWallet._internal(privateKey, customKeypair.publicKey.bytes);
+  }
+
+  /// Internal constructor to create from raw key material
+  KeypairWallet._internal(List<int> privateKey, List<int> publicKeyBytes)
+      : _keypair = _createFromBytes(privateKey, publicKeyBytes);
+
+  static solana.Ed25519HDKeyPair _createFromBytes(
+      List<int> privateKey, List<int> publicKeyBytes) {
+    // We need to create the keypair asynchronously, but constructors can't be async
+    // This is a limitation we'll need to work around
+    throw UnimplementedError(
+        'Use KeypairWallet.fromCustomKeypairAsync instead - async creation required');
+  }
+
+  /// Async factory for creating from custom keypair
+  static Future<KeypairWallet> fromCustomKeypairAsync(
+      custom_keypair.Keypair customKeypair) async {
+    final privateKey = customKeypair.secretKey.sublist(0, 32);
+    final espressoKeypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
+      privateKey: privateKey.toList(),
+    );
+    return KeypairWallet(espressoKeypair);
+  }
 
   /// Create a wallet from a secret key
   ///
-  /// [secretKey] - The 64-byte secret key
+  /// [secretKey] - The 64-byte secret key or 32-byte seed
+  /// Note: This returns a Future, so use KeypairWallet.fromSecretKeyAsync instead
   factory KeypairWallet.fromSecretKey(Uint8List secretKey) {
-    final keypair = Keypair.fromSecretKey(secretKey);
+    throw UnimplementedError(
+      'Use KeypairWallet.fromSecretKeyAsync instead - wallet creation requires async operations',
+    );
+  }
+
+  /// Create a wallet from a secret key (async)
+  static Future<KeypairWallet> fromSecretKeyAsync(Uint8List secretKey) async {
+    if (secretKey.length == 32) {
+      // Treat as seed - use espresso-cash HD derivation
+      return fromSeed(secretKey);
+    } else if (secretKey.length == 64) {
+      // Extract private key (first 32 bytes for espresso-cash)
+      final privateKey = secretKey.sublist(0, 32);
+      return fromPrivateKeyBytesAsync(privateKey);
+    } else {
+      throw ArgumentError(
+        'Invalid secret key length. Expected 32 (seed) or 64 bytes, got ${secretKey.length}',
+      );
+    }
+  }
+
+  /// Create a wallet from private key bytes (async)
+  static Future<KeypairWallet> fromPrivateKeyBytesAsync(
+      Uint8List privateKey) async {
+    final keypair = await solana.Ed25519HDKeyPair.fromPrivateKeyBytes(
+      privateKey: privateKey.toList(),
+    );
     return KeypairWallet(keypair);
   }
 
@@ -74,27 +133,56 @@ class KeypairWallet implements Wallet {
   ///
   /// [secretKeyBase58] - The base58-encoded secret key
   factory KeypairWallet.fromBase58(String secretKeyBase58) {
-    final keypair = Keypair.fromBase58(secretKeyBase58);
-    return KeypairWallet(keypair);
+    throw UnimplementedError(
+      'Use KeypairWallet.fromBase58Async instead',
+    );
+  }
+
+  /// Create a wallet from a base58-encoded secret key (async)
+  static Future<KeypairWallet> fromBase58Async(String secretKeyBase58) async {
+    // Decode the base58 key and use private key bytes
+    final decoded = base58decode(secretKeyBase58);
+    return fromPrivateKeyBytesAsync(Uint8List.fromList(decoded));
   }
 
   /// Create a wallet from a JSON array (Solana CLI format)
   ///
   /// [secretKeyArray] - Array of 64 integers representing the secret key
   factory KeypairWallet.fromJson(List<int> secretKeyArray) {
-    final keypair = Keypair.fromJson(secretKeyArray);
-    return KeypairWallet(keypair);
+    if (secretKeyArray.length != 64) {
+      throw ArgumentError(
+        'Invalid secret key array length. Expected 64 elements, '
+        'got ${secretKeyArray.length}',
+      );
+    }
+
+    throw UnimplementedError(
+      'Use KeypairWallet.fromJsonAsync instead - wallet creation requires async operations',
+    );
+  }
+
+  /// Create a wallet from a JSON array (async)
+  static Future<KeypairWallet> fromJsonAsync(List<int> secretKeyArray) async {
+    if (secretKeyArray.length != 64) {
+      throw ArgumentError(
+        'Invalid secret key array length. Expected 64 elements, '
+        'got ${secretKeyArray.length}',
+      );
+    }
+
+    final privateKey = Uint8List.fromList(secretKeyArray.sublist(0, 32));
+    return fromPrivateKeyBytesAsync(privateKey);
   }
 
   /// Logger instance for KeypairWallet
   static final AnchorLogger _logger = AnchorLogger.getLogger('KeypairWallet');
 
-  /// The underlying keypair for this wallet
-  final Keypair _keypair;
+  /// The underlying espresso-cash keypair for this wallet
+  final solana.Ed25519HDKeyPair _keypair;
 
   /// Create a wallet by generating a new random keypair
   static Future<KeypairWallet> generate() async {
-    final keypair = await Keypair.generate();
+    final keypair = await solana.Ed25519HDKeyPair.random();
     return KeypairWallet(keypair);
   }
 
@@ -102,30 +190,70 @@ class KeypairWallet implements Wallet {
   ///
   /// [seed] - The 32-byte seed
   static Future<KeypairWallet> fromSeed(Uint8List seed) async {
-    final keypair = await Keypair.fromSeed(seed);
+    if (seed.length != 32) {
+      throw ArgumentError(
+        'Invalid seed length. Expected 32 bytes, got ${seed.length}',
+      );
+    }
+
+    final keypair = await solana.Ed25519HDKeyPair.fromSeedWithHdPath(
+      seed: seed.toList(),
+      hdPath: "m/44'/501'/0'/0'", // Standard Solana derivation path
+    );
+    return KeypairWallet(keypair);
+  }
+
+  /// Create a wallet from a mnemonic phrase
+  ///
+  /// [mnemonic] - The BIP39 mnemonic phrase
+  /// [account] - Account index (default: 0)
+  /// [change] - Change index (default: 0)
+  static Future<KeypairWallet> fromMnemonic(
+    String mnemonic, {
+    int? account,
+    int? change,
+  }) async {
+    final keypair = await solana.Ed25519HDKeyPair.fromMnemonic(
+      mnemonic,
+      account: account,
+      change: change,
+    );
     return KeypairWallet(keypair);
   }
 
   @override
-  PublicKey get publicKey => _keypair.publicKey;
+  PublicKey get publicKey {
+    // Convert espresso-cash Ed25519HDPublicKey to our PublicKey
+    return PublicKey.fromBase58(_keypair.publicKey.toBase58());
+  }
 
-  /// Get the underlying keypair (for compatibility with existing code)
-  Keypair get keypair => _keypair;
+  /// Get the underlying espresso-cash keypair (for compatibility with existing code)
+  solana.Ed25519HDKeyPair get keypair => _keypair;
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async {
-    // Create a transaction serializer/signer helper
-    return _signTransactionInternal(transaction);
+  Future<T> signTransaction<T>(T transaction) async {
+    // Type-safe transaction signing - supports both Transaction and VersionedTransaction
+    if (transaction is Transaction) {
+      final signedTx =
+          await _signTransactionInternal(transaction as Transaction);
+      return signedTx as T;
+    } else if (transaction is VersionedTransaction) {
+      // Handle VersionedTransaction signing
+      throw UnimplementedError(
+          'VersionedTransaction signing not yet implemented');
+    }
+
+    throw ArgumentError(
+        'Unsupported transaction type: ${transaction.runtimeType}. '
+        'Supported types: Transaction, VersionedTransaction');
   }
 
   @override
-  Future<List<Transaction>> signAllTransactions(
-    List<Transaction> transactions,
-  ) async {
-    final signedTransactions = <Transaction>[];
+  Future<List<T>> signAllTransactions<T>(List<T> transactions) async {
+    final signedTransactions = <T>[];
 
     for (final transaction in transactions) {
-      final signedTransaction = await signTransaction(transaction);
+      final signedTransaction = await signTransaction<T>(transaction);
       signedTransactions.add(signedTransaction);
     }
 
@@ -133,8 +261,11 @@ class KeypairWallet implements Wallet {
   }
 
   @override
-  Future<Uint8List> signMessage(Uint8List message) async =>
-      _keypair.sign(message);
+  Future<Uint8List> signMessage(Uint8List message) async {
+    final signature = await _keypair.sign(message);
+    // Convert espresso-cash Signature to bytes
+    return Uint8List.fromList(signature.bytes);
+  }
 
   /// Internal method to sign a transaction
   ///
@@ -163,7 +294,8 @@ class KeypairWallet implements Wallet {
     // Compile the transaction message bytes for signing
     final messageBytes = transaction.compileMessage();
     // Sign the message bytes with our keypair
-    final signatureBytes = await _keypair.sign(messageBytes);
+    final signature = await _keypair.sign(messageBytes);
+    final signatureBytes = Uint8List.fromList(signature.bytes);
 
     // Attach the signature to the transaction
     transaction.addSignature(publicKey, signatureBytes);
@@ -179,7 +311,8 @@ class KeypairWallet implements Wallet {
     _logger.debug(
       'Wallet signing transaction message (${messageBytes.length} bytes)',
     );
-    final signatureBytes = await _keypair.sign(messageBytes);
+    final signature = await _keypair.sign(messageBytes);
+    final signatureBytes = Uint8List.fromList(signature.bytes);
     _logger.debug('Generated signature (${signatureBytes.length} bytes)');
     return signatureBytes;
   }
@@ -279,13 +412,26 @@ class AdapterWallet implements Wallet {
   Future<void> disconnect() => _adapter.disconnect();
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async {
+  Future<T> signTransaction<T>(T transaction) async {
     if (!_adapter.connected) {
       throw const WalletNotConnectedException();
     }
 
     try {
-      return await _adapter.signTransaction(transaction);
+      // Type-safe transaction signing
+      if (transaction is Transaction) {
+        final signedTx =
+            await _adapter.signTransaction(transaction as Transaction);
+        return signedTx as T;
+      } else if (transaction is VersionedTransaction) {
+        // Handle VersionedTransaction signing for external wallets
+        throw UnimplementedError(
+            'VersionedTransaction signing not yet implemented');
+      }
+
+      throw ArgumentError(
+          'Unsupported transaction type: ${transaction.runtimeType}. '
+          'Supported types: Transaction, VersionedTransaction');
     } catch (e) {
       if (e.toString().contains('rejected') ||
           e.toString().contains('denied')) {
@@ -296,15 +442,25 @@ class AdapterWallet implements Wallet {
   }
 
   @override
-  Future<List<Transaction>> signAllTransactions(
-    List<Transaction> transactions,
+  Future<List<T>> signAllTransactions<T>(
+    List<T> transactions,
   ) async {
     if (!_adapter.connected) {
       throw const WalletNotConnectedException();
     }
 
     try {
-      return await _adapter.signAllTransactions(transactions);
+      // Convert to Transaction type for adapter
+      final regularTransactions =
+          transactions.whereType<Transaction>().toList();
+      if (regularTransactions.length != transactions.length) {
+        throw ArgumentError(
+            'AdapterWallet only supports Transaction type currently');
+      }
+
+      final signedTransactions =
+          await _adapter.signAllTransactions(regularTransactions);
+      return signedTransactions.cast<T>();
     } catch (e) {
       if (e.toString().contains('rejected') ||
           e.toString().contains('denied')) {
@@ -407,7 +563,7 @@ class MockWalletAdapter implements WalletAdapter {
   final String _name;
   final String? _icon;
   final String? _url;
-  final Keypair _keypair;
+  final solana.Ed25519HDKeyPair _keypair;
 
   bool _connected = false;
 
@@ -424,7 +580,8 @@ class MockWalletAdapter implements WalletAdapter {
   bool get readyState => true;
 
   @override
-  PublicKey? get publicKey => _connected ? _keypair.publicKey : null;
+  PublicKey? get publicKey =>
+      _connected ? PublicKey.fromBase58(_keypair.publicKey.toBase58()) : null;
 
   @override
   bool get connected => _connected;
@@ -434,7 +591,7 @@ class MockWalletAdapter implements WalletAdapter {
     if (_connected) return;
 
     // Simulate connection delay
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     _connected = true;
     _connectController.add(true);
   }
@@ -455,18 +612,20 @@ class MockWalletAdapter implements WalletAdapter {
     }
 
     // Simulate signing delay
-    await Future.delayed(const Duration(milliseconds: 50));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
 
     // For mock implementation, just add a mock signature
     final mockMessage = Uint8List.fromList([1, 2, 3, 4]);
-    final signatureBytes = await _keypair.sign(mockMessage);
+    final signature = await _keypair.sign(mockMessage);
+    final signatureBytes = Uint8List.fromList(signature.bytes);
 
+    final pubkey = PublicKey.fromBase58(_keypair.publicKey.toBase58());
     final signedTx = Transaction(
       instructions: transaction.instructions,
-      feePayer: transaction.feePayer ?? _keypair.publicKey,
+      feePayer: transaction.feePayer ?? pubkey,
       recentBlockhash: transaction.recentBlockhash,
     );
-    signedTx.addSignature(_keypair.publicKey, signatureBytes);
+    signedTx.addSignature(pubkey, signatureBytes);
 
     return signedTx;
   }
@@ -488,7 +647,8 @@ class MockWalletAdapter implements WalletAdapter {
       throw const WalletNotConnectedException();
     }
 
-    return _keypair.sign(message);
+    final signature = await _keypair.sign(message);
+    return Uint8List.fromList(signature.bytes);
   }
 
   // Event streams
@@ -506,9 +666,10 @@ class MockWalletAdapter implements WalletAdapter {
   Stream<PublicKey?> get onAccountChange => _accountChangeController.stream;
 
   /// Simulate account change (for testing)
-  void simulateAccountChange(Keypair newKeypair) {
+  void simulateAccountChange(solana.Ed25519HDKeyPair newKeypair) {
     // This would normally happen when user switches accounts in the wallet
-    _accountChangeController.add(newKeypair.publicKey);
+    final newPubkey = PublicKey.fromBase58(newKeypair.publicKey.toBase58());
+    _accountChangeController.add(newPubkey);
   }
 
   /// Clean up resources

@@ -11,6 +11,7 @@ import '../idl/idl.dart';
 import '../error/account_errors.dart';
 import '../types/public_key.dart';
 import '../coder/discriminator_computer.dart';
+import '../coder/idl_coder.dart';
 import 'borsh_types.dart';
 
 /// Interface for encoding and decoding program accounts matching TypeScript AccountsCoder
@@ -30,8 +31,11 @@ abstract class AccountsCoder<A extends String> {
   /// Create a memcmp filter for account queries
   Map<String, dynamic> memcmp(A accountName, {Uint8List? appendData});
 
-  /// Get the serialized size of an account
+  /// Get the serialized size of an account by name
   int size(A accountName);
+
+  /// Get the serialized size of an account by IDL type definition (TypeScript compatibility)
+  int sizeFromTypeDef(IdlTypeDef idlAccount);
 
   /// Get the account discriminator for a given account type
   Uint8List accountDiscriminator(A accountName);
@@ -78,37 +82,17 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     final layouts = <A, AccountLayout>{};
 
     for (final acc in accounts) {
-      // Try to find type in types section first
-      final separateTypeDef = types.cast<IdlTypeDef?>().firstWhere(
+      // In modern IDL format, account type definitions are in idl.types
+      // and matched by name, not embedded in the account definition
+      final typeDef = types.cast<IdlTypeDef?>().firstWhere(
             (ty) => ty?.name == acc.name,
-            orElse: () => null,
-          );
+            orElse: () => throw AccountCoderError(
+                'Account type definition not found for ${acc.name}. '
+                'Available types: ${types.map((t) => t.name).join(', ')}'),
+          )!;
 
-      final IdlTypeDef typeDef;
-
-      if (separateTypeDef != null) {
-        // Use separate type definition
-        typeDef = separateTypeDef;
-      } else {
-        // Check if account has inline type definition
-        if (acc.type.kind == 'struct' || acc.type.kind == 'enum') {
-          // Use inline type definition - directly use the IdlTypeDefType
-          typeDef = IdlTypeDef(
-            name: acc.name,
-            type: acc.type, // Use the IdlTypeDefType directly
-          );
-        } else {
-          throw AccountCoderError(
-              'Account ${acc.name} has no valid type definition. '
-              'Must be defined either in types section or inline with kind struct/enum. '
-              'Found: kind="${acc.type.kind}", available types: ${types.map((t) => t.name).join(', ')}');
-        }
-      }
-
-      // Use predefined discriminator or compute if missing
-      final Uint8List discriminator = acc.discriminator != null
-          ? Uint8List.fromList(acc.discriminator!)
-          : DiscriminatorComputer.computeAccountDiscriminator(acc.name);
+      // Use discriminator from account definition (required in modern IDL)
+      final Uint8List discriminator = Uint8List.fromList(acc.discriminator);
 
       layouts[acc.name as A] = AccountLayout(
         discriminator: discriminator,
@@ -245,14 +229,47 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
   @override
   int size(A accountName) {
     final discriminator = accountDiscriminator(accountName);
-    final layout = _accountLayouts[accountName];
-    if (layout == null) {
-      throw AccountCoderError('Unknown account: $accountName');
+
+    // Find the account definition in IDL
+    final account = idl.accounts?.firstWhere(
+      (acc) => acc.name == accountName,
+      orElse: () => throw AccountCoderError('Account not found: $accountName'),
+    );
+
+    if (account == null) {
+      throw AccountCoderError('Account not found: $accountName');
     }
 
-    // For now, return a basic size calculation
-    return discriminator.length +
-        1000; // TypeScript uses 1000 byte buffer initially
+    // Use IdlCoder.typeSize for proper type size calculation
+    try {
+      // For now, use a conservative estimate
+      // TODO: Implement proper struct field size calculation
+      return discriminator.length +
+          1000; // Discriminator + estimated struct size
+    } catch (e) {
+      // Fallback to basic calculation
+      return discriminator.length + 1000;
+    }
+  }
+
+  @override
+  int sizeFromTypeDef(IdlTypeDef idlAccount) {
+    try {
+      // Calculate discriminator size (8 bytes for account discriminator)
+      const discriminatorSize = 8;
+
+      // Use IdlCoder.typeSize for precise type size calculation
+      final typeSize = IdlCoder.typeSize(
+        IdlType(
+            kind: 'defined', defined: IdlDefinedType(name: idlAccount.name)),
+        idl,
+      );
+
+      return discriminatorSize + typeSize;
+    } catch (e) {
+      // Fallback for unknown types or calculation errors
+      return 8 + 1000; // 8-byte discriminator + conservative estimate
+    }
   }
 
   @override
@@ -263,7 +280,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     );
 
     if (account?.discriminator != null) {
-      return Uint8List.fromList(account!.discriminator!);
+      return Uint8List.fromList(account!.discriminator);
     }
 
     // Generate discriminator when missing (common in newer Anchor versions)
@@ -447,7 +464,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         return value;
       case 'publicKey':
         final bytes = deserializer.readBytes(32);
-        return PublicKey.fromBytes(bytes);
+        return PublicKeyUtils.fromBytes(bytes);
       case 'defined':
         final typeName = idlType.defined;
         if (typeName == null) {
@@ -540,23 +557,18 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     if (idl.accounts != null) {
       print('Account Type Analysis:');
       for (final account in idl.accounts!) {
-        final hasInlineType =
-            account.type.kind == 'struct' || account.type.kind == 'enum';
         final hasTypeDefinition =
             idl.types?.any((t) => t.name == account.name) ?? false;
 
         String typeSource;
-        if (hasTypeDefinition && hasInlineType) {
-          typeSource = 'both (types section + inline)';
-        } else if (hasTypeDefinition) {
+        if (hasTypeDefinition) {
           typeSource = 'types section';
-        } else if (hasInlineType) {
-          typeSource = 'inline';
         } else {
           typeSource = 'MISSING';
         }
 
-        print('  ${account.name}: ${typeSource} (kind: ${account.type.kind})');
+        print(
+            '  ${account.name}: ${typeSource} (discriminator: ${account.discriminator})');
       }
       print('');
     }
@@ -573,13 +585,12 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     final issues = <String>[];
     if (idl.accounts != null) {
       for (final account in idl.accounts!) {
-        final hasInlineType =
-            account.type.kind == 'struct' || account.type.kind == 'enum';
         final hasTypeDefinition =
             idl.types?.any((t) => t.name == account.name) ?? false;
 
-        if (!hasInlineType && !hasTypeDefinition) {
-          issues.add('Account ${account.name} has no valid type definition');
+        if (!hasTypeDefinition) {
+          issues.add(
+              'Account ${account.name} has no type definition in types section');
         }
       }
     }

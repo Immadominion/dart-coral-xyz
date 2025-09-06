@@ -15,6 +15,7 @@ import 'package:coral_xyz/src/provider/anchor_provider.dart';
 import 'package:coral_xyz/src/coder/main_coder.dart';
 import 'package:coral_xyz/src/event/types.dart';
 import 'package:coral_xyz/src/event/event_parser.dart';
+import 'package:solana/dto.dart' as dto;
 
 /// TypeScript-compatible event callback type
 typedef EventCallback<T> = void Function(T event, int slot, String signature);
@@ -42,7 +43,7 @@ class EventManager {
   EventManager(PublicKey programId, AnchorProvider provider, BorshCoder coder)
       : _programId = programId,
         _provider = provider,
-        _eventParser = EventParser(programId: programId, coder: coder);
+        _eventParser = EventParser(programId, coder);
 
   /// Program ID for event subscriptions.
   final PublicKey _programId;
@@ -63,7 +64,7 @@ class EventManager {
   int _listenerIdCount = 0;
 
   /// The subscription id from the connection onLogs subscription.
-  String? _onLogsSubscriptionId;
+  StreamSubscription<dynamic>? _onLogsSubscription;
 
   /// Simple statistics tracking
   int _totalEvents = 0;
@@ -92,7 +93,7 @@ class EventManager {
     _eventCallbacks[listener] = [eventName, callback];
 
     // Create the subscription singleton, if needed.
-    if (_onLogsSubscriptionId != null) {
+    if (_onLogsSubscription != null) {
       return listener;
     }
 
@@ -134,9 +135,9 @@ class EventManager {
         );
       }
 
-      if (_onLogsSubscriptionId != null) {
-        await _provider.connection.removeOnLogsListener(_onLogsSubscriptionId!);
-        _onLogsSubscriptionId = null;
+      if (_onLogsSubscription != null) {
+        await _onLogsSubscription!.cancel();
+        _onLogsSubscription = null;
       }
     }
   }
@@ -145,16 +146,16 @@ class EventManager {
   void _startLogsSubscription(CommitmentConfig? commitment) {
     // Use Future.microtask to make this async while keeping addEventListener sync
     Future.microtask(() async {
-      if (_onLogsSubscriptionId != null) return;
+      if (_onLogsSubscription != null) return;
 
       try {
-        _onLogsSubscriptionId = await _provider.connection.onLogs(
-          _programId,
-          (logs) {
-            if (logs.err != null) {
-              return;
-            }
+        final logsStream = _provider.connection.onLogs(
+          _programId.toBase58(),
+          commitment: dto.Commitment.finalized,
+        );
 
+        _onLogsSubscription = logsStream.listen(
+          (dto.Logs logs) {
             try {
               _totalEvents++;
               final events = _eventParser.parseLogs(logs.logs);
@@ -169,7 +170,7 @@ class EventManager {
                     if (listenerCb != null) {
                       final callback = listenerCb[1] as EventCallback;
                       // Call the callback with event data, slot, and signature
-                      callback(event.data, logs.slot, logs.signature);
+                      callback(event.data, 0, logs.signature);
                     }
                   }
                 }
@@ -179,11 +180,10 @@ class EventManager {
               // Log error but don't break subscription
             }
           },
-          commitment: commitment,
         );
       } catch (e) {
         // Handle subscription error
-        _onLogsSubscriptionId = null;
+        _onLogsSubscription = null;
       }
     });
   }
@@ -199,7 +199,7 @@ class EventManager {
       );
 
   /// Simple connection state
-  WebSocketState get state => _onLogsSubscriptionId != null
+  WebSocketState get state => _onLogsSubscription != null
       ? WebSocketState.connected
       : WebSocketState.disconnected;
 

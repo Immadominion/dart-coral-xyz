@@ -6,8 +6,6 @@ library;
 
 import 'package:build/build.dart';
 import '../../idl/idl.dart';
-import '../../program/program_class.dart';
-import '../../program/accounts_resolver.dart';
 
 /// Generator for instruction builder classes
 class InstructionGenerator {
@@ -269,20 +267,6 @@ class InstructionGenerator {
     buffer.writeln();
   }
 
-  /// Helper method to create an AccountsResolver for instruction building
-  static AccountsResolver _createAccountsResolver(Program program) {
-    // For now, create a minimal AccountsResolver with empty data
-    // In a production system, this would be properly implemented
-    return AccountsResolver(
-      args: <dynamic>[],
-      accounts: <String, dynamic>{},
-      provider: program.provider,
-      programId: program.programId,
-      idlInstruction: program.idl.instructions.first, // Placeholder
-      idlTypes: program.idl.types ?? [],
-    );
-  }
-
   /// Convert IDL type to Dart type
   String _dartTypeFromIdlType(IdlType type) {
     switch (type.kind) {
@@ -328,7 +312,7 @@ class InstructionGenerator {
         }
         return 'dynamic?';
       case 'defined':
-        return _toPascalCase(type.defined ?? 'Unknown');
+        return _toPascalCase(type.defined?.name ?? 'Unknown');
       default:
         return 'dynamic';
     }

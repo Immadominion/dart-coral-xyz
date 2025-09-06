@@ -18,6 +18,23 @@ class AccountGenerator {
   /// Build options
   final BuilderOptions options;
 
+  /// Helper method to resolve type definition for an account (modern IDL format)
+  IdlTypeDef _getTypeDefForAccount(IdlAccount account) {
+    final typeDef = idl.types?.firstWhere(
+      (t) => t.name == account.name,
+      orElse: () => throw StateError(
+          'Type definition not found for account: ${account.name}. '
+          'Available types: ${idl.types?.map((t) => t.name).join(', ') ?? 'none'}'),
+    );
+
+    if (typeDef == null) {
+      throw StateError('Type definition required for account: ${account.name}. '
+          'This account cannot be generated without its type definition.');
+    }
+
+    return typeDef;
+  }
+
   /// Generate all account data classes
   String generate() {
     final buffer = StringBuffer();
@@ -35,6 +52,7 @@ class AccountGenerator {
   /// Generate account data class for a single account
   void _generateAccountClass(StringBuffer buffer, IdlAccount account) {
     final className = '${_toPascalCase(account.name)}Account';
+    final typeDef = _getTypeDefForAccount(account);
 
     buffer.writeln('/// Account data class for ${account.name}');
     if (account.docs?.isNotEmpty == true) {
@@ -49,8 +67,8 @@ class AccountGenerator {
     buffer.writeln('  const $className({');
 
     // Add fields for account type
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (final field in account.type.fields!) {
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (final field in typeDef.type.fields!) {
         final fieldName = _toCamelCase(field.name);
         buffer.writeln('    required this.$fieldName,');
       }
@@ -60,8 +78,8 @@ class AccountGenerator {
     buffer.writeln();
 
     // Generate fields
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (final field in account.type.fields!) {
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (final field in typeDef.type.fields!) {
         final fieldName = _toCamelCase(field.name);
         final fieldType = _dartTypeFromIdlType(field.type);
         buffer.writeln('  /// ${field.name} field');
@@ -88,6 +106,7 @@ class AccountGenerator {
   /// Generate serialization methods
   void _generateSerializationMethods(StringBuffer buffer, IdlAccount account) {
     final className = '${_toPascalCase(account.name)}Account';
+    final typeDef = _getTypeDefForAccount(account);
 
     // Generate fromBytes method
     buffer.writeln('  /// Create $className from bytes');
@@ -102,16 +121,16 @@ class AccountGenerator {
     // Generate fromReader method
     buffer.writeln('  /// Create $className from BinaryReader');
     buffer.writeln('  static $className fromReader(BinaryReader reader) {');
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (final field in account.type.fields!) {
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (final field in typeDef.type.fields!) {
         final fieldName = _toCamelCase(field.name);
         final deserializer = _getDeserializerForType(field.type);
         buffer.writeln('    final $fieldName = $deserializer;');
       }
     }
     buffer.writeln('    return $className(');
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (final field in account.type.fields!) {
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (final field in typeDef.type.fields!) {
         final fieldName = _toCamelCase(field.name);
         buffer.writeln('      $fieldName: $fieldName,');
       }
@@ -132,8 +151,8 @@ class AccountGenerator {
     // Generate writeToWriter method
     buffer.writeln('  /// Write $className to BinaryWriter');
     buffer.writeln('  void writeToWriter(BinaryWriter writer) {');
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (final field in account.type.fields!) {
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (final field in typeDef.type.fields!) {
         final fieldName = _toCamelCase(field.name);
         final serializer = _getSerializerForType(field.type, fieldName);
         buffer.writeln('    $serializer;');
@@ -146,16 +165,17 @@ class AccountGenerator {
   /// Generate utility methods
   void _generateUtilityMethods(StringBuffer buffer, IdlAccount account) {
     final className = '${_toPascalCase(account.name)}Account';
+    final typeDef = _getTypeDefForAccount(account);
 
     // Generate toString method
     buffer.writeln('  @override');
     buffer.writeln('  String toString() {');
     buffer.writeln('    return \'$className(\' +');
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (int i = 0; i < account.type.fields!.length; i++) {
-        final field = account.type.fields![i];
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (int i = 0; i < typeDef.type.fields!.length; i++) {
+        final field = typeDef.type.fields![i];
         final fieldName = _toCamelCase(field.name);
-        final separator = i < account.type.fields!.length - 1 ? ', ' : '';
+        final separator = i < typeDef.type.fields!.length - 1 ? ', ' : '';
         buffer.writeln('      \'${field.name}: \$$fieldName$separator\' +');
       }
     }
@@ -169,11 +189,11 @@ class AccountGenerator {
     buffer.writeln('    if (identical(this, other)) return true;');
     buffer.writeln('    if (other is! $className) return false;');
     buffer.writeln('    return');
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (int i = 0; i < account.type.fields!.length; i++) {
-        final field = account.type.fields![i];
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (int i = 0; i < typeDef.type.fields!.length; i++) {
+        final field = typeDef.type.fields![i];
         final fieldName = _toCamelCase(field.name);
-        final separator = i < account.type.fields!.length - 1 ? ' &&' : ';';
+        final separator = i < typeDef.type.fields!.length - 1 ? ' &&' : ';';
         buffer.writeln('      $fieldName == other.$fieldName$separator');
       }
     }
@@ -184,8 +204,8 @@ class AccountGenerator {
     buffer.writeln('  @override');
     buffer.writeln('  int get hashCode {');
     buffer.writeln('    return Object.hash(');
-    if (account.type.kind == 'struct' && account.type.fields != null) {
-      for (final field in account.type.fields!) {
+    if (typeDef.type.kind == 'struct' && typeDef.type.fields != null) {
+      for (final field in typeDef.type.fields!) {
         final fieldName = _toCamelCase(field.name);
         buffer.writeln('      $fieldName,');
       }
@@ -243,7 +263,7 @@ class AccountGenerator {
         }
         return 'reader.readOption(() => reader.readU8())';
       case 'defined':
-        final typeName = _toPascalCase(type.defined ?? 'Unknown');
+        final typeName = _toPascalCase(type.defined?.name ?? 'Unknown');
         return '$typeName.fromReader(reader)';
       default:
         return 'reader.readU8()';
@@ -341,7 +361,7 @@ class AccountGenerator {
         }
         return 'dynamic?';
       case 'defined':
-        return _toPascalCase(type.defined ?? 'Unknown');
+        return _toPascalCase(type.defined?.name ?? 'Unknown');
       default:
         return 'dynamic';
     }

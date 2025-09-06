@@ -66,7 +66,7 @@ class TypeConverter {
       case 'publicKey':
         if (value is PublicKey) return value;
         if (value is String) return PublicKey.fromBase58(value);
-        if (value is List<int>) return PublicKey.fromBytes(value);
+        if (value is List<int>) return PublicKeyUtils.fromBytes(value);
         throw ArgumentError(
           'Expected PublicKey for publicKey type, got ${value.runtimeType}',
         );
@@ -154,7 +154,7 @@ class TypeConverter {
       case 'pubkey':
       case 'publicKey':
         if (value is PublicKey) {
-          serializer.writeFixedArray(value.bytes);
+          serializer.writeFixedArray(value.toBytes());
         } else if (value is List<int>) {
           serializer.writeFixedArray(Uint8List.fromList(value));
         } else {
@@ -229,7 +229,7 @@ class TypeConverter {
       case 'pubkey':
       case 'publicKey':
         final bytes = deserializer.readFixedArray(32);
-        return PublicKey.fromBytes(bytes);
+        return PublicKeyUtils.fromBytes(bytes);
       case 'vec':
         final length = deserializer.readU32();
         final List<dynamic> result = [];

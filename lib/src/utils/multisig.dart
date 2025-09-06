@@ -20,7 +20,7 @@ class MultisigUtils {
   /// This creates the standard seeds used for multisig PDA derivation.
   /// The pattern follows: [multisig_pubkey]
   static List<Uint8List> createMultisigSeeds(PublicKey multisigKey) =>
-      [multisigKey.bytes];
+      [Uint8List.fromList(multisigKey.bytes)];
 
   /// Find the multisig signer PDA
   ///
@@ -31,7 +31,7 @@ class MultisigUtils {
     PublicKey programId,
   ) async {
     final seeds = createMultisigSeeds(multisigKey);
-    return PublicKey.findProgramAddress(seeds, programId);
+    return PublicKeyUtils.findProgramAddress(seeds, programId);
   }
 
   /// Validate multisig threshold
@@ -154,7 +154,7 @@ class MultisigUtils {
     String transactionId,
   ) =>
       [
-        multisig.bytes,
+        Uint8List.fromList(multisig.bytes),
         Uint8List.fromList(transactionId.codeUnits),
       ];
 

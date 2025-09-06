@@ -1,13 +1,12 @@
 import 'dart:async';
 
-import 'package:coral_xyz/src/provider/connection.dart'
-    show Connection, LogsNotification;
+import 'package:coral_xyz/src/provider/connection.dart' show Connection;
+import 'package:solana/dto.dart' as dto;
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/event/event_definition.dart';
 import 'package:coral_xyz/src/event/event_log_parser.dart'
     show EventLogParser, ParsedEvent;
-import 'package:coral_xyz/src/event/types.dart'
-    show EventSubscriptionConfig;
+import 'package:coral_xyz/src/event/types.dart' show EventSubscriptionConfig;
 
 /// Event subscription manager for real-time event monitoring
 /// Uses Connection.onLogs for TypeScript-compatible event subscription
@@ -53,7 +52,7 @@ class EventSubscriptionManager {
   final EventSubscriptionMetrics _metrics = EventSubscriptionMetrics();
 
   /// WebSocket logs subscription ID
-  String? _logsSubscriptionId;
+  StreamSubscription<dto.Logs>? _logsSubscription;
 
   /// Event buffer for when disconnected
   final List<ParsedEvent> _eventBuffer = [];
@@ -78,11 +77,12 @@ class EventSubscriptionManager {
 
     try {
       // Use Connection's onLogs method (TypeScript pattern)
-      _logsSubscriptionId = await _connection.onLogs(
-        _programId,
-        _handleLogsNotification,
-        commitment: _config.commitment,
-      );
+      _logsSubscription = _connection
+          .onLogs(
+            _programId.toBase58(),
+            commitment: dto.Commitment.finalized,
+          )
+          .listen(_handleLogsNotification);
 
       _connectionState = ConnectionState.connected;
       _metrics.connectionCount++;
@@ -100,9 +100,9 @@ class EventSubscriptionManager {
     _connectionState = ConnectionState.disconnecting;
 
     try {
-      if (_logsSubscriptionId != null) {
-        await _connection.removeOnLogsListener(_logsSubscriptionId!);
-        _logsSubscriptionId = null;
+      if (_logsSubscription != null) {
+        await _logsSubscription!.cancel();
+        _logsSubscription = null;
       }
     } finally {
       _connectionState = ConnectionState.disconnected;
@@ -110,17 +110,12 @@ class EventSubscriptionManager {
   }
 
   /// Handle logs notification from Connection.onLogs
-  void _handleLogsNotification(LogsNotification notification) {
+  void _handleLogsNotification(dto.Logs logs) {
     _metrics.messagesReceived++;
-
-    // Only process successful transactions (or if config allows failed)
-    if (!notification.isSuccess && !_config.includeFailed) {
-      return;
-    }
 
     // Parse events from logs using the parseLogs method
     try {
-      final events = _parser.parseLogs(notification.logs);
+      final events = _parser.parseLogs(logs.logs);
 
       for (final event in events) {
         _processEvent(event);

@@ -6,10 +6,11 @@ library;
 
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io' show zlib; // For zlib inflate to match pako.inflate
+import 'package:solana/dto.dart' as dto; // Espresso-cash DTOs for account data
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/provider/provider.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
-import 'package:coral_xyz/src/utils/pubkey.dart';
 
 /// IDL Program Account structure for on-chain IDL storage
 class IdlProgramAccount {
@@ -24,7 +25,7 @@ class IdlProgramAccount {
   /// Compressed IDL data
   final Uint8List data;
 
-  /// Decode IDL program account from raw bytes
+  /// Decode IDL program account from raw bytes (without the 8-byte discriminator)
   static IdlProgramAccount decode(Uint8List data) {
     if (data.length < 36) {
       // 32 bytes for authority + 4 bytes for length
@@ -32,13 +33,13 @@ class IdlProgramAccount {
     }
 
     // Read authority (32 bytes)
-    final authority = PublicKey.fromBytes(data.sublist(0, 32));
+    final authority = PublicKeyUtils.fromBytes(data.sublist(0, 32));
 
     // Read data length (4 bytes, little endian)
     final dataLength = _readU32LE(data, 32);
 
     // Read data
-    final idlDataStart = 36;
+    const idlDataStart = 36;
     if (data.length < idlDataStart + dataLength) {
       throw ArgumentError('IDL account data length mismatch');
     }
@@ -69,7 +70,10 @@ class IdlUtils {
   /// 2. Create with seed using the base address
   static Future<PublicKey> getIdlAddress(PublicKey programId) async {
     // Step 1: Find the base address (like TypeScript findProgramAddress([], programId))
-    final baseResult = await PublicKey.findProgramAddress([], programId);
+    final baseResult = await PublicKeyUtils.findProgramAddress(
+      const <List<int>>[],
+      programId,
+    );
     final base = baseResult.address;
 
     // Step 2: Create with seed (like TypeScript createWithSeed(base, "anchor:idl", programId))
@@ -78,13 +82,13 @@ class IdlUtils {
 
   /// Fetch and decode an IDL from the blockchain
   ///
-  /// This method fetches the IDL from the on-chain IDL account.
-  /// The IDL must have been previously initialized via anchor CLI's `anchor idl init` command.
-  ///
-  /// [programId] The on-chain address of the program
-  /// [provider] The network and wallet provider
-  ///
-  /// Returns the IDL or null if not found
+  /// This matches TypeScript Program.fetchIdl exactly:
+  /// - derive idlAddress
+  /// - getAccountInfo(idlAddress)
+  /// - slice off 8-byte discriminator
+  /// - decode IdlProgramAccount (authority, vec<u8> data)
+  /// - inflate data (zlib)
+  /// - parse JSON
   static Future<Idl?> fetchIdl(
     PublicKey programId,
     AnchorProvider provider,
@@ -93,116 +97,103 @@ class IdlUtils {
       // Calculate the IDL address
       final idlAddress = await getIdlAddress(programId);
 
-      // Fetch the account info
-      final accountInfo = await provider.connection.getAccountInfo(idlAddress);
+      // Fetch the account info (espresso-cash Connection expects base58 string)
+      final accountInfo = await provider.connection.getAccountInfo(
+        idlAddress.toBase58(),
+      );
 
-      if (accountInfo == null || accountInfo.data.length == 0) {
+      if (accountInfo == null || accountInfo.data == null) {
         return null;
       }
 
-      // Decode the IDL account (skip 8-byte discriminator)
-      final idlAccount = IdlProgramAccount.decode(
-        (accountInfo.data as Uint8List).sublist(8),
-      );
+      // Extract raw bytes from account data
+      late final Uint8List dataBytes;
+      final accData = accountInfo.data;
+      if (accData is dto.BinaryAccountData) {
+        dataBytes = Uint8List.fromList(accData.data);
+      } else {
+        // Unsupported or empty encoding
+        return null;
+      }
 
-      // Decompress the IDL data using gzip
-      final decompressedData = _decompressGzip(idlAccount.data);
+      if (dataBytes.length < 8) {
+        return null; // Not enough bytes for discriminator
+      }
 
-      // Parse JSON
-      final idlJson = utf8.decode(decompressedData);
+      // Chop off 8-byte discriminator, then decode the IDL account layout
+      final idlAccount = IdlProgramAccount.decode(dataBytes.sublist(8));
+
+      // Inflate (zlib) the IDL JSON bytes; fallback to raw if not compressed
+      final inflated = _inflateZlib(idlAccount.data);
+
+      // Parse JSON to Idl
+      final idlJson = utf8.decode(inflated);
       final idlMap = json.decode(idlJson) as Map<String, dynamic>;
-
-      // Convert to IDL
       return Idl.fromJson(idlMap);
     } catch (e) {
+      // Mirror TS: return null if not found or failed to decode
       return null;
     }
   }
 
-  /// Convert IDL to camelCase for Dart ergonomics
-  ///
-  /// This converts snake_case names in the IDL to camelCase for better
-  /// Dart naming conventions, similar to how TypeScript Anchor converts
-  /// Rust naming conventions to JavaScript conventions.
-  ///
-  /// [idl] The IDL to convert
-  /// Returns a new IDL with camelCase naming
+  /// Convert the given IDL to camelCase (TypeScript parity)
   static Idl convertIdlToCamelCase(Idl idl) {
     const keysToConvert = ['name', 'path', 'account', 'relations', 'generic'];
 
-    // Convert a single string to camelCase, handling dot notation
-    String toCamelCase(String s) => s.split('.').map(_toCamelCase).join('.');
+    // `my_account.field` -> `myAccount.field` (preserve dots)
+    String toCamelCase(dynamic s) =>
+        s.toString().split('.').map(_toCamelCase).join('.');
 
-    // Recursively convert field names in objects
-    dynamic convertObject(dynamic obj) {
-      if (obj is Map<String, dynamic>) {
-        final converted = <String, dynamic>{};
-
-        for (final entry in obj.entries) {
-          final key = entry.key;
-          final value = entry.value;
-
-          dynamic convertedValue;
-          if (keysToConvert.contains(key)) {
-            if (value is List) {
-              convertedValue = value
-                  .map(
-                    (item) => item is String
-                        ? toCamelCase(item)
-                        : convertObject(item),
-                  )
-                  .toList();
-            } else if (value is String) {
-              convertedValue = toCamelCase(value);
-            } else {
-              convertedValue = convertObject(value);
-            }
+    void recursivelyConvertNamesToCamelCase(Map<String, dynamic> obj) {
+      for (final key in obj.keys.toList()) {
+        final val = obj[key];
+        if (keysToConvert.contains(key)) {
+          if (val is List) {
+            obj[key] = val.map(toCamelCase).toList();
           } else {
-            convertedValue = convertObject(value);
+            obj[key] = toCamelCase(val);
           }
-
-          converted[key] = convertedValue;
+        } else if (val is Map<String, dynamic>) {
+          recursivelyConvertNamesToCamelCase(val);
+        } else if (val is List) {
+          for (var i = 0; i < val.length; i++) {
+            final item = val[i];
+            if (item is Map<String, dynamic>) {
+              recursivelyConvertNamesToCamelCase(item);
+            }
+          }
         }
-
-        return converted;
-      } else if (obj is List) {
-        return obj.map(convertObject).toList();
-      } else {
-        return obj;
       }
     }
 
-    // Convert the IDL to JSON, transform, and back to IDL
+    // Clone via JSON round-trip to avoid mutating original
     final idlJson = idl.toJson();
-    final converted = convertObject(idlJson) as Map<String, dynamic>;
-
-    return Idl.fromJson(converted);
+    final cloned = json.decode(json.encode(idlJson)) as Map<String, dynamic>;
+    recursivelyConvertNamesToCamelCase(cloned);
+    return Idl.fromJson(cloned);
   }
 
   /// Convert snake_case to camelCase
   static String _toCamelCase(String snakeCase) {
-    if (!snakeCase.contains('_')) {
-      return snakeCase;
-    }
-
+    if (!snakeCase.contains('_')) return snakeCase;
     final parts = snakeCase.split('_');
-    if (parts.isEmpty) return snakeCase;
-
     final first = parts.first.toLowerCase();
     final rest = parts.skip(1).map(
-          (part) => part.isEmpty
+          (p) => p.isEmpty
               ? ''
-              : part[0].toUpperCase() + part.substring(1).toLowerCase(),
+              : p[0].toUpperCase() + p.substring(1).toLowerCase(),
         );
-
     return first + rest.join();
   }
 
-  /// Decompress gzip data
-  static Uint8List _decompressGzip(Uint8List compressedData) {
-    // For now, assume data is not compressed and is raw JSON
-    // TODO: Implement proper gzip decompression using package:archive if needed
-    // Most IDLs are small enough that compression isn't necessary
-    return compressedData;
+  /// Inflate zlib-compressed bytes (like pako.inflate). If inflate fails, return original.
+  static Uint8List _inflateZlib(Uint8List compressed) {
+    try {
+      final decoded = zlib.decode(compressed);
+      return Uint8List.fromList(decoded);
+    } catch (_) {
+      // Not compressed or invalid zlib stream; assume raw JSON
+      return compressed;
+    }
   }
 }

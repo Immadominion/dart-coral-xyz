@@ -6,7 +6,6 @@
 
 library;
 
-export '../crypto/solana_crypto.dart' show SolanaCrypto;
 export 'commitment.dart';
 export 'common.dart';
 export 'connection_config.dart';

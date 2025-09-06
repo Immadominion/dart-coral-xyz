@@ -3,6 +3,7 @@ import 'package:coral_xyz/src/coder/instruction_coder.dart';
 import 'package:coral_xyz/src/coder/borsh_accounts_coder.dart';
 import 'package:coral_xyz/src/coder/event_coder.dart';
 import 'package:coral_xyz/src/coder/types_coder.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 
 /// Main coder interface for all serialization/deserialization operations
 ///
@@ -30,10 +31,11 @@ class BorshCoder<A extends String, T extends String> implements Coder<A, T> {
   /// Creates a new BorshCoder from an IDL
   ///
   /// [idl] The IDL definition to create coders from
-  BorshCoder(Idl idl)
+  /// [programId] Optional program ID to associate with events
+  BorshCoder(Idl idl, [PublicKey? programId])
       : _instructions = BorshInstructionCoder(idl),
         _accounts = BorshAccountsCoder<A>(idl),
-        _events = BorshEventCoder(idl),
+        _events = BorshEventCoder(idl, programId),
         _types = BorshTypesCoder<T>(idl);
   final InstructionCoder _instructions;
   final AccountsCoder<A> _accounts;

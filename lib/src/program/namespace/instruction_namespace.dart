@@ -217,21 +217,9 @@ class InstructionBuilder {
   ) {
     final accountMetas = <AccountMeta>[];
 
-    // Process instruction accounts
-    for (final account in _instruction.accounts) {
-      final publicKey = resolvedAccounts[account.name];
-      if (publicKey == null) {
-        throw ArgumentError('Missing required account: \\${account.name}');
-      }
-
-      accountMetas.add(
-        AccountMeta(
-          publicKey: publicKey as PublicKey,
-          isWritable:
-              account is IdlInstructionAccount ? account.writable : false,
-          isSigner: account is IdlInstructionAccount ? account.signer : false,
-        ),
-      );
+    // Process instruction accounts recursively to handle nested account groups
+    for (final accountItem in _instruction.accounts) {
+      _buildAccountMetasRecursive(accountItem, resolvedAccounts, accountMetas);
     }
 
     // Add any remaining accounts
@@ -240,6 +228,36 @@ class InstructionBuilder {
     }
 
     return accountMetas;
+  }
+
+  /// Recursively build account metas for account items
+  void _buildAccountMetasRecursive(
+    IdlInstructionAccountItem accountItem,
+    Map<String, dynamic> resolvedAccounts,
+    List<AccountMeta> accountMetas,
+  ) {
+    if (accountItem is IdlInstructionAccount) {
+      final publicKey = resolvedAccounts[accountItem.name];
+      if (publicKey == null) {
+        if (!accountItem.optional) {
+          throw ArgumentError('Missing required account: ${accountItem.name}');
+        }
+        return; // Skip optional accounts that aren't provided
+      }
+
+      accountMetas.add(
+        AccountMeta(
+          publicKey: publicKey as PublicKey,
+          isWritable: accountItem.writable,
+          isSigner: accountItem.signer,
+        ),
+      );
+    } else if (accountItem is IdlInstructionAccounts) {
+      // Recursively process nested account groups
+      for (final nestedAccount in accountItem.accounts) {
+        _buildAccountMetasRecursive(nestedAccount, resolvedAccounts, accountMetas);
+      }
+    }
   }
 
   /// Get the instruction name

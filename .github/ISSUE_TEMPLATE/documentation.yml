@@ -1,0 +1,41 @@
+---
+name: Documentation Issue
+about: Report issues with documentation or suggest improvements
+title: '[DOCS] '
+labels: ['documentation', 'needs-triage']
+assignees: ''
+---
+
+## Documentation Issue
+A clear and concise description of the documentation problem.
+
+## Location
+- **File/Page**: (e.g., README.md, API docs, example/)
+- **Section**: (specific section or heading)
+- **URL**: (if applicable)
+
+## Issue Type
+- [ ] Missing documentation
+- [ ] Incorrect/outdated documentation
+- [ ] Unclear/confusing documentation
+- [ ] Broken links or formatting
+- [ ] Example code doesn't work
+- [ ] Missing API documentation
+
+## Current Documentation
+```
+Paste the current documentation text here (if applicable)
+```
+
+## Suggested Improvement
+```
+Provide your suggested documentation improvement here
+```
+
+## Additional Context
+Add any other context, screenshots, or examples about the documentation issue here.
+
+## Checklist
+- [ ] I have checked that this documentation issue doesn't already exist
+- [ ] I have provided specific location information
+- [ ] I have suggested concrete improvements where possible

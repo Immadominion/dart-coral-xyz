@@ -1,7 +1,7 @@
 /// Method Interface Generator for automatic type-safe method creation from IDL
 ///
 /// This module generates type-safe method interfaces from IDL definitions,
-/// enabling TypeScript-like method access patterns with full compile-time
+/// enabling TypeScript-like method access patt          return type.defined?.name ?? 'CustomType';rns with full compile-time
 /// type checking and IDE support.
 
 library;
@@ -205,7 +205,7 @@ class MethodInterfaceGenerator {
       case 'array':
         return 'List<${_formatTypeForDocs(type.inner!)}>';
       case 'defined':
-        return type.defined ?? 'CustomType';
+        return type.defined?.name ?? 'CustomType';
       default:
         return 'dynamic';
     }

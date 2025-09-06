@@ -470,7 +470,7 @@ class EventLogParser {
             throw 'Insufficient data for publicKey';
           }
           final keyBytes = data.sublist(offset, offset + 32);
-          final value = PublicKey.fromBytes(keyBytes);
+          final value = PublicKeyUtils.fromBytes(keyBytes);
           return FieldParseResult(
             value: value,
             bytesConsumed: 32,
