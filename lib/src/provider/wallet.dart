@@ -13,7 +13,7 @@ import 'package:coral_xyz/src/types/keypair.dart' as custom_keypair;
 import 'package:solana/base58.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/types/transaction.dart';
-import 'package:coral_xyz/src/types/versioned_transaction.dart';
+import 'package:coral_xyz/src/provider/versioned_transaction_support.dart';
 import '../utils/logger.dart';
 
 /// Abstract wallet interface matching TypeScript SDK exactly
@@ -284,10 +284,11 @@ class KeypairWallet implements Wallet {
         feePayer: publicKey,
         recentBlockhash: transaction.recentBlockhash,
       );
-      // Copy existing signatures
+      // Copy existing signatures and signers
       for (final entry in transaction.signatures.entries) {
         newTx.addSignature(PublicKey.fromBase58(entry.key), entry.value);
       }
+      newTx.addSigners(transaction.signers);
       transaction = newTx;
     }
 
@@ -299,6 +300,10 @@ class KeypairWallet implements Wallet {
 
     // Attach the signature to the transaction
     transaction.addSignature(publicKey, signatureBytes);
+    // Add this wallet's public key as a signer if not already present
+    if (!transaction.signers.contains(publicKey)) {
+      transaction.addSigners([publicKey]);
+    }
 
     return transaction;
   }

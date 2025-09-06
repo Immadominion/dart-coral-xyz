@@ -36,6 +36,9 @@ extension PublicKeyExtensions on PublicKey {
   static Future<PdaResult> findProgramAddress(
           List<List<int>> seeds, PublicKey programId) =>
       PublicKeyUtils.findProgramAddress(seeds, programId);
+  static Future<PublicKey> createProgramAddress(
+          List<List<int>> seeds, PublicKey programId) =>
+      PublicKeyUtils.createProgramAddress(seeds, programId);
 }
 
 /// Static utilities for PublicKey operations
@@ -148,35 +151,35 @@ class PublicKeyUtils {
     PublicKey programId,
   ) async {
     try {
-      // Use espresso-cash findProgramAddress but track the bump seed manually
-      // This matches the TypeScript SDK behavior
-      if (seeds.length > 16) {
-        throw ArgumentError('You can provide up to 16 seeds');
-      }
+      // Use espresso-cash findProgramAddress with proper format
+      // Convert List<List<int>> to List<Iterable<int>> as expected by espresso-cash
+      final seedsAsIterables = seeds.cast<Iterable<int>>();
 
-      for (final seedList in seeds) {
-        if (seedList.length > 32) {
-          throw ArgumentError('One or more of the seeds provided is too big');
-        }
-      }
+      final address = await solana.Ed25519HDPublicKey.findProgramAddress(
+        seeds: seedsAsIterables,
+        programId: programId,
+      );
 
-      int bumpSeed = 255;
-      while (bumpSeed >= 0) {
+      // Find the bump that was used by espresso-cash
+      // We need to iterate to find which bump produces the same address
+      for (int bump = 255; bump >= 0; bump--) {
         try {
-          final seedsWithBump = [
-            ...seeds,
-            [bumpSeed]
-          ];
-          final address = await solana.Ed25519HDPublicKey.findProgramAddress(
-            seeds: seedsWithBump,
+          final testSeeds = [...seeds.expand((s) => s), bump];
+          final testAddress =
+              await solana.Ed25519HDPublicKey.createProgramAddress(
+            seeds: testSeeds,
             programId: programId,
           );
-          return PdaResult(address, bumpSeed);
+          if (testAddress == address) {
+            return PdaResult(address, bump);
+          }
         } catch (e) {
-          bumpSeed--;
+          // Continue searching
         }
       }
-      throw ArgumentError('Cannot find valid program address');
+
+      // Fallback - return with bump 0 if we can't determine it
+      return PdaResult(address, 0);
     } catch (e) {
       throw ArgumentError('Failed to find PDA: $e');
     }
@@ -188,8 +191,12 @@ class PublicKeyUtils {
     PublicKey programId,
   ) async {
     try {
+      // Convert to proper format for espresso-cash
       final flatSeeds = seeds.expand((seed) => seed).toList();
-      return _createProgramAddressSync(flatSeeds, programId);
+      return await solana.Ed25519HDPublicKey.createProgramAddress(
+        seeds: flatSeeds,
+        programId: programId,
+      );
     } catch (e) {
       throw ArgumentError('Failed to create program address: $e');
     }

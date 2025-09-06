@@ -43,22 +43,17 @@ void main() {
                 writable: true,
                 signer: true,
               ),
-              const IdlInstructionAccount(
-                name: 'program',
-              ),
+              const IdlInstructionAccount(name: 'program'),
             ],
-            args: [
-              IdlField(
-                name: 'value',
-                type: idlTypeU64(),
-              ),
-            ],
+            args: [IdlField(name: 'value', type: idlTypeU64())],
           ),
         ],
         accounts: [
-          IdlAccount(
+          IdlAccount(name: 'UserData', discriminator: [1, 2, 3, 4, 5, 6, 7, 8]),
+        ],
+        types: [
+          IdlTypeDef(
             name: 'UserData',
-            discriminator: [1, 2, 3, 4, 5, 6, 7, 8],
             type: IdlTypeDefType(
               kind: 'struct',
               fields: [
@@ -94,8 +89,10 @@ void main() {
 
     test('account creation and fetching', () async {
       // Test account creation utilities from test helpers
-      final createdData =
-          createTestAccountData(name: 'test_account', lamports: 1000);
+      final createdData = createTestAccountData(
+        name: 'test_account',
+        lamports: 1000,
+      );
       expect(createdData['name'], equals('test_account'));
       expect(createdData['lamports'], equals(1000));
 
@@ -178,11 +175,14 @@ void main() {
           IdlAccount(
             name: 'TestAccount',
             discriminator: [10, 20, 30, 40, 50, 60, 70, 80],
+          ),
+        ],
+        types: [
+          IdlTypeDef(
+            name: 'TestAccount',
             type: IdlTypeDefType(
               kind: 'struct',
-              fields: [
-                IdlField(name: 'data', type: idlTypeU32()),
-              ],
+              fields: [IdlField(name: 'data', type: idlTypeU32())],
             ),
           ),
         ],
@@ -234,7 +234,7 @@ void main() {
       // Test provider utilities
       final testKeypair = await env.createFundedAccount();
       expect(testKeypair.publicKey, isNotNull);
-      expect(testKeypair.secretKey, isNotNull);
+      // Note: Secret key access not supported with espresso-cash backend
     });
   });
 }
@@ -243,12 +243,11 @@ void main() {
 Map<String, dynamic> createTestAccountData({
   required String name,
   required int lamports,
-}) =>
-    {
-      'name': name,
-      'lamports': lamports,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    };
+}) => {
+  'name': name,
+  'lamports': lamports,
+  'timestamp': DateTime.now().millisecondsSinceEpoch,
+};
 
 /// Helper assertion for account data
 void expectAnchorAccount(

@@ -337,8 +337,8 @@ export 'src/types/public_key.dart';
 // export 'src/types/keypair.dart';
 export 'src/types/transaction.dart'
     hide TransactionInstruction, AccountMeta, Transaction;
-// VersionedTransaction support for TypeScript SDK parity
-export 'src/types/versioned_transaction.dart';
+// VersionedTransaction support via espresso-cash integration
+export 'src/provider/versioned_transaction_support.dart';
 // Type definitions (Phase 1.3 - COMPLETED)
 export 'src/types/types.dart'
     hide AccountMeta, TransactionInstruction, Transaction;

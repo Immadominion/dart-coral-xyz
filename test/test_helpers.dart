@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:coral_xyz/coral_xyz_anchor.dart'
     hide Transaction, TransactionInstruction, AccountMeta;
 import 'package:coral_xyz/src/types/transaction.dart';
+import 'package:solana/dto.dart' as dto;
 import 'package:test/test.dart';
 
 /// Mock provider for testing with configurable behavior
@@ -61,11 +62,8 @@ class MockConnection extends Connection {
   }
 
   @override
-  Future<int> getBalance(
-    PublicKey address, {
-    CommitmentConfig? commitment,
-  }) async {
-    _callLog.add('getBalance:${address.toBase58()}');
+  Future<int> getBalance(String address, {dto.Commitment? commitment}) async {
+    _callLog.add('getBalance:${address}');
     if (_shouldThrow) {
       _shouldThrow = false;
       throw _throwException!;
@@ -78,10 +76,11 @@ class MockConnection extends Connection {
 /// Mock wallet for testing with customizable signing behavior
 class MockWallet implements Wallet {
   MockWallet([Keypair? keypair])
-      : _keypair = keypair ??
-            Keypair.fromSecretKey(
-              Uint8List.fromList(List.generate(32, (i) => i + 1)),
-            );
+    : _keypair =
+          keypair ??
+          Keypair.fromSecretKey(
+            Uint8List.fromList(List.generate(32, (i) => i + 1)),
+          );
   final Keypair _keypair;
   bool _shouldThrowOnSign = false;
   Exception? _signException;
@@ -117,22 +116,22 @@ class MockWallet implements Wallet {
   }
 
   @override
-  Future<Transaction> signTransaction(Transaction transaction) async {
+  Future<T> signTransaction<T>(T transaction) async {
     if (_shouldThrowOnSign) {
       _shouldThrowOnSign = false;
       throw _signException!;
     }
 
     // Mock signing by adding a signature directly to the transaction
-    transaction.addSignature(_keypair.publicKey, Uint8List(64));
+    if (transaction is Transaction) {
+      transaction.addSignature(_keypair.publicKey, Uint8List(64));
+    }
     return transaction;
   }
 
   @override
-  Future<List<Transaction>> signAllTransactions(
-    List<Transaction> transactions,
-  ) async {
-    final results = <Transaction>[];
+  Future<List<T>> signAllTransactions<T>(List<T> transactions) async {
+    final results = <T>[];
     for (final tx in transactions) {
       results.add(await signTransaction(tx));
     }
@@ -188,12 +187,11 @@ TransactionInstruction buildTestInstruction({
   List<AccountMeta> accounts = const [],
   List<int> data = const [],
   String? instructionName,
-}) =>
-    TransactionInstruction(
-      programId: programId,
-      accounts: accounts,
-      data: Uint8List.fromList(data),
-    );
+}) => TransactionInstruction(
+  programId: programId,
+  accounts: accounts,
+  data: Uint8List.fromList(data),
+);
 
 /// Create a test IDL for testing purposes
 Idl createTestIdl({
@@ -202,40 +200,31 @@ Idl createTestIdl({
   List<IdlInstruction>? instructions,
   List<IdlAccount>? accounts,
   List<IdlTypeDef>? types,
-}) =>
-    Idl(
-      address: address ?? 'TestProgram111111111111111111111111111111',
-      metadata: IdlMetadata(
-        name: name,
-        version: '0.1.0',
-        spec: '0.1.0',
-      ),
-      instructions: instructions ??
-          [
-            IdlInstruction(
-              name: 'initialize',
-              discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
-              accounts: [
-                const IdlInstructionAccount(
-                  name: 'user',
-                  writable: true,
-                  signer: true,
-                ),
-              ],
-              args: [
-                IdlField(name: 'amount', type: idlTypeU64()),
-              ],
+}) => Idl(
+  address: address ?? 'TestProgram111111111111111111111111111111',
+  metadata: IdlMetadata(name: name, version: '0.1.0', spec: '0.1.0'),
+  instructions:
+      instructions ??
+      [
+        IdlInstruction(
+          name: 'initialize',
+          discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
+          accounts: [
+            const IdlInstructionAccount(
+              name: 'user',
+              writable: true,
+              signer: true,
             ),
           ],
-      accounts: accounts,
-      types: types,
-    );
+          args: [IdlField(name: 'amount', type: idlTypeU64())],
+        ),
+      ],
+  accounts: accounts,
+  types: types,
+);
 
 /// Create a test program with mock provider
-Program createTestProgram({
-  Idl? idl,
-  AnchorProvider? provider,
-}) {
+Program createTestProgram({Idl? idl, AnchorProvider? provider}) {
   final testIdl = idl ?? createTestIdl();
   final testProvider = provider ?? MockProvider.createDefault();
   return Program(testIdl, provider: testProvider);

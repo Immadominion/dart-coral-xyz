@@ -478,11 +478,12 @@ class AnchorProvider implements Provider {
     final opts = options ?? this.options;
 
     try {
-      _logger.debug('Using wallet interface for transaction signing (matching TypeScript SDK)...');
+      _logger.debug(
+          'Using wallet interface for transaction signing (matching TypeScript SDK)...');
 
       // Create a properly constructed transaction with feePayer and recentBlockhash
       var txToSign = transaction;
-      
+
       // Set fee payer if not already set (matching TypeScript SDK behavior)
       if (txToSign.feePayer == null) {
         txToSign = txToSign.setFeePayer(wallet!.publicKey);
@@ -491,18 +492,15 @@ class AnchorProvider implements Provider {
       // Get recent blockhash if not set
       if (txToSign.recentBlockhash == null) {
         final blockhashResult = await connection.getLatestBlockhash(
-          commitment: _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+          commitment:
+              _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
         );
         txToSign = txToSign.setRecentBlockhash(blockhashResult.blockhash);
       }
 
       // Add partial signatures from additional signers first (matching TypeScript SDK)
       if (signers != null) {
-        final messageBytes = txToSign.compileMessage();
-        for (final signer in signers) {
-          final signature = await signer.sign(messageBytes);
-          txToSign.addSignature(signer.publicKey, signature);
-        }
+        await txToSign.sign(signers);
       }
 
       // Sign transaction with wallet (matching TypeScript SDK: await this.wallet.signTransaction(tx))
@@ -510,12 +508,13 @@ class AnchorProvider implements Provider {
 
       // Serialize and send the signed transaction using the connection's sendRawTransaction
       final serializedTx = signedTransaction.serialize();
-      
+
       _logger.debug('Sending serialized transaction to network...');
       final signature = await connection.sendRawTransaction(
         serializedTx,
         skipPreflight: opts.skipPreflight,
-        preflightCommitment: _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+        preflightCommitment:
+            _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
         maxRetries: opts.maxRetries,
       );
 
@@ -603,10 +602,9 @@ class AnchorProvider implements Provider {
         preparedTx = preparedTx.setRecentBlockhash(blockhash);
       }
 
-      // Add additional signers when available
+      // Add additional signers when available (matching TypeScript SDK)
       if (txWithSigners.signers != null) {
-        // Note: Additional signers are handled by the wallet.signAllTransactions method
-        // Individual partialSign is not needed as the wallet handles all required signatures
+        await preparedTx.sign(txWithSigners.signers!);
       }
 
       preparedTransactions.add(preparedTx);
@@ -623,11 +621,12 @@ class AnchorProvider implements Provider {
       try {
         // Serialize and send the signed transaction
         final serializedTx = signedTx.serialize();
-        
+
         final signature = await connection.sendRawTransaction(
           serializedTx,
           skipPreflight: opts.skipPreflight,
-          preflightCommitment: _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+          preflightCommitment:
+              _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
           maxRetries: opts.maxRetries,
         );
 

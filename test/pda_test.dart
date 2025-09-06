@@ -7,16 +7,18 @@ void main() {
   group('PDA Calculation Tests', () {
     test('should calculate PDA correctly', () async {
       // Create a test program ID
-      final programId =
-          PublicKey.fromBase58('11111111111111111111111111111112');
+      final programId = PublicKey.fromBase58(
+        '11111111111111111111111111111112',
+      );
 
       // Test with simple string seed
-      final seeds = [
-        Uint8List.fromList('counter'.codeUnits),
-      ];
+      final seeds = [Uint8List.fromList('counter'.codeUnits)];
 
       // This should not throw an exception anymore
-      final result = await PublicKey.findProgramAddress(seeds, programId);
+      final result = await PublicKeyExtensions.findProgramAddress(
+        seeds,
+        programId,
+      );
 
       expect(result, isNotNull);
       expect(result.address, isA<PublicKey>());
@@ -27,10 +29,10 @@ void main() {
       print('Generated PDA: ${result.address.toBase58()}');
       print('Bump: ${result.bump}');
     });
-
     test('should create program address with known bump', () async {
-      final programId =
-          PublicKey.fromBase58('11111111111111111111111111111112');
+      final programId = PublicKey.fromBase58(
+        '11111111111111111111111111111112',
+      );
 
       final seeds = [
         Uint8List.fromList('counter'.codeUnits),
@@ -38,7 +40,10 @@ void main() {
       ];
 
       try {
-        final address = await PublicKey.createProgramAddress(seeds, programId);
+        final address = await PublicKeyExtensions.createProgramAddress(
+          seeds,
+          programId,
+        );
         expect(address, isA<PublicKey>());
         print('Created program address: ${address.toBase58()}');
       } catch (e) {
@@ -48,16 +53,21 @@ void main() {
     });
 
     test('should be deterministic', () async {
-      final programId =
-          PublicKey.fromBase58('11111111111111111111111111111112');
+      final programId = PublicKey.fromBase58(
+        '11111111111111111111111111111112',
+      );
 
-      final seeds = [
-        Uint8List.fromList('test'.codeUnits),
-      ];
+      final seeds = [Uint8List.fromList('test'.codeUnits)];
 
       // Generate PDA twice
-      final result1 = await PublicKey.findProgramAddress(seeds, programId);
-      final result2 = await PublicKey.findProgramAddress(seeds, programId);
+      final result1 = await PublicKeyExtensions.findProgramAddress(
+        seeds,
+        programId,
+      );
+      final result2 = await PublicKeyExtensions.findProgramAddress(
+        seeds,
+        programId,
+      );
 
       // Should be identical
       expect(result1.address.toBase58(), equals(result2.address.toBase58()));
@@ -65,8 +75,9 @@ void main() {
     });
 
     test('should work with different seed types', () async {
-      final programId =
-          PublicKey.fromBase58('11111111111111111111111111111112');
+      final programId = PublicKey.fromBase58(
+        '11111111111111111111111111111112',
+      );
 
       final seeds = [
         Uint8List.fromList('prefix'.codeUnits),
@@ -74,7 +85,10 @@ void main() {
         Uint8List.fromList([1, 2, 3, 4]), // Raw bytes
       ];
 
-      final result = await PublicKey.findProgramAddress(seeds, programId);
+      final result = await PublicKeyExtensions.findProgramAddress(
+        seeds,
+        programId,
+      );
 
       expect(result, isNotNull);
       expect(result.address, isA<PublicKey>());

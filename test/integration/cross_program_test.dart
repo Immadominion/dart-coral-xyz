@@ -23,7 +23,7 @@ void main() {
     test('register and interact with multiple programs', () async {
       // Create mock programs
       final program1Idl = Idl(
-        address: 'Program1111111111111111111111111111111111',
+        address: '11111111111111111111111111111112',
         metadata: const IdlMetadata(
           name: 'caller_program',
           version: '0.1.0',
@@ -41,15 +41,13 @@ void main() {
                 signer: true,
               ),
             ],
-            args: [
-              IdlField(name: 'target_program', type: idlTypePubkey()),
-            ],
+            args: [IdlField(name: 'target_program', type: idlTypePubkey())],
           ),
         ],
       );
 
       final program2Idl = Idl(
-        address: 'Program2222222222222222222222222222222222',
+        address: '11111111111111111111111111111113',
         metadata: const IdlMetadata(
           name: 'target_program',
           version: '0.1.0',
@@ -60,14 +58,8 @@ void main() {
             name: 'handle_call',
             docs: ['Handle external call'],
             discriminator: [2, 2, 2, 2, 2, 2, 2, 2],
-            accounts: [
-              const IdlInstructionAccount(
-                name: 'caller',
-              ),
-            ],
-            args: [
-              IdlField(name: 'data', type: idlTypeU64()),
-            ],
+            accounts: [const IdlInstructionAccount(name: 'caller')],
+            args: [IdlField(name: 'data', type: idlTypeU64())],
           ),
         ],
       );
@@ -165,8 +157,10 @@ void main() {
     test('cross-program data flow validation', () async {
       // Test data consistency across program boundaries
       final sourceProgram = await _createTestProgram('SourceProgram', env);
-      final processorProgram =
-          await _createTestProgram('ProcessorProgram', env);
+      final processorProgram = await _createTestProgram(
+        'ProcessorProgram',
+        env,
+      );
       final sinkProgram = await _createTestProgram('SinkProgram', env);
 
       tester.registerProgram('source', sourceProgram);
@@ -174,11 +168,7 @@ void main() {
       tester.registerProgram('sink', sinkProgram);
 
       // Create test data that flows through programs
-      final testData = {
-        'input': 100,
-        'multiplier': 2,
-        'expected_output': 200,
-      };
+      final testData = {'input': 100, 'multiplier': 2, 'expected_output': 200};
 
       // Test data flow: source -> processor -> sink
       try {
@@ -236,29 +226,27 @@ Future<Program> _createTestProgram(
             signer: true,
           ),
         ],
-        args: [
-          IdlField(name: 'value', type: idlTypeU64()),
-        ],
+        args: [IdlField(name: 'value', type: idlTypeU64())],
       ),
       IdlInstruction(
         name: 'store_data',
         docs: ['Store data instruction'],
         discriminator: [8, 7, 6, 5, 4, 3, 2, 1],
         accounts: [
-          const IdlInstructionAccount(
-            name: 'storage',
-            writable: true,
-          ),
+          const IdlInstructionAccount(name: 'storage', writable: true),
         ],
-        args: [
-          IdlField(name: 'data', type: idlTypeString()),
-        ],
+        args: [IdlField(name: 'data', type: idlTypeString())],
       ),
     ],
     accounts: [
       IdlAccount(
         name: '${name}Data',
         discriminator: [10, 20, 30, 40, 50, 60, 70, 80],
+      ),
+    ],
+    types: [
+      IdlTypeDef(
+        name: '${name}Data',
         type: IdlTypeDefType(
           kind: 'struct',
           fields: [

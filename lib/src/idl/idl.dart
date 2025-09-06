@@ -464,23 +464,23 @@ class IdlInstruction {
 class IdlAccount {
   const IdlAccount({
     required this.name,
-    this.docs,
     required this.discriminator,
+    this.docs,
   });
 
   factory IdlAccount.fromJson(Map<String, dynamic> json) => IdlAccount(
         name: json['name'] as String,
-        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
         discriminator: (json['discriminator'] as List<dynamic>).cast<int>(),
+        docs: (json['docs'] as List<dynamic>?)?.cast<String>(),
       );
   final String name;
-  final List<String>? docs;
   final IdlDiscriminator discriminator;
+  final List<String>? docs;
 
   Map<String, dynamic> toJson() => {
         'name': name,
-        if (docs != null) 'docs': docs,
         'discriminator': discriminator,
+        if (docs != null) 'docs': docs,
       };
 
   @override

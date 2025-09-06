@@ -109,15 +109,46 @@ mixin VersionedTransactionWalletSupport {
 class EspressoCashIntegration {
   /// Convert coral-xyz Transaction to espresso-cash-public CompiledMessage
   static encoder.CompiledMessage toCompiledMessage(dynamic coralTransaction) {
-    // Implementation would convert between formats
-    // For now, this is a placeholder for the integration point
-    throw UnimplementedError('Integration conversion not yet implemented');
+    // Handle the coral-xyz Transaction type
+    if (coralTransaction is! Map<String, dynamic>) {
+      throw ArgumentError('Expected coral-xyz Transaction object');
+    }
+
+    final instructions = (coralTransaction['instructions'] as List)
+        .map((ix) => encoder.Instruction(
+              programId: solana.Ed25519HDPublicKey.fromBase58(ix['programId'] as String),
+              accounts: (ix['accounts'] as List)
+                  .map((meta) => meta['isWritable'] as bool
+                      ? encoder.AccountMeta.writeable(
+                          pubKey: solana.Ed25519HDPublicKey.fromBase58(
+                              meta['pubkey'] as String),
+                          isSigner: meta['isSigner'] as bool,
+                        )
+                      : encoder.AccountMeta.readonly(
+                          pubKey: solana.Ed25519HDPublicKey.fromBase58(
+                              meta['pubkey'] as String),
+                          isSigner: meta['isSigner'] as bool,
+                        ))
+                  .toList(),
+              data: encoder.ByteArray(ix['data'] as List<int>),
+            ))
+        .toList();
+
+    final message = encoder.Message(instructions: instructions);
+    return message.compile(
+      recentBlockhash: coralTransaction['recentBlockhash'] as String,
+      feePayer: solana.Ed25519HDPublicKey.fromBase58(
+          coralTransaction['feePayer'] as String),
+    );
   }
 
   /// Convert espresso-cash-public result to coral-xyz format
-  static dynamic fromEspressoResult(dynamic espressoResult) {
-    // Implementation would convert results back
-    // For now, this is a placeholder for the integration point
-    throw UnimplementedError('Result conversion not yet implemented');
+  static String fromEspressoResult(dynamic espressoResult) {
+    // Handle signature string results
+    if (espressoResult is String) {
+      return espressoResult;
+    }
+    // Handle other result types as needed
+    return espressoResult.toString();
   }
 }

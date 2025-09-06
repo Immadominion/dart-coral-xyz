@@ -92,8 +92,10 @@ void main() {
 
       for (int i = 0; i < iterations; i++) {
         encodingBenchmark.start();
-        final encoded =
-            coder.instructions.encode('benchmark_instruction', testArgs);
+        final encoded = coder.instructions.encode(
+          'benchmark_instruction',
+          testArgs,
+        );
         encodingBenchmark.stop();
 
         expect(encoded, isNotNull);
@@ -133,10 +135,7 @@ void main() {
             ),
           ],
           data: Uint8List.fromList(
-            List.generate(
-              64,
-              (index) => index % 256,
-            ),
+            List.generate(64, (index) => index % 256),
           ), // 64 bytes of test data
         );
 
@@ -180,6 +179,11 @@ void main() {
           IdlAccount(
             name: 'BenchmarkAccount',
             discriminator: [10, 20, 30, 40, 50, 60, 70, 80],
+          ),
+        ],
+        types: [
+          IdlTypeDef(
+            name: 'BenchmarkAccount',
             type: IdlTypeDefType(
               kind: 'struct',
               fields: [
@@ -206,12 +210,16 @@ void main() {
         accountBenchmark.start();
 
         // Encode account data
-        final encoded =
-            await coder.accounts.encode('BenchmarkAccount', testData);
+        final encoded = await coder.accounts.encode(
+          'BenchmarkAccount',
+          testData,
+        );
 
         // Decode account data
-        final decoded = coder.accounts
-            .decode<Map<String, dynamic>>('BenchmarkAccount', encoded);
+        final decoded = coder.accounts.decode<Map<String, dynamic>>(
+          'BenchmarkAccount',
+          encoded,
+        );
 
         accountBenchmark.stop();
 
