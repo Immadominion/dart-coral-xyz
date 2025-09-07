@@ -394,8 +394,20 @@ abstract class WalletAdapter {
   /// Sign a transaction using the external wallet
   Future<Transaction> signTransaction(Transaction transaction);
 
+  /// Sign a VersionedTransaction using the external wallet
+  ///
+  /// External wallets should implement VersionedTransaction support.
+  /// If not supported, should throw UnimplementedError with clear message.
+  Future<VersionedTransaction> signVersionedTransaction(VersionedTransaction transaction);
+
   /// Sign multiple transactions using the external wallet
   Future<List<Transaction>> signAllTransactions(List<Transaction> transactions);
+
+  /// Sign multiple VersionedTransactions using the external wallet
+  ///
+  /// External wallets should implement VersionedTransaction support.
+  /// If not supported, should throw UnimplementedError with clear message.
+  Future<List<VersionedTransaction>> signAllVersionedTransactions(List<VersionedTransaction> transactions);
 
   /// Sign an arbitrary message using the external wallet
   Future<Uint8List> signMessage(Uint8List message);
@@ -456,16 +468,21 @@ class AdapterWallet implements Wallet {
         return signedTx as T;
       } else if (transaction is VersionedTransaction) {
         // Handle VersionedTransaction signing for external wallets
-        // External wallets need to implement VersionedTransaction support in their adapter
-        throw UnimplementedError(
-            'VersionedTransaction signing via external wallet adapters not yet implemented. '
-            'External wallet must provide VersionedTransaction signing capability.');
+        final signedVersionedTx = await _adapter
+            .signVersionedTransaction(transaction as VersionedTransaction);
+        return signedVersionedTx as T;
       }
 
       throw ArgumentError(
           'Unsupported transaction type: ${transaction.runtimeType}. '
           'Supported types: Transaction, VersionedTransaction');
     } catch (e) {
+      if (e is UnimplementedError) {
+        // Re-throw UnimplementedError with more context
+        throw UnimplementedError(
+            'VersionedTransaction signing not supported by wallet adapter "${_adapter.name}". '
+            'Original error: ${e.message}');
+      }
       if (e.toString().contains('rejected') ||
           e.toString().contains('denied')) {
         throw const WalletUserRejectedException();
@@ -483,18 +500,33 @@ class AdapterWallet implements Wallet {
     }
 
     try {
-      // Convert to Transaction type for adapter
-      final regularTransactions =
-          transactions.whereType<Transaction>().toList();
-      if (regularTransactions.length != transactions.length) {
-        throw ArgumentError(
-            'AdapterWallet only supports Transaction type currently');
+      // Type-safe transaction signing - handle homogeneous lists
+      if (transactions.every((tx) => tx is Transaction)) {
+        final regularTransactions = transactions.cast<Transaction>();
+        final signedTransactions =
+            await _adapter.signAllTransactions(regularTransactions);
+        return signedTransactions.cast<T>();
+      } else if (transactions.every((tx) => tx is VersionedTransaction)) {
+        final versionedTransactions = transactions.cast<VersionedTransaction>();
+        final signedVersionedTransactions =
+            await _adapter.signAllVersionedTransactions(versionedTransactions);
+        return signedVersionedTransactions.cast<T>();
+      } else {
+        // Mixed transaction types - handle individually
+        final signedTransactions = <T>[];
+        for (final transaction in transactions) {
+          final signedTransaction = await signTransaction<T>(transaction);
+          signedTransactions.add(signedTransaction);
+        }
+        return signedTransactions;
       }
-
-      final signedTransactions =
-          await _adapter.signAllTransactions(regularTransactions);
-      return signedTransactions.cast<T>();
     } catch (e) {
+      if (e is UnimplementedError) {
+        // Re-throw UnimplementedError with more context
+        throw UnimplementedError(
+            'VersionedTransaction batch signing not supported by wallet adapter "${_adapter.name}". '
+            'Original error: ${e.message}');
+      }
       if (e.toString().contains('rejected') ||
           e.toString().contains('denied')) {
         throw const WalletUserRejectedException();
@@ -664,12 +696,40 @@ class MockWalletAdapter implements WalletAdapter {
   }
 
   @override
+  Future<VersionedTransaction> signVersionedTransaction(
+      VersionedTransaction transaction) async {
+    if (!_connected) {
+      throw const WalletNotConnectedException();
+    }
+
+    // Simulate signing delay
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    // For mock implementation with VersionedTransaction (CompiledMessage),
+    // we follow the TypeScript SDK pattern where VersionedTransaction.sign()
+    // modifies the transaction in place. Since CompiledMessage is immutable,
+    // we return the same transaction with signing deferred to provider level.
+    return transaction;
+  }
+
+  @override
   Future<List<Transaction>> signAllTransactions(
     List<Transaction> transactions,
   ) async {
     final signed = <Transaction>[];
     for (final tx in transactions) {
       signed.add(await signTransaction(tx));
+    }
+    return signed;
+  }
+
+  @override
+  Future<List<VersionedTransaction>> signAllVersionedTransactions(
+    List<VersionedTransaction> transactions,
+  ) async {
+    final signed = <VersionedTransaction>[];
+    for (final tx in transactions) {
+      signed.add(await signVersionedTransaction(tx));
     }
     return signed;
   }
