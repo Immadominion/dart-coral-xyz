@@ -15,6 +15,7 @@ import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/external/encoding_wrapper.dart';
 import 'package:coral_xyz/src/program/namespace/types.dart' as namespace_types;
 import 'package:solana/solana.dart' as solana;
+import 'package:solana/src/crypto/crypto.dart' as solana_crypto;
 
 /// A Solana keypair containing both public and private keys
 ///
@@ -188,12 +189,11 @@ class Keypair implements namespace_types.Signer {
 
   /// Verify a signature against this keypair's public key
   Future<bool> verify(Uint8List message, Uint8List signature) async {
-    // For now, signature verification is not directly supported with the current
-    // espresso-cash Ed25519HDKeyPair API. This would need to be implemented
-    // using a cryptographic verification library.
-    throw UnimplementedError(
-      'Signature verification not yet implemented with espresso-cash backend. '
-      'This requires integration with a cryptographic verification library.',
+    // Use espresso-cash's battle-tested signature verification
+    return await solana_crypto.verifySignature(
+      message: message.toList(),
+      signature: signature.toList(),
+      publicKey: _keypair.publicKey,
     );
   }
 

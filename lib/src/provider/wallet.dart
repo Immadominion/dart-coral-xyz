@@ -398,7 +398,8 @@ abstract class WalletAdapter {
   ///
   /// External wallets should implement VersionedTransaction support.
   /// If not supported, should throw UnimplementedError with clear message.
-  Future<VersionedTransaction> signVersionedTransaction(VersionedTransaction transaction);
+  Future<VersionedTransaction> signVersionedTransaction(
+      VersionedTransaction transaction);
 
   /// Sign multiple transactions using the external wallet
   Future<List<Transaction>> signAllTransactions(List<Transaction> transactions);
@@ -407,7 +408,8 @@ abstract class WalletAdapter {
   ///
   /// External wallets should implement VersionedTransaction support.
   /// If not supported, should throw UnimplementedError with clear message.
-  Future<List<VersionedTransaction>> signAllVersionedTransactions(List<VersionedTransaction> transactions);
+  Future<List<VersionedTransaction>> signAllVersionedTransactions(
+      List<VersionedTransaction> transactions);
 
   /// Sign an arbitrary message using the external wallet
   Future<Uint8List> signMessage(Uint8List message);
