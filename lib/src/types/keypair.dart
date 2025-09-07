@@ -142,6 +142,10 @@ class Keypair implements namespace_types.Signer {
   @override
   PublicKey get publicKey => _publicKey;
 
+  /// Get the internal espresso-cash Ed25519HDKeyPair for integration
+  /// This is used by AnchorProvider for espresso-cash transaction flow
+  solana.Ed25519HDKeyPair get espressoKeypair => _keypair;
+
   /// Get the secret key bytes (reconstructed as 64-byte format for compatibility)
   Uint8List get secretKey {
     // For compatibility, we need to reconstruct the 64-byte format

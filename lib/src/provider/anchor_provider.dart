@@ -160,6 +160,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:solana/dto.dart' as dto;
+import 'package:solana/solana.dart' as solana;
+import 'package:solana/encoder.dart' as encoder;
 import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/provider/wallet.dart';
 import 'package:coral_xyz/src/types/keypair.dart';
@@ -479,62 +481,15 @@ class AnchorProvider implements Provider {
 
     try {
       _logger.debug(
-          'Using wallet interface for transaction signing (matching TypeScript SDK)...');
+          'Using hybrid espresso-cash + dart-coral-xyz transaction flow (matching TypeScript SDK)...');
 
-      // Create a properly constructed transaction with feePayer and recentBlockhash
-      var txToSign = transaction;
-
-      // Set fee payer if not already set (matching TypeScript SDK behavior)
-      if (txToSign.feePayer == null) {
-        txToSign = txToSign.setFeePayer(wallet!.publicKey);
+      // For KeypairWallet, we can use pure espresso-cash flow for efficiency
+      if (wallet is KeypairWallet && (signers == null || signers.isEmpty)) {
+        return await _sendWithEspressoCashFlow(transaction, opts);
       }
 
-      // Get recent blockhash if not set
-      if (txToSign.recentBlockhash == null) {
-        final blockhashResult = await connection.getLatestBlockhash(
-          commitment:
-              _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
-        );
-        txToSign = txToSign.setRecentBlockhash(blockhashResult.blockhash);
-      }
-
-      // Add partial signatures from additional signers first (matching TypeScript SDK)
-      if (signers != null) {
-        await txToSign.sign(signers);
-      }
-
-      // Sign transaction with wallet (matching TypeScript SDK: await this.wallet.signTransaction(tx))
-      final signedTransaction = await wallet!.signTransaction(txToSign);
-
-      // Serialize and send the signed transaction using the connection's sendRawTransaction
-      final serializedTx = signedTransaction.serialize();
-
-      _logger.debug('Sending serialized transaction to network...');
-      final signature = await connection.sendRawTransaction(
-        serializedTx,
-        skipPreflight: opts.skipPreflight,
-        preflightCommitment:
-            _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
-        maxRetries: opts.maxRetries,
-      );
-
-      // Confirm the transaction using connection's confirmTransaction
-      await connection.confirmTransaction(
-        signature,
-        status: _toDtoCommitment(opts.commitment),
-      );
-
-      _logger.info('Transaction sent successfully via solana package');
-      _logger.debug(
-          'Received signature: $signature (length: ${signature.length})');
-
-      // Validate signature format (Solana signatures should be 88 characters in base58)
-      if (signature.length != 88) {
-        _logger.warn(
-            'Unusual signature length: ${signature.length}, expected 88. This might be a mock signature.');
-      }
-
-      return signature;
+      // For external wallets or when additional signers are present, use hybrid approach
+      return await _sendWithHybridFlow(transaction, signers, opts);
     } catch (e) {
       final enhancedError = translateRpcError(e);
       throw ProviderException(
@@ -542,6 +497,93 @@ class AnchorProvider implements Provider {
         e,
       );
     }
+  }
+
+  /// Pure espresso-cash flow for KeypairWallet (most efficient)
+  Future<String> _sendWithEspressoCashFlow(
+    transaction_types.Transaction transaction,
+    ConfirmOptions opts,
+  ) async {
+    _logger.debug('Using pure espresso-cash transaction flow...');
+
+    // Convert Transaction to espresso-cash Message format
+    final message = _convertToEspressoCashMessage(transaction);
+
+    // Convert KeypairWallet to espresso-cash format
+    final walletKeypair = (wallet as KeypairWallet).keypair;
+    final espressoSigners = [walletKeypair];
+
+    // Use Connection's espresso-cash-backed sendAndConfirmTransaction
+    final signature = await connection.sendAndConfirmTransaction(
+      message: message,
+      signers: espressoSigners,
+      commitment: _toDtoCommitment(opts.commitment),
+    );
+
+    _logger.info('Transaction sent successfully via pure espresso-cash');
+    _logger
+        .debug('Received signature: $signature (length: ${signature.length})');
+
+    return signature;
+  }
+
+  /// Hybrid flow for external wallets + additional signers (matches TypeScript SDK)
+  Future<String> _sendWithHybridFlow(
+    transaction_types.Transaction transaction,
+    List<Keypair>? signers,
+    ConfirmOptions opts,
+  ) async {
+    _logger.debug(
+        'Using hybrid dart-coral-xyz + espresso-cash transaction flow...');
+
+    // Create a properly constructed transaction with feePayer and recentBlockhash
+    var txToSign = transaction;
+
+    // Set fee payer if not already set (matching TypeScript SDK behavior)
+    if (txToSign.feePayer == null) {
+      txToSign = txToSign.setFeePayer(wallet!.publicKey);
+    }
+
+    // Get recent blockhash if not set
+    if (txToSign.recentBlockhash == null) {
+      final blockhashResult = await connection.getLatestBlockhash(
+        commitment:
+            _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+      );
+      txToSign = txToSign.setRecentBlockhash(blockhashResult.blockhash);
+    }
+
+    // Add partial signatures from additional signers first (matching TypeScript SDK)
+    if (signers != null) {
+      await txToSign.sign(signers);
+    }
+
+    // Sign transaction with wallet (matching TypeScript SDK: await this.wallet.signTransaction(tx))
+    final signedTransaction = await wallet!.signTransaction(txToSign);
+
+    // Serialize and send the signed transaction using the connection's sendRawTransaction
+    final serializedTx = signedTransaction.serialize();
+
+    _logger.debug('Sending serialized transaction to network...');
+    final signature = await connection.sendRawTransaction(
+      serializedTx,
+      skipPreflight: opts.skipPreflight,
+      preflightCommitment:
+          _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+      maxRetries: opts.maxRetries,
+    );
+
+    // Confirm the transaction using connection's confirmTransaction
+    await connection.confirmTransaction(
+      signature,
+      status: _toDtoCommitment(opts.commitment),
+    );
+
+    _logger.info('Transaction sent successfully via hybrid flow');
+    _logger
+        .debug('Received signature: $signature (length: ${signature.length})');
+
+    return signature;
   }
 
   /// Convert dart-coral-xyz commitment to solana dto commitment
@@ -751,6 +793,30 @@ class AnchorProvider implements Provider {
 
   @override
   int get hashCode => Object.hash(connection, wallet, options);
+
+  /// Convert dart-coral-xyz Transaction to espresso-cash Message format
+  encoder.Message _convertToEspressoCashMessage(
+      transaction_types.Transaction transaction) {
+    // Convert instructions
+    final instructions = <encoder.Instruction>[];
+    for (final ix in transaction.instructions) {
+      instructions.add(encoder.Instruction(
+        programId:
+            solana.Ed25519HDPublicKey.fromBase58(ix.programId.toBase58()),
+        accounts: ix.accounts
+            .map((meta) => encoder.AccountMeta(
+                  pubKey: solana.Ed25519HDPublicKey.fromBase58(
+                      meta.pubkey.toBase58()),
+                  isSigner: meta.isSigner,
+                  isWriteable: meta.isWritable,
+                ))
+            .toList(),
+        data: encoder.ByteArray(ix.data),
+      ));
+    }
+
+    return encoder.Message(instructions: instructions);
+  }
 }
 
 /// Exception thrown by provider operations

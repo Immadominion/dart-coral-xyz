@@ -10,7 +10,7 @@ import 'package:coral_xyz/src/types/transaction.dart';
 class SystemProgram {
   /// System Program ID
   static final PublicKey programId = PublicKey.fromBase58(
-    '11111111111111111111111111111112',
+    '11111111111111111111111111111111',
   );
 
   /// Create account instruction

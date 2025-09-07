@@ -116,7 +116,8 @@ class EspressoCashIntegration {
 
     final instructions = (coralTransaction['instructions'] as List)
         .map((ix) => encoder.Instruction(
-              programId: solana.Ed25519HDPublicKey.fromBase58(ix['programId'] as String),
+              programId: solana.Ed25519HDPublicKey.fromBase58(
+                  ix['programId'] as String),
               accounts: (ix['accounts'] as List)
                   .map((meta) => meta['isWritable'] as bool
                       ? encoder.AccountMeta.writeable(
