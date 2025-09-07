@@ -6,10 +6,12 @@
 library;
 
 import 'dart:typed_data';
+
 import 'package:bs58/bs58.dart';
-import 'package:coral_xyz/src/utils/binary_writer.dart';
-import 'package:coral_xyz/src/types/public_key.dart';
-import 'package:coral_xyz/src/types/keypair.dart';
+
+import '../utils/binary_writer.dart';
+import 'keypair.dart';
+import 'public_key.dart';
 
 // Helper functions for collections comparison
 bool _listEquals<T>(List<T>? a, List<T>? b) {
@@ -299,23 +301,24 @@ class Transaction {
     }
     final message = _serializeMessage();
     final writer = BinaryWriter();
-    
+
     // Get properly ordered account keys to match signature order
     final accountData = _getOrderedAccountKeys();
     final accountKeys = accountData['keys'] as List<PublicKey>;
     final numRequiredSignatures = accountData['numRequiredSignatures'] as int;
-    
+
     // Write signatures in the same order as the signers appear in account keys
     final orderedSignatures = <Uint8List>[];
     for (int i = 0; i < numRequiredSignatures; i++) {
       final signerKey = accountKeys[i];
       final signature = _signatures[signerKey.toBase58()];
       if (signature == null) {
-        throw StateError('Missing signature for required signer: ${signerKey.toBase58()}');
+        throw StateError(
+            'Missing signature for required signer: ${signerKey.toBase58()}');
       }
       orderedSignatures.add(signature);
     }
-    
+
     writer.writeCompactU16(orderedSignatures.length);
     for (final sig in orderedSignatures) {
       writer.write(sig);
