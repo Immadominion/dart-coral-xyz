@@ -255,7 +255,8 @@ class InstructionBuilder {
     } else if (accountItem is IdlInstructionAccounts) {
       // Recursively process nested account groups
       for (final nestedAccount in accountItem.accounts) {
-        _buildAccountMetasRecursive(nestedAccount, resolvedAccounts, accountMetas);
+        _buildAccountMetasRecursive(
+            nestedAccount, resolvedAccounts, accountMetas);
       }
     }
   }

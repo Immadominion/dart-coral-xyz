@@ -243,11 +243,12 @@ void main() {
 Map<String, dynamic> createTestAccountData({
   required String name,
   required int lamports,
-}) => {
-  'name': name,
-  'lamports': lamports,
-  'timestamp': DateTime.now().millisecondsSinceEpoch,
-};
+}) =>
+    {
+      'name': name,
+      'lamports': lamports,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    };
 
 /// Helper assertion for account data
 void expectAnchorAccount(

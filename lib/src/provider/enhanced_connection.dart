@@ -16,7 +16,6 @@ import 'package:coral_xyz/src/provider/connection.dart';
 import 'package:coral_xyz/src/types/connection_config.dart';
 import 'package:solana/dto.dart' as dto;
 
-
 /// Configuration for retry strategies
 class RetryConfig {
   const RetryConfig({
@@ -286,7 +285,8 @@ class EnhancedConnection extends Connection {
     dto.Encoding? encoding,
   }) async =>
       _executeWithRetry(
-        () => super.getAccountInfo(address, commitment: commitment, encoding: encoding),
+        () => super.getAccountInfo(address,
+            commitment: commitment, encoding: encoding),
       );
 
   /// Enhanced latest blockhash fetching with retry
@@ -304,7 +304,8 @@ class EnhancedConnection extends Connection {
     dto.Encoding? encoding,
   }) async =>
       _executeWithRetry(
-        () => super.getMultipleAccountsInfo(addresses, commitment: commitment, encoding: encoding),
+        () => super.getMultipleAccountsInfo(addresses,
+            commitment: commitment, encoding: encoding),
       );
 
   /// Enhanced program accounts fetching with retry
@@ -427,9 +428,10 @@ class EnhancedConnection extends Connection {
     var delay = math.min(baseDelay, _retryConfig.maxDelayMs);
 
     if (_retryConfig.enableJitter) {
-      final jitter =
-          (delay * _retryConfig.jitterFactor * (math.Random().nextDouble() * 2 - 1))
-              .round();
+      final jitter = (delay *
+              _retryConfig.jitterFactor *
+              (math.Random().nextDouble() * 2 - 1))
+          .round();
       delay += jitter;
       delay = math.max(delay, 0);
     }

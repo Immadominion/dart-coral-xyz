@@ -43,7 +43,7 @@ class EventParser {
   /// Regular expression matching TypeScript INVOKE_RE exactly
   static final RegExp _invokeRegex =
       RegExp(r'^Program ([1-9A-HJ-NP-Za-km-z]+) invoke \[(\d+)\]$');
-  
+
   /// Root depth constant matching TypeScript ROOT_DEPTH exactly
   static const String _rootDepth = '1';
 
@@ -116,13 +116,14 @@ class EventParser {
 
   /// Handle logs from *this* program - matching TypeScript SDK exactly
   /// TypeScript signature: private handleProgramLog(log: string, errorOnDecodeFailure: boolean): [Event | null, string | null, boolean]
-  (Event<IdlEvent, dynamic>?, String?, bool) _handleProgramLog(String log, bool errorOnDecodeFailure) {
+  (Event<IdlEvent, dynamic>?, String?, bool) _handleProgramLog(
+      String log, bool errorOnDecodeFailure) {
     // This is a `msg!` log or a `sol_log_data` log
     if (log.startsWith(_programLog) || log.startsWith(_programData)) {
       final logStr = log.startsWith(_programLog)
           ? log.substring(_programLogStartIndex)
           : log.substring(_programDataStartIndex);
-      
+
       // Exact TypeScript behavior: const event = this.coder.events.decode(logStr);
       final event = coder.events.decode(logStr);
 

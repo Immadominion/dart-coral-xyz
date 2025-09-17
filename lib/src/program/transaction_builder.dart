@@ -11,8 +11,7 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:coral_xyz/src/types/transaction.dart'
-    as transaction_types;
+import 'package:coral_xyz/src/types/transaction.dart' as transaction_types;
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
 import 'package:coral_xyz/src/program/namespace/types.dart';

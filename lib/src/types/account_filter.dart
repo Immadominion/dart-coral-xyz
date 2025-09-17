@@ -9,7 +9,7 @@ import 'dart:typed_data';
 /// Matches TypeScript SDK AccountFilter functionality
 abstract class AccountFilter {
   const AccountFilter();
-  
+
   /// Convert filter to JSON for RPC calls
   Map<String, dynamic> toJson();
 }
@@ -19,41 +19,42 @@ abstract class AccountFilter {
 class MemcmpFilter extends AccountFilter {
   final int offset;
   final String bytes;
-  
+
   const MemcmpFilter({
     required this.offset,
     required this.bytes,
   });
-  
+
   @override
   Map<String, dynamic> toJson() => {
-    'memcmp': {
-      'offset': offset,
-      'bytes': bytes,
-    }
-  };
+        'memcmp': {
+          'offset': offset,
+          'bytes': bytes,
+        }
+      };
 }
 
 /// Data size filter - matches accounts with specific data size
 /// Equivalent to anchor/ts dataSize filter
 class DataSizeFilter extends AccountFilter {
   final int dataSize;
-  
+
   const DataSizeFilter(this.dataSize);
-  
+
   @override
   Map<String, dynamic> toJson() => {
-    'dataSize': dataSize,
-  };
+        'dataSize': dataSize,
+      };
 }
 
 /// Convenience factory for creating filters
 class AccountFilters {
   static MemcmpFilter memcmp({required int offset, required String bytes}) =>
       MemcmpFilter(offset: offset, bytes: bytes);
-  
-  static MemcmpFilter memcmpFromBuffer({required int offset, required Uint8List buffer}) =>
+
+  static MemcmpFilter memcmpFromBuffer(
+          {required int offset, required Uint8List buffer}) =>
       MemcmpFilter(offset: offset, bytes: buffer.toString());
-      
+
   static DataSizeFilter dataSize(int size) => DataSizeFilter(size);
 }

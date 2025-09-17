@@ -76,11 +76,10 @@ class MockConnection extends Connection {
 /// Mock wallet for testing with customizable signing behavior
 class MockWallet implements Wallet {
   MockWallet([Keypair? keypair])
-    : _keypair =
-          keypair ??
-          Keypair.fromSecretKey(
-            Uint8List.fromList(List.generate(32, (i) => i + 1)),
-          );
+      : _keypair = keypair ??
+            Keypair.fromSecretKey(
+              Uint8List.fromList(List.generate(32, (i) => i + 1)),
+            );
   final Keypair _keypair;
   bool _shouldThrowOnSign = false;
   Exception? _signException;
@@ -187,11 +186,12 @@ TransactionInstruction buildTestInstruction({
   List<AccountMeta> accounts = const [],
   List<int> data = const [],
   String? instructionName,
-}) => TransactionInstruction(
-  programId: programId,
-  accounts: accounts,
-  data: Uint8List.fromList(data),
-);
+}) =>
+    TransactionInstruction(
+      programId: programId,
+      accounts: accounts,
+      data: Uint8List.fromList(data),
+    );
 
 /// Create a test IDL for testing purposes
 Idl createTestIdl({
@@ -200,28 +200,28 @@ Idl createTestIdl({
   List<IdlInstruction>? instructions,
   List<IdlAccount>? accounts,
   List<IdlTypeDef>? types,
-}) => Idl(
-  address: address ?? 'TestProgram111111111111111111111111111111',
-  metadata: IdlMetadata(name: name, version: '0.1.0', spec: '0.1.0'),
-  instructions:
-      instructions ??
-      [
-        IdlInstruction(
-          name: 'initialize',
-          discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
-          accounts: [
-            const IdlInstructionAccount(
-              name: 'user',
-              writable: true,
-              signer: true,
+}) =>
+    Idl(
+      address: address ?? 'TestProgram111111111111111111111111111111',
+      metadata: IdlMetadata(name: name, version: '0.1.0', spec: '0.1.0'),
+      instructions: instructions ??
+          [
+            IdlInstruction(
+              name: 'initialize',
+              discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
+              accounts: [
+                const IdlInstructionAccount(
+                  name: 'user',
+                  writable: true,
+                  signer: true,
+                ),
+              ],
+              args: [IdlField(name: 'amount', type: idlTypeU64())],
             ),
           ],
-          args: [IdlField(name: 'amount', type: idlTypeU64())],
-        ),
-      ],
-  accounts: accounts,
-  types: types,
-);
+      accounts: accounts,
+      types: types,
+    );
 
 /// Create a test program with mock provider
 Program createTestProgram({Idl? idl, AnchorProvider? provider}) {

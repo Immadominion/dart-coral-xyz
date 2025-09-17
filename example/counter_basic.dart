@@ -79,8 +79,7 @@ Future<void> main() async {
     try {
       final sig1 = await program.methods['initialize']()
           .accounts(initAccounts)
-          .signers([counterKeypair])
-          .rpc();
+          .signers([counterKeypair]).rpc();
       print('   ✓ initialize RPC signature: $sig1');
     } catch (e) {
       print('   ⚠ initialize RPC skipped (demo): $e');

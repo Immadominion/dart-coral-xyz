@@ -8,12 +8,12 @@ library;
 class IdlTypeArg {
   final String name;
   final dynamic type;
-  
+
   const IdlTypeArg({
     required this.name,
     required this.type,
   });
-  
+
   /// Create from JSON representation
   factory IdlTypeArg.fromJson(Map<String, dynamic> json) {
     return IdlTypeArg(
@@ -21,13 +21,13 @@ class IdlTypeArg {
       type: json['type'],
     );
   }
-  
+
   /// Convert to JSON representation
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'type': type,
-  };
-  
+        'name': name,
+        'type': type,
+      };
+
   @override
   String toString() => 'IdlTypeArg(name: $name, type: $type)';
 }
@@ -37,7 +37,7 @@ class IdlTypeArg {
 mixin IdlInstructionExtensions {
   /// Documentation strings for the instruction
   List<String>? get docs => null;
-  
+
   /// Return type specification (string format)
   String? get returns => null;
 }

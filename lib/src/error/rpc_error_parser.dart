@@ -9,8 +9,7 @@ library;
 
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/error/anchor_error.dart';
-import 'package:coral_xyz/src/error/program_error.dart'
-    as programErrorLib;
+import 'package:coral_xyz/src/error/program_error.dart' as programErrorLib;
 
 /// Result of RPC error parsing
 class RpcErrorParseResult {
