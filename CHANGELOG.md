@@ -258,285 +258,84 @@ First production-ready release of Coral XYZ Anchor for Dart, providing comprehen
 
 ---
 
-## [1.0.0-beta.3] - 2025-08-04
+## [1.0.0-beta.5] - 2025-09-20
 
-### 🔧 Critical Bug Fixes
-
-#### PDA Derivation Fix
-
-- **Fixed ConstraintSeeds Error (0x7d6)** - Resolved critical PDA mismatch error in Flutter applications
-  - **Root Cause**: Custom PDA implementation had subtle differences from canonical Solana algorithm
-  - **Solution**: Delegated PDA derivation to proven `solana` package implementation
-  - **Impact**: 100% compatibility with Solana's canonical PDA algorithm
-  - **Validation**: Fixed PDA generation from `AfhVdb9QhmTEZur1u1m3fkDHpLLR4rzFRP2amxjmFkKc` to correct `4Nc4fR56EqUXX8P6bp857EKygY4GJe1JmE953KAZaWGR`
-
-#### Code Quality Improvements
-
-- **Eliminated Code Duplication** - Removed unnecessary custom exception files
-  - Discovered existing comprehensive error system with 56+ error-related files
-  - Replaced custom `PdaException` with standard `FormatException` following ecosystem patterns
-  - Aligned with reference implementations (espresso-cash-public patterns)
-- **Enhanced Error Handling** - Standardized error handling across the library
-  - Improved error messages for better debugging experience
-  - Consistent exception types aligned with Dart ecosystem standards
-- **Streamlined Dependencies** - Optimized use of external packages
-  - Strategic delegation to `solana` package for critical cryptographic operations
-  - Reduced maintenance overhead and potential for compatibility issues
-
-### 🎯 Example Applications Updated
-
-- **Todo App Optimization** - Reduced from 360 to 180 lines (50% code reduction)
-  - Streamlined service layer implementation
-  - Direct JSON parsing of IDL constants
-  - Cleaner method calls and error handling
-- **Voting App Performance** - Maintained 57% code reduction vs manual Solana integration
-  - Verified compatibility with updated PDA derivation
-  - Enhanced real-time updates and state management
-
-### 🔧 Developer Experience
-
-- **Clean Analysis** - Zero analyzer issues in production code
-- **Improved Documentation** - Enhanced inline documentation and error messages
-- **Better Testing** - Comprehensive validation of PDA derivation fix
-
----
-
-## [1.0.0-beta.2] - 2025-01-28
-
-### Development History
-
-The following features were implemented during the development phases leading to the 1.0.0 release:
-
-#### Phase 1: Foundation (Completed)
-
-- ✅ Project structure and dependency management
-- ✅ Core type definitions (PublicKey, Keypair, Transaction)
-- ✅ External wrapper system for consistent APIs
-- ✅ Basic utility classes and error handling
-
-#### Phase 2: IDL System (Completed)
-
-- ✅ Complete IDL type definitions and parsing
-- ✅ IDL validation and utility functions
-- ✅ TypeScript compatibility and conversion utilities
-- ✅ Comprehensive test coverage for IDL operations
-
-#### Phase 3: Serialization (Completed)
-
-- ✅ Full Borsh serialization implementation
-- ✅ Anchor-specific Borsh extensions
-- ✅ Discriminator handling for accounts, instructions, and events
-- ✅ Performance-optimized serialization paths
-
-#### Phase 4: Provider System (Completed)
-
-- ✅ AnchorProvider implementation with wallet integration
-- ✅ Connection management and RPC operations
-- ✅ Transaction signing and submission
-- ✅ Commitment level handling and configuration
-
-#### Phase 5: Program Interface (Completed)
-
-- ✅ Core Program class with namespace generation
-- ✅ Dynamic method builders and account resolvers
-- ✅ Transaction construction and simulation
-- ✅ Type-safe program interactions
-
-#### Phase 6: Event System (Completed)
-
-- ✅ Real-time event listening and parsing
-- ✅ Event filtering and aggregation
-- ✅ Event persistence and debugging utilities
-- ✅ Comprehensive event management APIs
-
-#### Phase 7: Production Readiness (Completed)
-
-- ✅ Code quality improvements and linting compliance
-- ✅ Test suite cleanup and comprehensive coverage
-- ✅ Example refinement and documentation
-- ✅ Performance optimizations and security review
-
-### Dependencies Evolution
-
-During development, the following dependency decisions were made:
-
-- **Adopted**: `solana` package for core RPC functionality
-- **Implemented**: Custom Borsh serialization for performance and compatibility
-- **Selected**: `cryptography` for robust cryptographic operations
-- **Integrated**: `logging` framework for production-grade logging
-- **Resolved**: Version conflicts through careful dependency management
-
-### Code Quality Metrics
-
-- **Dart Analyzer**: 0 issues in production code
-- **Test Coverage**: >95% line coverage
-- **Documentation**: 100% public API coverage
-- **Performance**: Baseline benchmarks established
-- **Security**: Comprehensive security review completed
-
-  - `validateIdl()`: Comprehensive IDL validation with detailed error reporting
-  - `extractTypeReferences()`: Extract all type names referenced in IDL
-  - `findAccountsUsingType()`: Find accounts that reference specific types
-  - `findInstructionsUsingAccount()`: Find instructions using specific accounts
-  - `calculateComplexity()`: IDL complexity analysis and metrics
-  - `generateSummary()`: High-level IDL summary for documentation
-  - Validation features:
-    - Discriminator uniqueness validation for instructions and accounts
-    - Type reference consistency checking
-    - Field type validation with context-aware error reporting
-    - Circular dependency detection
-    - Comprehensive error and warning categorization
-  - Analysis features:
-    - Complexity scoring (0-100 scale) based on structure, field counts, and nesting
-    - Type usage analysis and dependency mapping
-    - Dead code detection for unused types
-    - Cross-reference analysis between instructions, accounts, and types
-  - CamelCase conversion:
-    - Automatic snake_case to camelCase conversion for Dart conventions
-    - Preserves field paths with proper dot notation handling
-    - Maintains IDL structure integrity during conversion
-  - Result types:
-    - `IdlValidationResult`: Structured validation results with errors and warnings
-    - `IdlComplexityMetrics`: Detailed complexity analysis with scoring
-    - `IdlSummary`: High-level program overview for documentation
-  - Comprehensive error handling and null safety throughout
-  - Ready for integration with PDA derivation (Phase 3) and account fetching (Phase 4)
-
-- **Task 2.1: IDL Type Definitions (COMPLETED)**
-
-  - Implemented comprehensive IDL type system in `lib/src/idl/idl.dart`
-  - Core IDL classes:
-    - `Idl`: Main IDL structure with JSON parsing, validation, and lookup methods
-    - `IdlMetadata`: Program metadata with versioning and deployment info
-    - `IdlInstruction`: Instruction definitions with discriminators, accounts, and args
-    - `IdlAccount`: Account type definitions with field specifications
-    - `IdlEvent`: Event definitions for program event emissions
-    - `IdlErrorCode`: Error code definitions with human-readable messages
-    - `IdlTypeDef`: Custom type definitions for program-specific types
-    - `IdlConst`: Program constant definitions
-    - `IdlField`: Field definitions with type information and documentation
-    - `IdlType`: Comprehensive type system supporting all Anchor/Borsh types
-  - Advanced type support:
-    - Primitive types (bool, u8-u128, i8-i128, f32, f64, string, publicKey, bytes)
-    - Collection types (vec, array with size specification)
-    - Optional types (option wrapper)
-    - Custom defined types with references
-    - Struct types with field definitions
-    - Enum types with variant support (including tuple/struct variants)
-  - JSON serialization/deserialization for all IDL components
-  - IDL validation with comprehensive error reporting
-  - Lookup methods for instructions, accounts, events, errors, types, and constants
-  - Type introspection methods (isPrimitive, isCollection, isOptional, isDefined)
-  - Proper error handling and null safety throughout
-  - Comprehensive documentation and string representations
-
-- **Borsh Serialization System (Phase 3.1 - COMPLETED)**
-
-  - Implemented comprehensive Borsh serialization from scratch following the official specification
-  - Added `BorshSerializer` with support for all basic types: u8, u16, u32, u64, bool, string, arrays, options
-  - Created `BorshDeserializer` with little-endian integer support and proper error handling
-  - Implemented `BorshUtils` with Anchor-specific discriminator generation for accounts and instructions
-  - Added `BorshStruct` base class and `BorshSerializableMixin` for custom data structures
-  - Updated `BorshWrapper` to use the new implementation instead of placeholder code
-  - Created 27 comprehensive tests covering all serialization/deserialization scenarios
-  - All tests pass with proper type safety and error handling
-
-- Initial project structure and roadmap
-- Basic package configuration
-- Core module placeholders
-- Development environment setup
-- External dependency wrappers for consistent API design
-- Comprehensive dependency analysis and selection
-- SolanaRpcWrapper for enhanced RPC operations
-- BorshWrapper for Anchor-specific serialization
-- CryptoWrapper for ED25519 operations and HD key derivation
-- EncodingWrapper for Base58, Base64, and hex encoding
-- DEPENDENCIES.md with complete dependency documentation
-- Task implementation reporting system
-- **Task 1.3**: Complete basic type definitions system
-
-  - PublicKey class with base58/hex support and PDA derivation
-  - Keypair class with multiple creation methods and wallet interface
-  - Transaction types (Transaction, TransactionInstruction, AccountMeta, Signature)
-  - Commitment level enums and configuration
-  - Connection configuration with network presets
-  - Comprehensive utility classes (ByteUtils, StringUtils, NumberUtils)
-  - Result type for error handling
-  - Custom exception types for different error scenarios
-
-- **Test Type Fixes (COMPLETED)**
-  - Fixed all `List<int>` vs `Uint8List` type errors in test files
-  - Corrected exception type expectations in `external_wrappers_test.dart`
-  - Updated test cases to use proper `Uint8List.fromList()` conversions
-  - Enhanced hex validation tests with better error type coverage
-  - All tests now pass without type-related compilation errors
-
-### Changed
-
-- Updated pubspec.yaml with carefully selected external packages
-- Enhanced project structure with external wrapper layer
-
-### Dependencies Added
-
-- solana: ^0.31.2+1 (Primary Solana RPC client)
-- borsh: ^0.3.2 (Borsh serialization)
-- cryptography: ^2.7.0 (ED25519 cryptography)
-- ed25519_hd_key: ^2.3.0 (HD key derivation)
-- bs58: ^1.0.2 (Base58 encoding)
-- base_codecs: ^1.0.1 (Additional encodings)
-- blockchain_utils: ^5.0.0 (Comprehensive utilities)
-
-### Deprecated
-
-- N/A
-
-### Removed
-
-- N/A
-
-### Fixed
-
-- N/A
-
-### Security
-
-- N/A
-
-## [0.1.0] - 2024-XX-XX
+Note: 1.0.0-beta.4 shipped without a changelog. This section consolidates all substantive changes that landed after beta.3 and were included in the beta.4 release, plus minor publishing prep.
 
 ### Added
+- Versioned Transactions (v0)
+  - New support utilities in `provider/versioned_transaction_support.dart`
+  - Builder enhancements for size estimation and message compilation
+  - Multiple commits: introduce and consolidate VersionedTransaction support
+- SPL Program Modules
+  - `spl/token_program.dart`
+  - `spl/associated_token_account_program.dart`
+  - `spl/token_swap_program.dart` (+ experimental `token_swap_program_new.dart`)
+- Event System Enhancements
+  - TS-compatible event parser `event/event_parser_ts_compatible.dart`
+  - `event/event_type_converters.dart`, `event/program_event_subscription.dart`
+  - New aggregation, replay, subscription helpers and stronger parsing
+- IDL & Coders
+  - `coder/idl_coder.dart` and `idl/idl_extensions.dart`
+  - Improved `type_converter.dart`, `types_coder.dart`, `instruction_coder.dart`, `event_coder.dart`
+- Program & Workspace
+  - `program/common.dart` and upgrades across namespaces (account/instruction/simulate/transaction)
+  - Stronger `accounts_resolver`, `method_interface_generator`, `method_validator`
+- Utilities (TypeScript parity)
+  - `utils/sha256.dart`, `utils/bytes.dart`, `utils/hex.dart`,
+    `utils/token.dart`, `utils/registry.dart`, `utils/rpc.dart`,
+    `utils/commitment_utils.dart`, `utils/type_adapters.dart`
+- Types & PDA
+  - `types/account_filter.dart`, `types/public_key_new.dart`
+  - PDA engine improvements in `pda/pda_derivation_engine.dart`
+- Docs
+  - Integration guides: Flutter, Web, Server (added under docs/ and later mirrored in doc/ for pub.dev)
+- GitHub Hygiene
+  - Issue templates and PR template added under `.github/`
 
-- Initial release with basic project structure
-- Comprehensive roadmap for development
-- Core architecture planning
-- Documentation framework
+### Changed
+- Provider & Wallet Interface (breaking)
+  - Removed implicit `KeypairWallet` assumption/casts
+  - Now rely on wallet interface: `signTransaction`/`signAllTransactions`
+- Transactions
+  - `enhanced_transaction_builder.dart` and `transaction_builder.dart` refactors
+  - Connection pooling, enhanced RPC handling (`provider/connection*.dart`)
+- Borsh & Discriminators
+  - Improved Borsh coders (`borsh_accounts_coder.dart`, `borsh_types.dart`)
+  - Discriminator computation/validation paths cleaned up
+- Programs & Namespaces
+  - Major refactors in `namespace/*` for account fetching, simulations, and transactions
+  - Stronger error handling via `program_error_handler.dart`
+- IDL & Types
+  - `idl/idl.dart`, `idl_utils.dart` improvements; richer type handling in `types/transaction.dart`
+- Entrypoint
+  - Public entrypoint aligned to package name (`lib/coral_xyz.dart`) for pub.dev best practices
 
-## [1.0.0-beta.2] - 2025-01-28
+### Removed / Cleanup
+- Large debug/performance/test scaffolding removed to slim package:
+  - Entire `debug/` directory, legacy performance tools, and many exploratory tests
+  - Old compatibility shims (e.g., `compat/bn_js_compat.dart`, old account ops)
+- IDE/internal-only generators and helpers moved or removed
 
-### 🔧 Fixes and Improvements
+### Build & Codegen
+- Generators updated: account/instruction/program/type
+- Builder config normalized from `coral_xyz_anchor` to `coral_xyz`
+- Combining builder syntax modernized: `source_gen:combining_builder`
 
-#### Code Quality and Robustness
+### Documentation
+- New integration docs (Flutter/Web/Server)
+- Pub.dev layout conformance by introducing `doc/` (singular)
 
-- **Enhanced Error Handling** - Improved error handling and logging across core modules including account_fetcher and anchor_provider
-- **Code Formatting** - Consistent formatting applied across borsh_accounts_coder, borsh_types, and test files
-- **Transaction Conversion** - Enhanced transaction conversion logic with better error messages and debugging support
-- **Debugging Support** - Added proper offset tracking in BorshDeserializer for improved debugging capabilities
+### Dependencies
+- Stayed on `build` ~2.4.x and `source_gen` ~1.5.x to remain compatible with `borsh`
+- Analyzer pinned in the 6.x line for codegen utilities used under `lib/`
 
-#### Developer Experience
+### Migration Notes
+- Update wallet usage to interface methods (no direct `KeypairWallet` casting)
+- If you rely on event parsing, prefer the TS-compatible parsers and converters
+- For SPL interactions, import from the new `spl/*` modules
+- Regenerate any code using the updated builders if you depend on generators
 
-- **Import Consistency** - Standardized import formatting across all modules for better code readability
-- **Test Quality** - Improved test formatting and readability in borsh_accounts_coder_test.dart
-- **Documentation** - Enhanced inline documentation and error messages
+## [1.0.0-beta.4] - 2025-09-06
 
-#### Compatibility
-
-- **API Stability** - All improvements maintain full backward compatibility with existing API
-- **TypeScript Parity** - Continues to provide 1:1 feature compatibility with `@coral-xyz/anchor`
-
-### 🎯 Featured Example
-
-- **Voting App Example** - Added comprehensive voting application in coral-xyz-examples showcasing:
-  - **57% Code Reduction** - 327 lines vs 766+ lines compared to manual Solana integration
-  - **Real-time Updates** - Live vote count updates using automatic Borsh deserialization
-  - **Production Patterns** - Error handling, state management, and modern Flutter UI
-  - **Setup Templates** - Safe configuration templates for easy project setup
+(Changelog was skipped at release time. All beta.4 content is documented under 1.0.0-beta.5.)
