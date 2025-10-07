@@ -339,3 +339,11 @@ Note: 1.0.0-beta.4 shipped without a changelog. This section consolidates all su
 ## [1.0.0-beta.4] - 2025-09-06
 
 (Changelog was skipped at release time. All beta.4 content is documented under 1.0.0-beta.5.)
+
+## [1.0.0-beta.6] - 2025-10-07
+
+(Changelog was skipped at release time. All beta.4 content is documented under 1.0.0-beta.5.)
+
+### Changed
+- Wrong github address url
+  - Updated the github url to point to the right link to avoid 404 errors

@@ -3,7 +3,7 @@ description: |
   A Dart client for Anchor programs on Solana.
   Provides type-safe program interactions, IDL parsing, and seamless integration
   with Solana's Anchor framework.
-version: 1.0.0-beta.5
+version: 1.0.0-beta.6
 homepage: https://github.com/Immadominion/dart-coral-xyz
 repository: https://github.com/Immadominion/dart-coral-xyz
 issue_tracker: https://github.com/Immadominion/dart-coral-xyz/issues
