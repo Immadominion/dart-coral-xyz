@@ -941,4 +941,4 @@ services:
 
 ---
 
-**Need Help?** Join our [GitHub Discussions](https://github.com/coral-xyz/dart-coral-xyz/discussions) for server-side development questions and support!
+**Need Help?** Join our [GitHub Discussions](https://github.com/Immadominion/dart-coral-xyz/discussions) for server-side development questions and support!

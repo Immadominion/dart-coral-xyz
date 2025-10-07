@@ -173,7 +173,7 @@
 ///
 /// ## See Also
 ///
-/// - [Examples](https://github.com/coral-xyz/dart-coral-xyz/tree/main/example) - Working examples
+/// - [Examples](https://github.com/Immadominion/dart-coral-xyz/tree/main/example) - Working examples
 /// - [Anchor Documentation](https://www.anchor-lang.com/) - Learn Anchor framework
 /// - [Solana Documentation](https://docs.solana.com/) - Solana blockchain docs
 library coral_xyz;

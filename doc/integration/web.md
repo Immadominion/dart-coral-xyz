@@ -790,4 +790,4 @@ Check out these community-created web applications:
 
 ---
 
-**Need Help?** Join our [GitHub Discussions](https://github.com/coral-xyz/dart-coral-xyz/discussions) for web-specific questions and support!
+**Need Help?** Join our [GitHub Discussions](https://github.com/Immadominion/dart-coral-xyz/discussions) for web-specific questions and support!

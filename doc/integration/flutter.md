@@ -560,4 +560,4 @@ Check out these community-created Flutter + coral_xyz examples:
 
 ---
 
-**Need Help?** Join our [GitHub Discussions](https://github.com/coral-xyz/dart-coral-xyz/discussions) or check out the [Flutter Community](https://flutter.dev/community) for additional support!
+**Need Help?** Join our [GitHub Discussions](https://github.com/Immadominion/dart-coral-xyz/discussions) or check out the [Flutter Community](https://flutter.dev/community) for additional support!

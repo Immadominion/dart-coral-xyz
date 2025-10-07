@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 💬 Community Discussion
-    url: https://github.com/coral-xyz/dart-coral-xyz/discussions
+    url: https://github.com/Immadominion/dart-coral-xyz/discussions
     about: Ask questions and discuss with the community
   - name: 📚 Documentation
     url: https://pub.dev/documentation/coral_xyz

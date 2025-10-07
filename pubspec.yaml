@@ -4,9 +4,9 @@ description: |
   Provides type-safe program interactions, IDL parsing, and seamless integration
   with Solana's Anchor framework.
 version: 1.0.0-beta.5
-homepage: https://github.com/coral-xyz/dart-coral-xyz
-repository: https://github.com/coral-xyz/dart-coral-xyz
-issue_tracker: https://github.com/coral-xyz/dart-coral-xyz/issues
+homepage: https://github.com/Immadominion/dart-coral-xyz
+repository: https://github.com/Immadominion/dart-coral-xyz
+issue_tracker: https://github.com/Immadominion/dart-coral-xyz/issues
 documentation: https://pub.dev/documentation/coral_xyz
 
 environment:

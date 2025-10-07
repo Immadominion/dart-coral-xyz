@@ -158,7 +158,7 @@ import 'package:coral_xyz/src/program/program_error_handler.dart';
 /// | `program.instruction.init()` | `program.instruction.init()` | Raw instructions |
 /// | `program.transaction.init()` | `program.transaction.init()` | Transaction builders |
 ///
-/// See the [migration guide](https://github.com/coral-xyz/dart-coral-xyz/blob/main/MIGRATION.md)
+/// See the [migration guide](https://github.com/Immadominion/dart-coral-xyz/blob/main/MIGRATION.md)
 /// for detailed TypeScript to Dart conversion patterns.
 class Program<T extends Idl> {
   /// Creates a new Program instance

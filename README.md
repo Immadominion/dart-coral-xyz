@@ -358,7 +358,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/coral-xyz/dart-coral-xyz.git
+   git clone https://github.com/Immadominion/dart-coral-xyz.git
    cd dart-coral-xyz
    ```
 
@@ -443,6 +443,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ for the Solana ecosystem**
 
-[⭐ Star us on GitHub](https://github.com/coral-xyz/dart-coral-xyz) | [🐛 Report Issues](https://github.com/coral-xyz/dart-coral-xyz/issues) | [💬 Join Discord](https://discord.gg/anchor)
+[⭐ Star us on GitHub](https://github.com/Immadominion/dart-coral-xyz) | [🐛 Report Issues](https://github.com/Immadominion/dart-coral-xyz/issues) | [💬 Join Discord](https://discord.gg/anchor)
 
 </div>
