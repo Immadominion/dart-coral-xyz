@@ -3,7 +3,7 @@ description: |
   A Dart client for Anchor programs on Solana.
   Provides type-safe program interactions, IDL parsing, and seamless integration
   with Solana's Anchor framework.
-version: 1.0.0-beta.7
+version: 1.0.0-beta.8
 homepage: https://github.com/Immadominion/dart-coral-xyz
 repository: https://github.com/Immadominion/dart-coral-xyz
 issue_tracker: https://github.com/Immadominion/dart-coral-xyz/issues
@@ -14,11 +14,9 @@ environment:
 
 dependencies:
   # Core Dart dependencies
-  analyzer: ^8.4.0                     # Static analysis (latest stable)
   base_codecs: ^1.0.1                  # Additional base encodings
   blockchain_utils: ^5.2.0             # Enhanced blockchain utilities (updated)
   bs58: ^1.0.2                         # Base58 encoding (Bitcoin-style)
-  build: ^4.0.2                        # Builder API for code generation (latest)
   convert: ^3.1.1
   crypto: ^3.0.3                       # SHA256 and other hash functions
   cryptography: ^2.7.0                 # ED25519, X25519, and other crypto
@@ -29,14 +27,15 @@ dependencies:
   meta: ^1.16.0                        # Dart meta annotations (updated)
   path: ^1.9.0                         # Path manipulation utilities (updated)
   solana: ^0.31.2+1                    # Primary Solana RPC client
-  source_gen: ^4.0.2                   # Source code generation support (latest)
-  toml: ^0.16.0                        # TOML parsing for Anchor.toml files
-  web_socket_channel: ^3.0.0           # WebSocket support for event system
+  web_socket_channel: '>=2.0.0 <4.0.0' # WebSocket support (relaxed for compatibility)
 
 dev_dependencies:
+  analyzer: ^8.4.0                     # Static analysis (for codegen only)
+  build: ^4.0.2                        # Builder API (for codegen only)
   build_runner: ^2.9.0                 # Build system runner (updated)
   lints: ^6.0.0
   mockito: ^5.4.4                      # Mocking framework (updated)
+  source_gen: ^4.0.2                   # Source code generation (for codegen only)
   test: ^1.25.0                        # Test framework (updated)
 
 # Build configuration for code generation

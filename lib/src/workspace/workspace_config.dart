@@ -2,14 +2,34 @@
 ///
 /// This module provides comprehensive workspace management with automatic program
 /// discovery and configuration matching TypeScript's Anchor.toml parsing capabilities.
+///
+/// **Note**: As of coral_xyz 1.0.0-beta.8, the `toml` package is NO LONGER included
+/// as a dependency to avoid petitparser version conflicts with Flutter packages.
+/// If you need `WorkspaceConfig.read()` functionality, manually add to your pubspec.yaml:
+/// ```yaml
+/// dependencies:
+///   toml: ^0.16.0
+/// ```
 
 library;
 
 import 'dart:io';
 import 'dart:convert';
-import 'package:toml/toml.dart';
 import 'package:path/path.dart' as path;
 import 'package:coral_xyz/src/idl/idl.dart';
+
+// Error message for when users try to use workspace features without toml package
+Never _throwTomlNotAvailable() {
+  throw UnsupportedError(
+    'Anchor.toml workspace features require the "toml" package.\n'
+    'As of coral_xyz 1.0.0-beta.8, toml is not included by default to avoid\n'
+    'petitparser version conflicts with Flutter packages like flutter_native_splash.\n\n'
+    'To use WorkspaceConfig.read(), add to your pubspec.yaml:\n'
+    'dependencies:\n'
+    '  toml: ^0.16.0\n\n'
+    'Most mobile/web apps don\'t need Anchor.toml parsing and can ignore this error.',
+  );
+}
 
 /// Exception thrown when workspace configuration is invalid
 class WorkspaceConfigException implements Exception {
@@ -216,98 +236,36 @@ class WorkspaceConfig {
   });
 
   /// Load workspace configuration from Anchor.toml file
+  /// 
+  /// **Requires manual installation of toml package** (not included by default):
+  /// ```yaml
+  /// dependencies:
+  ///   toml: ^0.16.0
+  /// ```
   factory WorkspaceConfig.fromFile(String filePath) {
-    try {
-      final file = File(filePath);
-      if (!file.existsSync()) {
-        throw WorkspaceConfigException(
-          'Anchor.toml file not found',
-          filePath: filePath,
-        );
-      }
-
-      final content = file.readAsStringSync();
-      final tomlData = TomlDocument.parse(content).toMap();
-
-      return WorkspaceConfig._fromToml(
-        tomlData,
-        workspaceRoot: path.canonicalize(path.dirname(filePath)),
-      );
-    } catch (e) {
-      throw WorkspaceConfigException(
-        'Failed to parse Anchor.toml',
-        filePath: filePath,
-        cause: e,
-      );
-    }
+    _throwTomlNotAvailable();
   }
 
   /// Load workspace configuration from directory containing Anchor.toml
+  /// 
+  /// **Requires manual installation of toml package** (not included by default):
+  /// ```yaml
+  /// dependencies:
+  ///   toml: ^0.16.0
+  /// ```
   factory WorkspaceConfig.fromDirectory(String directoryPath) {
-    final anchorTomlPath = path.join(directoryPath, 'Anchor.toml');
-    return WorkspaceConfig.fromFile(anchorTomlPath);
+    _throwTomlNotAvailable();
   }
 
   /// Load workspace configuration from current directory
-  factory WorkspaceConfig.fromCurrentDirectory() =>
-      WorkspaceConfig.fromDirectory(Directory.current.path);
-
-  factory WorkspaceConfig._fromToml(
-    Map<String, dynamic> toml, {
-    String? workspaceRoot,
-  }) {
-    // Parse provider configuration
-    final providerData = toml['provider'] as Map<String, dynamic>?;
-    if (providerData == null) {
-      throw const WorkspaceConfigException(
-        'Missing required [provider] section in Anchor.toml',
-      );
-    }
-    final provider = ProviderConfig.fromToml(providerData);
-
-    // Parse programs configuration
-    final programsData = toml['programs'] as Map<String, dynamic>?;
-    final programs = <String, Map<String, ProgramEntry>>{};
-
-    if (programsData != null) {
-      for (final entry in programsData.entries) {
-        final cluster = entry.key;
-        final clusterPrograms = entry.value as Map<String, dynamic>;
-
-        programs[cluster] = {};
-        for (final programEntry in clusterPrograms.entries) {
-          final programName = programEntry.key;
-          programs[cluster]![programName] =
-              ProgramEntry.fromToml(programEntry.value);
-        }
-      }
-    }
-
-    // Parse optional sections
-    TestConfig? test;
-    if (toml['test'] is Map<String, dynamic>) {
-      test = TestConfig.fromToml(toml['test'] as Map<String, dynamic>);
-    }
-
-    FeaturesConfig? features;
-    if (toml['features'] is Map<String, dynamic>) {
-      features =
-          FeaturesConfig.fromToml(toml['features'] as Map<String, dynamic>);
-    }
-
-    ScriptsConfig? scripts;
-    if (toml['scripts'] is Map<String, dynamic>) {
-      scripts = ScriptsConfig.fromToml(toml['scripts'] as Map<String, dynamic>);
-    }
-
-    return WorkspaceConfig(
-      provider: provider,
-      programs: programs,
-      test: test,
-      features: features,
-      scripts: scripts,
-      workspaceRoot: workspaceRoot,
-    );
+  /// 
+  /// **Requires manual installation of toml package** (not included by default):
+  /// ```yaml
+  /// dependencies:
+  ///   toml: ^0.16.0
+  /// ```
+  factory WorkspaceConfig.fromCurrentDirectory() {
+    _throwTomlNotAvailable();
   }
   final ProviderConfig provider;
   final Map<String, Map<String, ProgramEntry>> programs;
@@ -484,16 +442,16 @@ class WorkspaceConfig {
     };
 
     if (programs.isNotEmpty) {
-      result['programs'] = {};
+      result['programs'] = <String, dynamic>{};
       for (final entry in programs.entries) {
         final cluster = entry.key;
         final clusterPrograms = entry.value;
 
-        result['programs'][cluster] = {};
+        (result['programs'] as Map<String, dynamic>)[cluster] = <String, dynamic>{};
         for (final programEntry in clusterPrograms.entries) {
           final programName = programEntry.key;
           final program = programEntry.value;
-          result['programs'][cluster][programName] = program.toToml();
+          ((result['programs'] as Map<String, dynamic>)[cluster] as Map<String, dynamic>)[programName] = program.toToml();
         }
       }
     }

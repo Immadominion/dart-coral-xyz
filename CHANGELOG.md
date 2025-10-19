@@ -5,6 +5,77 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.8] - 2025-10-19
+
+### 🔧 Critical Dependency Fix
+
+**Fixed runtime dependency pollution causing conflicts in consumer applications.**
+
+#### The Problem
+Version 1.0.0-beta.7 had TWO critical dependency issues:
+1. Code generation packages (`analyzer`, `build`, `source_gen`) in `dependencies` instead of `dev_dependencies` caused version conflicts
+2. The `toml` package locked `petitparser` to 6.x, conflicting with Flutter packages requiring petitparser 7.x (like `flutter_native_splash` via `xml`)
+
+Example errors users were seeing:
+```
+Because coral_xyz depends on analyzer ^8.4.0 and my_app depends on build_runner ^2.9.0
+which depends on analyzer ^6.x.x, version solving failed.
+
+Because every version of coral_xyz depends on toml ^0.16.0 which depends on petitparser ^6.0.2,
+and flutter_native_splash requires xml ^6.6.1 which requires petitparser ^7.0.0, version solving failed.
+```
+
+#### The Fix
+1. Moved code generation dependencies to `dev_dependencies` where they belong
+2. **Removed `toml` dependency entirely** - Anchor.toml workspace features rarely used in mobile/web apps
+
+**Moved to dev_dependencies:**
+- `analyzer: ^8.4.0` - Only needed for internal codegen, not runtime
+- `build: ^4.0.2` - Only needed for internal codegen, not runtime  
+- `source_gen: ^4.0.2` - Only needed for internal codegen, not runtime
+
+**Removed from dependencies:**
+- `toml` - Eliminated petitparser 6.x lock that conflicted with Flutter ecosystem
+- `borsh`, `borsh_annotation` - Package uses internal borsh implementation
+
+**Kept in dependencies (runtime-required only):**
+- All actual runtime dependencies: `solana`, `cryptography`, `blockchain_utils`, etc.
+
+#### Impact
+
+✅ **No more version conflicts** - Works with all Flutter packages (flutter_native_splash, xml, etc.)  
+✅ **Smaller bundle size** - Codegen tools and TOML parser no longer bundled  
+✅ **Better compatibility** - Consumers can use any compatible version of `build_runner`, `analyzer`, petitparser  
+✅ **Cleaner dependency graph** - Only essential runtime packages included  
+
+⚠️ **Minor breaking change**: `WorkspaceConfig.read()` (for Anchor.toml parsing) will throw `UnsupportedError`. This feature is rarely used in mobile/web apps. If you need it, manually add `toml: ^0.16.0` to your dependencies.
+
+#### For Users Upgrading from beta.7
+
+Simply update your dependency:
+```yaml
+dependencies:
+  coral_xyz: ^1.0.0-beta.8  # Was beta.7
+```
+
+Then run:
+```bash
+flutter pub get  # or dart pub get
+```
+
+**All dependency conflicts should now be resolved!** 🎉
+
+#### If You Need Anchor.toml Workspace Features (Rare)
+
+Only required if you use `WorkspaceConfig.read()` for parsing Anchor.toml files:
+```yaml
+dependencies:
+  coral_xyz: ^1.0.0-beta.8
+  toml: ^0.16.0  # Add manually if you need workspace config
+```
+
+---
+
 ## [1.0.0-beta.7] - 2025-10-19
 
 ### 🔧 Major Dependency Updates
