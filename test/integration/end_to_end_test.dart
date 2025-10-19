@@ -1,4 +1,4 @@
-import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz.dart';
 import 'package:coral_xyz/src/transaction/transaction.dart' as tx;
 import 'package:coral_xyz/src/types/transaction.dart' as tx_types;
 import 'package:test/test.dart';

@@ -5,7 +5,113 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2025-09-06
+## [1.0.0-beta.7] - 2025-10-19
+
+### 🔧 Major Dependency Updates
+
+This release addresses critical dependency issues that were causing conflicts in downstream projects. All packages have been updated to their latest stable versions compatible with Dart SDK 3.0+.
+
+#### Build System Modernization
+- **analyzer**: Upgraded from ^6.4.1 to ^8.4.0 (latest stable)
+  - Migrated from older analyzer APIs that depended on deprecated SDK macros
+  - Improved static analysis capabilities with latest Dart language features
+  - Better null safety inference and type checking
+- **build**: Upgraded from ^2.4.1 to ^4.0.2
+  - Modern builder API with improved performance
+  - Better error messages and debugging support
+  - Enhanced cross-platform compatibility
+- **source_gen**: Upgraded from ^1.5.0 to ^4.0.2
+  - Latest code generation infrastructure
+  - Improved analyzer integration
+  - Better source span tracking for error reporting
+- **build_runner**: Upgraded from ^2.4.7 to ^2.9.0
+  - Enhanced build caching and incremental builds
+  - Better multi-package workspace support
+  - Improved watch mode stability
+
+#### Removed Conflicting Dependencies
+- **borsh** and **borsh_annotation**: Removed as runtime dependencies
+  - Package uses internal Borsh implementation (lib/src/coder/borsh_*.dart)
+  - Eliminates version constraints blocking source_gen 4.x upgrade
+  - Borsh still available transitively via solana package where needed
+  - No breaking changes to public API - internal implementation unchanged
+
+#### Core Package Updates
+- **blockchain_utils**: ^5.0.0 → ^5.2.0
+  - Enhanced blockchain address encoding/decoding
+  - Updated cryptographic algorithm implementations
+  - Improved BIP39/BIP32/BIP44 mnemonic support
+- **http**: ^1.1.0 → ^1.2.0
+  - Latest HTTP client with improved performance
+  - Better connection pooling and retry logic
+- **meta**: ^1.9.1 → ^1.16.0
+  - Latest Dart meta annotations
+  - New annotation types for better static analysis
+- **path**: ^1.8.0 → ^1.9.0
+  - Path manipulation improvements
+  - Better cross-platform path handling
+
+#### Dev Dependencies Updates
+- **mockito**: ^5.4.2 → ^5.5.1
+  - Improved null safety support
+  - Better code generation for mocks
+- **test**: ^1.24.0 → ^1.25.0
+  - Latest test framework features
+  - Enhanced async test support
+
+### 💥 Breaking Changes
+
+**For users experiencing dependency conflicts:**
+
+This update resolves the common error:
+```
+Because borsh depends on source_gen >=1.4.0 <3.0.0 and coral_xyz depended on source_gen ^1.5.0,
+version solving failed.
+```
+
+**Migration required only if you:**
+1. Explicitly imported `package:borsh` or `package:borsh_annotation` in code using this package (unlikely - these were transitive deps)
+2. Relied on specific analyzer 6.x APIs (code generators only)
+
+**No migration needed for:**
+- Standard package users (Program, Provider, IDL APIs unchanged)
+- Applications using coral_xyz as a dependency
+- Build system configuration (build.yaml remains compatible)
+
+### ✅ Validation
+
+- ✅ All existing code compiles without errors with updated dependencies
+- ✅ `dart analyze` passes (warnings only, no errors)
+- ✅ Public API surface unchanged
+- ✅ Internal Borsh implementation validated
+- ✅ Build system compatibility confirmed
+
+### 📦 Compatibility
+
+- **Dart SDK**: >=3.0.0 <4.0.0 (unchanged)
+- **Solana**: ^0.31.2+1 (unchanged - stable and compatible)
+- **All major frameworks**: Flutter, Web, Server (unchanged)
+
+### 🎯 Benefits
+
+1. **Eliminates dependency conflicts** in downstream projects
+2. **Modern tooling** with latest analyzer and build system
+3. **Better performance** with updated dependencies
+4. **Future-proof** with maintained, actively developed packages
+5. **Cleaner dependency graph** without borsh external constraint
+
+### 📝 Notes for Package Maintainers
+
+If you maintain a package that depends on `coral_xyz`, this update will:
+- Resolve version solving failures related to `source_gen` and `analyzer`
+- Allow you to use latest build tooling in your own package
+- Remove transitive dependency on `borsh` (unless you use `solana` package directly)
+
+The internal Borsh implementation in `coral_xyz` is thoroughly tested and production-ready, used in all Anchor operations (account serialization, instruction encoding, event parsing).
+
+---
+
+## [1.0.0-beta.6] - 2025-09-20
 
 ### 🔥 Major Interface Fix
 

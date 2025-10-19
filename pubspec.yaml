@@ -3,7 +3,7 @@ description: |
   A Dart client for Anchor programs on Solana.
   Provides type-safe program interactions, IDL parsing, and seamless integration
   with Solana's Anchor framework.
-version: 1.0.0-beta.6
+version: 1.0.0-beta.7
 homepage: https://github.com/Immadominion/dart-coral-xyz
 repository: https://github.com/Immadominion/dart-coral-xyz
 issue_tracker: https://github.com/Immadominion/dart-coral-xyz/issues
@@ -14,32 +14,30 @@ environment:
 
 dependencies:
   # Core Dart dependencies
-  analyzer: ^6.4.1
+  analyzer: ^8.4.0                     # Static analysis (latest stable)
   base_codecs: ^1.0.1                  # Additional base encodings
-  blockchain_utils: ^5.0.0             # Enhanced blockchain utilities
-  borsh: ^0.3.2                        # Primary Borsh serialization
-  borsh_annotation: ^0.3.2             # Borsh annotations for better type support
+  blockchain_utils: ^5.2.0             # Enhanced blockchain utilities (updated)
   bs58: ^1.0.2                         # Base58 encoding (Bitcoin-style)
-  build: ^2.4.1                        # Builder API for code generation (compatible with source_gen)
+  build: ^4.0.2                        # Builder API for code generation (latest)
   convert: ^3.1.1
   crypto: ^3.0.3                       # SHA256 and other hash functions
   cryptography: ^2.7.0                 # ED25519, X25519, and other crypto
   ed25519_hd_key: ^2.3.0               # HD key derivation for wallet support
   equatable: ^2.0.5                    # Value equality
-  http: ^1.1.0                         # Required by solana package
+  http: ^1.2.0                         # HTTP client (updated)
   logging: ^1.3.0                      # Proper logging framework
-  meta: ^1.9.1                         # Dart meta annotations
-  path: ^1.8.0                         # Path manipulation utilities
+  meta: ^1.16.0                        # Dart meta annotations (updated)
+  path: ^1.9.0                         # Path manipulation utilities (updated)
   solana: ^0.31.2+1                    # Primary Solana RPC client
-  source_gen: ^1.5.0                   # Source code generation support (compatible with borsh)
+  source_gen: ^4.0.2                   # Source code generation support (latest)
   toml: ^0.16.0                        # TOML parsing for Anchor.toml files
   web_socket_channel: ^3.0.0           # WebSocket support for event system
 
 dev_dependencies:
-  build_runner: ^2.4.7
+  build_runner: ^2.9.0                 # Build system runner (updated)
   lints: ^6.0.0
-  mockito: ^5.4.2
-  test: ^1.24.0
+  mockito: ^5.4.4                      # Mocking framework (updated)
+  test: ^1.25.0                        # Test framework (updated)
 
 # Build configuration for code generation
 build_runner:

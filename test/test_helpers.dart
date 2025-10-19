@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:coral_xyz/coral_xyz_anchor.dart'
+import 'package:coral_xyz/coral_xyz.dart'
     hide Transaction, TransactionInstruction, AccountMeta;
 import 'package:coral_xyz/src/types/transaction.dart';
 import 'package:solana/dto.dart' as dto;
