@@ -28,14 +28,17 @@ dependencies:
   path: ^1.9.0                         # Path manipulation utilities (updated)
   solana: ^0.31.2+1                    # Primary Solana RPC client
   web_socket_channel: '>=2.0.0 <4.0.0' # WebSocket support (relaxed for compatibility)
+  
+  # Codegen dependencies - MUST be in dependencies (not dev_dependencies)
+  # because they're imported in lib/src/codegen/*.dart files
+  analyzer: ^8.4.0                     # Required for codegen in lib/
+  build: ^4.0.2                        # Required for codegen in lib/
+  source_gen: ^4.0.2                   # Required for codegen in lib/
 
 dev_dependencies:
-  analyzer: ^8.4.0                     # Static analysis (for codegen only)
-  build: ^4.0.2                        # Builder API (for codegen only)
   build_runner: ^2.9.0                 # Build system runner (updated)
   lints: ^6.0.0
   mockito: ^5.4.4                      # Mocking framework (updated)
-  source_gen: ^4.0.2                   # Source code generation (for codegen only)
   test: ^1.25.0                        # Test framework (updated)
 
 # Build configuration for code generation

@@ -26,16 +26,14 @@ and flutter_native_splash requires xml ^6.6.1 which requires petitparser ^7.0.0,
 ```
 
 #### The Fix
-1. Moved code generation dependencies to `dev_dependencies` where they belong
-2. **Removed `toml` dependency entirely** - Anchor.toml workspace features rarely used in mobile/web apps
+1. **Removed `toml` dependency** - Eliminated petitparser 6.x lock that conflicted with Flutter ecosystem (flutter_native_splash, xml, etc.)
+2. **Relaxed `web_socket_channel` constraint** - Changed from `^3.0.0` to `>=2.0.0 <4.0.0` for broader compatibility
+3. Removed unused `borsh` and `borsh_annotation` external dependencies (package uses internal borsh implementation)
 
-**Moved to dev_dependencies:**
-- `analyzer: ^8.4.0` - Only needed for internal codegen, not runtime
-- `build: ^4.0.2` - Only needed for internal codegen, not runtime  
-- `source_gen: ^4.0.2` - Only needed for internal codegen, not runtime
+**Note**: `analyzer`, `build`, and `source_gen` remain in `dependencies` (not `dev_dependencies`) because they're imported in `lib/src/codegen/*.dart` files. pub.dev requires all packages imported in `lib/` to be in the `dependencies` section. These packages are only used if you're using the code generation features - they don't affect runtime for apps using pre-generated code.
 
 **Removed from dependencies:**
-- `toml` - Eliminated petitparser 6.x lock that conflicted with Flutter ecosystem
+- `toml` - Eliminated petitparser 6.x lock that caused Flutter package conflicts
 - `borsh`, `borsh_annotation` - Package uses internal borsh implementation
 
 **Kept in dependencies (runtime-required only):**
@@ -43,12 +41,14 @@ and flutter_native_splash requires xml ^6.6.1 which requires petitparser ^7.0.0,
 
 #### Impact
 
-✅ **No more version conflicts** - Works with all Flutter packages (flutter_native_splash, xml, etc.)  
-✅ **Smaller bundle size** - Codegen tools and TOML parser no longer bundled  
-✅ **Better compatibility** - Consumers can use any compatible version of `build_runner`, `analyzer`, petitparser  
-✅ **Cleaner dependency graph** - Only essential runtime packages included  
+✅ **No more petitparser conflicts** - Works with flutter_native_splash, xml, and other Flutter packages requiring petitparser 7.x  
+✅ **Smaller bundle** - TOML parser no longer included (rarely used in mobile/web)  
+✅ **Better web_socket_channel compatibility** - Relaxed constraint allows both v2 and v3  
+✅ **Cleaner dependency graph** - Removed unused external borsh dependencies  
 
 ⚠️ **Minor breaking change**: `WorkspaceConfig.read()` (for Anchor.toml parsing) will throw `UnsupportedError`. This feature is rarely used in mobile/web apps. If you need it, manually add `toml: ^0.16.0` to your dependencies.
+
+**Note**: If you still encounter conflicts with `analyzer`, `build`, or `source_gen` in your app, use `dependency_overrides` in your app's pubspec.yaml to force compatible versions. These are required in coral_xyz's `dependencies` (not `dev_dependencies`) due to pub.dev rules about packages imported in `lib/`.
 
 #### For Users Upgrading from beta.7
 
