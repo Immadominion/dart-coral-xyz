@@ -95,20 +95,17 @@ class ViewFunction {
     required PublicKey programId,
     required SimulateNamespace simulateNamespace,
     required Coder coder,
-  })  : _instruction = instruction,
-        _programId = programId,
-        _simulateNamespace = simulateNamespace,
-        _coder = coder;
+  }) : _instruction = instruction,
+       _programId = programId,
+       _simulateNamespace = simulateNamespace,
+       _coder = coder;
   final IdlInstruction _instruction;
   final PublicKey _programId;
   final SimulateNamespace _simulateNamespace;
   final Coder _coder;
 
   /// Call the view function with the given arguments and accounts
-  Future<dynamic> call(
-    List<dynamic> args,
-    Context<Accounts> context,
-  ) async {
+  Future<dynamic> call(List<dynamic> args, Context<Accounts> context) async {
     // Get the simulate function for this instruction
     final simulateFn = _simulateNamespace[_instruction.name];
     if (simulateFn == null) {
@@ -199,15 +196,7 @@ class ViewFunction {
   /// Decode the return data using the specified return type
   dynamic _decodeReturnData(Uint8List data, String returnTypeName) {
     try {
-      // Use the types coder to decode the return data based on the return type name
-      if (_coder is BorshCoder) {
-        final borshCoder = _coder as BorshCoder;
-        return borshCoder.types.decode(returnTypeName, data);
-      } else {
-        throw UnsupportedError(
-          'View functions require BorshCoder for return data decoding',
-        );
-      }
+      return _coder.types.decode(returnTypeName, data);
     } catch (e) {
       throw FormatException(
         'Failed to decode return data for ${_instruction.name}: $e',

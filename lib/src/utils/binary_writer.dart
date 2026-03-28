@@ -128,17 +128,22 @@ class BinaryWriter {
     }
   }
 
-  /// Write a compact u16 length prefix
+  /// Write a compact u16 length prefix (Solana shortvec encoding).
+  /// Each byte carries 7 data bits; MSB is a continuation flag.
   void writeCompactU16(int length) {
-    if (length >= 0x4000) {
-      throw ArgumentError('Length too large: $length');
+    if (length < 0 || length > 0xFFFF) {
+      throw ArgumentError('Length out of range for compact-u16: $length');
     }
-
-    if (length >= 0x80) {
-      writeU8(((length >> 8) & 0x3F) | 0x80);
-      writeU8(length & 0xFF);
-    } else {
-      writeU8(length);
+    var rem = length;
+    while (true) {
+      var elem = rem & 0x7F;
+      rem >>= 7;
+      if (rem == 0) {
+        writeU8(elem);
+        break;
+      } else {
+        writeU8(elem | 0x80);
+      }
     }
   }
 

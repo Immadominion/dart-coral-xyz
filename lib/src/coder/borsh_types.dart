@@ -73,15 +73,34 @@ class BorshSerializer {
   }
 
   /// Serialize a u64 (unsigned 64-bit integer, little endian)
-  void writeU64(int value) {
-    if (value < 0) {
-      throw BorshException('u64 value must be non-negative, got: $value');
+  ///
+  /// Accepts both [int] and [BigInt] to support the full u64 range (0 to 2^64-1).
+  /// Values above 2^63-1 require [BigInt] since Dart's [int] is signed 64-bit.
+  void writeU64(dynamic value) {
+    if (value is BigInt) {
+      if (value < BigInt.zero || value >= BigInt.two.pow(64)) {
+        throw BorshException('u64 BigInt value out of range: $value');
+      }
+      // Write 8 bytes little-endian from BigInt
+      var v = value;
+      for (var i = 0; i < 8; i++) {
+        _buffer.add((v & BigInt.from(0xFF)).toInt());
+        v >>= 8;
+      }
+    } else if (value is int) {
+      if (value < 0) {
+        throw BorshException('u64 value must be non-negative, got: $value');
+      }
+      // Handle 64-bit integers by splitting into two 32-bit parts
+      final low = value & 0xFFFFFFFF;
+      final high = (value >> 32) & 0xFFFFFFFF;
+      writeU32(low);
+      writeU32(high);
+    } else {
+      throw BorshException(
+        'u64 requires int or BigInt, got: ${value.runtimeType}',
+      );
     }
-    // Handle 64-bit integers by splitting into two 32-bit parts
-    final low = value & 0xFFFFFFFF;
-    final high = (value >> 32) & 0xFFFFFFFF;
-    writeU32(low);
-    writeU32(high);
   }
 
   /// Serialize an i8 (signed 8-bit integer)
@@ -222,7 +241,8 @@ class BorshDeserializer {
     if (_offset + 4 > _data.length) {
       throw const BorshException('Not enough bytes to read u32');
     }
-    final value = _data[_offset] |
+    final value =
+        _data[_offset] |
         (_data[_offset + 1] << 8) |
         (_data[_offset + 2] << 16) |
         (_data[_offset + 3] << 24);
@@ -266,8 +286,9 @@ class BorshDeserializer {
     if (_offset + 8 > _data.length) {
       throw const BorshException('Not enough bytes to read i64');
     }
-    final bytes =
-        Uint8List.fromList(_data.getRange(_offset, _offset + 8).toList());
+    final bytes = Uint8List.fromList(
+      _data.getRange(_offset, _offset + 8).toList(),
+    );
     _offset += 8;
     final data = ByteData.sublistView(bytes);
     return data.getInt64(0, Endian.little);
@@ -335,6 +356,13 @@ class BorshDeserializer {
 
   /// Read a fixed number of bytes
   Uint8List readBytes(int length) => readFixedArray(length);
+
+  /// Read all remaining bytes in the buffer
+  Uint8List readRemainingBytes() {
+    final bytes = _data.sublist(_offset);
+    _offset = _data.length;
+    return bytes;
+  }
 
   /// Read a 32-bit float (f32, little endian)
   double readF32() {

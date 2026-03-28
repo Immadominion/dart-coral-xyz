@@ -31,16 +31,22 @@ class MobileWalletAdapterWallet implements Wallet {
   @override
   Future<T> signTransaction<T>(T transaction) async {
     if (transaction is Transaction) {
-      final message = transaction.compileMessage();
-      final signatures = await _client.signTransactions([message]);
-      if (signatures.isEmpty) {
+      final unsigned = _buildUnsignedWireFormat(transaction);
+      final signedPayloads = await _client.signTransactions([unsigned]);
+      if (signedPayloads.isEmpty) {
         throw Exception('No signature returned from MWA client');
       }
-      transaction.addSignature(publicKey, signatures.first);
+      final signed = signedPayloads.first;
+      final signature = _extractWalletSignature(signed, transaction);
+      transaction.addSignature(publicKey, signature);
+      // Store raw MWA-signed bytes so serialize() returns them directly
+      // instead of re-building (avoids mismatch if wallet modified the tx)
+      transaction.setSerializedOverride(signed);
       return transaction as T;
     }
     throw ArgumentError(
-        'Unsupported transaction type: ${transaction.runtimeType}');
+      'Unsupported transaction type: ${transaction.runtimeType}',
+    );
   }
 
   @override
@@ -54,18 +60,20 @@ class MobileWalletAdapterWallet implements Wallet {
       }
     }
 
-    final messages = transactions
+    final unsignedList = transactions
         .cast<Transaction>()
-        .map((tx) => tx.compileMessage())
+        .map(_buildUnsignedWireFormat)
         .toList();
-    final signatures = await _client.signTransactions(messages);
-    if (signatures.length != transactions.length) {
+    final signedPayloads = await _client.signTransactions(unsignedList);
+    if (signedPayloads.length != transactions.length) {
       throw Exception('MWA client returned wrong number of signatures');
     }
 
     for (int i = 0; i < transactions.length; i++) {
       final tx = transactions[i] as Transaction;
-      tx.addSignature(publicKey, signatures[i]);
+      final signature = _extractWalletSignature(signedPayloads[i], tx);
+      tx.addSignature(publicKey, signature);
+      tx.setSerializedOverride(signedPayloads[i]);
     }
     return transactions;
   }
@@ -78,7 +86,30 @@ class MobileWalletAdapterWallet implements Wallet {
     } catch (e) {
       // If the client doesn't support message signing, provide a clearer error
       throw UnsupportedError(
-          'Message signing is not supported by this Mobile Wallet Adapter client: $e');
+        'Message signing is not supported by this Mobile Wallet Adapter client: $e',
+      );
     }
+  }
+
+  /// Build Solana transaction wire-format bytes with zero-filled signature
+  /// placeholders: compact-u16(numSigs) + numSigs*64 zeroes + messageBytes
+  Uint8List _buildUnsignedWireFormat(Transaction tx) {
+    final messageBytes = tx.compileMessage();
+    final int numSigs = messageBytes[0]; // numRequiredSignatures from header
+
+    // compact-u16 for values < 128 is a single byte
+    final sigBlock = 64 * numSigs;
+    final unsigned = Uint8List(1 + sigBlock + messageBytes.length);
+    unsigned[0] = numSigs;
+    // signature slots are already zero-filled by Uint8List constructor
+    unsigned.setRange(1 + sigBlock, unsigned.length, messageBytes);
+    return unsigned;
+  }
+
+  /// Extract our wallet's signature from the MWA-signed transaction bytes.
+  /// The fee payer (first signer) signature is at bytes [1..65).
+  Uint8List _extractWalletSignature(Uint8List signed, Transaction tx) {
+    // Fee payer signature is the first 64-byte slot after the compact-u16 count
+    return Uint8List.fromList(signed.sublist(1, 65));
   }
 }

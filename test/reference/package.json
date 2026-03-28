@@ -1,0 +1,14 @@
+{
+  "name": "coral-xyz-reference-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Generate reference values from TypeScript Anchor SDK for Dart parity testing",
+  "scripts": {
+    "generate": "node generate_references.mjs"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^1.95.3"
+  }
+}

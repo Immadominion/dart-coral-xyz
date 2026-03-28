@@ -107,12 +107,12 @@ extension BorshSerializerExtensions on BorshSerializer {
     BorshUtils.writePublicKey(this, publicKey);
   }
 
-  /// Write a discriminator (for Anchor accounts/instructions)
+  /// Write a discriminator (for Anchor accounts/instructions).
+  ///
+  /// Supports variable-length discriminators (Quasar: 1-N bytes, Anchor: 8 bytes).
   void writeDiscriminator(Uint8List discriminator) {
-    if (discriminator.length != BorshUtils.discriminatorSize) {
-      throw const BorshException(
-        'Discriminator must be exactly ${BorshUtils.discriminatorSize} bytes',
-      );
+    if (discriminator.isEmpty) {
+      throw const BorshException('Discriminator must not be empty');
     }
     writeFixedArray(discriminator);
   }
@@ -122,6 +122,10 @@ extension BorshDeserializerExtensions on BorshDeserializer {
   /// Read a PublicKey
   Uint8List readPublicKey() => BorshUtils.readPublicKey(this);
 
-  /// Read a discriminator (for Anchor accounts/instructions)
-  Uint8List readDiscriminator() => readFixedArray(BorshUtils.discriminatorSize);
+  /// Read a discriminator of [length] bytes.
+  ///
+  /// Defaults to [BorshUtils.discriminatorSize] (8) for Anchor compatibility.
+  /// Quasar programs may use shorter discriminators.
+  Uint8List readDiscriminator([int length = BorshUtils.discriminatorSize]) =>
+      readFixedArray(length);
 }

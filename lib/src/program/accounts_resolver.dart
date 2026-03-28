@@ -28,12 +28,12 @@ class AccountsResolver {
     required PublicKey programId,
     required IdlInstruction idlInstruction,
     required List<IdlTypeDef> idlTypes,
-  })  : _args = args,
-        _accounts = Map.from(accounts),
-        _provider = provider,
-        _programId = programId,
-        _idlInstruction = idlInstruction,
-        _idlTypes = idlTypes;
+  }) : _args = args,
+       _accounts = Map.from(accounts),
+       _provider = provider,
+       _programId = programId,
+       _idlInstruction = idlInstruction,
+       _idlTypes = idlTypes;
   final List<dynamic> _args;
   final Map<String, dynamic> _accounts;
   final AnchorProvider _provider;
@@ -89,6 +89,12 @@ class AccountsResolver {
   }
 
   /// Resolve a single account item (handles both single accounts and groups)
+  ///
+  /// Resolution priority (highest wins):
+  /// 1. Already resolved (user-provided or earlier pass) — skip
+  /// 2. Explicit address in IDL
+  /// 3. Well-known program name (exact match)
+  /// 4. Signer → wallet public key (only if no PDA spec exists)
   void _resolveConstantAccount(
     IdlInstructionAccountItem accountItem,
     Map<String, PublicKey> resolved,
@@ -96,26 +102,32 @@ class AccountsResolver {
     if (accountItem is IdlInstructionAccount) {
       final name = accountItem.name;
 
-      // Skip if already resolved
+      // Skip if already resolved (user-provided)
       if (resolved.containsKey(name)) return;
 
-      // Resolve signers to provider public key
-      if (accountItem.signer && _provider.publicKey != null) {
-        resolved[name] = _provider.publicKey!;
-      }
-
-      // Resolve well-known program accounts
-      if (name.toLowerCase().contains('system')) {
-        resolved[name] = PublicKeyUtils.systemProgram;
-      }
-
-      // Resolve accounts with fixed addresses
+      // 1. Resolve accounts with fixed addresses (highest priority)
       if (accountItem.address != null) {
         try {
           resolved[name] = PublicKey.fromBase58(accountItem.address!);
+          return;
         } catch (e) {
-          // Invalid address, skip
+          // Invalid address, fall through
         }
+      }
+
+      // 2. Resolve well-known program accounts (exact name match only)
+      final lowerName = name.toLowerCase();
+      if (lowerName == 'systemprogram' || lowerName == 'system_program') {
+        resolved[name] = PublicKeyUtils.systemProgram;
+        return;
+      }
+
+      // 3. Resolve signers to wallet key — but only if there's no PDA spec
+      //    (accounts with PDA specs should be resolved during PDA derivation)
+      if (accountItem.signer &&
+          accountItem.pda == null &&
+          _provider.publicKey != null) {
+        resolved[name] = _provider.publicKey!;
       }
     } else if (accountItem is IdlInstructionAccounts) {
       // Recursively resolve account groups
@@ -260,8 +272,9 @@ class AccountsResolver {
     final argName = pathParts.first;
 
     // Find the argument in the instruction
-    final argIndex =
-        _idlInstruction.args.indexWhere((arg) => arg.name == argName);
+    final argIndex = _idlInstruction.args.indexWhere(
+      (arg) => arg.name == argName,
+    );
     if (argIndex == -1 || argIndex >= _args.length) return null;
 
     dynamic value = _args[argIndex];
@@ -447,15 +460,14 @@ class AccountResolverFactory {
     required PublicKey programId,
     required IdlInstruction idlInstruction,
     required List<IdlTypeDef> idlTypes,
-  }) =>
-      AccountsResolver(
-        args: args,
-        accounts: accounts,
-        provider: provider,
-        programId: programId,
-        idlInstruction: idlInstruction,
-        idlTypes: idlTypes,
-      );
+  }) => AccountsResolver(
+    args: args,
+    accounts: accounts,
+    provider: provider,
+    programId: programId,
+    idlInstruction: idlInstruction,
+    idlTypes: idlTypes,
+  );
 }
 
 /// Utility for resolving accounts from context

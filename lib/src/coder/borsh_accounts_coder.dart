@@ -4,8 +4,8 @@
 /// with comprehensive encoding/decoding capabilities.
 library;
 
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import '../idl/idl.dart';
 import '../error/account_errors.dart';
@@ -20,7 +20,10 @@ abstract class AccountsCoder<A extends String> {
   Future<Uint8List> encode<T>(A accountName, T account);
 
   /// Decode a program account with discriminator verification
-  T decode<T>(A accountName, Uint8List data);
+  ///
+  /// [accountAddress] is optional; when provided it is included in the error
+  /// if the discriminator check fails, which aids debugging.
+  T decode<T>(A accountName, Uint8List data, {PublicKey? accountAddress});
 
   /// Decode a program account without discriminator verification (unsafe)
   T decodeUnchecked<T>(A accountName, Uint8List data);
@@ -43,10 +46,7 @@ abstract class AccountsCoder<A extends String> {
 
 /// Account layout with discriminator and type definition
 class AccountLayout {
-  const AccountLayout({
-    required this.discriminator,
-    required this.typeDef,
-  });
+  const AccountLayout({required this.discriminator, required this.typeDef});
 
   /// The 8-byte discriminator for this account type
   final Uint8List discriminator;
@@ -85,14 +85,17 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       // In modern IDL format, account type definitions are in idl.types
       // and matched by name, not embedded in the account definition
       final typeDef = types.cast<IdlTypeDef?>().firstWhere(
-            (ty) => ty?.name == acc.name,
-            orElse: () => throw AccountCoderError(
-                'Account type definition not found for ${acc.name}. '
-                'Available types: ${types.map((t) => t.name).join(', ')}'),
-          )!;
+        (ty) => ty?.name == acc.name,
+        orElse: () => throw AccountCoderError(
+          'Account type definition not found for ${acc.name}. '
+          'Available types: ${types.map((t) => t.name).join(', ')}',
+        ),
+      )!;
 
-      // Use discriminator from account definition (required in modern IDL)
-      final Uint8List discriminator = Uint8List.fromList(acc.discriminator);
+      // Use discriminator from account definition, or compute it for legacy IDLs
+      final Uint8List discriminator = acc.discriminator.isNotEmpty
+          ? Uint8List.fromList(acc.discriminator)
+          : DiscriminatorComputer.computeAccountDiscriminator(acc.name);
 
       layouts[acc.name as A] = AccountLayout(
         discriminator: discriminator,
@@ -117,8 +120,9 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       final accountData = Uint8List.fromList(buffer);
 
       // Combine discriminator + account data (matching TypeScript Buffer.concat)
-      final result =
-          Uint8List(layout.discriminator.length + accountData.length);
+      final result = Uint8List(
+        layout.discriminator.length + accountData.length,
+      );
       result.setRange(0, layout.discriminator.length, layout.discriminator);
       result.setRange(layout.discriminator.length, result.length, accountData);
 
@@ -129,7 +133,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
   }
 
   @override
-  T decode<T>(A accountName, Uint8List data) {
+  T decode<T>(A accountName, Uint8List data, {PublicKey? accountAddress}) {
     // Assert the account discriminator is correct (matching TypeScript implementation)
     final discriminator = accountDiscriminator(accountName);
 
@@ -137,12 +141,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       throw AccountDiscriminatorMismatchError(
         expectedDiscriminator: discriminator.toList(),
         actualDiscriminator: data.toList(),
-        accountAddress: PublicKey.fromBase58(
-          '11111111111111111111111111111112',
-        ), // Placeholder
-        errorLogs: [
-          'Account data too short for discriminator',
-        ],
+        accountAddress: accountAddress,
+        errorLogs: ['Account data too short for discriminator'],
         logs: [
           'Data length: ${data.length}, Required: ${discriminator.length}',
         ],
@@ -154,12 +154,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       throw AccountDiscriminatorMismatchError(
         expectedDiscriminator: discriminator.toList(),
         actualDiscriminator: dataDiscriminator.toList(),
-        accountAddress: PublicKey.fromBase58(
-          '11111111111111111111111111111112',
-        ), // Placeholder
-        errorLogs: [
-          'Invalid account discriminator',
-        ],
+        accountAddress: accountAddress,
+        errorLogs: ['Invalid account discriminator'],
         logs: [
           'Expected: ${hex.encode(discriminator)}, Got: ${hex.encode(dataDiscriminator)}',
         ],
@@ -220,10 +216,7 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         ? Uint8List.fromList([...discriminator, ...appendData])
         : discriminator;
 
-    return {
-      'offset': 0,
-      'bytes': base64.encode(bytes),
-    };
+    return {'offset': 0, 'bytes': base64.encode(bytes)};
   }
 
   @override
@@ -240,36 +233,34 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       throw AccountCoderError('Account not found: $accountName');
     }
 
-    // Use IdlCoder.typeSize for proper type size calculation
-    try {
-      // For now, use a conservative estimate
-      // TODO: Implement proper struct field size calculation
-      return discriminator.length +
-          1000; // Discriminator + estimated struct size
-    } catch (e) {
-      // Fallback to basic calculation
-      return discriminator.length + 1000;
-    }
+    // Use IdlCoder.typeSize for proper struct field size calculation
+    final typeSize = IdlCoder.typeSize(
+      IdlType(
+        kind: 'defined',
+        defined: IdlDefinedType(name: accountName),
+      ),
+      idl,
+    );
+
+    return discriminator.length + typeSize;
   }
 
   @override
   int sizeFromTypeDef(IdlTypeDef idlAccount) {
-    try {
-      // Calculate discriminator size (8 bytes for account discriminator)
-      const discriminatorSize = 8;
+    // Use actual discriminator length (8 for Anchor, variable for Quasar)
+    final disc = accountDiscriminator(idlAccount.name as A);
+    final discriminatorSize = disc.length;
 
-      // Use IdlCoder.typeSize for precise type size calculation
-      final typeSize = IdlCoder.typeSize(
-        IdlType(
-            kind: 'defined', defined: IdlDefinedType(name: idlAccount.name)),
-        idl,
-      );
+    // Use IdlCoder.typeSize for precise type size calculation
+    final typeSize = IdlCoder.typeSize(
+      IdlType(
+        kind: 'defined',
+        defined: IdlDefinedType(name: idlAccount.name),
+      ),
+      idl,
+    );
 
-      return discriminatorSize + typeSize;
-    } catch (e) {
-      // Fallback for unknown types or calculation errors
-      return 8 + 1000; // 8-byte discriminator + conservative estimate
-    }
+    return discriminatorSize + typeSize;
   }
 
   @override
@@ -279,11 +270,11 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
       orElse: () => throw AccountCoderError('Account not found: $accountName'),
     );
 
-    if (account?.discriminator != null) {
-      return Uint8List.fromList(account!.discriminator);
+    if (account != null && account.discriminator.isNotEmpty) {
+      return Uint8List.fromList(account.discriminator);
     }
 
-    // Generate discriminator when missing (common in newer Anchor versions)
+    // Generate discriminator when missing (legacy IDLs without explicit discriminators)
     return DiscriminatorComputer.computeAccountDiscriminator(accountName);
   }
 
@@ -302,47 +293,207 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
     IdlTypeDef typeDef,
     List<int> buffer,
   ) {
-    if (account is Map<String, dynamic>) {
-      // Handle Counter account specifically with proper Borsh encoding
-      if (typeDef.name == 'Counter' && typeDef.type.kind == 'struct') {
-        // Support count as BigInt or int
-        final rawCount = account['count'];
-        int count;
-        if (rawCount is BigInt) {
-          count = rawCount.toInt();
-        } else if (rawCount is int) {
-          count = rawCount;
-        } else {
-          count = 0;
-        }
-        // Support bump as int or BigInt
-        final rawBump = account['bump'];
-        final bump = rawBump is BigInt
-            ? rawBump.toInt()
-            : (rawBump is int ? rawBump : 0);
-
-        // Encode u64 count (8 bytes, little endian)
-        _encodeU64LittleEndian(count, buffer);
-        // Encode u8 bump (1 byte)
-        buffer.add(bump & 0xFF);
-        return;
-      }
-
-      // Fallback to JSON encoding for other account types
-      final jsonStr = jsonEncode(account);
-      final bytes = utf8.encode(jsonStr);
-      buffer.addAll(bytes);
-    } else {
+    if (account is! Map<String, dynamic>) {
       throw AccountCoderError(
         'Expected Map for account encoding, got ${account.runtimeType}',
       );
     }
+
+    final serializer = BorshSerializer();
+    _encodeStruct(serializer, account, typeDef.type, idl.types ?? []);
+    buffer.addAll(serializer.toBytes());
   }
 
-  /// Encode a u64 to little-endian bytes
-  void _encodeU64LittleEndian(int value, List<int> buffer) {
-    for (int i = 0; i < 8; i++) {
-      buffer.add((value >> (i * 8)) & 0xFF);
+  /// Encode a struct type from its field definitions
+  void _encodeStruct(
+    BorshSerializer serializer,
+    Map<String, dynamic> data,
+    IdlTypeDefType typeDefType,
+    List<IdlTypeDef> types,
+  ) {
+    final fields = typeDefType.fields;
+    if (fields == null) {
+      throw AccountCoderError('Struct type missing fields');
+    }
+    for (final field in fields) {
+      _encodeFieldValue(serializer, data[field.name], field.type, types);
+    }
+  }
+
+  /// Encode a single field value based on its IDL type
+  void _encodeFieldValue(
+    BorshSerializer serializer,
+    dynamic value,
+    IdlType idlType,
+    List<IdlTypeDef> types,
+  ) {
+    switch (idlType.kind) {
+      case 'bool':
+        serializer.writeU8((value as bool) ? 1 : 0);
+      case 'u8':
+        serializer.writeU8(value as int);
+      case 'i8':
+        serializer.writeI8(value as int);
+      case 'u16':
+        serializer.writeU16(value as int);
+      case 'i16':
+        serializer.writeI16(value as int);
+      case 'u32':
+        serializer.writeU32(value as int);
+      case 'i32':
+        serializer.writeI32(value as int);
+      case 'u64':
+        if (value is BigInt) {
+          serializer.writeU64(value);
+        } else {
+          serializer.writeU64(value as int);
+        }
+      case 'i64':
+        if (value is BigInt) {
+          serializer.writeI64(value.toInt());
+        } else {
+          serializer.writeI64(value as int);
+        }
+      case 'u128' || 'i128':
+        final bigVal = value is BigInt ? value : BigInt.from(value as int);
+        final bytes = Uint8List(16);
+        for (int i = 0; i < 16; i++) {
+          bytes[i] = (bigVal >> (8 * i) & BigInt.from(0xFF)).toInt();
+        }
+        serializer.writeFixedArray(bytes);
+      case 'f32':
+        serializer.writeF32(value as double);
+      case 'f64':
+        serializer.writeF64(value as double);
+      case 'string':
+        serializer.writeString(value as String);
+      case 'pubkey' || 'publicKey':
+        if (value is String) {
+          final pk = PublicKey.fromBase58(value);
+          serializer.writeFixedArray(Uint8List.fromList(pk.bytes));
+        } else if (value is Uint8List) {
+          serializer.writeFixedArray(value);
+        } else if (value is List<int>) {
+          serializer.writeFixedArray(Uint8List.fromList(value));
+        } else {
+          // Ed25519HDPublicKey or similar
+          serializer.writeFixedArray(
+            Uint8List.fromList((value as PublicKey).bytes),
+          );
+        }
+      case 'bytes':
+        final bytesList = value is Uint8List
+            ? value
+            : Uint8List.fromList(value as List<int>);
+        serializer.writeU32(bytesList.length);
+        serializer.writeFixedArray(bytesList);
+      case 'vec':
+        final list = value as List;
+        serializer.writeU32(list.length);
+        for (final item in list) {
+          _encodeFieldValue(serializer, item, idlType.inner!, types);
+        }
+      case 'option':
+        if (value == null) {
+          serializer.writeU8(0);
+        } else {
+          serializer.writeU8(1);
+          _encodeFieldValue(serializer, value, idlType.inner!, types);
+        }
+      case 'array':
+        final list = value as List;
+        for (final item in list) {
+          _encodeFieldValue(serializer, item, idlType.inner!, types);
+        }
+      case 'defined':
+        final definedType = idlType.defined;
+        if (definedType == null) {
+          throw AccountCoderError('Defined type missing name');
+        }
+        final typeDef = types.firstWhere(
+          (t) => t.name == definedType.name,
+          orElse: () =>
+              throw AccountCoderError('Type not found: ${definedType.name}'),
+        );
+        if (typeDef.type.kind == 'struct') {
+          _encodeStruct(
+            serializer,
+            value as Map<String, dynamic>,
+            typeDef.type,
+            types,
+          );
+        } else if (typeDef.type.kind == 'enum') {
+          _encodeEnum(serializer, value, typeDef.type, types);
+        } else {
+          throw AccountCoderError(
+            'Unsupported defined type kind: ${typeDef.type.kind}',
+          );
+        }
+      default:
+        throw AccountCoderError(
+          'Unsupported type for account encoding: ${idlType.kind}',
+        );
+    }
+  }
+
+  /// Encode an enum value
+  void _encodeEnum(
+    BorshSerializer serializer,
+    dynamic value,
+    IdlTypeDefType typeDefType,
+    List<IdlTypeDef> types,
+  ) {
+    final variants = typeDefType.variants;
+    if (variants == null) {
+      throw AccountCoderError('Enum type missing variants');
+    }
+    if (value is Map<String, dynamic> && value.length == 1) {
+      final variantName = value.keys.first;
+      final variantIndex = variants.indexWhere((v) => v.name == variantName);
+      if (variantIndex < 0) {
+        throw AccountCoderError('Unknown enum variant: $variantName');
+      }
+      serializer.writeU8(variantIndex);
+      final variant = variants[variantIndex];
+      final variantData = value.values.first;
+      if (variant.fields != null && variant.fields!.isNotEmpty) {
+        // Named fields
+        if (variantData is Map<String, dynamic>) {
+          for (final field in variant.fields!) {
+            _encodeFieldValue(
+              serializer,
+              variantData[field.name],
+              field.type,
+              types,
+            );
+          }
+        } else if (variantData is List) {
+          for (int i = 0; i < variant.fields!.length; i++) {
+            _encodeFieldValue(
+              serializer,
+              variantData[i],
+              variant.fields![i].type,
+              types,
+            );
+          }
+        }
+      } else if (variant.tupleFields != null &&
+          variant.tupleFields!.isNotEmpty) {
+        // Tuple fields
+        final tuple = variantData is List ? variantData : [variantData];
+        for (int i = 0; i < variant.tupleFields!.length; i++) {
+          _encodeFieldValue(
+            serializer,
+            tuple[i],
+            variant.tupleFields![i],
+            types,
+          );
+        }
+      }
+    } else {
+      throw AccountCoderError(
+        'Enum value must be a Map with exactly one key (the variant name)',
+      );
     }
   }
 
@@ -466,13 +617,14 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         final bytes = deserializer.readBytes(32);
         return PublicKeyUtils.fromBytes(bytes);
       case 'defined':
-        final typeName = idlType.defined;
-        if (typeName == null) {
+        final definedType = idlType.defined;
+        if (definedType == null) {
           throw AccountCoderError('Defined type missing name');
         }
         final typeDef = types.firstWhere(
-          (t) => t.name == typeName,
-          orElse: () => throw AccountCoderError('Type not found: $typeName'),
+          (t) => t.name == definedType.name,
+          orElse: () =>
+              throw AccountCoderError('Type not found: ${definedType.name}'),
         );
         return _decodeType(deserializer, typeDef.type, types);
       case 'array':
@@ -568,7 +720,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
         }
 
         print(
-            '  ${account.name}: ${typeSource} (discriminator: ${account.discriminator})');
+          '  ${account.name}: ${typeSource} (discriminator: ${account.discriminator})',
+        );
       }
       print('');
     }
@@ -590,7 +743,8 @@ class BorshAccountsCoder<A extends String> implements AccountsCoder<A> {
 
         if (!hasTypeDefinition) {
           issues.add(
-              'Account ${account.name} has no type definition in types section');
+            'Account ${account.name} has no type definition in types section',
+          );
         }
       }
     }

@@ -1,0 +1,960 @@
+{
+  "address": "44444444444444444444444444444444444444444444",
+  "metadata": {
+    "name": "quasar_test_misc",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        0
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  105,
+                  109,
+                  112,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "closeAccount",
+      "discriminator": [
+        1
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  105,
+                  109,
+                  112,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateHasOne",
+      "discriminator": [
+        2
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  105,
+                  109,
+                  112,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateAddress",
+      "discriminator": [
+        3
+      ],
+      "accounts": [
+        {
+          "name": "target"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "signerCheck",
+      "discriminator": [
+        4
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "ownerCheck",
+      "discriminator": [
+        5
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mutCheck",
+      "discriminator": [
+        6
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newValue",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initIfNeeded",
+      "discriminator": [
+        7
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  105,
+                  109,
+                  112,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "systemAccountCheck",
+      "discriminator": [
+        8
+      ],
+      "accounts": [
+        {
+          "name": "target"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "transferTest",
+      "discriminator": [
+        9
+      ],
+      "accounts": [
+        {
+          "name": "from",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "to",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "assignTest",
+      "discriminator": [
+        10
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "owner",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "createAccountTest",
+      "discriminator": [
+        11
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "newAccount",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        },
+        {
+          "name": "space",
+          "type": "u64"
+        },
+        {
+          "name": "owner",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "checkMultiDisc",
+      "discriminator": [
+        12
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "constraintCheck",
+      "discriminator": [
+        13
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "reallocCheck",
+      "discriminator": [
+        14
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "NewSpace",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "optionalAccount",
+      "discriminator": [
+        15
+      ],
+      "accounts": [
+        {
+          "name": "required"
+        },
+        {
+          "name": "optional"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "remainingAccountsCheck",
+      "discriminator": [
+        16
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [],
+      "hasRemaining": true
+    },
+    {
+      "name": "dynamicAccountCheck",
+      "discriminator": [
+        20
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "dynamicInstructionCheck",
+      "discriminator": [
+        21
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": {
+            "string": {
+              "maxLength": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "mixedAccountCheck",
+      "discriminator": [
+        22
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "smallPrefixCheck",
+      "discriminator": [
+        23
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "dynamicReadback",
+      "discriminator": [
+        24
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": [
+        {
+          "name": "expectedNameLen",
+          "type": "u8"
+        },
+        {
+          "name": "expectedTagsCount",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "dynamicMutate",
+      "discriminator": [
+        26
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "newName",
+          "type": {
+            "string": {
+              "maxLength": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "spaceOverride",
+      "discriminator": [
+        17
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  112,
+                  97,
+                  99,
+                  101,
+                  116,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "explicitPayer",
+      "discriminator": [
+        18
+      ],
+      "accounts": [
+        {
+          "name": "funder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  112,
+                  108,
+                  105,
+                  99,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "funder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "optionalHasOne",
+      "discriminator": [
+        19
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mutateThenReadback",
+      "discriminator": [
+        27
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "newName",
+          "type": {
+            "string": {
+              "maxLength": 8
+            }
+          }
+        },
+        {
+          "name": "expectedTagsCount",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "tailStrCheck",
+      "discriminator": [
+        28
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": [
+        {
+          "name": "expectedLen",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "tailBytesCheck",
+      "discriminator": [
+        29
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": [
+        {
+          "name": "expectedLen",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "signerAndMutCheck",
+      "discriminator": [
+        30
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true
+        },
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newValue",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "hasOneAndOwnerCheck",
+      "discriminator": [
+        31
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "constraintCustomError",
+      "discriminator": [
+        32
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "doubleMutCheck",
+      "discriminator": [
+        41
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "accountA",
+          "writable": true
+        },
+        {
+          "name": "accountB",
+          "writable": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "SimpleAccount",
+      "discriminator": [
+        1
+      ]
+    },
+    {
+      "name": "MultiDiscAccount",
+      "discriminator": [
+        1,
+        2
+      ]
+    },
+    {
+      "name": "DynamicAccount",
+      "discriminator": [
+        5
+      ]
+    },
+    {
+      "name": "MixedAccount",
+      "discriminator": [
+        6
+      ]
+    },
+    {
+      "name": "SmallPrefixAccount",
+      "discriminator": [
+        7
+      ]
+    },
+    {
+      "name": "TailStrAccount",
+      "discriminator": [
+        8
+      ]
+    },
+    {
+      "name": "TailBytesAccount",
+      "discriminator": [
+        9
+      ]
+    }
+  ],
+  "events": [],
+  "types": [
+    {
+      "name": "SimpleAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MultiDiscAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "data",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DynamicAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "tags",
+            "type": {
+              "defined": "Vec"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MixedAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "label",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SmallPrefixAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "tag",
+            "type": "string"
+          },
+          {
+            "name": "scores",
+            "type": {
+              "defined": "Vec"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TailStrAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "label",
+            "type": {
+              "tail": {
+                "element": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TailBytesAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "data",
+            "type": {
+              "tail": {
+                "element": "bytes"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 0,
+      "name": "Unauthorized"
+    },
+    {
+      "code": 1,
+      "name": "InvalidAddress"
+    },
+    {
+      "code": 2,
+      "name": "CustomConstraint"
+    }
+  ]
+}

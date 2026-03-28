@@ -8,9 +8,7 @@ import 'package:coral_xyz/src/program/namespace/instruction_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/rpc_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/simulate_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/transaction_namespace.dart';
-import 'package:coral_xyz/src/program/method_interface_generator.dart';
 import 'package:coral_xyz/src/program/type_safe_method_builder.dart';
-import 'package:coral_xyz/src/program/method_validator.dart';
 
 /// The methods namespace provides a fluent interface for building and executing
 /// program methods with type-safe parameters.
@@ -31,9 +29,8 @@ import 'package:coral_xyz/src/program/method_validator.dart';
 ///     .rpc();
 /// ```
 class MethodsNamespace {
-  MethodsNamespace._(this._generator);
+  MethodsNamespace._();
   final Map<String, TypeSafeMethodBuilder> _builders = {};
-  final MethodInterfaceGenerator _generator;
 
   /// Build methods namespace from IDL
   static MethodsNamespace build({
@@ -47,25 +44,9 @@ class MethodsNamespace {
     required AccountNamespace accountNamespace,
     required Coder coder,
   }) {
-    final generator = MethodInterfaceGenerator(
-      idl: idl,
-      provider: provider,
-      programId: programId,
-      coder: coder,
-      instructionNamespace: instructionNamespace,
-      transactionNamespace: transactionNamespace,
-      rpcNamespace: rpcNamespace,
-      simulateNamespace: simulateNamespace,
-      accountNamespace: accountNamespace,
-    );
-    final namespace = MethodsNamespace._(generator);
+    final namespace = MethodsNamespace._();
 
-    // Create type-safe method builders for each IDL instruction
     for (final instruction in idl.instructions) {
-      final validator = MethodValidator(
-        instruction: instruction,
-        idlTypes: idl.types ?? [],
-      );
       namespace._builders[instruction.name] = TypeSafeMethodBuilder(
         instruction: instruction,
         provider: provider,
@@ -76,7 +57,6 @@ class MethodsNamespace {
         simulateNamespace: simulateNamespace,
         accountNamespace: accountNamespace,
         coder: coder,
-        validator: validator,
       );
     }
 
@@ -120,9 +100,6 @@ class MethodsNamespace {
   /// Check if a method exists
   bool contains(String name) => _builders.containsKey(name);
 
-  /// Get the method interface generator
-  MethodInterfaceGenerator get generator => _generator;
-
   /// Dynamic method access (TypeScript-compatible)
   ///
   /// This method enables TypeScript-like syntax: `program.methods.initialize(args)`
@@ -153,8 +130,8 @@ class MethodsNamespace {
     // Remove the 'Symbol("' prefix and '")' suffix that Dart adds
     final cleanMethodName =
         methodName.startsWith('Symbol("') && methodName.endsWith('")')
-            ? methodName.substring(8, methodName.length - 2)
-            : methodName;
+        ? methodName.substring(8, methodName.length - 2)
+        : methodName;
 
     // Check if we have a builder for this method
     final builder = _builders[cleanMethodName];

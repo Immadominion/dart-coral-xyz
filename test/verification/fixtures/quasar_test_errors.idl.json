@@ -1,0 +1,468 @@
+{
+  "address": "55555555555555555555555555555555555555555555",
+  "metadata": {
+    "name": "quasar_test_errors",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "customError",
+      "discriminator": [
+        0
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "explicitError",
+      "discriminator": [
+        1
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "requireFalse",
+      "discriminator": [
+        2
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "programError",
+      "discriminator": [
+        3
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "requireEqCheck",
+      "discriminator": [
+        4
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "a",
+          "type": "u64"
+        },
+        {
+          "name": "b",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "requireNeqCheck",
+      "discriminator": [
+        5
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "a",
+          "type": "u64"
+        },
+        {
+          "name": "b",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "constraintFail",
+      "discriminator": [
+        6
+      ],
+      "accounts": [
+        {
+          "name": "target"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "hasOneCustom",
+      "discriminator": [
+        7
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "signerNeeded",
+      "discriminator": [
+        8
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "accountCheck",
+      "discriminator": [
+        9
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mutAccountCheck",
+      "discriminator": [
+        10
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "addressCustomError",
+      "discriminator": [
+        11
+      ],
+      "accounts": [
+        {
+          "name": "target"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "headerNodupMutSigner",
+      "discriminator": [
+        12
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "headerNodupMut",
+      "discriminator": [
+        13
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "headerNodupSigner",
+      "discriminator": [
+        14
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "headerExecutable",
+      "discriminator": [
+        15
+      ],
+      "accounts": [
+        {
+          "name": "program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "headerDupMut",
+      "discriminator": [
+        16
+      ],
+      "accounts": [
+        {
+          "name": "source",
+          "signer": true
+        },
+        {
+          "name": "destination",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "headerDupSigner",
+      "discriminator": [
+        17
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "systemAccountCheck",
+      "discriminator": [
+        20
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "programCheck",
+      "discriminator": [
+        21
+      ],
+      "accounts": [
+        {
+          "name": "program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "signerMutCheck",
+      "discriminator": [
+        22
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "uncheckedAccountCheck",
+      "discriminator": [
+        23
+      ],
+      "accounts": [
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "twoAccountsCheck",
+      "discriminator": [
+        24
+      ],
+      "accounts": [
+        {
+          "name": "first"
+        },
+        {
+          "name": "second"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "signerReadonlyCheck",
+      "discriminator": [
+        25
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "threeAccountsDup",
+      "discriminator": [
+        26
+      ],
+      "accounts": [
+        {
+          "name": "first",
+          "signer": true
+        },
+        {
+          "name": "second",
+          "writable": true
+        },
+        {
+          "name": "third"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "hasOneDefault",
+      "discriminator": [
+        27
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "addressDefault",
+      "discriminator": [
+        28
+      ],
+      "accounts": [
+        {
+          "name": "target"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "constraintDefault",
+      "discriminator": [
+        29
+      ],
+      "accounts": [
+        {
+          "name": "target"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ErrorTestAccount",
+      "discriminator": [
+        1
+      ]
+    }
+  ],
+  "events": [],
+  "types": [
+    {
+      "name": "ErrorTestAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 0,
+      "name": "Hello"
+    },
+    {
+      "code": 1,
+      "name": "World"
+    },
+    {
+      "code": 100,
+      "name": "ExplicitNum"
+    },
+    {
+      "code": 101,
+      "name": "RequireFailed"
+    },
+    {
+      "code": 102,
+      "name": "RequireEqFailed"
+    },
+    {
+      "code": 103,
+      "name": "ConstraintCustom"
+    },
+    {
+      "code": 104,
+      "name": "AddressCustom"
+    }
+  ]
+}

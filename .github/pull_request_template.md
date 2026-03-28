@@ -101,4 +101,4 @@ Add any additional notes, concerns, or considerations here.
 
 ---
 
-**Reviewer Guidelines**: Please verify TypeScript SDK parity, test coverage, and adherence to the 21 implementation rules from the project roadmap.
+

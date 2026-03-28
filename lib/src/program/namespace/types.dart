@@ -12,8 +12,8 @@ import 'package:coral_xyz/src/program/namespace/simulate_namespace.dart';
 typedef AllInstructions<I extends Idl> = List<IdlInstruction>;
 
 /// Returns a type map of instruction name to the IdlInstruction
-typedef InstructionMap<I extends List<IdlInstruction>>
-    = Map<String, IdlInstruction>;
+typedef InstructionMap<I extends List<IdlInstruction>> =
+    Map<String, IdlInstruction>;
 
 /// All accounts for an IDL
 typedef AllAccounts<I extends Idl> = List<IdlAccount>;
@@ -112,7 +112,8 @@ class TransactionInstruction {
   final List<int> data;
 
   @override
-  String toString() => 'TransactionInstruction(programId: $programId, '
+  String toString() =>
+      'TransactionInstruction(programId: $programId, '
       'accounts: ${accounts.length}, data: ${data.length} bytes)';
 
   @override
@@ -156,17 +157,17 @@ class AnchorTransaction {
 
   /// Create a new transaction with a fee payer
   AnchorTransaction setFeePayer(PublicKey feePayer) => AnchorTransaction(
-        feePayer: feePayer,
-        recentBlockhash: recentBlockhash,
-        instructions: instructions,
-      );
+    feePayer: feePayer,
+    recentBlockhash: recentBlockhash,
+    instructions: instructions,
+  );
 
   /// Create a new transaction with a recent blockhash
   AnchorTransaction setRecentBlockhash(String blockhash) => AnchorTransaction(
-        feePayer: feePayer,
-        recentBlockhash: blockhash,
-        instructions: instructions,
-      );
+    feePayer: feePayer,
+    recentBlockhash: blockhash,
+    instructions: instructions,
+  );
 
   /// Add an instruction to this transaction
   AnchorTransaction add(TransactionInstruction instruction) =>
@@ -190,7 +191,10 @@ class AnchorTransaction {
     return size;
   }
 
-  /// Estimate the transaction fee (stub, replace with real RPC call for accuracy)
+  /// Estimate the transaction fee based on signer count.
+  ///
+  /// This is a local estimate using the standard 5000 lamports per signature.
+  /// For exact fee calculation, use the RPC `getFeeForMessage` method.
   int estimateFee({int lamportsPerSignature = 5000}) {
     // 1 signature for fee payer + 1 per unique signer in all instructions
     final signers = <String>{};
@@ -208,33 +212,36 @@ class AnchorTransaction {
     SimulateFunction simulateFn,
     List<dynamic> args,
     Context<Accounts> context,
-  ) async =>
-      simulateFn(args, context);
+  ) async => simulateFn(args, context);
 
-  /// Confirm this transaction (requires provider/connection and signature)
+  /// Confirm this transaction by polling the RPC for signature status.
+  ///
+  /// Uses `Connection.confirmTransaction` which delegates to
+  /// espresso-cash's `waitForSignatureStatus`.
+  /// Returns `true` if confirmed, throws on error or timeout.
   Future<bool> confirm(
     AnchorProvider provider,
-    String signature,
-  ) async {
-    // Stub implementation - always return true for now
-    // In a real implementation, this would check transaction status
+    String signature, {
+    Duration? timeout,
+  }) async {
+    await provider.connection.confirmTransaction(signature, timeout: timeout);
     return true;
   }
 
   @override
-  String toString() => 'AnchorTransaction(feePayer: $feePayer, '
+  String toString() =>
+      'AnchorTransaction(feePayer: $feePayer, '
       'instructions: ${instructions.length})';
 }
 
-/// Generic accounts type for instruction contexts
-typedef Accounts = Map<String, PublicKey>;
+/// Generic accounts type for instruction contexts.
+/// Accepts PublicKey, String (base58), or null values — the AccountsResolver
+/// converts them to PublicKey during resolution.
+typedef Accounts = Map<String, dynamic>;
 
 /// Transaction result containing signature
 class TransactionResult {
-  const TransactionResult({
-    required this.signature,
-    this.confirmed = false,
-  });
+  const TransactionResult({required this.signature, this.confirmed = false});
 
   /// The transaction signature
   final String signature;

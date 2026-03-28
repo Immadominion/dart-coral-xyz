@@ -179,29 +179,34 @@ void main() {
 
     group('BorshUtils Anchor-specific', () {
       test('should create account discriminator correctly', () {
-        final discriminator =
-            BorshUtils.createAccountDiscriminator('MyAccount');
+        final discriminator = BorshUtils.createAccountDiscriminator(
+          'MyAccount',
+        );
 
         expect(discriminator.length, equals(8));
         // The discriminator should be deterministic
-        final discriminator2 =
-            BorshUtils.createAccountDiscriminator('MyAccount');
+        final discriminator2 = BorshUtils.createAccountDiscriminator(
+          'MyAccount',
+        );
         expect(discriminator, equals(discriminator2));
 
         // Different names should produce different discriminators
-        final differentDiscriminator =
-            BorshUtils.createAccountDiscriminator('OtherAccount');
+        final differentDiscriminator = BorshUtils.createAccountDiscriminator(
+          'OtherAccount',
+        );
         expect(discriminator, isNot(equals(differentDiscriminator)));
       });
 
       test('should create instruction discriminator correctly', () {
-        final discriminator =
-            BorshUtils.createInstructionDiscriminator('initialize');
+        final discriminator = BorshUtils.createInstructionDiscriminator(
+          'initialize',
+        );
 
         expect(discriminator.length, equals(8));
         // The discriminator should be deterministic
-        final discriminator2 =
-            BorshUtils.createInstructionDiscriminator('initialize');
+        final discriminator2 = BorshUtils.createInstructionDiscriminator(
+          'initialize',
+        );
         expect(discriminator, equals(discriminator2));
 
         // Different names should produce different discriminators
@@ -234,34 +239,6 @@ void main() {
       });
     });
 
-    group('BorshWrapper Integration', () {
-      test('should serialize basic types through wrapper', () {
-        expect(BorshWrapper.serialize(42), equals([42]));
-        expect(BorshWrapper.serialize(true), equals([1]));
-        expect(BorshWrapper.serialize(false), equals([0]));
-        expect(BorshWrapper.serialize('hi'), equals([2, 0, 0, 0, 104, 105]));
-      });
-
-      test('should create discriminators through wrapper', () {
-        final accountDisc = BorshWrapper.createAccountDiscriminator('Test');
-        final instructionDisc =
-            BorshWrapper.createInstructionDiscriminator('test');
-
-        expect(accountDisc.length, equals(8));
-        expect(instructionDisc.length, equals(8));
-        expect(accountDisc, isNot(equals(instructionDisc)));
-      });
-
-      test('should deserialize through wrapper', () {
-        final data = Uint8List.fromList([42]);
-        final result = BorshWrapper.deserialize<int>(
-          data,
-          (deserializer) => deserializer.readU8(),
-        );
-        expect(result, equals(42));
-      });
-    });
-
     group('Round-trip Serialization', () {
       test('should handle complex data structures', () {
         final serializer = BorshSerializer();
@@ -271,10 +248,7 @@ void main() {
         serializer.writeU32(12345);
         serializer.writeArray([1, 2, 3], serializer.writeU8);
         serializer.writeBool(true);
-        serializer.writeOption(
-          'optional',
-          serializer.writeString,
-        );
+        serializer.writeOption('optional', serializer.writeString);
 
         final serialized = serializer.toBytes();
 
@@ -283,10 +257,7 @@ void main() {
 
         expect(deserializer.readString(), equals('test'));
         expect(deserializer.readU32(), equals(12345));
-        expect(
-          deserializer.readArray(deserializer.readU8),
-          equals([1, 2, 3]),
-        );
+        expect(deserializer.readArray(deserializer.readU8), equals([1, 2, 3]));
         expect(deserializer.readBool(), equals(true));
         expect(
           deserializer.readOption(deserializer.readString),

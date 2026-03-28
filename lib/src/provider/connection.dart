@@ -14,7 +14,6 @@ import 'package:solana/solana.dart' as solana;
 import 'package:solana/src/subscription_client/logs_filter.dart';
 
 import '../types/connection_config.dart';
-import '../utils/logger.dart';
 
 /// Connection to a Solana cluster for RPC communication
 ///
@@ -29,19 +28,34 @@ class Connection {
   ///
   /// [endpoint] - The RPC endpoint URL
   /// [config] - Optional connection configuration
-  Connection(
-    this._endpoint, {
-    ConnectionConfig? config,
-  })  : _config = config ?? ConnectionConfig(rpcUrl: _endpoint),
-        _client = solana.SolanaClient(
-          rpcUrl: Uri.parse(_endpoint),
-          websocketUrl: Uri.parse(_endpoint.replaceFirst('http', 'ws')),
-        );
+  Connection(this._endpoint, {ConnectionConfig? config})
+    : _config = config ?? ConnectionConfig(rpcUrl: _endpoint),
+      _client = solana.SolanaClient(
+        rpcUrl: Uri.parse(_endpoint),
+        websocketUrl: _buildWebsocketUrl(_endpoint),
+      );
+
+  /// Build the WebSocket URL from the RPC HTTP endpoint.
+  ///
+  /// For standard validators, WebSocket runs on the same host and port but
+  /// with the `ws` scheme. However, `solana-test-validator` exposes WebSocket
+  /// on port + 1 (e.g., HTTP 8899 → WS 8900). We handle the common localnet
+  /// case to avoid WebSocket connection failures.
+  static Uri _buildWebsocketUrl(String httpEndpoint) {
+    final uri = Uri.parse(httpEndpoint);
+    final scheme = uri.scheme == 'https' ? 'wss' : 'ws';
+
+    // For localhost/127.0.0.1 with the default test-validator port,
+    // use port + 1 for WebSocket.
+    final isLocalhost = uri.host == '127.0.0.1' || uri.host == 'localhost';
+    final port = isLocalhost && uri.port == 8899 ? 8900 : uri.port;
+
+    return uri.replace(scheme: scheme, port: port);
+  }
 
   final String _endpoint;
   final ConnectionConfig _config;
   final solana.SolanaClient _client;
-  static final AnchorLogger _logger = AnchorLogger.getLogger('Connection');
 
   /// Get the underlying espresso-cash SolanaClient for advanced usage
   /// This provides access to all production-ready Solana functionality
@@ -84,17 +98,12 @@ class Connection {
     dto.Commitment? commitment,
     dto.Encoding? encoding,
   }) async {
-    try {
-      final result = await _client.rpcClient.getAccountInfo(
-        address,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        encoding: encoding ?? dto.Encoding.base64,
-      );
-      return result.value;
-    } catch (e) {
-      _logger.info('Failed to get account info for $address: $e');
-      return null;
-    }
+    final result = await _client.rpcClient.getAccountInfo(
+      address,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      encoding: encoding ?? dto.Encoding.base64,
+    );
+    return result.value;
   }
 
   /// Get multiple accounts info
@@ -104,17 +113,25 @@ class Connection {
     dto.Commitment? commitment,
     dto.Encoding? encoding,
   }) async {
-    try {
-      final result = await _client.rpcClient.getMultipleAccounts(
-        addresses,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        encoding: encoding ?? dto.Encoding.base64,
-      );
-      return result.value;
-    } catch (e) {
-      _logger.info('Failed to get multiple accounts info: $e');
-      return List.filled(addresses.length, null);
-    }
+    final result = await _client.rpcClient.getMultipleAccounts(
+      addresses,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      encoding: encoding ?? dto.Encoding.base64,
+    );
+    return result.value;
+  }
+
+  /// Get multiple accounts info with context (slot information)
+  Future<dto.MultipleAccountsResult> getMultipleAccountsInfoAndContext(
+    List<String> addresses, {
+    dto.Commitment? commitment,
+    dto.Encoding? encoding,
+  }) async {
+    return await _client.rpcClient.getMultipleAccounts(
+      addresses,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      encoding: encoding ?? dto.Encoding.base64,
+    );
   }
 
   /// Get program accounts
@@ -125,18 +142,13 @@ class Connection {
     dto.Encoding? encoding,
     List<AccountFilter>? filters,
   }) async {
-    try {
-      final dtoFilters = _convertAccountFilters(filters);
-      return await _client.rpcClient.getProgramAccounts(
-        programId,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        encoding: encoding ?? dto.Encoding.base64,
-        filters: dtoFilters,
-      );
-    } catch (e) {
-      _logger.info('Failed to get program accounts for $programId: $e');
-      return [];
-    }
+    final dtoFilters = _convertAccountFilters(filters);
+    return await _client.rpcClient.getProgramAccounts(
+      programId,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      encoding: encoding ?? dto.Encoding.base64,
+      filters: dtoFilters,
+    );
   }
 
   List<dto.ProgramDataFilter>? _convertAccountFilters(
@@ -148,10 +160,7 @@ class Connection {
     for (final f in filters) {
       if (f is MemcmpFilter) {
         converted.add(
-          dto.ProgramDataFilter.memcmpBase58(
-            offset: f.offset,
-            bytes: f.bytes,
-          ),
+          dto.ProgramDataFilter.memcmpBase58(offset: f.offset, bytes: f.bytes),
         );
       } else if (f is DataSizeFilter) {
         converted.add(dto.ProgramDataFilter.dataSize(f.dataSize));
@@ -162,20 +171,12 @@ class Connection {
 
   /// Get balance for an account
   /// Matches TypeScript: connection.getBalance(publicKey)
-  Future<int> getBalance(
-    String address, {
-    dto.Commitment? commitment,
-  }) async {
-    try {
-      final result = await _client.rpcClient.getBalance(
-        address,
-        commitment: commitment ?? dto.Commitment.confirmed,
-      );
-      return result.value;
-    } catch (e) {
-      _logger.info('Failed to get balance for $address: $e');
-      return 0;
-    }
+  Future<int> getBalance(String address, {dto.Commitment? commitment}) async {
+    final result = await _client.rpcClient.getBalance(
+      address,
+      commitment: commitment ?? dto.Commitment.confirmed,
+    );
+    return result.value;
   }
 
   /// Send a transaction and return the signature
@@ -186,17 +187,12 @@ class Connection {
     bool skipPreflight = false,
     int? maxRetries,
   }) async {
-    try {
-      return await _client.rpcClient.sendTransaction(
-        transaction,
-        preflightCommitment: preflightCommitment ?? dto.Commitment.confirmed,
-        skipPreflight: skipPreflight,
-        maxRetries: maxRetries,
-      );
-    } catch (e) {
-      _logger.info('Failed to send transaction: $e');
-      rethrow;
-    }
+    return await _client.rpcClient.sendTransaction(
+      transaction,
+      preflightCommitment: preflightCommitment ?? dto.Commitment.confirmed,
+      skipPreflight: skipPreflight,
+      maxRetries: maxRetries,
+    );
   }
 
   /// Send a transaction and wait for confirmation
@@ -206,16 +202,11 @@ class Connection {
     required List<solana.Ed25519HDKeyPair> signers,
     dto.Commitment? commitment,
   }) async {
-    try {
-      return await _client.sendAndConfirmTransaction(
-        message: message,
-        signers: signers,
-        commitment: commitment ?? dto.Commitment.confirmed,
-      );
-    } catch (e) {
-      _logger.info('Failed to send and confirm transaction: $e');
-      rethrow;
-    }
+    return await _client.sendAndConfirmTransaction(
+      message: message,
+      signers: signers,
+      commitment: commitment ?? dto.Commitment.confirmed,
+    );
   }
 
   /// Get latest blockhash
@@ -223,15 +214,10 @@ class Connection {
   Future<dto.LatestBlockhash> getLatestBlockhash({
     dto.Commitment? commitment,
   }) async {
-    try {
-      final result = await _client.rpcClient.getLatestBlockhash(
-        commitment: commitment ?? dto.Commitment.confirmed,
-      );
-      return result.value;
-    } catch (e) {
-      _logger.info('Failed to get latest blockhash: $e');
-      rethrow;
-    }
+    final result = await _client.rpcClient.getLatestBlockhash(
+      commitment: commitment ?? dto.Commitment.confirmed,
+    );
+    return result.value;
   }
 
   /// Simulate a transaction
@@ -243,18 +229,13 @@ class Connection {
     bool replaceRecentBlockhash = true,
     dto.SimulateTransactionAccounts? accounts,
   }) async {
-    try {
-      return await _client.rpcClient.simulateTransaction(
-        transaction,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        sigVerify: sigVerify,
-        replaceRecentBlockhash: replaceRecentBlockhash,
-        accounts: accounts,
-      );
-    } catch (e) {
-      _logger.info('Failed to simulate transaction: $e');
-      rethrow;
-    }
+    return await _client.rpcClient.simulateTransaction(
+      transaction,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      sigVerify: sigVerify,
+      replaceRecentBlockhash: replaceRecentBlockhash,
+      accounts: accounts,
+    );
   }
 
   /// Get minimum balance for rent exemption
@@ -263,15 +244,10 @@ class Connection {
     int dataLength, {
     dto.Commitment? commitment,
   }) async {
-    try {
-      return await _client.rpcClient.getMinimumBalanceForRentExemption(
-        dataLength,
-        commitment: commitment ?? dto.Commitment.confirmed,
-      );
-    } catch (e) {
-      _logger.info('Failed to get minimum balance for rent exemption: $e');
-      rethrow;
-    }
+    return await _client.rpcClient.getMinimumBalanceForRentExemption(
+      dataLength,
+      commitment: commitment ?? dto.Commitment.confirmed,
+    );
   }
 
   // =============================================================================
@@ -285,17 +261,12 @@ class Connection {
     dto.Commitment? commitment,
     dto.Encoding? encoding,
   }) {
-    try {
-      final subscriptionClient = createSubscriptionClient();
-      return subscriptionClient.accountSubscribe(
-        address,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        encoding: encoding ?? dto.Encoding.base64,
-      );
-    } catch (e) {
-      _logger.info('Failed to subscribe to account changes for $address: $e');
-      return const Stream.empty();
-    }
+    final subscriptionClient = createSubscriptionClient();
+    return subscriptionClient.accountSubscribe(
+      address,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      encoding: encoding ?? dto.Encoding.base64,
+    );
   }
 
   /// Subscribe to program account changes
@@ -305,50 +276,36 @@ class Connection {
     dto.Commitment? commitment,
     dto.Encoding? encoding,
   }) {
-    try {
-      final subscriptionClient = createSubscriptionClient();
-      return subscriptionClient.programSubscribe(
-        programId,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        encoding: encoding ?? dto.Encoding.base64,
-      );
-    } catch (e) {
-      _logger.info(
-          'Failed to subscribe to program account changes for $programId: $e');
-      return const Stream.empty();
-    }
+    final subscriptionClient = createSubscriptionClient();
+    return subscriptionClient.programSubscribe(
+      programId,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      encoding: encoding ?? dto.Encoding.base64,
+    );
   }
 
   /// Subscribe to logs
   /// Matches TypeScript: connection.onLogs(filter, callback)
-  Stream<dto.Logs> onLogs(
-    dynamic filter, {
-    dto.Commitment? commitment,
-  }) {
-    try {
-      late LogsFilter logsFilter;
+  Stream<dto.Logs> onLogs(dynamic filter, {dto.Commitment? commitment}) {
+    late LogsFilter logsFilter;
 
-      if (filter is String) {
-        logsFilter = LogsFilter.mentions([filter]);
-      } else if (filter is List<String>) {
-        logsFilter = LogsFilter.mentions(filter);
-      } else if (filter == 'all') {
-        logsFilter = const LogsFilter.all();
-      } else if (filter == 'allWithVotes') {
-        logsFilter = const LogsFilter.allWithVotes();
-      } else {
-        throw ArgumentError('Invalid logs filter: $filter');
-      }
-
-      final subscriptionClient = createSubscriptionClient();
-      return subscriptionClient.logsSubscribe(
-        logsFilter,
-        commitment: commitment ?? dto.Commitment.confirmed,
-      );
-    } catch (e) {
-      _logger.info('Failed to subscribe to logs: $e');
-      return const Stream.empty();
+    if (filter is String) {
+      logsFilter = LogsFilter.mentions([filter]);
+    } else if (filter is List<String>) {
+      logsFilter = LogsFilter.mentions(filter);
+    } else if (filter == 'all') {
+      logsFilter = const LogsFilter.all();
+    } else if (filter == 'allWithVotes') {
+      logsFilter = const LogsFilter.allWithVotes();
+    } else {
+      throw ArgumentError('Invalid logs filter: $filter');
     }
+
+    final subscriptionClient = createSubscriptionClient();
+    return subscriptionClient.logsSubscribe(
+      logsFilter,
+      commitment: commitment ?? dto.Commitment.confirmed,
+    );
   }
 
   /// Wait for signature status (confirm transaction)
@@ -358,16 +315,11 @@ class Connection {
     dto.ConfirmationStatus? status,
     Duration? timeout,
   }) async {
-    try {
-      await _client.waitForSignatureStatus(
-        signature,
-        status: status ?? dto.ConfirmationStatus.confirmed,
-        timeout: timeout,
-      );
-    } catch (e) {
-      _logger.info('Failed to confirm transaction $signature: $e');
-      rethrow;
-    }
+    await _client.waitForSignatureStatus(
+      signature,
+      status: status ?? dto.ConfirmationStatus.confirmed,
+      timeout: timeout,
+    );
   }
 
   /// Request airdrop for testing
@@ -377,16 +329,11 @@ class Connection {
     int lamports, {
     dto.Commitment? commitment,
   }) async {
-    try {
-      return await _client.rpcClient.requestAirdrop(
-        address,
-        lamports,
-        commitment: commitment ?? dto.Commitment.confirmed,
-      );
-    } catch (e) {
-      _logger.info('Failed to request airdrop for $address: $e');
-      rethrow;
-    }
+    return await _client.rpcClient.requestAirdrop(
+      address,
+      lamports,
+      commitment: commitment ?? dto.Commitment.confirmed,
+    );
   }
 
   /// Send raw transaction
@@ -397,18 +344,13 @@ class Connection {
     bool skipPreflight = false,
     int? maxRetries,
   }) async {
-    try {
-      final base64Transaction = _bytesToBase64(transaction);
-      return await _client.rpcClient.sendTransaction(
-        base64Transaction,
-        preflightCommitment: preflightCommitment ?? dto.Commitment.confirmed,
-        skipPreflight: skipPreflight,
-        maxRetries: maxRetries,
-      );
-    } catch (e) {
-      _logger.info('Failed to send raw transaction: $e');
-      rethrow;
-    }
+    final base64Transaction = _bytesToBase64(transaction);
+    return await _client.rpcClient.sendTransaction(
+      base64Transaction,
+      preflightCommitment: preflightCommitment ?? dto.Commitment.confirmed,
+      skipPreflight: skipPreflight,
+      maxRetries: maxRetries,
+    );
   }
 
   /// Get transaction details
@@ -418,16 +360,11 @@ class Connection {
     dto.Commitment? commitment,
     int? maxSupportedTransactionVersion,
   }) async {
-    try {
-      return await _client.rpcClient.getTransaction(
-        signature,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        maxSupportedTransactionVersion: maxSupportedTransactionVersion ?? 0,
-      );
-    } catch (e) {
-      _logger.info('Failed to get transaction $signature: $e');
-      return null;
-    }
+    return await _client.rpcClient.getTransaction(
+      signature,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      maxSupportedTransactionVersion: maxSupportedTransactionVersion ?? 0,
+    );
   }
 
   /// Get account info and context (with slot information)
@@ -437,16 +374,11 @@ class Connection {
     dto.Commitment? commitment,
     dto.Encoding? encoding,
   }) async {
-    try {
-      return await _client.rpcClient.getAccountInfo(
-        address,
-        commitment: commitment ?? dto.Commitment.confirmed,
-        encoding: encoding ?? dto.Encoding.base64,
-      );
-    } catch (e) {
-      _logger.info('Failed to get account info and context for $address: $e');
-      rethrow;
-    }
+    return await _client.rpcClient.getAccountInfo(
+      address,
+      commitment: commitment ?? dto.Commitment.confirmed,
+      encoding: encoding ?? dto.Encoding.base64,
+    );
   }
 
   /// Get signature status
@@ -455,16 +387,10 @@ class Connection {
     String signature, {
     bool searchTransactionHistory = false,
   }) async {
-    try {
-      final result = await _client.rpcClient.getSignatureStatuses(
-        [signature],
-        searchTransactionHistory: searchTransactionHistory,
-      );
-      return result.value.isNotEmpty ? result.value.first : null;
-    } catch (e) {
-      _logger.info('Failed to get signature status for $signature: $e');
-      return null;
-    }
+    final result = await _client.rpcClient.getSignatureStatuses([
+      signature,
+    ], searchTransactionHistory: searchTransactionHistory);
+    return result.value.isNotEmpty ? result.value.first : null;
   }
 
   /// Get signature statuses for multiple signatures
@@ -473,16 +399,11 @@ class Connection {
     List<String> signatures, {
     bool searchTransactionHistory = false,
   }) async {
-    try {
-      final result = await _client.rpcClient.getSignatureStatuses(
-        signatures,
-        searchTransactionHistory: searchTransactionHistory,
-      );
-      return result.value;
-    } catch (e) {
-      _logger.info('Failed to get signature statuses: $e');
-      return List.filled(signatures.length, null);
-    }
+    final result = await _client.rpcClient.getSignatureStatuses(
+      signatures,
+      searchTransactionHistory: searchTransactionHistory,
+    );
+    return result.value;
   }
 
   // =============================================================================
@@ -501,18 +422,13 @@ class Connection {
     bool skipPreflight = false,
     int? maxRetries,
   }) async {
-    try {
-      final base64Transaction = _bytesToBase64(transaction);
-      return await sendTransaction(
-        base64Transaction,
-        preflightCommitment: preflightCommitment,
-        skipPreflight: skipPreflight,
-        maxRetries: maxRetries,
-      );
-    } catch (e) {
-      _logger.info('Failed to send transaction bytes: $e');
-      rethrow;
-    }
+    final base64Transaction = _bytesToBase64(transaction);
+    return await sendTransaction(
+      base64Transaction,
+      preflightCommitment: preflightCommitment,
+      skipPreflight: skipPreflight,
+      maxRetries: maxRetries,
+    );
   }
 
   /// Alternative simulation method with byte array input
@@ -523,18 +439,13 @@ class Connection {
     bool replaceRecentBlockhash = true,
     dto.SimulateTransactionAccounts? accounts,
   }) async {
-    try {
-      final base64Transaction = _bytesToBase64(transaction);
-      return await simulateTransaction(
-        base64Transaction,
-        commitment: commitment,
-        sigVerify: sigVerify,
-        replaceRecentBlockhash: replaceRecentBlockhash,
-        accounts: accounts,
-      );
-    } catch (e) {
-      _logger.info('Failed to simulate transaction bytes: $e');
-      rethrow;
-    }
+    final base64Transaction = _bytesToBase64(transaction);
+    return await simulateTransaction(
+      base64Transaction,
+      commitment: commitment,
+      sigVerify: sigVerify,
+      replaceRecentBlockhash: replaceRecentBlockhash,
+      accounts: accounts,
+    );
   }
 }

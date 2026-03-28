@@ -1,0 +1,849 @@
+{
+  "generatedAt": "2026-03-24T22:57:49.506Z",
+  "generator": "coral-xyz-reference-generator",
+  "description": "Reference values computed using the same algorithms as @coral-xyz/anchor TS SDK. Discriminators use SHA256 with the documented prefixes.",
+  "programs": {
+    "basic_counter": {
+      "name": "basic_counter",
+      "version": "0.1.0",
+      "instructions": {
+        "initialize": {
+          "discriminator": [
+            175,
+            175,
+            109,
+            31,
+            13,
+            152,
+            155,
+            237
+          ],
+          "discriminatorHex": "afaf6d1f0d989bed",
+          "preimage": "global:initialize"
+        },
+        "increment": {
+          "discriminator": [
+            11,
+            18,
+            104,
+            9,
+            104,
+            174,
+            59,
+            33
+          ],
+          "discriminatorHex": "0b12680968ae3b21",
+          "preimage": "global:increment"
+        }
+      },
+      "accounts": {
+        "Counter": {
+          "discriminator": [
+            255,
+            176,
+            4,
+            245,
+            188,
+            253,
+            124,
+            25
+          ],
+          "discriminatorHex": "ffb004f5bcfd7c19",
+          "preimage": "account:Counter"
+        }
+      },
+      "events": {},
+      "encodedInstructions": [
+        {
+          "instruction": "increment",
+          "args": {
+            "amount": 42
+          },
+          "bytes": [
+            11,
+            18,
+            104,
+            9,
+            104,
+            174,
+            59,
+            33,
+            42,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "hex": "0b12680968ae3b212a00000000000000"
+        },
+        {
+          "instruction": "increment",
+          "args": {
+            "amount": 0
+          },
+          "bytes": [
+            11,
+            18,
+            104,
+            9,
+            104,
+            174,
+            59,
+            33,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "hex": "0b12680968ae3b210000000000000000"
+        },
+        {
+          "instruction": "increment",
+          "args": {
+            "amount": "18446744073709551615"
+          },
+          "bytes": [
+            11,
+            18,
+            104,
+            9,
+            104,
+            174,
+            59,
+            33,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255
+          ],
+          "hex": "0b12680968ae3b21ffffffffffffffff"
+        },
+        {
+          "instruction": "initialize",
+          "args": {},
+          "bytes": [
+            175,
+            175,
+            109,
+            31,
+            13,
+            152,
+            155,
+            237
+          ],
+          "hex": "afaf6d1f0d989bed"
+        }
+      ],
+      "accountSizes": {
+        "Counter": {
+          "discriminatorSize": 8,
+          "bodySize": 9,
+          "totalSize": 17,
+          "isVariableLength": false
+        }
+      }
+    },
+    "clever_todo": {
+      "name": "clever_todo",
+      "version": "0.1.0",
+      "instructions": {
+        "initializeUser": {
+          "discriminator": [
+            111,
+            17,
+            185,
+            250,
+            60,
+            122,
+            38,
+            254
+          ],
+          "discriminatorHex": "6f11b9fa3c7a26fe",
+          "preimage": "global:initialize_user"
+        },
+        "addTodo": {
+          "discriminator": [
+            188,
+            16,
+            45,
+            145,
+            4,
+            5,
+            188,
+            75
+          ],
+          "discriminatorHex": "bc102d910405bc4b",
+          "preimage": "global:add_todo"
+        },
+        "markTodo": {
+          "discriminator": [
+            70,
+            24,
+            206,
+            243,
+            92,
+            29,
+            249,
+            110
+          ],
+          "discriminatorHex": "4618cef35c1df96e",
+          "preimage": "global:mark_todo"
+        },
+        "removeTodo": {
+          "discriminator": [
+            28,
+            167,
+            91,
+            69,
+            25,
+            225,
+            253,
+            117
+          ],
+          "discriminatorHex": "1ca75b4519e1fd75",
+          "preimage": "global:remove_todo"
+        }
+      },
+      "accounts": {
+        "UserProfile": {
+          "discriminator": [
+            32,
+            37,
+            119,
+            205,
+            179,
+            180,
+            13,
+            194
+          ],
+          "discriminatorHex": "202577cdb3b40dc2",
+          "preimage": "account:UserProfile"
+        },
+        "TodoAccount": {
+          "discriminator": [
+            31,
+            86,
+            84,
+            40,
+            187,
+            31,
+            251,
+            132
+          ],
+          "discriminatorHex": "1f565428bb1ffb84",
+          "preimage": "account:TodoAccount"
+        }
+      },
+      "events": {},
+      "encodedInstructions": [
+        {
+          "instruction": "addTodo",
+          "args": {
+            "content": "Buy groceries"
+          },
+          "bytes": [
+            188,
+            16,
+            45,
+            145,
+            4,
+            5,
+            188,
+            75,
+            13,
+            0,
+            0,
+            0,
+            66,
+            117,
+            121,
+            32,
+            103,
+            114,
+            111,
+            99,
+            101,
+            114,
+            105,
+            101,
+            115
+          ],
+          "hex": "bc102d910405bc4b0d0000004275792067726f636572696573"
+        },
+        {
+          "instruction": "markTodo",
+          "args": {
+            "todoIdx": 3
+          },
+          "bytes": [
+            70,
+            24,
+            206,
+            243,
+            92,
+            29,
+            249,
+            110,
+            3
+          ],
+          "hex": "4618cef35c1df96e03"
+        },
+        {
+          "instruction": "initializeUser",
+          "args": {},
+          "bytes": [
+            111,
+            17,
+            185,
+            250,
+            60,
+            122,
+            38,
+            254
+          ],
+          "hex": "6f11b9fa3c7a26fe"
+        }
+      ],
+      "accountSizes": {
+        "UserProfile": {
+          "discriminatorSize": 8,
+          "bodySize": 34,
+          "totalSize": 42,
+          "isVariableLength": false
+        },
+        "TodoAccount": {
+          "discriminatorSize": 8,
+          "bodySize": -1,
+          "totalSize": -1,
+          "isVariableLength": true
+        }
+      }
+    },
+    "flutter_vote": {
+      "name": "flutter_vote",
+      "version": "0.1.0",
+      "instructions": {
+        "initialize": {
+          "discriminator": [
+            175,
+            175,
+            109,
+            31,
+            13,
+            152,
+            155,
+            237
+          ],
+          "discriminatorHex": "afaf6d1f0d989bed",
+          "preimage": "global:initialize"
+        },
+        "vote": {
+          "discriminator": [
+            227,
+            110,
+            155,
+            23,
+            136,
+            126,
+            172,
+            25
+          ],
+          "discriminatorHex": "e36e9b17887eac19",
+          "preimage": "global:vote"
+        }
+      },
+      "accounts": {
+        "Poll": {
+          "discriminator": [
+            110,
+            234,
+            167,
+            188,
+            231,
+            136,
+            153,
+            111
+          ],
+          "discriminatorHex": "6eeaa7bce788996f",
+          "preimage": "account:Poll"
+        }
+      },
+      "events": {},
+      "encodedInstructions": [
+        {
+          "instruction": "initialize",
+          "args": {
+            "name": "Best Language",
+            "description": "Vote for the best programming language",
+            "options": [
+              "Dart",
+              "Rust",
+              "TypeScript"
+            ]
+          },
+          "bytes": [
+            175,
+            175,
+            109,
+            31,
+            13,
+            152,
+            155,
+            237,
+            13,
+            0,
+            0,
+            0,
+            66,
+            101,
+            115,
+            116,
+            32,
+            76,
+            97,
+            110,
+            103,
+            117,
+            97,
+            103,
+            101,
+            38,
+            0,
+            0,
+            0,
+            86,
+            111,
+            116,
+            101,
+            32,
+            102,
+            111,
+            114,
+            32,
+            116,
+            104,
+            101,
+            32,
+            98,
+            101,
+            115,
+            116,
+            32,
+            112,
+            114,
+            111,
+            103,
+            114,
+            97,
+            109,
+            109,
+            105,
+            110,
+            103,
+            32,
+            108,
+            97,
+            110,
+            103,
+            117,
+            97,
+            103,
+            101,
+            3,
+            0,
+            0,
+            0,
+            4,
+            0,
+            0,
+            0,
+            68,
+            97,
+            114,
+            116,
+            4,
+            0,
+            0,
+            0,
+            82,
+            117,
+            115,
+            116,
+            10,
+            0,
+            0,
+            0,
+            84,
+            121,
+            112,
+            101,
+            83,
+            99,
+            114,
+            105,
+            112,
+            116
+          ],
+          "hex": "afaf6d1f0d989bed0d00000042657374204c616e677561676526000000566f746520666f722074686520626573742070726f6772616d6d696e67206c616e677561676503000000040000004461727404000000527573740a00000054797065536372697074"
+        },
+        {
+          "instruction": "vote",
+          "args": {
+            "voteId": 1
+          },
+          "bytes": [
+            227,
+            110,
+            155,
+            23,
+            136,
+            126,
+            172,
+            25,
+            1
+          ],
+          "hex": "e36e9b17887eac1901"
+        }
+      ],
+      "accountSizes": {
+        "Poll": {
+          "discriminatorSize": 8,
+          "bodySize": -1,
+          "totalSize": -1,
+          "isVariableLength": true
+        }
+      }
+    }
+  },
+  "standaloneDiscriminators": {
+    "instructions": {
+      "initialize": {
+        "preimage": "global:initialize",
+        "discriminator": [
+          175,
+          175,
+          109,
+          31,
+          13,
+          152,
+          155,
+          237
+        ],
+        "hex": "afaf6d1f0d989bed"
+      },
+      "transfer": {
+        "preimage": "global:transfer",
+        "discriminator": [
+          163,
+          52,
+          200,
+          231,
+          140,
+          3,
+          69,
+          186
+        ],
+        "hex": "a334c8e78c0345ba"
+      },
+      "close": {
+        "preimage": "global:close",
+        "discriminator": [
+          98,
+          165,
+          201,
+          177,
+          108,
+          65,
+          206,
+          96
+        ],
+        "hex": "62a5c9b16c41ce60"
+      },
+      "mint": {
+        "preimage": "global:mint",
+        "discriminator": [
+          51,
+          57,
+          225,
+          47,
+          182,
+          146,
+          137,
+          166
+        ],
+        "hex": "3339e12fb69289a6"
+      },
+      "set_authority": {
+        "preimage": "global:set_authority",
+        "discriminator": [
+          133,
+          250,
+          37,
+          21,
+          110,
+          163,
+          26,
+          121
+        ],
+        "hex": "85fa25156ea31a79"
+      }
+    },
+    "accounts": {
+      "Counter": {
+        "preimage": "account:Counter",
+        "discriminator": [
+          255,
+          176,
+          4,
+          245,
+          188,
+          253,
+          124,
+          25
+        ],
+        "hex": "ffb004f5bcfd7c19"
+      },
+      "TokenAccount": {
+        "preimage": "account:TokenAccount",
+        "discriminator": [
+          220,
+          131,
+          236,
+          16,
+          145,
+          206,
+          207,
+          54
+        ],
+        "hex": "dc83ec1091cecf36"
+      },
+      "Mint": {
+        "preimage": "account:Mint",
+        "discriminator": [
+          80,
+          188,
+          245,
+          20,
+          95,
+          138,
+          57,
+          156
+        ],
+        "hex": "50bcf5145f8a399c"
+      },
+      "Poll": {
+        "preimage": "account:Poll",
+        "discriminator": [
+          110,
+          234,
+          167,
+          188,
+          231,
+          136,
+          153,
+          111
+        ],
+        "hex": "6eeaa7bce788996f"
+      },
+      "UserProfile": {
+        "preimage": "account:UserProfile",
+        "discriminator": [
+          32,
+          37,
+          119,
+          205,
+          179,
+          180,
+          13,
+          194
+        ],
+        "hex": "202577cdb3b40dc2"
+      }
+    },
+    "events": {
+      "TransferEvent": {
+        "preimage": "event:TransferEvent",
+        "discriminator": [
+          100,
+          10,
+          46,
+          113,
+          8,
+          28,
+          179,
+          125
+        ],
+        "hex": "640a2e71081cb37d"
+      },
+      "NewPollEvent": {
+        "preimage": "event:NewPollEvent",
+        "discriminator": [
+          238,
+          34,
+          10,
+          122,
+          217,
+          151,
+          53,
+          113
+        ],
+        "hex": "ee220a7ad9973571"
+      }
+    }
+  },
+  "borshEncoding": {
+    "u8": {
+      "value": 42,
+      "bytes": [
+        42
+      ],
+      "hex": "2a"
+    },
+    "u16": {
+      "value": 1000,
+      "bytes": [
+        232,
+        3
+      ],
+      "hex": "e803"
+    },
+    "u32": {
+      "value": 100000,
+      "bytes": [
+        160,
+        134,
+        1,
+        0
+      ],
+      "hex": "a0860100"
+    },
+    "u64": {
+      "value": "1000000000000",
+      "bytes": [
+        0,
+        16,
+        165,
+        212,
+        232,
+        0,
+        0,
+        0
+      ],
+      "hex": "0010a5d4e8000000"
+    },
+    "i8": {
+      "value": -42,
+      "bytes": [
+        214
+      ],
+      "hex": "d6"
+    },
+    "i16": {
+      "value": -1000,
+      "bytes": [
+        24,
+        252
+      ],
+      "hex": "18fc"
+    },
+    "i32": {
+      "value": -100000,
+      "bytes": [
+        96,
+        121,
+        254,
+        255
+      ],
+      "hex": "6079feff"
+    },
+    "i64": {
+      "value": "-1000000000000",
+      "bytes": [
+        0,
+        240,
+        90,
+        43,
+        23,
+        255,
+        255,
+        255
+      ],
+      "hex": "00f05a2b17ffffff"
+    },
+    "bool_true": {
+      "value": true,
+      "bytes": [
+        1
+      ],
+      "hex": "01"
+    },
+    "bool_false": {
+      "value": false,
+      "bytes": [
+        0
+      ],
+      "hex": "00"
+    },
+    "string": {
+      "value": "hello world",
+      "bytes": [
+        11,
+        0,
+        0,
+        0,
+        104,
+        101,
+        108,
+        108,
+        111,
+        32,
+        119,
+        111,
+        114,
+        108,
+        100
+      ],
+      "hex": "0b00000068656c6c6f20776f726c64"
+    },
+    "string_empty": {
+      "value": "",
+      "bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "hex": "00000000"
+    },
+    "string_unicode": {
+      "value": "日本語",
+      "bytes": [
+        9,
+        0,
+        0,
+        0,
+        230,
+        151,
+        165,
+        230,
+        156,
+        172,
+        232,
+        170,
+        158
+      ],
+      "hex": "09000000e697a5e69cace8aa9e"
+    }
+  }
+}

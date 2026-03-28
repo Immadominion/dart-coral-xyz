@@ -5,522 +5,132 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.9] - 2026-03-28
+
+### Added
+
+- **Quasar framework support**: Full IDL parsing, zero-copy account decoding with explicit discriminators, instruction encoding, and PDA derivation for Quasar programs
+- **Pinocchio/Codama support**: `CodamaParser` for Pinocchio program IDLs and `ProgramInterface.define()` for manual interface definition without IDL files
+- **Quasar-SVM FFI bindings**: In-process Solana program execution via `dart:ffi` — run deterministic tests without `solana-test-validator`. Includes `QuasarSvm`, `ExecutionResult`, account factories, and sysvar configuration
+- **Multi-format IDL detection**: Automatic format detection (Anchor, Quasar, Codama) in `Idl.fromJson()`
+- **`AccountsCoderFactory`**: Dispatches to `BorshAccountsCoder` or `ZeroCopyAccountsCoder` based on IDL format
+- **`DiscriminatorComputer`**: Unified discriminator handling for Anchor (SHA256), Quasar (explicit), and manual discriminators
+- **`PdaSeedResolver`**: Resolves PDA seeds from IDL definitions (const, account, arg seeds)
+- **`PdaDerivationEngine`**: Derives program addresses from IDL-defined PDA specifications
+- **`EventAuthority`**: PDA derivation for Quasar `emit_cpi!` event patterns
+- **764 tests**: 730 non-integration + 34 integration tests, including 293 verification tests across all three frameworks
+
+### Fixed
+
+- **`AccountFetcher.all()` filter plumbing** (HIGH): Discriminator and user-provided filters were constructed but never passed to `getProgramAccounts`. All `fetchAll(filters: ...)` calls now work correctly.
+- **`TypeSafeMethodBuilder.view()` decode** (MEDIUM): Was returning raw base64 string instead of decoded value. Now decodes through `base64Decode()` then `_coder.types.decode()`, matching `ViewsNamespace` behavior.
+- **Connection silent fallbacks**: Removed 19 try/catch blocks from `connection.dart` that swallowed RPC errors and returned fake values (`[]`, `0`, `null`). All RPC methods now propagate errors.
+- **Keypair sync factory traps**: Removed 3 sync constructors (`fromSecretKey`, `fromBase58`, `fromJson`) that always threw `UnimplementedError`. Use async variants instead.
+- **IDL parser: array generic size**: `IdlType.fromJson` crashed on `{"array": ["u8", {"generic": "N"}]}`. Now handles generic const sizes.
+- **IDL parser: PDA seed arg null type**: `IdlSeedArg.fromJson` crashed when seed type was absent (common in complex IDLs). Made `type` nullable.
+- **IDL parser: tuple struct fields**: `IdlTypeDefType.fromJson` crashed on tuple fields (bare type strings instead of `{name, type}` maps). Added tuple field detection.
+
+### Changed
+
+- **BREAKING**: Upgraded `solana` dependency from `^0.31.2+1` to `^0.32.0`
+- **BREAKING**: Dart SDK constraint raised from `^3.7.0` to `^3.9.0`
+- **BREAKING**: Moved `analyzer`, `build`, and `source_gen` to separate `coral_xyz_codegen` package. The main package no longer pulls in build-time dependencies.
+- Removed unused dependencies: `toml`, `bs58`, `http`, `web_socket_channel`, `base_codecs`, `blockchain_utils`, `cryptography`, `ed25519_hd_key`, `equatable`, `borsh`
+- Removed facade/mock code from production lib: `connection_pool.dart`, `enhanced_connection.dart`, `error_monitoring.dart`, `error_recovery.dart`, `production_error_handler.dart`, `error_framework.dart`, `discriminator_cache.dart`, `discriminator_validator.dart`, and others
+- Collapsed 14-file error system to core error types only
+- `MockProvider.createDefault()` changed from sync to async factory
+- `createTestProgram()` changed from sync to async
+
+### Removed
+
+- `ROADMAP.md`, `TESTING_ROADMAP.md`, `VERIFICATION_ROADMAP.md`, `PHASE9_SPEC.md`, `TS_VS_DART_COMPARISON.md` — internal development artifacts
+- `doc/` directory with hallucinated integration guides
+- Enterprise bloat: `CircuitBreaker`, `ErrorRecoveryExecutor`, `CpiFramework`, `ProgramManager`, `BorshWrapper`, event persistence/replay modules
+
 ## [1.0.0-beta.8] - 2025-10-19
 
-### 🔧 Critical Dependency Fix
+### Fixed
 
-**Fixed runtime dependency pollution causing conflicts in consumer applications.**
+- Runtime dependency pollution causing conflicts in consumer applications
+- Removed `toml` dependency (eliminated petitparser 6.x lock conflicting with Flutter packages)
+- Relaxed `web_socket_channel` constraint from `^3.0.0` to `>=2.0.0 <4.0.0`
+- Removed unused `borsh` and `borsh_annotation` external dependencies
 
-#### The Problem
-Version 1.0.0-beta.7 had TWO critical dependency issues:
-1. Code generation packages (`analyzer`, `build`, `source_gen`) in `dependencies` instead of `dev_dependencies` caused version conflicts
-2. The `toml` package locked `petitparser` to 6.x, conflicting with Flutter packages requiring petitparser 7.x (like `flutter_native_splash` via `xml`)
+### Changed
 
-Example errors users were seeing:
-```
-Because coral_xyz depends on analyzer ^8.4.0 and my_app depends on build_runner ^2.9.0
-which depends on analyzer ^6.x.x, version solving failed.
-
-Because every version of coral_xyz depends on toml ^0.16.0 which depends on petitparser ^6.0.2,
-and flutter_native_splash requires xml ^6.6.1 which requires petitparser ^7.0.0, version solving failed.
-```
-
-#### The Fix
-1. **Removed `toml` dependency** - Eliminated petitparser 6.x lock that conflicted with Flutter ecosystem (flutter_native_splash, xml, etc.)
-2. **Relaxed `web_socket_channel` constraint** - Changed from `^3.0.0` to `>=2.0.0 <4.0.0` for broader compatibility
-3. Removed unused `borsh` and `borsh_annotation` external dependencies (package uses internal borsh implementation)
-
-**Note**: `analyzer`, `build`, and `source_gen` remain in `dependencies` (not `dev_dependencies`) because they're imported in `lib/src/codegen/*.dart` files. pub.dev requires all packages imported in `lib/` to be in the `dependencies` section. These packages are only used if you're using the code generation features - they don't affect runtime for apps using pre-generated code.
-
-**Removed from dependencies:**
-- `toml` - Eliminated petitparser 6.x lock that caused Flutter package conflicts
-- `borsh`, `borsh_annotation` - Package uses internal borsh implementation
-
-**Kept in dependencies (runtime-required only):**
-- All actual runtime dependencies: `solana`, `cryptography`, `blockchain_utils`, etc.
-
-#### Impact
-
-✅ **No more petitparser conflicts** - Works with flutter_native_splash, xml, and other Flutter packages requiring petitparser 7.x  
-✅ **Smaller bundle** - TOML parser no longer included (rarely used in mobile/web)  
-✅ **Better web_socket_channel compatibility** - Relaxed constraint allows both v2 and v3  
-✅ **Cleaner dependency graph** - Removed unused external borsh dependencies  
-
-⚠️ **Minor breaking change**: `WorkspaceConfig.read()` (for Anchor.toml parsing) will throw `UnsupportedError`. This feature is rarely used in mobile/web apps. If you need it, manually add `toml: ^0.16.0` to your dependencies.
-
-**Note**: If you still encounter conflicts with `analyzer`, `build`, or `source_gen` in your app, use `dependency_overrides` in your app's pubspec.yaml to force compatible versions. These are required in coral_xyz's `dependencies` (not `dev_dependencies`) due to pub.dev rules about packages imported in `lib/`.
-
-#### For Users Upgrading from beta.7
-
-Simply update your dependency:
-```yaml
-dependencies:
-  coral_xyz: ^1.0.0-beta.8  # Was beta.7
-```
-
-Then run:
-```bash
-flutter pub get  # or dart pub get
-```
-
-**All dependency conflicts should now be resolved!** 🎉
-
-#### If You Need Anchor.toml Workspace Features (Rare)
-
-Only required if you use `WorkspaceConfig.read()` for parsing Anchor.toml files:
-```yaml
-dependencies:
-  coral_xyz: ^1.0.0-beta.8
-  toml: ^0.16.0  # Add manually if you need workspace config
-```
-
----
+- **Minor breaking change**: `WorkspaceConfig.read()` throws `UnsupportedError` without `toml` dependency. Add `toml: ^0.16.0` manually if needed.
 
 ## [1.0.0-beta.7] - 2025-10-19
 
-### 🔧 Major Dependency Updates
+### Changed
 
-This release addresses critical dependency issues that were causing conflicts in downstream projects. All packages have been updated to their latest stable versions compatible with Dart SDK 3.0+.
+- Upgraded build-time dependencies: `analyzer` ^6.4.1 -> ^8.4.0, `build` ^2.4.1 -> ^4.0.2, `source_gen` ^1.5.0 -> ^4.0.2, `build_runner` ^2.4.7 -> ^2.9.0
+- Upgraded core dependencies: `blockchain_utils` ^5.2.0, `http` ^1.2.0, `meta` ^1.16.0, `path` ^1.9.0
+- Upgraded dev dependencies: `mockito` ^5.5.1, `test` ^1.25.0
+- Removed `borsh` and `borsh_annotation` as runtime dependencies (internal Borsh implementation used instead)
 
-#### Build System Modernization
-- **analyzer**: Upgraded from ^6.4.1 to ^8.4.0 (latest stable)
-  - Migrated from older analyzer APIs that depended on deprecated SDK macros
-  - Improved static analysis capabilities with latest Dart language features
-  - Better null safety inference and type checking
-- **build**: Upgraded from ^2.4.1 to ^4.0.2
-  - Modern builder API with improved performance
-  - Better error messages and debugging support
-  - Enhanced cross-platform compatibility
-- **source_gen**: Upgraded from ^1.5.0 to ^4.0.2
-  - Latest code generation infrastructure
-  - Improved analyzer integration
-  - Better source span tracking for error reporting
-- **build_runner**: Upgraded from ^2.4.7 to ^2.9.0
-  - Enhanced build caching and incremental builds
-  - Better multi-package workspace support
-  - Improved watch mode stability
+### Fixed
 
-#### Removed Conflicting Dependencies
-- **borsh** and **borsh_annotation**: Removed as runtime dependencies
-  - Package uses internal Borsh implementation (lib/src/coder/borsh_*.dart)
-  - Eliminates version constraints blocking source_gen 4.x upgrade
-  - Borsh still available transitively via solana package where needed
-  - No breaking changes to public API - internal implementation unchanged
-
-#### Core Package Updates
-- **blockchain_utils**: ^5.0.0 → ^5.2.0
-  - Enhanced blockchain address encoding/decoding
-  - Updated cryptographic algorithm implementations
-  - Improved BIP39/BIP32/BIP44 mnemonic support
-- **http**: ^1.1.0 → ^1.2.0
-  - Latest HTTP client with improved performance
-  - Better connection pooling and retry logic
-- **meta**: ^1.9.1 → ^1.16.0
-  - Latest Dart meta annotations
-  - New annotation types for better static analysis
-- **path**: ^1.8.0 → ^1.9.0
-  - Path manipulation improvements
-  - Better cross-platform path handling
-
-#### Dev Dependencies Updates
-- **mockito**: ^5.4.2 → ^5.5.1
-  - Improved null safety support
-  - Better code generation for mocks
-- **test**: ^1.24.0 → ^1.25.0
-  - Latest test framework features
-  - Enhanced async test support
-
-### 💥 Breaking Changes
-
-**For users experiencing dependency conflicts:**
-
-This update resolves the common error:
-```
-Because borsh depends on source_gen >=1.4.0 <3.0.0 and coral_xyz depended on source_gen ^1.5.0,
-version solving failed.
-```
-
-**Migration required only if you:**
-1. Explicitly imported `package:borsh` or `package:borsh_annotation` in code using this package (unlikely - these were transitive deps)
-2. Relied on specific analyzer 6.x APIs (code generators only)
-
-**No migration needed for:**
-- Standard package users (Program, Provider, IDL APIs unchanged)
-- Applications using coral_xyz as a dependency
-- Build system configuration (build.yaml remains compatible)
-
-### ✅ Validation
-
-- ✅ All existing code compiles without errors with updated dependencies
-- ✅ `dart analyze` passes (warnings only, no errors)
-- ✅ Public API surface unchanged
-- ✅ Internal Borsh implementation validated
-- ✅ Build system compatibility confirmed
-
-### 📦 Compatibility
-
-- **Dart SDK**: >=3.0.0 <4.0.0 (unchanged)
-- **Solana**: ^0.31.2+1 (unchanged - stable and compatible)
-- **All major frameworks**: Flutter, Web, Server (unchanged)
-
-### 🎯 Benefits
-
-1. **Eliminates dependency conflicts** in downstream projects
-2. **Modern tooling** with latest analyzer and build system
-3. **Better performance** with updated dependencies
-4. **Future-proof** with maintained, actively developed packages
-5. **Cleaner dependency graph** without borsh external constraint
-
-### 📝 Notes for Package Maintainers
-
-If you maintain a package that depends on `coral_xyz`, this update will:
-- Resolve version solving failures related to `source_gen` and `analyzer`
-- Allow you to use latest build tooling in your own package
-- Remove transitive dependency on `borsh` (unless you use `solana` package directly)
-
-The internal Borsh implementation in `coral_xyz` is thoroughly tested and production-ready, used in all Anchor operations (account serialization, instruction encoding, event parsing).
-
----
+- Dependency version conflicts caused by `borsh` constraining `source_gen` to <3.0.0
 
 ## [1.0.0-beta.6] - 2025-09-20
 
-### 🔥 Major Interface Fix
+### Fixed
 
-#### Critical Bug Fixes
-- **BREAKING**: Fixed critical interface violation in `AnchorProvider`
-  - Removed hard-coded `wallet as KeypairWallet` casts that broke wallet interface abstraction
-  - Replaced with proper `await wallet!.signTransaction()` and `await wallet!.signAllTransactions()` calls
-  - Now supports ANY wallet implementation (Phantom, Solflare, Privy, etc.) like TypeScript SDK
-  - Achieved 100% parity with TypeScript Anchor SDK wallet handling patterns
+- **BREAKING**: Fixed `AnchorProvider` wallet interface violation — removed hard-coded `wallet as KeypairWallet` casts, now calls `wallet!.signTransaction()` / `wallet!.signAllTransactions()` to support any wallet implementation
+- Fixed GitHub repository URL returning 404
 
-#### Major Infrastructure Upgrades
-- **NEW**: Complete TypeScript SDK utils.* module parity using espresso-cash-public
-  - Added `utils.sha256.*` - SHA256 hashing utilities matching TypeScript API
-  - Added `utils.bytes.*` - Comprehensive byte encoding/decoding (hex, base64, base58, utf8)
-  - Added `utils.publicKey.*` - PublicKey and PDA utilities with exact TypeScript compatibility
-  - Added `utils.token.*` - SPL Token program utilities using battle-tested espresso-cash components
-  - Added `utils.features.*` - Feature flag management matching TypeScript SDK
-  - Added `utils.registry.*` - Program registry and verification utilities
-  - Added `utils.rpc.*` - RPC helper functions with espresso-cash backend integration
+### Added
 
-#### Enhanced Transaction Support
-- **NEW**: Complete VersionedTransaction support matching TypeScript web3.js
-  - Added `VersionedTransaction` class with v0 transaction format support
-  - Added Address Lookup Table (ALT) account parsing and handling
-  - Added `TransactionUtils` for size estimation and optimization
-  - Added `TransactionBuilder` with fluent API matching TypeScript patterns
-
-#### SPL Program Integration
-- **NEW**: SPL Token Swap Program with complete TypeScript SDK compatibility
-  - Added `splTokenSwapProgram()` function matching TypeScript API exactly
-  - Comprehensive IDL with all 6 core instructions (initialize, swap, deposit, withdraw)
-  - Complete error code definitions (27 error types) matching Solana program
-  - Full TypeScript API surface: `splTokenSwapProgram(params?: GetProgramParams)`
-
-#### Advanced Simulation Infrastructure  
-- **NEW**: Production-ready transaction simulation using espresso-cash components
-  - Zero mock code - 100% battle-tested espresso-cash backend integration
-  - Replaced 738 lines of manual RPC code with ~100 lines of proven components
-  - Full TypeScript SDK API compatibility for `connection.simulateTransaction()`
-  - Comprehensive error handling and result processing
-
-#### Workspace Management Enhancements
-- **NEW**: TypeScript-compatible workspace lazy loading
-  - Added dynamic program access via `workspace.programName` proxy pattern
-  - Case-insensitive program resolution (camelCase/PascalCase support)
-  - IDL auto-discovery from `target/idl/` directory matching TypeScript behavior
-  - Workspace caching and program instance management
-
-#### Developer Experience Improvements
-- **NEW**: Enhanced Keypair utilities
-  - Added `Keypair.fromFile()` for Solana CLI JSON wallet loading
-  - Improved compatibility with standard Solana tooling
-
-#### Code Quality & Maintenance
-- Removed unused imports and dead code throughout codebase
-- Fixed all critical compilation errors and null safety issues
-- Comprehensive test coverage for new functionality
-- Zero warnings or errors in critical path components
-
-### 🔧 Technical Details
-
-#### Interface Architecture
-The wallet interface fix resolves a fundamental architectural issue where the provider was assuming all wallets were `KeypairWallet` instances. This broke compatibility with:
-- Browser extension wallets (Phantom, Solflare)
-- Mobile wallet adapters 
-- Hardware wallets
-- Custom wallet implementations
-
-The fix implements the exact same pattern as the TypeScript SDK:
-```typescript
-// Before (broken):
-const walletKeypair = wallet as KeypairWallet;
-
-// After (correct):
-await wallet!.signTransaction(transaction);
-```
-
-#### espresso-cash Integration Strategy
-All new utilities leverage the battle-tested espresso-cash-public package components:
-- `SolanaClient` for all RPC operations (zero mock code)
-- Proven type system for PublicKey, Commitment, and Account types
-- Production-ready instruction builders and message compilation
-- Mobile-optimized performance characteristics
-
-### 📊 Metrics
-- **Code Quality**: 0 compilation errors, 0 critical warnings
-- **TypeScript Parity**: ~96% feature compatibility achieved  
-- **Test Coverage**: 15+ new test files covering critical functionality
-- **Performance**: espresso-cash integration provides mobile-first optimizations
-
-### 🚀 Migration Notes
-This release contains breaking changes to wallet interface usage. The changes align the Dart SDK with TypeScript SDK patterns:
-
-**If you were relying on `KeypairWallet` casting, update to use the wallet interface:**
-```dart
-// OLD - will break:
-final keypair = provider.wallet as KeypairWallet;
-final signature = await keypair.sign(transaction);
-
-// NEW - interface compatible:
-final signature = await provider.wallet!.signTransaction(transaction);
-```
+- TypeScript SDK `utils.*` module parity: `sha256`, `bytes`, `publicKey`, `token`, `features`, `registry`, `rpc`
+- VersionedTransaction support (v0 format, Address Lookup Tables, size estimation)
+- SPL Token Swap Program with full IDL (6 instructions, 27 error codes)
+- Transaction simulation via espresso-cash components
+- Workspace lazy loading with dynamic program access and IDL auto-discovery
+- `Keypair.fromFile()` for loading Solana CLI JSON wallets
 
 ## [1.0.0] - 2025-08-04
 
-### 🎉 Initial Stable Release
+### Added
 
-First production-ready release of Coral XYZ Anchor for Dart, providing comprehensive TypeScript `@coral-xyz/anchor` parity for the Dart ecosystem.
+- Complete Anchor Program interface: method builders, account fetching, transaction construction
+- IDL parsing, validation, and type generation
+- Provider system with wallet integration and connection management
+- Dynamic namespace generation (methods, accounts, instructions, transactions)
+- Event system with real-time listening, parsing, and filtering
+- Borsh serialization with Anchor-specific extensions and discriminators
+- Cross-platform support (Flutter, web, desktop)
 
-### ✨ Added
+### Fixed
 
-#### Core Framework
-
-- **Complete Anchor Program Interface** - Full-featured Program class with method builders, account fetching, and transaction construction
-- **TypeScript Parity** - 1:1 feature compatibility with `@coral-xyz/anchor` package
-- **IDL System** - Comprehensive Interface Definition Language parsing, validation, and type generation
-- **Provider System** - Flexible provider architecture with wallet integration and connection management
-- **Namespace Generation** - Dynamic namespace creation for methods, accounts, instructions, and transactions
-
-#### Advanced Features
-
-- **Event System** - Real-time event listening, parsing, and aggregation with comprehensive filtering
-- **Borsh Serialization** - Complete Borsh implementation with Anchor-specific extensions and discriminators
-- **Account Management** - Type-safe account fetching, creation, and state management
-- **Transaction Building** - Flexible transaction construction with manual and automatic account resolution
-- **Error Handling** - Comprehensive error types with detailed context and debugging information
-
-#### Developer Experience
-
-- **Null Safety** - Built with Dart's null safety for compile-time guarantees
-- **Type Safety** - Strong typing throughout with automatic type inference
-- **Cross-Platform** - Works on mobile (Flutter), web, and desktop applications
-- **Modern Async** - Idiomatic Dart async/await patterns throughout
-- **Comprehensive Documentation** - Full API documentation with examples and best practices
-
-#### Production Features
-
-- **Logging Framework** - Structured logging with configurable levels and output
-- **Performance Optimizations** - Memory-efficient implementations with object pooling
-- **Security Best Practices** - Input validation, secure defaults, and audit trails
-- **Extensive Testing** - Comprehensive test suite with >95% coverage
-- **CI/CD Ready** - Full GitHub Actions integration with automated testing and quality checks
-
-### 🔧 Bug Fixes and Improvements
-
-#### Critical Fixes
-
-- **PDA Derivation Fix** - Resolved `ConstraintSeeds` error (0x7d6) by delegating PDA derivation to the proven `solana` package implementation, ensuring 100% compatibility with canonical Solana PDA algorithm
-- **Error Handling Standardization** - Replaced custom exceptions with standard Dart `FormatException` for PDA errors, following established patterns from reference implementations
-- **Code Deduplication** - Removed unnecessary custom exception files, utilizing the comprehensive existing error system with 56+ error-related files
-
-#### Developer Experience Improvements
-
-- **Enhanced Error Messages** - Improved PDA error reporting with clear, actionable error messages
-- **Clean Codebase** - Eliminated code duplication and streamlined implementation by leveraging existing comprehensive error framework
-- **Better Debugging** - Enhanced debugging support with proper error context and validation
-
-#### Compatibility and Reliability
-
-- **Solana Package Integration** - Strategic use of `solana` package (^0.31.2+1) for critical cryptographic operations ensures long-term compatibility
-- **Standard Exception Patterns** - Aligned error handling with Dart ecosystem standards and existing Solana library patterns
-- **Reduced Maintenance Overhead** - Simplified codebase reduces maintenance burden and potential for bugs
-
-### 🔧 Technical Implementation
-
-#### Dependencies
-
-- **Core**: `http`, `convert`, `web_socket_channel`, `logging`, `meta`
-- **Solana**: `solana` (^0.31.2+1) for RPC client functionality
-- **Serialization**: `borsh` (^0.3.2), `borsh_annotation` (^0.3.2)
-- **Cryptography**: `cryptography` (^2.7.0), `ed25519_hd_key` (^2.3.0)
-- **Encoding**: `bs58` (^1.0.2), `base_codecs` (^1.0.1)
-- **Utilities**: `equatable` (^2.0.5), `path` (^1.8.0), `toml` (^0.16.0)
-
-#### Architecture
-
-- **Modular Design** - Clean separation of concerns with well-defined interfaces
-- **Extensible Framework** - Plugin architecture for custom coders and providers
-- **Memory Efficient** - Careful memory management with proper cleanup
-- **Thread Safe** - Safe concurrent access patterns throughout
-
-### 📚 Documentation
-
-- **Complete README** - Comprehensive guide with quick start, examples, and advanced usage
-- **API Reference** - Full dartdoc coverage for all public APIs
-- **Example Collection** - 5 production-ready examples demonstrating core features
-- **Migration Guide** - Clear guidance for TypeScript developers
-- **Contributing Guidelines** - Detailed contribution process and standards
-
-### 🧪 Quality Assurance
-
-- **Zero Analyzer Issues** - Clean codebase with no linting warnings or errors
-- **Comprehensive Tests** - Unit tests, integration tests, and example validation
-- **Performance Benchmarks** - Baseline performance metrics established
-- **Security Audit** - Security review of cryptographic operations and data handling
-
-### 🚀 Examples
-
-#### Core Library Examples
-
-1. **Basic Usage** (`example_usage.dart`) - Core functionality demonstration with IDL parsing and program interaction
-2. **Basic Counter** (`basic_counter_example.dart`) - Simple counter program demonstrating TypeScript `@coral-xyz/anchor` equivalent patterns
-3. **IDL Address Testing** (`test_idl_address.dart`) - IDL address computation and validation examples
-4. **Discriminator Testing** (`test_init_discriminator.dart`) - Anchor instruction discriminator computation examples
-
-#### Complete Application Examples (coral-xyz-examples)
-
-5. **Basic Counter App** (`coral-xyz-examples/basic_counter/`) - Complete Flutter application with:
-   - Program deployment and interaction
-   - Account state management
-   - Real-time UI updates
-   - Error handling patterns
-
-6. **Todo App** (`coral-xyz-examples/todo_app/`) - Production-ready todo application featuring:
-   - **50% Code Reduction** - 180 lines vs 360+ lines compared to manual Solana integration
-   - CRUD operations with PDA-based account management
-   - Real-time state synchronization
-   - Modern Flutter UI with Material 3 design
-
-7. **Voting App** (`coral-xyz-examples/voting_app/`) - Comprehensive voting application showcasing:
-   - **57% Code Reduction** - 327 lines vs 766+ lines compared to manual Solana integration
-   - Real-time vote count updates using automatic Borsh deserialization
-   - Production patterns with error handling and state management
-   - Modern Flutter UI with gradient designs and animations
-
-### 📦 Distribution
-
-- **pub.dev Ready** - Full compliance with pub.dev publication requirements
-- **Semantic Versioning** - Proper version management aligned with ecosystem standards  
-- **Breaking Change Documentation** - Clear migration paths for future versions
-- **Production Validation** - Thoroughly tested with real-world Flutter applications
-
-### 🚀 Publication Readiness
-
-#### Quality Assurance
-- ✅ **Zero Critical Issues** - All major bugs resolved including PDA derivation fix
-- ✅ **Clean Analysis** - No analyzer errors or warnings in production code
-- ✅ **Comprehensive Testing** - All core functionality validated with example applications
-- ✅ **Documentation Complete** - Full API documentation and usage examples
-
-#### Performance Metrics
-- ✅ **Code Efficiency** - 50-57% code reduction in example applications vs manual Solana integration
-- ✅ **Memory Optimization** - Efficient PDA caching and object pooling
-- ✅ **Network Efficiency** - Optimized RPC calls and transaction construction
-
-#### Ecosystem Integration
-- ✅ **Dart Standards Compliance** - Follows all Dart/Flutter best practices
-- ✅ **Dependency Stability** - Carefully selected stable dependencies
-- ✅ **Cross-Platform Compatibility** - Works on mobile, web, and desktop platforms
-
----
+- PDA derivation `ConstraintSeeds` error (0x7d6) — delegated to `solana` package implementation
+- Error handling standardized to use `FormatException` for PDA errors
 
 ## [1.0.0-beta.5] - 2025-09-20
 
-Note: 1.0.0-beta.4 shipped without a changelog. This section consolidates all substantive changes that landed after beta.3 and were included in the beta.4 release, plus minor publishing prep.
+Consolidates beta.4 changes (shipped without changelog) plus publishing prep.
 
 ### Added
-- Versioned Transactions (v0)
-  - New support utilities in `provider/versioned_transaction_support.dart`
-  - Builder enhancements for size estimation and message compilation
-  - Multiple commits: introduce and consolidate VersionedTransaction support
-- SPL Program Modules
-  - `spl/token_program.dart`
-  - `spl/associated_token_account_program.dart`
-  - `spl/token_swap_program.dart` (+ experimental `token_swap_program_new.dart`)
-- Event System Enhancements
-  - TS-compatible event parser `event/event_parser_ts_compatible.dart`
-  - `event/event_type_converters.dart`, `event/program_event_subscription.dart`
-  - New aggregation, replay, subscription helpers and stronger parsing
-- IDL & Coders
-  - `coder/idl_coder.dart` and `idl/idl_extensions.dart`
-  - Improved `type_converter.dart`, `types_coder.dart`, `instruction_coder.dart`, `event_coder.dart`
-- Program & Workspace
-  - `program/common.dart` and upgrades across namespaces (account/instruction/simulate/transaction)
-  - Stronger `accounts_resolver`, `method_interface_generator`, `method_validator`
-- Utilities (TypeScript parity)
-  - `utils/sha256.dart`, `utils/bytes.dart`, `utils/hex.dart`,
-    `utils/token.dart`, `utils/registry.dart`, `utils/rpc.dart`,
-    `utils/commitment_utils.dart`, `utils/type_adapters.dart`
-- Types & PDA
-  - `types/account_filter.dart`, `types/public_key_new.dart`
-  - PDA engine improvements in `pda/pda_derivation_engine.dart`
-- Docs
-  - Integration guides: Flutter, Web, Server (added under docs/ and later mirrored in doc/ for pub.dev)
-- GitHub Hygiene
-  - Issue templates and PR template added under `.github/`
+
+- Versioned Transactions (v0) with size estimation and message compilation
+- SPL modules: `token_program`, `associated_token_account_program`, `token_swap_program`
+- Event system: TS-compatible parser, type converters, program subscriptions
+- IDL/coder improvements: `idl_coder`, `idl_extensions`, enhanced type/instruction/event coders
+- Utility modules for TypeScript parity: `sha256`, `bytes`, `hex`, `token`, `registry`, `rpc`
+- PDA engine improvements, `AccountFilter` type
+- Issue templates and PR template
 
 ### Changed
-- Provider & Wallet Interface (breaking)
-  - Removed implicit `KeypairWallet` assumption/casts
-  - Now rely on wallet interface: `signTransaction`/`signAllTransactions`
-- Transactions
-  - `enhanced_transaction_builder.dart` and `transaction_builder.dart` refactors
-  - Connection pooling, enhanced RPC handling (`provider/connection*.dart`)
-- Borsh & Discriminators
-  - Improved Borsh coders (`borsh_accounts_coder.dart`, `borsh_types.dart`)
-  - Discriminator computation/validation paths cleaned up
-- Programs & Namespaces
-  - Major refactors in `namespace/*` for account fetching, simulations, and transactions
-  - Stronger error handling via `program_error_handler.dart`
-- IDL & Types
-  - `idl/idl.dart`, `idl_utils.dart` improvements; richer type handling in `types/transaction.dart`
-- Entrypoint
-  - Public entrypoint aligned to package name (`lib/coral_xyz.dart`) for pub.dev best practices
 
-### Removed / Cleanup
-- Large debug/performance/test scaffolding removed to slim package:
-  - Entire `debug/` directory, legacy performance tools, and many exploratory tests
-  - Old compatibility shims (e.g., `compat/bn_js_compat.dart`, old account ops)
-- IDE/internal-only generators and helpers moved or removed
+- **BREAKING**: Wallet interface — removed implicit `KeypairWallet` casts
+- Transaction builder refactors, connection pooling, enhanced RPC handling
+- Namespace refactors for account fetching, simulations, and transactions
+- Public entrypoint aligned to `lib/coral_xyz.dart`
 
-### Build & Codegen
-- Generators updated: account/instruction/program/type
-- Builder config normalized from `coral_xyz_anchor` to `coral_xyz`
-- Combining builder syntax modernized: `source_gen:combining_builder`
+### Removed
 
-### Documentation
-- New integration docs (Flutter/Web/Server)
-- Pub.dev layout conformance by introducing `doc/` (singular)
-
-### Dependencies
-- Stayed on `build` ~2.4.x and `source_gen` ~1.5.x to remain compatible with `borsh`
-- Analyzer pinned in the 6.x line for codegen utilities used under `lib/`
-
-### Migration Notes
-- Update wallet usage to interface methods (no direct `KeypairWallet` casting)
-- If you rely on event parsing, prefer the TS-compatible parsers and converters
-- For SPL interactions, import from the new `spl/*` modules
-- Regenerate any code using the updated builders if you depend on generators
+- Debug/performance scaffolding, legacy compatibility shims, exploratory tests
 
 ## [1.0.0-beta.4] - 2025-09-06
 
-(Changelog was skipped at release time. All beta.4 content is documented under 1.0.0-beta.5.)
-
-## [1.0.0-beta.6] - 2025-10-07
-
-(Changelog was skipped at release time. All beta.4 content is documented under 1.0.0-beta.5.)
-
-### Changed
-- Wrong github address url
-  - Updated the github url to point to the right link to avoid 404 errors
+See beta.5 entry (beta.4 shipped without changelog).

@@ -76,3 +76,11 @@ web/
 linux/
 macos/
 windows/
+
+# Solana test validator data
+test-ledger/
+
+# Native library builds (SVM FFI)
+native/*.dylib
+native/*.so
+native/*.dll

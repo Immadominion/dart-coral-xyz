@@ -1,448 +1,242 @@
-# 🌊 Coral XYZ Anchor for Dart
+# coral_xyz
 
 [![pub package](https://img.shields.io/pub/v/coral_xyz.svg)](https://pub.dev/packages/coral_xyz)
-[![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A comprehensive Dart client for Anchor programs on Solana, bringing the power and ease of the TypeScript `@coral-xyz/anchor` package to the Dart ecosystem.
+A Dart client for Solana programs. Supports [Anchor](https://www.anchor-lang.com/), [Quasar](https://github.com/coral-xyz/quasar), and [Pinocchio](https://github.com/febo/pinocchio) frameworks through runtime IDL parsing, Borsh serialization, zero-copy account decoding, and PDA derivation.
 
-## ⚡ Quick Start
+Built on [espresso-cash/solana](https://pub.dev/packages/solana) for RPC, cryptography, and transaction primitives.
 
-Add to your `pubspec.yaml`:
+## Installation
 
 ```yaml
 dependencies:
-  coral_xyz: ^1.0.0
+  coral_xyz: ^1.0.0-beta.9
 ```
 
-Simple counter example:
+```bash
+dart pub get
+```
+
+Requires Dart SDK `^3.9.0`.
+
+## Quick start
 
 ```dart
-import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz.dart';
 
 void main() async {
-  // Connect to Solana devnet
-  final connection = Connection('https://api.devnet.solana.com');
+  // Load IDL (from JSON file, string, or on-chain fetch)
+  final idl = Idl.fromJson(jsonDecode(idlString));
 
-  // Set up your wallet
-  final wallet = Keypair.fromSecretKey(yourSecretKey);
+  // Set up provider
+  final connection = Connection('https://api.devnet.solana.com');
+  final wallet = NodeWallet(await Keypair.generate());
   final provider = AnchorProvider(connection, wallet);
 
-  // Load your program
+  // Create program instance
   final program = Program(idl, programId, provider);
 
-  // Initialize counter
-  await program.methods
-    .initialize()
-    .accounts({'counter': counterKeypair.publicKey})
+  // Call a program method
+  await program.methods['initialize']!([])
+    .accounts({'counter': counterAddress})
     .signers([counterKeypair])
     .rpc();
 
-  // Increment counter
-  await program.methods
-    .increment()
-    .accounts({'counter': counterKeypair.publicKey})
-    .rpc();
-
-  // Fetch counter value
-  final account = await program.account.counter.fetch(counterKeypair.publicKey);
-  print('Counter value: ${account.count}');
+  // Fetch an account
+  final data = await program.account['Counter']!.fetch(counterAddress);
 }
 ```
 
-## 🚀 Features
+## Features
 
-- **🔒 Type-Safe**: Full type safety with Dart's null safety and strong typing system
-- **📋 IDL-Based**: Automatic generation of type-safe program interfaces from Anchor IDL files
-- **🌐 Cross-Platform**: Works on mobile (Flutter), web, and desktop applications
-- **⚡ Modern Async**: Built with Dart's excellent async/await support
-- **🎯 TypeScript Parity**: Feature-complete implementation matching `@coral-xyz/anchor`
-- **👨‍💻 Developer-Friendly**: Intuitive API design that feels natural to Dart developers
-- **📊 Event System**: Comprehensive event listening and parsing capabilities
-- **🔧 Extensible**: Built-in support for custom coders and advanced use cases
+- **Multi-framework support** — Parse and interact with Anchor, Quasar, and Pinocchio program IDLs through a single API
+- **Borsh serialization** — Encode/decode instruction data and account state using the Borsh binary format
+- **Zero-copy accounts** — Decode Quasar zero-copy account layouts with explicit discriminators
+- **PDA derivation** — Derive program addresses from IDL-defined seeds (const, account, arg)
+- **Type-safe builders** — Fluent method builders with `.accounts()`, `.signers()`, `.rpc()`, `.simulate()`, `.view()`
+- **Event parsing** — Subscribe to and decode program events via `addEventListener`
+- **Codama/manual interface** — Define program interfaces manually for non-IDL programs via `ProgramInterface.define()`
+- **In-process testing** — Quasar-SVM FFI bindings for deterministic program execution without a validator
 
-## 📚 Documentation
+## Supported frameworks
 
-### Core Concepts
+| Framework | IDL parsing | Instruction encoding | Account decoding | PDA derivation | Local execution |
+|-----------|:-----------:|:-------------------:|:----------------:|:--------------:|:---------------:|
+| Anchor    | Yes         | Yes                 | Yes (Borsh)      | Yes            | —               |
+| Quasar    | Yes         | Yes                 | Yes (zero-copy)  | Yes            | Yes (SVM FFI)   |
+| Pinocchio | Yes (Codama/manual) | Yes           | Yes              | Yes            | —               |
 
-#### 🔌 Provider
+## Usage
 
-The provider manages your connection to the Solana cluster and wallet:
+### Loading an IDL
 
 ```dart
-// Connect to different networks
-final devnetConnection = Connection('https://api.devnet.solana.com');
-final mainnetConnection = Connection('https://api.mainnet-beta.solana.com');
+// From JSON string
+final idl = Idl.fromJson(jsonDecode(idlJsonString));
 
-// Create provider with wallet
-final provider = AnchorProvider(connection, wallet, AnchorProviderOptions(
-  commitment: Commitment.confirmed,
-  preflightCommitment: Commitment.confirmed,
-));
+// Format is auto-detected (Anchor, Quasar, or Codama)
+print(idl.metadata?.name);
+print(idl.instructions.length);
 ```
 
-#### 📝 Program
-
-Load and interact with Anchor programs:
+### Program methods
 
 ```dart
-// Load program from IDL
-final program = Program(idl, programId, provider);
+// Access a method by name, pass instruction arguments
+final builder = program.methods['deposit']!([BigInt.from(1000000)]);
 
-// Call program methods
-final signature = await program.methods
-  .myInstruction(arg1, arg2)
+// Set accounts and signers, then send
+final signature = await builder
   .accounts({
-    'account1': publicKey1,
-    'account2': publicKey2,
+    'vault': vaultAddress,
+    'user': walletAddress,
+    'systemProgram': SystemProgram.programId,
   })
-  .signers([additionalSigner])
-  .rpc();
-
-// Fetch account data
-final accountData = await program.account.myAccount.fetch(accountAddress);
-
-// Listen to program events
-program.addEventListener('MyEvent', (event, slot, signature) {
-  print('Event received: ${event.data}');
-});
-```
-
-#### 📄 IDL Management
-
-Work with Interface Definition Language files:
-
-```dart
-// Load from JSON
-final idl = Idl.fromJson(idlJsonString);
-
-// Fetch from on-chain
-final idl = await Idl.fetchFromAddress(programId, provider);
-
-// Validate IDL structure
-final validationResult = IdlUtils.validateIdl(idl);
-if (validationResult.hasErrors) {
-  print('IDL validation errors: ${validationResult.errors}');
-}
-```
-
-### 🏗️ Advanced Usage
-
-#### 🔗 Custom Account Resolution
-
-```dart
-final result = await program.methods
-  .complexInstruction()
-  .accountsResolver((accounts) async {
-    // Derive PDAs dynamically
-    final (derivedAccount, bump) = await PublicKey.findProgramAddress(
-      [utf8.encode('seed'), userPublicKey.toBytes()],
-      programId
-    );
-
-    return {
-      ...accounts,
-      'derivedAccount': derivedAccount,
-    };
-  })
+  .signers([userKeypair])
   .rpc();
 ```
 
-#### 🔨 Transaction Building
+### Fetching accounts
 
 ```dart
-// Build transaction manually
-final transaction = await program.methods
-  .myInstruction()
+// Fetch a single account
+final counter = await program.account['Counter']!.fetch(counterAddress);
+print(counter['count']); // decoded field
+
+// Fetch all accounts of a type
+final allCounters = await program.account['Counter']!.all();
+```
+
+### PDA derivation
+
+```dart
+final (address, bump) = await PublicKey.findProgramAddress(
+  [utf8.encode('vault'), userPublicKey.toBytes()],
+  programId,
+);
+```
+
+### Simulating transactions
+
+```dart
+final result = await program.methods['transfer']!([amount])
   .accounts(accounts)
-  .transaction();
-
-// Add additional instructions
-transaction.add(SystemProgram.transfer(
-  fromPubkey: wallet.publicKey,
-  toPubkey: recipient,
-  lamports: amount,
-));
-
-// Send with custom options
-final signature = await provider.sendAndConfirm(
-  transaction,
-  signers: [wallet],
-  options: ConfirmOptions(commitment: Commitment.finalized),
-);
+  .simulate();
 ```
 
-#### 📦 Batch Operations
+### View functions
 
 ```dart
-// Send multiple transactions in parallel
-final signatures = await provider.sendAll([
-  SendTxRequest(
-    tx: await program.methods.instruction1().transaction(),
-    signers: [keypair1],
-  ),
-  SendTxRequest(
-    tx: await program.methods.instruction2().transaction(),
-    signers: [keypair2],
-  ),
-]);
+// Calls simulate and decodes the return value
+final price = await program.methods['getPrice']!([])
+  .accounts(accounts)
+  .view();
 ```
 
-#### 🎯 Event Filtering and Aggregation
+### Events
 
 ```dart
-// Advanced event filtering
-program.addEventListener('Transfer', (event, slot, signature) {
-  final transfer = event.data as TransferEvent;
-  if (transfer.amount > 1000000) { // Only large transfers
-    print('Large transfer detected: ${transfer.amount} lamports');
-  }
+final listenerId = program.addEventListener('Transfer', (event, slot, sig) {
+  print('Transfer: ${event.data}');
 });
 
-// Event aggregation
-final eventStats = await program.getEventStatistics(
-  eventName: 'Transfer',
-  startSlot: startSlot,
-  endSlot: endSlot,
+// Later: remove listener
+program.removeEventListener(listenerId);
+```
+
+### Manual program interface (Pinocchio/non-IDL)
+
+```dart
+final idl = ProgramInterface.define(
+  programId: myProgramId,
+  name: 'my_program',
+)
+  .addInstruction(
+    name: 'deposit',
+    discriminator: [0x01],
+    args: [IdlField(name: 'amount', type: IdlType.fromJson('u64'))],
+    accounts: [
+      IdlInstructionAccount(name: 'vault', isMut: true, isSigner: false),
+      IdlInstructionAccount(name: 'user', isMut: true, isSigner: true),
+    ],
+  )
+  .build();
+```
+
+### Quasar-SVM local execution
+
+```dart
+import 'package:coral_xyz/coral_xyz.dart';
+
+final svm = QuasarSvm();
+svm.addProgram(programId, elfBytes);
+
+final result = svm.processInstruction(
+  programId: programId,
+  accounts: [...],
+  data: instructionData,
 );
 ```
 
-## 🔄 TypeScript Anchor Compatibility
+## Code generation (optional)
 
-This package provides 1:1 feature parity with the TypeScript `@coral-xyz/anchor` package:
+For static code generation from IDL files using `build_runner`, add the companion package:
 
-| TypeScript Feature         | Dart Equivalent            | Status      |
-| -------------------------- | -------------------------- | ----------- |
-| `Program.methods`          | `program.methods`          | ✅ Complete |
-| `Program.account`          | `program.account`          | ✅ Complete |
-| `Program.instruction`      | `program.instruction`      | ✅ Complete |
-| `Program.transaction`      | `program.transaction`      | ✅ Complete |
-| `Program.rpc`              | `program.rpc`              | ✅ Complete |
-| `Program.simulate`         | `program.simulate`         | ✅ Complete |
-| `Program.addEventListener` | `program.addEventListener` | ✅ Complete |
-| `AnchorProvider`           | `AnchorProvider`           | ✅ Complete |
-| `Wallet` interface         | `Wallet` interface         | ✅ Complete |
-| `IDL` types                | `Idl` classes              | ✅ Complete |
-| `BorshCoder`               | `BorshCoder`               | ✅ Complete |
-| `AccountsCoder`            | `AccountsCoder`            | ✅ Complete |
-| `EventParser`              | `EventParser`              | ✅ Complete |
-
-## 📱 Flutter Integration
-
-Perfect for mobile dApps:
-
-```dart
-// Flutter example
-class SolanaCounterApp extends StatefulWidget {
-  @override
-  _SolanaCounterAppState createState() => _SolanaCounterAppState();
-}
-
-class _SolanaCounterAppState extends State<SolanaCounterApp> {
-  late Program counterProgram;
-  int currentCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeProgram();
-  }
-
-  Future<void> _initializeProgram() async {
-    final connection = Connection('https://api.devnet.solana.com');
-    final provider = AnchorProvider(connection, wallet);
-    counterProgram = Program(counterIdl, counterProgramId, provider);
-
-    // Listen for counter updates
-    counterProgram.addEventListener('CounterUpdated', (event, slot, signature) {
-      setState(() {
-        currentCount = event.data.newValue;
-      });
-    });
-  }
-
-  Future<void> _incrementCounter() async {
-    await counterProgram.methods
-      .increment()
-      .accounts({'counter': counterAddress})
-      .rpc();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Solana Counter')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Counter: $currentCount', style: Theme.of(context).textTheme.headlineMedium),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _incrementCounter,
-              child: Text('Increment'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+```yaml
+dev_dependencies:
+  coral_xyz_codegen: ^1.0.0-beta.9
+  build_runner: ^2.13.0
 ```
 
-## 🏗️ Examples
-
-Explore comprehensive examples in the [`example/`](example/) directory:
-
-- **[`basic_usage.dart`](example/basic_usage.dart)** - Core functionality demonstration
-- **[`counter_basic.dart`](example/counter_basic.dart)** - Simple counter program (TypeScript basic-1 equivalent)
-- **[`program_interaction.dart`](example/program_interaction.dart)** - Production interaction patterns
-- **[`event_system_example.dart`](example/event_system_example.dart)** - Event listening and parsing
-- **[`complete_example.dart`](example/complete_example.dart)** - Advanced workflows and error handling
-- See the [example README](example/README.md) for detailed explanations and run instructions.
-
-**More Flutter Example Apps:**
-You can find additional Flutter integration examples and sample apps at:
-[https://github.com/Immadominion/coral-xyz-examples](https://github.com/Immadominion/coral-xyz-examples)
-
-### 🎯 **Featured Example: Voting App**
-
-The [`voting_app`](https://github.com/Immadominion/coral-xyz-examples/tree/main/voting_app) showcases the **revolutionary simplicity** of dart-coral-xyz:
-
-- **57% Less Code**: 327 lines vs 766+ lines compared to manual Solana integration
-- **Real-time Updates**: Live vote count updates using automatic Borsh deserialization
-- **Production Ready**: Modern Flutter UI with error handling and state management
-- **Type Safety**: Full Dart type safety with automatic IDL-driven development
-
-**Before dart-coral-xyz (Manual Implementation):**
-
-```dart
-// 😰 Hundreds of lines of manual Borsh serialization
-List<int> accountBytes = base64Decode(data);
-final dataBytes = accountBytes.sublist(8);
-int offset = 0;
-// ... 400+ more lines of error-prone parsing
-```
-
-**After dart-coral-xyz:**
-
-```dart
-// 🎉 Simple, clean, reliable
-final accountData = await program.account['Poll']!.fetch(pollAddress);
-// Vote counts are ALWAYS accurate - no manual parsing!
-```
-
-## 🧪 Testing
-
-This package includes comprehensive test coverage:
+Then run:
 
 ```bash
-# Run all tests
-dart test
-
-# Run specific test categories
-dart test test/idl_test.dart          # IDL parsing and validation
-dart test test/program_test.dart      # Program interaction
-dart test test/event_test.dart        # Event system
-dart test test/integration_test.dart  # Integration tests
+dart run build_runner build
 ```
 
-All tests use mocks and do not require a local Solana validator.
+See [`coral_xyz_codegen`](https://pub.dev/packages/coral_xyz_codegen) for details.
 
-## 🤝 Contributing
+## Examples
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+Full Flutter example apps are available at [coral-xyz-examples](https://github.com/Immadominion/coral-xyz-examples):
 
-### Development Setup
+- **basic_counter** — Anchor counter program with Flutter UI
+- **voting_app** — On-chain voting with real-time updates
+- **todo_app** — CRUD operations with Anchor
+- **quasar_vault** — Quasar vault deposit/withdraw
+- **pinocchio_vault** — Pinocchio vault with manual interface
 
-1. Clone the repository:
+Standalone Dart examples are in the [`example/`](example/) directory.
 
-   ```bash
-   git clone https://github.com/Immadominion/dart-coral-xyz.git
-   cd dart-coral-xyz
-   ```
+## Testing
 
-2. Install dependencies:
+```bash
+# Run all tests (excluding integration tests that need a validator)
+dart test -x integration
 
-   ```bash
-   dart pub get
-   ```
+# Run only verification tests
+dart test test/verification/
 
-3. Run tests:
+# Run with a local validator for integration tests
+solana-test-validator --reset &
+dart test
+```
 
-   ```bash
-   dart test
-   ```
+730 non-integration tests, 34 integration tests, 293 verification tests across Anchor, Quasar, and Pinocchio.
 
-4. Run analysis:
-   ```bash
-   dart analyze
-   dart format --set-exit-if-changed .
-   ```
+## Contributing
 
-### Code Standards
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
-- Follow [Effective Dart](https://dart.dev/guides/language/effective-dart) guidelines
-- Maintain 100% test coverage for new features
-- Add comprehensive dartdoc comments for public APIs
-- Ensure all changes pass CI checks
+```bash
+git clone https://github.com/Immadominion/dart-coral-xyz.git
+cd dart-coral-xyz
+dart pub get
+dart test
+dart analyze
+```
 
-## 📊 Performance
+## License
 
-Optimized for production use:
-
-- **Memory Efficient**: Minimal memory footprint with efficient object pooling
-- **Network Optimized**: Intelligent batching and caching of RPC calls
-- **Type Safe**: Zero runtime type errors with compile-time guarantees
-- **Async First**: Non-blocking operations with proper error handling
-
-## 🔐 Security
-
-Security best practices built-in:
-
-- **Secure by Default**: Safe defaults for all operations
-- **Input Validation**: Comprehensive validation of all inputs
-- **Error Handling**: Graceful handling of network and program errors
-- **Audit Trail**: Comprehensive logging for debugging and monitoring
-
-## 📋 Roadmap
-
-- [x] **Phase 1**: Core IDL and program infrastructure
-- [x] **Phase 2**: Borsh serialization and type system
-- [x] **Phase 3**: Provider and connection management
-- [x] **Phase 4**: Namespace generation and method builders
-- [x] **Phase 5**: Event system and parsing
-- [x] **Phase 6**: Advanced features and optimizations
-- [ ] **Phase 7**: Flutter-specific optimizations
-- [ ] **Phase 8**: Advanced CPI and large transaction support
-- [ ] **Phase 9**: Performance monitoring and analytics
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Coral XYZ](https://github.com/coral-xyz) for the original TypeScript implementation
-- [Solana Foundation](https://solana.com/) for the Solana blockchain
-- The Dart and Flutter communities for their excellent tooling
-- All contributors who have helped improve this package
-
-## 🔗 Links
-
-- [📖 API Documentation](https://pub.dev/documentation/coral_xyz/latest/)
-- [🌐 Anchor Framework](https://www.anchor-lang.com/)
-- [⚡ Solana Documentation](https://docs.solana.com/)
-- [🎯 TypeScript Anchor Client](https://github.com/coral-xyz/anchor)
-- [📱 Flutter Framework](https://flutter.dev/)
-- [💻 Dart Language](https://dart.dev/)
-
----
-
-<div align="center">
-
-**Built with ❤️ for the Solana ecosystem**
-
-[⭐ Star us on GitHub](https://github.com/Immadominion/dart-coral-xyz) | [🐛 Report Issues](https://github.com/Immadominion/dart-coral-xyz/issues) | [💬 Join Discord](https://discord.gg/anchor)
-
-</div>
+MIT. See [LICENSE](LICENSE).

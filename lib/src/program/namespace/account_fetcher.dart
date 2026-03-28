@@ -13,7 +13,6 @@ import 'package:coral_xyz/src/coder/main_coder.dart';
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
 import 'package:coral_xyz/src/error/account_errors.dart';
-import 'package:coral_xyz/src/utils/logger.dart';
 import 'package:coral_xyz/src/types/account_filter.dart';
 import 'package:solana/dto.dart' as dto;
 
@@ -45,11 +44,11 @@ class AccountFetcher<T> {
     required PublicKey programId,
     required AnchorProvider provider,
     AccountFetcherConfig? config,
-  })  : _idlAccount = idlAccount,
-        _coder = coder,
-        _programId = programId,
-        _provider = provider,
-        _config = config ?? const AccountFetcherConfig();
+  }) : _idlAccount = idlAccount,
+       _coder = coder,
+       _programId = programId,
+       _provider = provider,
+       _config = config ?? const AccountFetcherConfig();
   final IdlAccount _idlAccount;
   final Coder _coder;
   final PublicKey _programId;
@@ -57,7 +56,6 @@ class AccountFetcher<T> {
   final AccountFetcherConfig _config;
 
   /// Logger for this account fetcher
-  static final AnchorLogger _logger = AnchorLogger.getLogger('AccountFetcher');
 
   // Cache management
   final Map<String, CachedAccountData<T>> _cache = {};
@@ -150,18 +148,56 @@ class AccountFetcher<T> {
     Commitment? commitment,
     bool useCache = true,
   }) async {
-    // For now, use regular fetch and create a mock context
-    // TODO: Implement getAccountInfoAndContext when available
-    final data = await fetchNullable(
-      address,
-      commitment: commitment,
-      useCache: useCache,
+    final effectiveCommitment = commitment ?? _config.defaultCommitment;
+    final commitmentConfig = CommitmentConfig(effectiveCommitment);
+
+    final accountResult = await _provider.connection.getAccountInfoAndContext(
+      address.toBase58(),
+      commitment: dto.Commitment.values.firstWhere(
+        (c) => c.name == (commitmentConfig.commitment.value),
+        orElse: () => dto.Commitment.confirmed,
+      ),
     );
 
-    return AccountWithContext<T?>(
-      data: data,
-      context: const RpcResponseContext(slot: 0), // Mock context
+    final context = RpcResponseContext(
+      slot: accountResult.context.slot.toInt(),
     );
+
+    final accountInfo = accountResult.value;
+    final data = accountInfo?.data;
+    final isEmpty =
+        data == null || (data is dto.BinaryAccountData && data.data.isEmpty);
+
+    if (accountInfo == null || isEmpty) {
+      return AccountWithContext<T?>(data: null, context: context);
+    }
+
+    if (accountInfo.owner != _programId.toBase58()) {
+      return AccountWithContext<T?>(data: null, context: context);
+    }
+
+    if (accountInfo.data is! dto.BinaryAccountData) {
+      throw Exception('Account data is not binary');
+    }
+
+    final dataBytes = Uint8List.fromList(
+      (accountInfo.data as dto.BinaryAccountData).data,
+    );
+
+    try {
+      final decoded = _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
+
+      if (useCache && _config.enableCaching && decoded != null) {
+        _cache[address.toBase58()] = CachedAccountData<T>(
+          data: decoded,
+          timestamp: DateTime.now(),
+        );
+      }
+
+      return AccountWithContext<T?>(data: decoded, context: context);
+    } catch (e) {
+      return AccountWithContext<T?>(data: null, context: context);
+    }
   }
 
   /// Fetch account with RPC context, throwing if it doesn't exist
@@ -239,7 +275,8 @@ class AccountFetcher<T> {
         final resultIndex = uncachedIndices[i];
 
         final data = accountInfo?.data;
-        final isEmpty = data == null ||
+        final isEmpty =
+            data == null ||
             (data is dto.BinaryAccountData && data.data.isEmpty);
         if (accountInfo == null || isEmpty) {
           results[resultIndex] = null;
@@ -292,17 +329,56 @@ class AccountFetcher<T> {
   }) async {
     if (addresses.isEmpty) return [];
 
-    // For now, use regular batch fetch and create mock contexts
-    // TODO: Implement getMultipleAccountsInfoAndContext when available
-    final results = await fetchMultiple(addresses, commitment: commitment);
+    final effectiveCommitment = commitment ?? _config.defaultCommitment;
+    final commitmentConfig = CommitmentConfig(effectiveCommitment);
 
-    return results.map((data) {
-      if (data == null) return null;
-      return AccountWithContext<T>(
-        data: data,
-        context: const RpcResponseContext(slot: 0), // Mock context
-      );
-    }).toList();
+    final multiResult = await _provider.connection
+        .getMultipleAccountsInfoAndContext(
+          addresses.map((pk) => pk.toBase58()).toList(),
+          commitment: dto.Commitment.values.firstWhere(
+            (c) => c.name == (commitmentConfig.commitment.value),
+            orElse: () => dto.Commitment.confirmed,
+          ),
+        );
+
+    final context = RpcResponseContext(slot: multiResult.context.slot.toInt());
+    final accountInfos = multiResult.value;
+    final results = <AccountWithContext<T>?>[];
+
+    for (int i = 0; i < accountInfos.length; i++) {
+      final accountInfo = accountInfos[i];
+      if (accountInfo == null) {
+        results.add(null);
+        continue;
+      }
+
+      final data = accountInfo.data;
+      final isEmpty =
+          data == null || (data is dto.BinaryAccountData && data.data.isEmpty);
+      if (isEmpty) {
+        results.add(null);
+        continue;
+      }
+
+      if (accountInfo.owner != _programId.toBase58()) {
+        results.add(null);
+        continue;
+      }
+
+      try {
+        if (data is! dto.BinaryAccountData) {
+          results.add(null);
+          continue;
+        }
+        final dataBytes = Uint8List.fromList(data.data);
+        final decoded = _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
+        results.add(AccountWithContext<T>(data: decoded, context: context));
+      } catch (e) {
+        results.add(null);
+      }
+    }
+
+    return results;
   }
 
   /// Fetch all accounts of this type from the program
@@ -327,11 +403,7 @@ class AccountFetcher<T> {
 
     // Add size filter if available
     if (memcmpFilter.containsKey('dataSize')) {
-      allFilters.add(
-        DataSizeFilter(
-          memcmpFilter['dataSize'] as int,
-        ),
-      );
+      allFilters.add(DataSizeFilter(memcmpFilter['dataSize'] as int));
     }
 
     // Add user-provided filters
@@ -349,6 +421,7 @@ class AccountFetcher<T> {
         (c) => c.name == (commitmentConfig.commitment.value),
         orElse: () => dto.Commitment.confirmed,
       ),
+      filters: allFilters,
     );
 
     // Decode accounts
@@ -382,10 +455,7 @@ class AccountFetcher<T> {
   }
 
   /// Subscribe to account changes
-  Stream<T> subscribe(
-    PublicKey address, {
-    Commitment? commitment,
-  }) {
+  Stream<T> subscribe(PublicKey address, {Commitment? commitment}) {
     final addressStr = address.toBase58();
 
     // Return existing subscription if available
@@ -394,7 +464,7 @@ class AccountFetcher<T> {
       return existing.stream;
     }
 
-    // Create new subscription using real account subscription manager
+    // Create new subscription backed by real WebSocket account subscription
     final controller = StreamController<T>.broadcast();
     final subscription = AccountSubscription<T>(
       address: address,
@@ -404,9 +474,50 @@ class AccountFetcher<T> {
 
     _subscriptions[addressStr] = subscription;
 
-    // TODO: Integrate with real AccountSubscriptionManager when available
-    // For now, create a mock subscription
+    final effectiveCommitment = commitment ?? _config.defaultCommitment;
+    final dtoCommitment = dto.Commitment.values.firstWhere(
+      (c) => c.name == effectiveCommitment.value,
+      orElse: () => dto.Commitment.confirmed,
+    );
+
+    // Wire up the real WebSocket subscription from the connection
+    final accountStream = _provider.connection.onAccountChange(
+      addressStr,
+      commitment: dtoCommitment,
+    );
+
+    final streamSub = accountStream.listen(
+      (accountInfo) {
+        final data = accountInfo.data;
+        if (data is! dto.BinaryAccountData || data.data.isEmpty) return;
+        if (accountInfo.owner != _programId.toBase58()) return;
+
+        try {
+          final dataBytes = Uint8List.fromList(data.data);
+          final decoded = _coder.accounts.decode<T>(
+            _idlAccount.name,
+            dataBytes,
+          );
+          controller.add(decoded);
+
+          // Update cache
+          if (_config.enableCaching) {
+            _cache[addressStr] = CachedAccountData<T>(
+              data: decoded,
+              timestamp: DateTime.now(),
+            );
+          }
+        } catch (e) {
+          controller.addError(e);
+        }
+      },
+      onError: (Object error) {
+        controller.addError(error);
+      },
+    );
+
     controller.onCancel = () {
+      streamSub.cancel();
       _subscriptions.remove(addressStr);
       subscription.cancel();
     };
@@ -459,16 +570,8 @@ class AccountFetcher<T> {
 
   /// Perform the actual account fetch
   Future<T?> _performFetch(PublicKey address, Commitment? commitment) async {
-    _logger.debug('Starting fetch for ${address.toBase58()}');
     final effectiveCommitment = commitment ?? _config.defaultCommitment;
     final commitmentConfig = CommitmentConfig(effectiveCommitment);
-
-    _logger.debug('Using commitment', context: {
-      'passedCommitment': commitment?.value,
-      'effectiveCommitment': effectiveCommitment.value,
-      'commitmentConfig': commitmentConfig.toString(),
-      'configDefault': _config.defaultCommitment.value,
-    });
 
     final accountInfo = await _provider.connection.getAccountInfo(
       address.toBase58(),
@@ -478,61 +581,31 @@ class AccountFetcher<T> {
       ),
     );
 
-    _logger.debug('Got account info', context: {
-      'address': address.toBase58(),
-      'accountExists': accountInfo != null,
-      'dataType': accountInfo?.data.runtimeType.toString(),
-      'owner': accountInfo?.owner,
-      'expectedProgramId': _programId.toBase58(),
-    });
-
     final data = accountInfo?.data;
     final isEmpty =
         data == null || (data is dto.BinaryAccountData && data.data.isEmpty);
     if (accountInfo == null || isEmpty) {
-      _logger.debug('Account is null or empty, returning null');
       return null;
     }
 
     // Validate account ownership
     if (accountInfo.owner != _programId.toBase58()) {
-      _logger.debug('Account owned by wrong program', context: {
-        'address': address.toBase58(),
-        'actualOwner': accountInfo.owner,
-        'expectedOwner': _programId.toBase58(),
-      });
       return null;
     }
 
-    _logger.debug('Ownership validation passed, proceeding to decode');
-
     // Decode account data
     if (accountInfo.data is! dto.BinaryAccountData) {
-      _logger.error('Unsupported data type',
-          context: {'type': accountInfo.data.runtimeType.toString()});
-      throw Exception(
-        'Account data is not binary',
-      );
+      throw Exception('Account data is not binary');
     }
 
-    final dataBytes =
-        Uint8List.fromList((accountInfo.data as dto.BinaryAccountData).data);
+    final dataBytes = Uint8List.fromList(
+      (accountInfo.data as dto.BinaryAccountData).data,
+    );
 
     try {
-      _logger.debug('Attempting to decode account data with coder', context: {
-        'accountName': _idlAccount.name,
-        'dataLength': dataBytes.length,
-        'dataPreview': dataBytes.take(20).toList().toString(),
-      });
-
       final result = _coder.accounts.decode<T>(_idlAccount.name, dataBytes);
-      _logger.debug('Successfully decoded account data');
       return result;
     } catch (e) {
-      _logger.error('Failed to decode account data', error: e, context: {
-        'accountName': _idlAccount.name,
-        'dataLength': dataBytes.length,
-      });
       rethrow;
     }
   }
@@ -567,20 +640,14 @@ class CachedAccountData<T> {
 
 /// Account data with RPC context
 class AccountWithContext<T> {
-  const AccountWithContext({
-    required this.data,
-    required this.context,
-  });
+  const AccountWithContext({required this.data, required this.context});
   final T data;
   final RpcResponseContext context;
 }
 
 /// Program account with address and data
 class ProgramAccount<T> {
-  const ProgramAccount({
-    required this.publicKey,
-    required this.account,
-  });
+  const ProgramAccount({required this.publicKey, required this.account});
   final PublicKey publicKey;
   final T account;
 
@@ -632,8 +699,6 @@ class CacheStatistics {
 
 /// RPC response context information
 class RpcResponseContext {
-  const RpcResponseContext({
-    required this.slot,
-  });
+  const RpcResponseContext({required this.slot});
   final int slot;
 }

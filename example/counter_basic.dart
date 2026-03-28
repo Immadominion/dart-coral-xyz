@@ -15,7 +15,7 @@
 library;
 
 import 'dart:typed_data';
-import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz.dart';
 
 Future<void> main() async {
   print('🧮 Counter Basic Example');

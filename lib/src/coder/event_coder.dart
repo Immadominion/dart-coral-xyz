@@ -1,11 +1,16 @@
-/// Event coder implementation for Anchor programs
+/// Event coder implementation for Anchor and Quasar programs
 ///
 /// This module provides the EventCoder interface and implementations
 /// for parsing and decoding program events from transaction logs.
+///
+/// Supports two event formats:
+/// - **Anchor**: SHA256("event:{name}") 8-byte discriminators, Borsh data
+/// - **Quasar**: `0xFF` prefix + explicit N-byte discriminators, repr(C) data
 library;
 
 import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/coder/borsh_types.dart';
+import 'package:coral_xyz/src/coder/discriminator_computer.dart';
 import 'package:coral_xyz/src/types/common.dart';
 import 'package:coral_xyz/src/types/public_key.dart';
 import 'dart:typed_data';
@@ -53,6 +58,14 @@ class Event<E extends IdlEvent, T> {
 }
 
 /// Borsh-based implementation of EventCoder
+///
+/// Supports both Anchor and Quasar event formats:
+/// - **Anchor**: `[8-byte SHA256 disc | Borsh data]`
+/// - **Quasar**: `[0xFF | N-byte explicit disc | repr(C) data]`
+///
+/// For Quasar events the leading `0xFF` byte is stripped before
+/// discriminator matching. The explicit discriminator length comes
+/// from the IDL's `event.discriminator` array.
 class BorshEventCoder implements EventCoder {
   /// Create a new BorshEventCoder
   BorshEventCoder(this.idl, [this.programId]) {
@@ -64,6 +77,9 @@ class BorshEventCoder implements EventCoder {
 
   /// The program ID associated with events
   final PublicKey? programId;
+
+  /// Whether this IDL uses Quasar-style events (0xFF prefix + explicit disc)
+  bool get isQuasar => idl.isQuasar;
 
   /// Cached event layouts with discriminators
   late final Map<String, EventLayout> _eventLayouts;
@@ -83,19 +99,31 @@ class BorshEventCoder implements EventCoder {
       return null;
     }
 
+    // For Quasar events the on-chain format is [0xFF | disc | data].
+    // The `__handle_event` handler already strips the 0xFF before logging
+    // (it calls `log_data(&[&instruction_data[1..]])`), so log data is
+    // [disc | data].  However, if the caller passes the raw CPI instruction
+    // data we must tolerate the prefix as well.
+    Uint8List payload = logData;
+    if (payload.isNotEmpty &&
+        payload[0] == DiscriminatorComputer.quasarEventPrefix) {
+      payload = payload.sublist(1);
+    }
+
     // Try to match against known event discriminators
     for (final entry in _eventLayouts.entries) {
       final eventName = entry.key;
       final layout = entry.value;
+      final disc = layout.discriminator;
 
-      if (logData.length < layout.discriminator.length) {
+      if (disc.isEmpty || payload.length < disc.length) {
         continue;
       }
 
       // Check if discriminator matches
       bool matches = true;
-      for (int i = 0; i < layout.discriminator.length; i++) {
-        if (logData[i] != layout.discriminator[i]) {
+      for (int i = 0; i < disc.length; i++) {
+        if (payload[i] != disc[i]) {
           matches = false;
           break;
         }
@@ -104,7 +132,7 @@ class BorshEventCoder implements EventCoder {
       if (matches) {
         try {
           // Skip discriminator and decode the event data
-          final eventData = logData.sublist(layout.discriminator.length);
+          final eventData = payload.sublist(disc.length);
           final deserializer = BorshDeserializer(eventData);
           final decodedData = _decodeEventData(layout.typeDef, deserializer);
 
@@ -131,19 +159,30 @@ class BorshEventCoder implements EventCoder {
       throw EventCoderException('Unknown event: $eventName');
     }
 
-    // Create discriminator + encoded data
     final discriminator = Uint8List.fromList(layout.discriminator);
     final encodedData = _encodeEventData(layout.typeDef, eventData);
 
-    final totalLength = (discriminator.length + encodedData.length).round();
+    // Quasar events are encoded as [0xFF | disc | data] for CPI emission.
+    // Anchor events stay as [disc | data].
+    final prefix = isQuasar ? 1 : 0;
+    final totalLength = prefix + discriminator.length + encodedData.length;
     final result = Uint8List(totalLength);
-    result.setRange(0, discriminator.length, discriminator);
-    result.setRange(discriminator.length, result.length, encodedData);
+    var offset = 0;
+    if (isQuasar) {
+      result[0] = DiscriminatorComputer.quasarEventPrefix;
+      offset = 1;
+    }
+    result.setRange(offset, offset + discriminator.length, discriminator);
+    result.setRange(offset + discriminator.length, result.length, encodedData);
 
     return result;
   }
 
   /// Build event layouts from IDL
+  ///
+  /// For Anchor: discriminators come from `event.discriminator` (pre-computed
+  /// SHA256) or are computed via SHA256("event:{name}").
+  /// For Quasar: discriminators are explicit byte arrays from the IDL.
   Map<String, EventLayout> _buildEventLayouts() {
     final layouts = <String, EventLayout>{};
 
@@ -162,9 +201,16 @@ class BorshEventCoder implements EventCoder {
             throw EventCoderException('Event type not found: ${event.name}'),
       );
 
+      // Resolve discriminator: use explicit bytes from IDL when present,
+      // fall back to SHA256("event:{name}") for Anchor.
+      final disc = DiscriminatorComputer.resolve(
+        prefix: DiscriminatorComputer.eventPrefix,
+        name: event.name,
+        explicit: event.discriminator,
+      );
+
       layouts[event.name] = EventLayout(
-        discriminator:
-            event.discriminator ?? [], // Provide default empty list if null
+        discriminator: disc.toList(),
         event: event,
         typeDef: typeDef,
       );
@@ -215,10 +261,15 @@ class BorshEventCoder implements EventCoder {
       case 'i64':
         return deserializer.readI64();
       case 'string':
+      case 'dynString':
         return deserializer.readString();
       case 'pubkey':
-        return deserializer.readString();
+      case 'publicKey':
+        return PublicKeyUtils.fromBytes(
+          Uint8List.fromList(deserializer.readBytes(32)),
+        );
       case 'vec':
+      case 'dynVec':
         final length = deserializer.readU32();
         final list = <dynamic>[];
         for (int i = 0; i < length; i++) {
@@ -238,15 +289,19 @@ class BorshEventCoder implements EventCoder {
           list.add(_decodeValue(type.inner!, deserializer));
         }
         return list;
+      case 'tail':
+        // Consume all remaining bytes
+        return deserializer.readRemainingBytes();
       case 'defined':
         // Handle user-defined types (nested structs)
-        final typeName = type.defined;
-        if (typeName == null) {
+        final definedType = type.defined;
+        if (definedType == null) {
           throw const EventCoderException('Defined type missing name');
         }
         final nestedTypeDef = idl.types?.firstWhere(
-          (t) => t.name == typeName,
-          orElse: () => throw EventCoderException('Type not found: $typeName'),
+          (t) => t.name == definedType.name,
+          orElse: () =>
+              throw EventCoderException('Type not found: ${definedType.name}'),
         );
         if (nestedTypeDef != null) {
           return _decodeEventData(nestedTypeDef, deserializer);
@@ -277,12 +332,14 @@ class BorshEventCoder implements EventCoder {
         }
       } else {
         throw const EventCoderException(
-            'Event data must be a Map for struct type');
+          'Event data must be a Map for struct type',
+        );
       }
       return serializer.toBytes();
     } else {
       throw EventCoderException(
-          'Unsupported event type for encoding: ${typeSpec.kind}');
+        'Unsupported event type for encoding: ${typeSpec.kind}',
+      );
     }
   }
 
@@ -317,12 +374,28 @@ class BorshEventCoder implements EventCoder {
         serializer.writeI64(value is String ? int.parse(value) : value as int);
         break;
       case 'string':
+      case 'dynString':
         serializer.writeString(value as String);
         break;
       case 'pubkey':
-        serializer.writeString(value as String);
+      case 'publicKey':
+        // Write 32 raw bytes for public keys
+        final PublicKey pk;
+        if (value is PublicKey) {
+          pk = value;
+        } else if (value is String) {
+          pk = PublicKey.fromBase58(value);
+        } else {
+          throw EventCoderException(
+            'Cannot encode publicKey from ${value.runtimeType}',
+          );
+        }
+        for (final byte in pk.toBytes()) {
+          serializer.writeU8(byte);
+        }
         break;
       case 'vec':
+      case 'dynVec':
         final list = value as List;
         serializer.writeU32(list.length);
         for (final item in list) {
@@ -341,20 +414,30 @@ class BorshEventCoder implements EventCoder {
         final list = value as List;
         if (list.length != type.size) {
           throw EventCoderException(
-              'Array length mismatch: expected ${type.size}, got ${list.length}');
+            'Array length mismatch: expected ${type.size}, got ${list.length}',
+          );
         }
         for (final item in list) {
           _encodeValue(type.inner!, item, serializer);
         }
         break;
+      case 'tail':
+        // Write raw bytes
+        final bytes = value as List<int>;
+        for (final byte in bytes) {
+          serializer.writeU8(byte);
+        }
+        break;
       case 'defined':
-        final typeName = type.defined;
-        if (typeName == null) {
+        final encDefinedType = type.defined;
+        if (encDefinedType == null) {
           throw const EventCoderException('Defined type missing name');
         }
         final nestedTypeDef = idl.types?.firstWhere(
-          (t) => t.name == typeName,
-          orElse: () => throw EventCoderException('Type not found: $typeName'),
+          (t) => t.name == encDefinedType.name,
+          orElse: () => throw EventCoderException(
+            'Type not found: ${encDefinedType.name}',
+          ),
         );
         if (nestedTypeDef != null) {
           final encodedNested = _encodeEventData(nestedTypeDef, value);

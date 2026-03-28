@@ -4,7 +4,6 @@ import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/program/namespace/types.dart';
 import 'package:coral_xyz/src/program/accounts_resolver.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
-import 'package:coral_xyz/src/program/pda_cache.dart';
 
 /// The instruction namespace provides functions to build TransactionInstruction
 /// objects for each method of a program.
@@ -65,11 +64,11 @@ class InstructionBuilder {
     required PublicKey programId,
     required Idl idl, // Add IDL to constructor
     required AnchorProvider provider, // Add provider to constructor
-  })  : _instruction = instruction,
-        _coder = coder,
-        _programId = programId,
-        _idl = idl,
-        _provider = provider;
+  }) : _instruction = instruction,
+       _coder = coder,
+       _programId = programId,
+       _idl = idl,
+       _provider = provider;
   final IdlInstruction _instruction;
   final Coder _coder;
   final PublicKey _programId;
@@ -115,38 +114,15 @@ class InstructionBuilder {
 
   /// Build a transaction instruction with the given arguments and context (legacy sync version)
   TransactionInstruction call(List<dynamic> args, Context<Accounts> context) {
-    try {
-      // For sync API, try to use cached account resolution when possible
-      final cachedResults = _tryGetCachedAccountResolution(context);
-
-      if (cachedResults != null) {
-        return _buildInstructionSync(args, context, cachedResults);
-      }
-
-      // If PDA resolution required and no cache available, provide helpful error
-      final needsPdaResolution = _checkIfNeedsPdaResolution(context);
-      if (needsPdaResolution) {
-        throw UnsupportedError(
-            'Synchronous API cannot resolve PDAs. Use callAsync() instead, '
-            'or ensure all accounts are pre-resolved in the context. '
-            'Missing accounts: ${_getMissingAccountNames(context).join(", ")}');
-      }
-
-      // If all accounts are resolved, build instruction directly
-      return _buildInstructionSync(args, context, {});
-    } catch (e) {
-      if (e is UnsupportedError) rethrow;
-      throw Exception('Failed to build instruction synchronously: $e');
+    final needsPdaResolution = _checkIfNeedsPdaResolution(context);
+    if (needsPdaResolution) {
+      throw UnsupportedError(
+        'Synchronous API cannot resolve PDAs. Use callAsync() instead, '
+        'or ensure all accounts are pre-resolved in the context. '
+        'Missing accounts: ${_getMissingAccountNames(context).join(", ")}',
+      );
     }
-  }
-
-  /// Try to get cached account resolution results
-  Map<String, dynamic>? _tryGetCachedAccountResolution(
-    Context<Accounts> context,
-  ) {
-    // Implementation for checking cached PDA results
-    // This would check a global PDA cache for resolved addresses
-    return PdaCache.getCachedResults(context.accounts, _programId);
+    return _buildInstructionSync(args, context, {});
   }
 
   /// Check if the context requires PDA resolution
@@ -256,7 +232,10 @@ class InstructionBuilder {
       // Recursively process nested account groups
       for (final nestedAccount in accountItem.accounts) {
         _buildAccountMetasRecursive(
-            nestedAccount, resolvedAccounts, accountMetas);
+          nestedAccount,
+          resolvedAccounts,
+          accountMetas,
+        );
       }
     }
   }

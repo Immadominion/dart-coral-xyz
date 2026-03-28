@@ -76,7 +76,7 @@
 ///
 /// ```dart
 /// // With Keypair wallet
-/// final keypair = Keypair.fromSecretKey(secretKeyBytes);
+/// final keypair = await Keypair.fromSecretKeyAsync(secretKeyBytes);
 /// final provider = AnchorProvider(connection, keypair);
 ///
 /// // With custom wallet implementation
@@ -170,8 +170,7 @@ import 'package:coral_xyz/src/types/transaction.dart' as transaction_types;
 import 'package:coral_xyz/src/transaction/transaction_simulator.dart'
     show TransactionSimulationResult, TransactionSimulator;
 import 'package:coral_xyz/src/types/commitment.dart';
-import 'package:coral_xyz/src/error/rpc_error_parser.dart';
-import '../utils/logger.dart';
+import 'package:coral_xyz/src/error/program_error.dart' show translateError;
 
 /// Default confirmation options for transactions
 class ConfirmOptions {
@@ -210,14 +209,13 @@ class ConfirmOptions {
     bool? skipPreflight,
     int? maxRetries,
     int? minContextSlot,
-  }) =>
-      ConfirmOptions(
-        preflightCommitment: preflightCommitment ?? this.preflightCommitment,
-        commitment: commitment ?? this.commitment,
-        skipPreflight: skipPreflight ?? this.skipPreflight,
-        maxRetries: maxRetries ?? this.maxRetries,
-        minContextSlot: minContextSlot ?? this.minContextSlot,
-      );
+  }) => ConfirmOptions(
+    preflightCommitment: preflightCommitment ?? this.preflightCommitment,
+    commitment: commitment ?? this.commitment,
+    skipPreflight: skipPreflight ?? this.skipPreflight,
+    maxRetries: maxRetries ?? this.maxRetries,
+    minContextSlot: minContextSlot ?? this.minContextSlot,
+  );
 
   @override
   String toString() =>
@@ -238,12 +236,12 @@ class ConfirmOptions {
 
   @override
   int get hashCode => Object.hash(
-        preflightCommitment,
-        commitment,
-        skipPreflight,
-        maxRetries,
-        minContextSlot,
-      );
+    preflightCommitment,
+    commitment,
+    skipPreflight,
+    maxRetries,
+    minContextSlot,
+  );
 }
 
 /// Provider interface for Anchor programs
@@ -284,10 +282,7 @@ abstract class Provider {
 
 /// A transaction bundled with its additional signers
 class TransactionWithSigners {
-  const TransactionWithSigners({
-    required this.transaction,
-    this.signers,
-  });
+  const TransactionWithSigners({required this.transaction, this.signers});
 
   /// The transaction to send
   final transaction_types.Transaction transaction;
@@ -296,7 +291,8 @@ class TransactionWithSigners {
   final List<Keypair>? signers;
 
   @override
-  String toString() => 'TransactionWithSigners(transaction: $transaction, '
+  String toString() =>
+      'TransactionWithSigners(transaction: $transaction, '
       'signers: ${signers?.length ?? 0})';
 }
 
@@ -357,8 +353,7 @@ class AnchorProvider implements Provider {
     Connection connection,
     Wallet wallet, {
     ConfirmOptions options = ConfirmOptions.defaultOptions,
-  }) =>
-      AnchorProvider(connection, wallet, options: options);
+  }) => AnchorProvider(connection, wallet, options: options);
 
   /// Create a read-only provider (no wallet)
   ///
@@ -367,11 +362,7 @@ class AnchorProvider implements Provider {
   factory AnchorProvider.readOnly(
     Connection connection, {
     ConfirmOptions options = ConfirmOptions.defaultOptions,
-  }) =>
-      AnchorProvider(connection, null, options: options);
-
-  /// Logger instance for AnchorProvider
-  static final AnchorLogger _logger = AnchorLogger.getLogger('AnchorProvider');
+  }) => AnchorProvider(connection, null, options: options);
 
   /// The connection to the Solana cluster
   @override
@@ -432,7 +423,8 @@ class AnchorProvider implements Provider {
     // Try to load local wallet (matching TypeScript NodeWallet.local())
     KeypairWallet? wallet;
     try {
-      final localKeypairPath = Platform.environment['ANCHOR_WALLET'] ??
+      final localKeypairPath =
+          Platform.environment['ANCHOR_WALLET'] ??
           '${Platform.environment['HOME']}/.config/solana/id.json';
       final localKeypair = await Keypair.fromFile(localKeypairPath);
       wallet = await KeypairWallet.fromCustomKeypairAsync(localKeypair);
@@ -480,9 +472,6 @@ class AnchorProvider implements Provider {
     final opts = options ?? this.options;
 
     try {
-      _logger.debug(
-          'Using hybrid espresso-cash + dart-coral-xyz transaction flow (matching TypeScript SDK)...');
-
       // For KeypairWallet, we can use pure espresso-cash flow for efficiency
       if (wallet is KeypairWallet && (signers == null || signers.isEmpty)) {
         return await _sendWithEspressoCashFlow(transaction, opts);
@@ -491,7 +480,7 @@ class AnchorProvider implements Provider {
       // For external wallets or when additional signers are present, use hybrid approach
       return await _sendWithHybridFlow(transaction, signers, opts);
     } catch (e) {
-      final enhancedError = translateRpcError(e);
+      final enhancedError = translateError(e, {});
       throw ProviderException(
         'Failed to send and confirm transaction: ${enhancedError.toString()}',
         e,
@@ -504,8 +493,6 @@ class AnchorProvider implements Provider {
     transaction_types.Transaction transaction,
     ConfirmOptions opts,
   ) async {
-    _logger.debug('Using pure espresso-cash transaction flow...');
-
     // Convert Transaction to espresso-cash Message format
     final message = _convertToEspressoCashMessage(transaction);
 
@@ -520,10 +507,6 @@ class AnchorProvider implements Provider {
       commitment: _toDtoCommitment(opts.commitment),
     );
 
-    _logger.info('Transaction sent successfully via pure espresso-cash');
-    _logger
-        .debug('Received signature: $signature (length: ${signature.length})');
-
     return signature;
   }
 
@@ -533,9 +516,6 @@ class AnchorProvider implements Provider {
     List<Keypair>? signers,
     ConfirmOptions opts,
   ) async {
-    _logger.debug(
-        'Using hybrid dart-coral-xyz + espresso-cash transaction flow...');
-
     // Create a properly constructed transaction with feePayer and recentBlockhash
     var txToSign = transaction;
 
@@ -547,8 +527,9 @@ class AnchorProvider implements Provider {
     // Get recent blockhash if not set
     if (txToSign.recentBlockhash == null) {
       final blockhashResult = await connection.getLatestBlockhash(
-        commitment:
-            _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+        commitment: _toDtoCommitment(
+          opts.preflightCommitment ?? opts.commitment,
+        ),
       );
       txToSign = txToSign.setRecentBlockhash(blockhashResult.blockhash);
     }
@@ -564,12 +545,12 @@ class AnchorProvider implements Provider {
     // Serialize and send the signed transaction using the connection's sendRawTransaction
     final serializedTx = signedTransaction.serialize();
 
-    _logger.debug('Sending serialized transaction to network...');
     final signature = await connection.sendRawTransaction(
       serializedTx,
       skipPreflight: opts.skipPreflight,
-      preflightCommitment:
-          _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+      preflightCommitment: _toDtoCommitment(
+        opts.preflightCommitment ?? opts.commitment,
+      ),
       maxRetries: opts.maxRetries,
     );
 
@@ -578,10 +559,6 @@ class AnchorProvider implements Provider {
       signature,
       status: _toDtoCommitment(opts.commitment),
     );
-
-    _logger.info('Transaction sent successfully via hybrid flow');
-    _logger
-        .debug('Received signature: $signature (length: ${signature.length})');
 
     return signature;
   }
@@ -616,7 +593,7 @@ class AnchorProvider implements Provider {
     final signatures = <String>[];
 
     // Get recent blockhash for all transactions (with fallback for testing)
-    String blockhash;
+    final String blockhash;
     try {
       final blockhashResult = await connection.getLatestBlockhash(
         commitment: _toDtoCommitment(
@@ -625,9 +602,10 @@ class AnchorProvider implements Provider {
       );
       blockhash = blockhashResult.blockhash;
     } catch (e) {
-      // For testing or when connection fails, use a mock valid base58 blockhash
-      // This generates a valid base58 string that looks like a real blockhash
-      blockhash = 'FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5';
+      throw ProviderException(
+        'Failed to fetch recent blockhash for sendAll: $e',
+        e,
+      );
     }
 
     // Prepare all transactions
@@ -653,8 +631,9 @@ class AnchorProvider implements Provider {
     }
 
     // Sign all transactions with the wallet
-    final signedTransactions =
-        await wallet!.signAllTransactions(preparedTransactions);
+    final signedTransactions = await wallet!.signAllTransactions(
+      preparedTransactions,
+    );
 
     // Send all signed transactions using connection's sendRawTransaction
     for (int i = 0; i < signedTransactions.length; i++) {
@@ -667,8 +646,9 @@ class AnchorProvider implements Provider {
         final signature = await connection.sendRawTransaction(
           serializedTx,
           skipPreflight: opts.skipPreflight,
-          preflightCommitment:
-              _toDtoCommitment(opts.preflightCommitment ?? opts.commitment),
+          preflightCommitment: _toDtoCommitment(
+            opts.preflightCommitment ?? opts.commitment,
+          ),
           maxRetries: opts.maxRetries,
         );
 
@@ -679,10 +659,8 @@ class AnchorProvider implements Provider {
         );
 
         signatures.add(signature);
-        _logger.debug(
-            'Transaction ${i + 1}/${signedTransactions.length} sent with signature: $signature');
       } catch (e) {
-        final enhancedError = translateRpcError(e);
+        final enhancedError = translateError(e, {});
         throw ProviderException(
           'Failed to send transaction ${i + 1}/${signedTransactions.length}: ${enhancedError.toString()}',
           e,
@@ -723,11 +701,9 @@ class AnchorProvider implements Provider {
       final result = await simulator.simulateTransactionBytes(serializedTx);
       return result;
     } catch (e) {
-      // Return a structured failure result
-      return const TransactionSimulationResult(
-        error: {'SimulationError': 'Failed to simulate transaction'},
-        logs: ['Program log: Simulation error encountered'],
-      );
+      // Propagate the real error — never fabricate simulation results
+      if (e is ProviderException) rethrow;
+      throw ProviderException('Transaction simulation failed: $e', e);
     }
   }
 
@@ -747,8 +723,8 @@ class AnchorProvider implements Provider {
     // Only fetch a fresh blockhash if the transaction doesn't already have one
     if (transaction.recentBlockhash == null) {
       try {
-        _logger.debug('Fetching fresh blockhash in _prepareTransaction...');
-        final useCommitment = options?.preflightCommitment ??
+        final useCommitment =
+            options?.preflightCommitment ??
             options?.commitment ??
             this.options.commitment;
 
@@ -756,21 +732,9 @@ class AnchorProvider implements Provider {
           commitment: _toDtoCommitment(useCommitment),
         );
         preparedTx = preparedTx.setRecentBlockhash(blockhashResult.blockhash);
-        _logger.debug(
-          '_prepareTransaction set fresh blockhash: ${blockhashResult.blockhash}',
-        );
       } catch (e) {
-        _logger.warn(
-          'Failed to fetch fresh blockhash in _prepareTransaction: $e',
-        );
-        // Use valid base58 mock for testing if fresh fetch fails
-        preparedTx = preparedTx
-            .setRecentBlockhash('FwRYtTPRk5N4wUeP87rTw9kQVSwigB6kbikGzzeCMrW5');
+        rethrow;
       }
-    } else {
-      _logger.debug(
-        '_prepareTransaction - transaction already has blockhash: ${transaction.recentBlockhash}',
-      );
     }
 
     // Additional signers are handled by wallet signing
@@ -778,7 +742,8 @@ class AnchorProvider implements Provider {
   }
 
   @override
-  String toString() => 'AnchorProvider(connection: $connection, '
+  String toString() =>
+      'AnchorProvider(connection: $connection, '
       'wallet: ${wallet != null ? 'present' : 'null'}, '
       'publicKey: $publicKey)';
 
@@ -796,23 +761,30 @@ class AnchorProvider implements Provider {
 
   /// Convert dart-coral-xyz Transaction to espresso-cash Message format
   encoder.Message _convertToEspressoCashMessage(
-      transaction_types.Transaction transaction) {
+    transaction_types.Transaction transaction,
+  ) {
     // Convert instructions
     final instructions = <encoder.Instruction>[];
     for (final ix in transaction.instructions) {
-      instructions.add(encoder.Instruction(
-        programId:
-            solana.Ed25519HDPublicKey.fromBase58(ix.programId.toBase58()),
-        accounts: ix.accounts
-            .map((meta) => encoder.AccountMeta(
+      instructions.add(
+        encoder.Instruction(
+          programId: solana.Ed25519HDPublicKey.fromBase58(
+            ix.programId.toBase58(),
+          ),
+          accounts: ix.accounts
+              .map(
+                (meta) => encoder.AccountMeta(
                   pubKey: solana.Ed25519HDPublicKey.fromBase58(
-                      meta.pubkey.toBase58()),
+                    meta.pubkey.toBase58(),
+                  ),
                   isSigner: meta.isSigner,
                   isWriteable: meta.isWritable,
-                ))
-            .toList(),
-        data: encoder.ByteArray(ix.data),
-      ));
+                ),
+              )
+              .toList(),
+          data: encoder.ByteArray(ix.data),
+        ),
+      );
     }
 
     return encoder.Message(instructions: instructions);

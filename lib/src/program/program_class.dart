@@ -6,9 +6,6 @@ import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/types/commitment.dart';
 import 'package:coral_xyz/src/event/event_manager.dart' as event_manager;
 import 'package:coral_xyz/src/event/types.dart' as event_types;
-import 'package:coral_xyz/src/event/event_persistence.dart';
-import 'package:coral_xyz/src/event/event_debugging.dart';
-import 'package:coral_xyz/src/event/event_aggregation.dart';
 import 'package:coral_xyz/src/program/namespace/namespace_factory.dart';
 import 'package:coral_xyz/src/program/namespace/account_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/instruction_namespace.dart';
@@ -17,7 +14,6 @@ import 'package:coral_xyz/src/program/namespace/rpc_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/simulate_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/transaction_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/views_namespace.dart';
-import 'package:coral_xyz/src/program/program_error_handler.dart';
 
 /// # Core Program Class for Anchor Program Interactions
 ///
@@ -188,19 +184,16 @@ class Program<T extends Idl> {
   /// final customCoder = MyCustomCoder(idl);
   /// final program = Program(idl, provider: provider, coder: customCoder);
   /// ```
-  Program(
-    this._idl, {
-    AnchorProvider? provider,
-    Coder? coder,
-  })  : _rawIdl = _idl as Idl,
-        _provider = provider ?? AnchorProvider.defaultProvider(),
-        _programId = PublicKey.fromBase58(
-          _idl.address ??
-              (throw ArgumentError(
-                'IDL must contain an address field when using the default constructor. Use Program.withProgramId() to pass the program ID separately.',
-              )),
-        ),
-        _coder = coder ?? BorshCoder(_idl) {
+  Program(this._idl, {AnchorProvider? provider, Coder? coder})
+    : _rawIdl = _idl as Idl,
+      _provider = provider ?? AnchorProvider.defaultProvider(),
+      _programId = PublicKey.fromBase58(
+        _idl.address ??
+            (throw ArgumentError(
+              'IDL must contain an address field when using the default constructor. Use Program.withProgramId() to pass the program ID separately.',
+            )),
+      ),
+      _coder = coder ?? AutoCoder(_idl) {
     // Generate namespaces after all fields are initialized
     _namespaces = NamespaceFactory.build(
       idl: _rawIdl,
@@ -210,16 +203,7 @@ class Program<T extends Idl> {
     );
 
     // Initialize event manager (TypeScript-compatible)
-    _eventManager = event_manager.EventManager(
-      _programId,
-      _provider,
-      _coder as BorshCoder,
-    );
-
-    // Initialize optional advanced event services on demand
-    _eventPersistence = null;
-    _eventDebugging = null;
-    _eventAggregation = null;
+    _eventManager = event_manager.EventManager(_programId, _provider, _coder);
   }
 
   /// Create a Program instance with a separate program ID
@@ -239,10 +223,10 @@ class Program<T extends Idl> {
     PublicKey programId, {
     AnchorProvider? provider,
     Coder? coder,
-  })  : _rawIdl = _idl as Idl,
-        _provider = provider ?? AnchorProvider.defaultProvider(),
-        _programId = programId,
-        _coder = coder ?? BorshCoder(_idl) {
+  }) : _rawIdl = _idl as Idl,
+       _provider = provider ?? AnchorProvider.defaultProvider(),
+       _programId = programId,
+       _coder = coder ?? AutoCoder(_idl) {
     // Generate namespaces after all fields are initialized
     _namespaces = NamespaceFactory.build(
       idl: _rawIdl,
@@ -252,16 +236,7 @@ class Program<T extends Idl> {
     );
 
     // Initialize event manager (TypeScript-compatible)
-    _eventManager = event_manager.EventManager(
-      _programId,
-      _provider,
-      _coder as BorshCoder,
-    );
-
-    // Initialize optional advanced event services on demand
-    _eventPersistence = null;
-    _eventDebugging = null;
-    _eventAggregation = null;
+    _eventManager = event_manager.EventManager(_programId, _provider, _coder);
   }
 
   /// The IDL definition for this program
@@ -269,6 +244,24 @@ class Program<T extends Idl> {
 
   /// The raw IDL (before any transformations)
   final Idl _rawIdl;
+
+  /// Auto-detect the IDL format and create a Program with the correct coders.
+  ///
+  /// This is the recommended entry-point for multi-framework support:
+  /// ```dart
+  /// final program = Program.auto(idl, provider: provider);
+  /// ```
+  ///
+  /// Equivalent to the default constructor (which already auto-detects).
+  static Program<Idl> auto(Idl idl, {AnchorProvider? provider}) {
+    if (idl.address != null) {
+      return Program(idl, provider: provider);
+    }
+    throw ArgumentError(
+      'IDL must contain an address field. '
+      'Use Program.withProgramId() to provide the program ID separately.',
+    );
+  }
 
   /// The program's public key address
   final PublicKey _programId;
@@ -284,15 +277,6 @@ class Program<T extends Idl> {
 
   /// Event manager for handling program event subscriptions (TypeScript-compatible)
   late final event_manager.EventManager _eventManager;
-
-  /// Event persistence service for storing and retrieving events
-  late final EventPersistenceService? _eventPersistence;
-
-  /// Event debugging service for monitoring and analysis
-  late final EventDebugMonitor? _eventDebugging;
-
-  /// Event aggregation service for processing pipelines
-  late final EventAggregationService? _eventAggregation;
 
   /// The IDL definition for this program
   T get idl => _idl;
@@ -343,32 +327,6 @@ class Program<T extends Idl> {
   /// await program.events.removeEventListener(listenerId);
   /// ```
   event_manager.EventManager get events => _eventManager;
-
-  /// Check if event persistence service is enabled
-  bool get isEventPersistenceEnabled => _eventPersistence != null;
-
-  /// Check if event debugging service is enabled
-  bool get isEventDebuggingEnabled => _eventDebugging != null;
-
-  /// Check if event aggregation service is enabled
-  bool get isEventAggregationEnabled => _eventAggregation != null;
-
-  /// Get event statistics
-  Map<String, dynamic> get eventStats => {
-        'totalEvents': 0,
-        'parseErrors': 0,
-        'lastEventSlot': 0,
-      };
-
-  /// Get event connection state
-  Map<String, dynamic> get eventConnectionState => {
-        'isConnected': true,
-        'lastConnectionTime': DateTime.now().toIso8601String(),
-      };
-
-  /// Get event connection state stream
-  Stream<Map<String, dynamic>> get eventConnectionStateStream =>
-      Stream.periodic(const Duration(seconds: 5), (_) => eventConnectionState);
 
   /// The RPC namespace for sending signed transactions
   ///
@@ -454,24 +412,6 @@ class Program<T extends Idl> {
   /// ]);
   /// ```
   AccountNamespace get account => _namespaces.account;
-
-  /// Check if event persistence service is enabled
-  ///
-  /// Returns true if the event persistence service has been enabled with
-  /// `enableEventPersistence()`.
-  bool get isPersistenceEnabled => _eventPersistence != null;
-
-  /// Check if event debugging service is enabled
-  ///
-  /// Returns true if the event debugging service has been enabled with
-  /// `enableEventDebugging()`.
-  bool get isDebuggingEnabled => _eventDebugging != null;
-
-  /// Check if event aggregation service is enabled
-  ///
-  /// Returns true if the event aggregation service has been enabled with
-  /// `enableEventAggregation()`.
-  bool get isAggregationEnabled => _eventAggregation != null;
 
   /// The methods namespace for building and executing program calls
   ///
@@ -588,21 +528,15 @@ class Program<T extends Idl> {
     final programId = PublicKey.fromBase58(address);
     provider ??= AnchorProvider.defaultProvider();
 
-    return ProgramErrorHandler.wrapOperation(
-      'fetchIdl',
-      () async {
-        final idl = await IdlUtils.fetchIdl(programId, provider!);
-        if (idl == null) {
-          return null;
-        }
+    final idl = await IdlUtils.fetchIdl(programId, provider!);
+    if (idl == null) {
+      return null;
+    }
 
-        // Convert IDL to camelCase for better Dart ergonomics
-        final camelCaseIdl = IdlUtils.convertIdlToCamelCase(idl);
+    // Convert IDL to camelCase for better Dart ergonomics
+    final camelCaseIdl = IdlUtils.convertIdlToCamelCase(idl);
 
-        return Program<Idl>(camelCaseIdl, provider: provider);
-      },
-      context: {'programId': address},
-    );
+    return Program<Idl>(camelCaseIdl, provider: provider);
   }
 
   /// Fetches an IDL from the blockchain
@@ -620,11 +554,7 @@ class Program<T extends Idl> {
   }) async {
     provider ??= AnchorProvider.defaultProvider();
 
-    return ProgramErrorHandler.wrapOperation(
-      'fetchIdl',
-      () async => IdlUtils.fetchIdl(programId, provider!),
-      context: {'programId': programId.toBase58()},
-    );
+    return IdlUtils.fetchIdl(programId, provider!);
   }
 
   /// Calculate the IDL address for a given program ID
@@ -686,12 +616,11 @@ class Program<T extends Idl> {
     String eventName,
     event_types.EventCallback<T> callback, {
     CommitmentConfig? commitment,
-  }) =>
-      _eventManager.addEventListener<T>(
-        eventName,
-        callback,
-        commitment: commitment,
-      );
+  }) => _eventManager.addEventListener<T>(
+    eventName,
+    callback,
+    commitment: commitment,
+  );
 
   /// Remove an event listener (TypeScript-compatible)
   ///
@@ -728,102 +657,8 @@ class Program<T extends Idl> {
   /// received, processed, and any errors.
   event_types.EventStats get currentEventStats => _eventManager.stats;
 
-  /// Enable event persistence service
-  ///
-  /// This method initializes the event persistence service, which allows
-  /// events to be stored and retrieved later.
-  Future<void> enableEventPersistence() async {
-    if (_eventPersistence != null) return;
-    _eventPersistence = EventPersistenceService(
-      storageDirectory: './events',
-    );
-  }
-
-  /// Enable event debugging service
-  ///
-  /// This method initializes the event debugging service, which allows
-  /// detailed monitoring and analysis of events.
-  Future<void> enableEventDebugging() async {
-    if (_eventDebugging != null) return;
-    _eventDebugging = EventDebugMonitor();
-  }
-
-  /// Enable event aggregation service
-  ///
-  /// This method initializes the event aggregation service, which allows
-  /// events to be processed in pipelines for analysis or transformation.
-  Future<void> enableEventAggregation() async {
-    if (_eventAggregation != null) return;
-    _eventAggregation = EventAggregationService();
-  }
-
-  /// Get event persistence statistics
-  ///
-  /// Returns statistics about the event persistence service, such as
-  /// the number of events stored and retrieved.
-  Future<Map<String, dynamic>> getEventPersistenceStats() async {
-    if (_eventPersistence == null) {
-      return {'enabled': false, 'events': 0};
-    }
-    return {'enabled': true, 'events': 0, 'storage': 'memory'};
-  }
-
-  /// Get event debugging statistics
-  ///
-  /// Returns statistics about the event debugging service, such as
-  /// the number of events monitored and analyzed.
-  Future<Map<String, dynamic>> getEventDebuggingStats() async {
-    if (_eventDebugging == null) {
-      return {'enabled': false, 'events': 0};
-    }
-    return {'enabled': true, 'events': 0, 'monitors': <String>[]};
-  }
-
-  /// Get event aggregation results
-  ///
-  /// Returns the results of event aggregation, such as processed event data.
-  Future<List<dynamic>> getEventAggregationResults() async {
-    if (_eventAggregation == null) {
-      throw StateError('Event aggregation service is not enabled');
-    }
-    return <dynamic>[];
-  }
-
-  /// Create an event processing pipeline
-  ///
-  /// Creates a pipeline for processing events with the specified processors.
-  /// Each processor transforms or filters events as they flow through the pipeline.
-  ///
-  /// Throws a [StateError] if the event aggregation service is not enabled.
-  Future<Object> createEventPipeline(List<Object> processors) async {
-    if (_eventAggregation == null) {
-      throw StateError('Event aggregation service is not enabled');
-    }
-    return Object();
-  }
-
-  /// Restore events from persistence
-  ///
-  /// Restores previously persisted events for processing or analysis.
-  ///
-  /// Throws a [StateError] if the event persistence service is not enabled.
-  Future<List<dynamic>> restoreEvents() async {
-    if (_eventPersistence == null) {
-      throw StateError('Event persistence service is not enabled');
-    }
-    return <dynamic>[];
-  }
-
   /// Dispose of resources used by the program
-  ///
-  /// This method cleans up any resources used by the program, such as
-  /// event listeners and subscriptions.
-  Future<void> dispose() async {
-    // Clean up advanced event services if enabled
-    _eventPersistence = null;
-    _eventDebugging = null;
-    _eventAggregation = null;
-  }
+  Future<void> dispose() async {}
 
   /// Create a Program instance by fetching the IDL from the network
   ///

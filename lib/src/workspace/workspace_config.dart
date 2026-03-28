@@ -236,7 +236,7 @@ class WorkspaceConfig {
   });
 
   /// Load workspace configuration from Anchor.toml file
-  /// 
+  ///
   /// **Requires manual installation of toml package** (not included by default):
   /// ```yaml
   /// dependencies:
@@ -247,7 +247,7 @@ class WorkspaceConfig {
   }
 
   /// Load workspace configuration from directory containing Anchor.toml
-  /// 
+  ///
   /// **Requires manual installation of toml package** (not included by default):
   /// ```yaml
   /// dependencies:
@@ -258,7 +258,7 @@ class WorkspaceConfig {
   }
 
   /// Load workspace configuration from current directory
-  /// 
+  ///
   /// **Requires manual installation of toml package** (not included by default):
   /// ```yaml
   /// dependencies:
@@ -447,11 +447,13 @@ class WorkspaceConfig {
         final cluster = entry.key;
         final clusterPrograms = entry.value;
 
-        (result['programs'] as Map<String, dynamic>)[cluster] = <String, dynamic>{};
+        (result['programs'] as Map<String, dynamic>)[cluster] =
+            <String, dynamic>{};
         for (final programEntry in clusterPrograms.entries) {
           final programName = programEntry.key;
           final program = programEntry.value;
-          ((result['programs'] as Map<String, dynamic>)[cluster] as Map<String, dynamic>)[programName] = program.toToml();
+          ((result['programs'] as Map<String, dynamic>)[cluster]
+              as Map<String, dynamic>)[programName] = program.toToml();
         }
       }
     }

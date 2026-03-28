@@ -1,10 +1,6 @@
-/// SPL (Solana Program Library) Integration for Anchor
+/// SPL (Solana Program Library) Integration
 ///
-/// This module provides Anchor-style access to Solana Program Library programs
-/// with TypeScript SDK compatibility. Includes Token Program, Associated Token
-/// Account Program, Token Swap Program, and future SPL programs.
+/// SPL programs (Token, ATA, etc.) are handled by the espresso-cash `solana`
+/// package directly. Use `TokenProgram`, `AssociatedTokenAccountProgram`, etc.
+/// from `package:solana/solana.dart`.
 library;
-
-export 'token_program.dart';
-export 'associated_token_account_program.dart';
-export 'token_swap_program.dart';

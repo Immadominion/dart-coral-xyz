@@ -19,24 +19,23 @@ import 'package:coral_xyz/src/idl/idl.dart';
 /// to track which program is currently executing, enabling proper event
 /// attribution across CPI boundaries.
 class EventParser {
-  const EventParser(
-    this.programId,
-    this.coder,
-  );
+  const EventParser(this.programId, this.coder);
 
   /// The program ID this parser is configured for
   final PublicKey programId;
 
   /// The coder used for decoding events
-  final BorshCoder coder;
+  final Coder coder;
 
   /// Regular expression for matching program invoke logs
-  static final RegExp _invokeRegex =
-      RegExp(r'^Program ([1-9A-HJ-NP-Za-km-z]+) invoke \[(\d+)\]$');
+  static final RegExp _invokeRegex = RegExp(
+    r'^Program ([1-9A-HJ-NP-Za-km-z]+) invoke \[(\d+)\]$',
+  );
 
   /// Regular expression for matching program success logs
-  static final RegExp _successRegex =
-      RegExp(r'^Program ([1-9A-HJ-NP-Za-km-z]+) success$');
+  static final RegExp _successRegex = RegExp(
+    r'^Program ([1-9A-HJ-NP-Za-km-z]+) success$',
+  );
 
   /// Root depth for program execution stack
   static const String _rootDepth = '1';
@@ -144,11 +143,7 @@ class EventParser {
           throw EventParseException('Unable to decode event: $logStr');
         }
 
-        return _LogHandleResult(
-          event: event,
-          newProgram: null,
-          didPop: false,
-        );
+        return _LogHandleResult(event: event, newProgram: null, didPop: false);
       } catch (e) {
         if (errorOnDecodeFailure) {
           throw EventParseException('Failed to decode event: $logStr', e);
@@ -172,28 +167,31 @@ class EventParser {
   }
 
   /// Handle system logs (when not executing our target program)
+  ///
+  /// For Quasar `emit_cpi!`, the program does a self-CPI. The runtime
+  /// emits `Program <id> invoke [N]` with N > 1, but the program ID
+  /// matches our target. We push the actual program ID so that subsequent
+  /// `Program data:` lines are still decoded.
   _SystemLogResult _handleSystemLog(String log) {
-    // Check if this is a CPI invoke (but not depth 1)
+    // Check if this is a CPI invoke
     if (log.contains('invoke') && !log.endsWith('[1]')) {
-      return const _SystemLogResult(
-        newProgram: 'cpi',
-        didPop: false,
-      );
+      // Extract the program being invoked — if it's our own program
+      // (self-CPI for emit_cpi!), push the real ID so events are decoded.
+      final match = _invokeRegex.firstMatch(log);
+      final invokedProgram = match?.group(1);
+      if (invokedProgram != null && invokedProgram == programId.toBase58()) {
+        return _SystemLogResult(newProgram: invokedProgram, didPop: false);
+      }
+      return const _SystemLogResult(newProgram: 'cpi', didPop: false);
     }
 
     // Check if this is a program success (indicating program completion)
     final successMatch = _successRegex.firstMatch(log);
     if (successMatch != null) {
-      return const _SystemLogResult(
-        newProgram: null,
-        didPop: true,
-      );
+      return const _SystemLogResult(newProgram: null, didPop: true);
     }
 
-    return const _SystemLogResult(
-      newProgram: null,
-      didPop: false,
-    );
+    return const _SystemLogResult(newProgram: null, didPop: false);
   }
 }
 
@@ -230,7 +228,7 @@ class _ExecutionContext {
 /// Scanner for processing log messages
 class _LogScanner {
   _LogScanner(List<String> logs)
-      : _logs = logs.where((log) => log.startsWith('Program ')).toList();
+    : _logs = logs.where((log) => log.startsWith('Program ')).toList();
   final List<String> _logs;
 
   /// Get the next log message
@@ -257,10 +255,7 @@ class _LogHandleResult {
 
 /// Result of handling a system log
 class _SystemLogResult {
-  const _SystemLogResult({
-    required this.newProgram,
-    required this.didPop,
-  });
+  const _SystemLogResult({required this.newProgram, required this.didPop});
   final String? newProgram;
   final bool didPop;
 }

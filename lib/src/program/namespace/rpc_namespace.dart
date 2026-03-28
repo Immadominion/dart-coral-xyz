@@ -6,7 +6,7 @@ import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/provider/anchor_provider.dart';
 import 'package:coral_xyz/src/program/namespace/transaction_namespace.dart';
 import 'package:coral_xyz/src/program/namespace/types.dart';
-import 'package:coral_xyz/src/error/rpc_error_parser.dart';
+import 'package:coral_xyz/src/error/program_error.dart' show translateError;
 
 /// The RPC namespace provides async methods to send signed transactions for
 /// each method of a program.
@@ -20,8 +20,8 @@ class RpcNamespace {
   RpcNamespace._({
     required TransactionNamespace transactionNamespace,
     required AnchorProvider provider,
-  })  : _transactionNamespace = transactionNamespace,
-        _provider = provider;
+  }) : _transactionNamespace = transactionNamespace,
+       _provider = provider;
   // ignore: unused_field
   final TransactionNamespace _transactionNamespace;
   // ignore: unused_field
@@ -71,18 +71,15 @@ class RpcFunction {
     required IdlInstruction instruction,
     required TransactionNamespace transactionNamespace,
     required AnchorProvider provider,
-  })  : _instruction = instruction,
-        _transactionNamespace = transactionNamespace,
-        _provider = provider;
+  }) : _instruction = instruction,
+       _transactionNamespace = transactionNamespace,
+       _provider = provider;
   final IdlInstruction _instruction;
   final TransactionNamespace _transactionNamespace;
   final AnchorProvider _provider;
 
   /// Send a signed transaction with the given arguments and context
-  Future<String> call(
-    List<dynamic> args,
-    Context<Accounts> context,
-  ) async {
+  Future<String> call(List<dynamic> args, Context<Accounts> context) async {
     // Build the transaction using the transaction namespace
     final anchorTransaction = await _transactionNamespace[_instruction.name]!
         .callAsync(args, context);
@@ -141,8 +138,7 @@ class RpcFunction {
 
       return signature;
     } catch (error) {
-      // Use RpcErrorParser to translate errors with IDL context
-      final enhancedError = translateRpcError(error, idlErrors: {});
+      final enhancedError = translateError(error, {});
       // Dart requires thrown objects to be non-null and extend Object
       // Ensure we only throw an Object (not null or dynamic)
       if (enhancedError is Object) {

@@ -40,10 +40,10 @@ class LogsNotification {
 
 /// Event management system matching TypeScript Anchor's EventManager exactly
 class EventManager {
-  EventManager(PublicKey programId, AnchorProvider provider, BorshCoder coder)
-      : _programId = programId,
-        _provider = provider,
-        _eventParser = EventParser(programId, coder);
+  EventManager(PublicKey programId, AnchorProvider provider, Coder coder)
+    : _programId = programId,
+      _provider = provider,
+      _eventParser = EventParser(programId, coder);
 
   /// Program ID for event subscriptions.
   final PublicKey _programId;
@@ -154,33 +154,31 @@ class EventManager {
           commitment: dto.Commitment.finalized,
         );
 
-        _onLogsSubscription = logsStream.listen(
-          (dto.Logs logs) {
-            try {
-              _totalEvents++;
-              final events = _eventParser.parseLogs(logs.logs);
+        _onLogsSubscription = logsStream.listen((dto.Logs logs) {
+          try {
+            _totalEvents++;
+            final events = _eventParser.parseLogs(logs.logs);
 
-              for (final event in events) {
-                final allListeners = _eventListeners[event.name];
+            for (final event in events) {
+              final allListeners = _eventListeners[event.name];
 
-                if (allListeners != null) {
-                  for (final listener in allListeners) {
-                    final listenerCb = _eventCallbacks[listener];
+              if (allListeners != null) {
+                for (final listener in allListeners) {
+                  final listenerCb = _eventCallbacks[listener];
 
-                    if (listenerCb != null) {
-                      final callback = listenerCb[1] as EventCallback;
-                      // Call the callback with event data, slot, and signature
-                      callback(event.data, 0, logs.signature);
-                    }
+                  if (listenerCb != null) {
+                    final callback = listenerCb[1] as EventCallback;
+                    // Call the callback with event data, slot, and signature
+                    callback(event.data, 0, logs.signature);
                   }
                 }
               }
-            } catch (e) {
-              _parseErrors++;
-              // Log error but don't break subscription
             }
-          },
-        );
+          } catch (e) {
+            _parseErrors++;
+            // Log error but don't break subscription
+          }
+        });
       } catch (e) {
         // Handle subscription error
         _onLogsSubscription = null;
@@ -190,13 +188,13 @@ class EventManager {
 
   /// Get basic event statistics
   EventStats get stats => EventStats(
-        totalEvents: _totalEvents,
-        parsedEvents: _totalEvents - _parseErrors,
-        parseErrors: _parseErrors,
-        filteredEvents: 0, // Simplified for now
-        lastProcessed: DateTime.now(),
-        eventsPerSecond: 0, // Simplified for now
-      );
+    totalEvents: _totalEvents,
+    parsedEvents: _totalEvents - _parseErrors,
+    parseErrors: _parseErrors,
+    filteredEvents: 0, // Simplified for now
+    lastProcessed: DateTime.now(),
+    eventsPerSecond: 0, // Simplified for now
+  );
 
   /// Simple connection state
   WebSocketState get state => _onLogsSubscription != null

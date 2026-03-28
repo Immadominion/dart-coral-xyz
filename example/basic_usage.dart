@@ -5,7 +5,7 @@
 library;
 
 import 'dart:convert';
-import 'package:coral_xyz/coral_xyz_anchor.dart';
+import 'package:coral_xyz/coral_xyz.dart';
 
 void main() async {
   print('🌊 Coral XYZ Anchor - Basic Usage Example');

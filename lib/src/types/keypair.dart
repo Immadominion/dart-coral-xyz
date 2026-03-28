@@ -12,7 +12,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:coral_xyz/src/types/public_key.dart';
-import 'package:coral_xyz/src/external/encoding_wrapper.dart';
+import 'package:solana/base58.dart';
 import 'package:coral_xyz/src/program/namespace/types.dart' as namespace_types;
 import 'package:solana/solana.dart' as solana;
 import 'package:solana/src/crypto/crypto.dart' as solana_crypto;
@@ -38,12 +38,7 @@ class Keypair implements namespace_types.Signer {
     _publicKey = PublicKey.fromBase58(_keypair.publicKey.toBase58());
   }
 
-  /// Create a keypair from a secret key
-  factory Keypair.fromSecretKey(Uint8List secretKey) {
-    throw UnimplementedError('Use fromSecretKeyAsync instead');
-  }
-
-  /// Create a keypair from a secret key (async version)
+  /// Create a keypair from a secret key (async — espresso-cash requires async key creation)
   static Future<Keypair> fromSecretKeyAsync(Uint8List secretKey) async {
     if (secretKey.length == 32) {
       // This is just the private key
@@ -65,27 +60,17 @@ class Keypair implements namespace_types.Signer {
     }
   }
 
-  /// Create a keypair from a base58-encoded secret key
-  factory Keypair.fromBase58(String secretKeyBase58) {
-    throw UnimplementedError('Use fromBase58Async instead');
-  }
-
-  /// Create a keypair from a base58-encoded secret key (async version)
+  /// Create a keypair from a base58-encoded secret key (async — espresso-cash requires async key creation)
   static Future<Keypair> fromBase58Async(String secretKeyBase58) async {
     try {
-      final secretKey = EncodingWrapper.decodeBase58(secretKeyBase58);
+      final secretKey = Uint8List.fromList(base58decode(secretKeyBase58));
       return fromSecretKeyAsync(secretKey);
     } catch (e) {
       throw ArgumentError('Invalid base58 secret key: $e');
     }
   }
 
-  /// Create a keypair from a JSON array (as used by Solana CLI)
-  factory Keypair.fromJson(List<int> secretKeyArray) {
-    throw UnimplementedError('Use fromJsonAsync instead');
-  }
-
-  /// Create a keypair from a JSON array (async version)
+  /// Create a keypair from a JSON array (async — espresso-cash requires async key creation)
   static Future<Keypair> fromJsonAsync(List<int> secretKeyArray) async {
     if (secretKeyArray.length != 64) {
       throw ArgumentError(
@@ -107,7 +92,8 @@ class Keypair implements namespace_types.Signer {
 
       if (jsonData is! List) {
         throw ArgumentError(
-            'Invalid keypair file format. Expected JSON array.');
+          'Invalid keypair file format. Expected JSON array.',
+        );
       }
 
       final secretKeyArray = jsonData.cast<int>();

@@ -1,0 +1,340 @@
+{
+  "address": "22222222222222222222222222222222222222222222",
+  "metadata": {
+    "name": "quasar_escrow",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "make",
+      "discriminator": [
+        0
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "maker"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mintA"
+        },
+        {
+          "name": "mintB"
+        },
+        {
+          "name": "makerTaA",
+          "writable": true
+        },
+        {
+          "name": "makerTaB",
+          "writable": true
+        },
+        {
+          "name": "vaultTaA",
+          "writable": true
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "deposit",
+          "type": "u64"
+        },
+        {
+          "name": "receive",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "take",
+      "discriminator": [
+        1
+      ],
+      "accounts": [
+        {
+          "name": "taker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "maker"
+              }
+            ]
+          }
+        },
+        {
+          "name": "maker",
+          "writable": true
+        },
+        {
+          "name": "mintA"
+        },
+        {
+          "name": "mintB"
+        },
+        {
+          "name": "takerTaA",
+          "writable": true
+        },
+        {
+          "name": "takerTaB",
+          "writable": true
+        },
+        {
+          "name": "makerTaB",
+          "writable": true
+        },
+        {
+          "name": "vaultTaA",
+          "writable": true
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "refund",
+      "discriminator": [
+        2
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "maker"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mintA"
+        },
+        {
+          "name": "makerTaA",
+          "writable": true
+        },
+        {
+          "name": "vaultTaA",
+          "writable": true
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Escrow",
+      "discriminator": [
+        1
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "MakeEvent",
+      "discriminator": [
+        0
+      ]
+    },
+    {
+      "name": "TakeEvent",
+      "discriminator": [
+        1
+      ]
+    },
+    {
+      "name": "RefundEvent",
+      "discriminator": [
+        2
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "Escrow",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "maker",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintA",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintB",
+            "type": "publicKey"
+          },
+          {
+            "name": "makerTaB",
+            "type": "publicKey"
+          },
+          {
+            "name": "receive",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MakeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "escrow",
+            "type": "publicKey"
+          },
+          {
+            "name": "maker",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintA",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintB",
+            "type": "publicKey"
+          },
+          {
+            "name": "deposit",
+            "type": "u64"
+          },
+          {
+            "name": "receive",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TakeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "escrow",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RefundEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "escrow",
+            "type": "publicKey"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

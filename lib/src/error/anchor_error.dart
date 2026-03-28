@@ -9,16 +9,11 @@ import 'package:coral_xyz/src/idl/idl.dart';
 
 /// Represents an error code with both string and numeric representations
 class ErrorCode {
-  const ErrorCode({
-    required this.code,
-    required this.number,
-  });
+  const ErrorCode({required this.code, required this.number});
 
   /// Create ErrorCode from JSON representation
-  factory ErrorCode.fromJson(Map<String, dynamic> json) => ErrorCode(
-        code: json['code'] as String,
-        number: json['number'] as int,
-      );
+  factory ErrorCode.fromJson(Map<String, dynamic> json) =>
+      ErrorCode(code: json['code'] as String, number: json['number'] as int);
 
   /// String representation of the error code
   final String code;
@@ -39,24 +34,16 @@ class ErrorCode {
   int get hashCode => code.hashCode ^ number.hashCode;
 
   /// Convert ErrorCode to JSON representation
-  Map<String, dynamic> toJson() => {
-        'code': code,
-        'number': number,
-      };
+  Map<String, dynamic> toJson() => {'code': code, 'number': number};
 }
 
 /// Represents a file and line location for error reporting
 class FileLine {
-  const FileLine({
-    required this.file,
-    required this.line,
-  });
+  const FileLine({required this.file, required this.line});
 
   /// Create FileLine from JSON representation
-  factory FileLine.fromJson(Map<String, dynamic> json) => FileLine(
-        file: json['file'] as String,
-        line: json['line'] as int,
-      );
+  factory FileLine.fromJson(Map<String, dynamic> json) =>
+      FileLine(file: json['file'] as String, line: json['line'] as int);
 
   /// Source file path
   final String file;
@@ -77,10 +64,7 @@ class FileLine {
   int get hashCode => file.hashCode ^ line.hashCode;
 
   /// Convert FileLine to JSON representation
-  Map<String, dynamic> toJson() => {
-        'file': file,
-        'line': line,
-      };
+  Map<String, dynamic> toJson() => {'file': file, 'line': line};
 }
 
 /// Union type for error origin (either string account name or file location)
@@ -169,8 +153,9 @@ abstract class ComparedValues {
   /// Create compared values from JSON representation
   factory ComparedValues.fromJson(Map<String, dynamic> json) {
     if (json.containsKey('accountNames')) {
-      final accountNames =
-          (json['accountNames'] as List).map((e) => e as String).toList();
+      final accountNames = (json['accountNames'] as List)
+          .map((e) => e as String)
+          .toList();
       return ComparedAccountNames(accountNames);
     } else if (json.containsKey('publicKeys')) {
       final publicKeys = (json['publicKeys'] as List)
@@ -261,8 +246,9 @@ class ComparedPublicKeys extends ComparedValues {
   int get hashCode => _publicKeys.fold(0, (h, v) => h ^ v.hashCode);
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'publicKeys': _publicKeys.map((pk) => pk.toBase58()).toList()};
+  Map<String, dynamic> toJson() => {
+    'publicKeys': _publicKeys.map((pk) => pk.toBase58()).toList(),
+  };
 
   @override
   List<String> get values => _publicKeys.map((pk) => pk.toBase58()).toList();
@@ -338,8 +324,9 @@ class ProgramErrorStack {
   int get hashCode => stack.fold(0, (h, v) => h ^ v.hashCode);
 
   /// Convert to JSON representation
-  Map<String, dynamic> toJson() =>
-      {'stack': stack.map((pk) => pk.toBase58()).toList()};
+  Map<String, dynamic> toJson() => {
+    'stack': stack.map((pk) => pk.toBase58()).toList(),
+  };
 }
 
 /// Base Anchor error class matching TypeScript AnchorError
@@ -353,10 +340,10 @@ class AnchorError extends Error {
 
   /// Create from JSON representation
   factory AnchorError.fromJson(Map<String, dynamic> json) => AnchorError(
-        error: ErrorInfo.fromJson(json['error'] as Map<String, dynamic>),
-        errorLogs: (json['errorLogs'] as List).cast<String>(),
-        logs: (json['logs'] as List).cast<String>(),
-      );
+    error: ErrorInfo.fromJson(json['error'] as Map<String, dynamic>),
+    errorLogs: (json['errorLogs'] as List).cast<String>(),
+    logs: (json['logs'] as List).cast<String>(),
+  );
 
   /// Error information containing code and message
   final ErrorInfo error;
@@ -433,19 +420,18 @@ class AnchorError extends Error {
 
     // Check for compared values in following logs
     if (anchorErrorLogIndex + 1 < logs.length) {
-      comparedValues =
-          _parseComparedValues(logs, anchorErrorLogIndex, errorLogs);
+      comparedValues = _parseComparedValues(
+        logs,
+        anchorErrorLogIndex,
+        errorLogs,
+      );
     }
 
     // Parse different error formats
     final errorInfo = _parseErrorInfo(anchorErrorLog, comparedValues);
     if (errorInfo == null) return null;
 
-    return AnchorError(
-      error: errorInfo,
-      errorLogs: errorLogs,
-      logs: logs,
-    );
+    return AnchorError(error: errorInfo, errorLogs: errorLogs, logs: logs);
   }
 
   /// Parse compared values from logs
@@ -465,10 +451,7 @@ class AnchorError extends Error {
           final leftPubkey = PublicKey.fromBase58(leftMatch.group(1)!);
           final rightPubkey = PublicKey.fromBase58(rightMatch.group(1)!);
           errorLogs.addAll(
-            logs.sublist(
-              anchorErrorLogIndex + 1,
-              anchorErrorLogIndex + 5,
-            ),
+            logs.sublist(anchorErrorLogIndex + 1, anchorErrorLogIndex + 5),
           );
           return ComparedValues.publicKeys([leftPubkey, rightPubkey]);
         } catch (e) {
@@ -486,10 +469,7 @@ class AnchorError extends Error {
         final leftValue = leftMatch.group(2)!;
         final rightValue = rightMatch.group(2)!;
         errorLogs.addAll(
-          logs.sublist(
-            anchorErrorLogIndex + 1,
-            anchorErrorLogIndex + 3,
-          ),
+          logs.sublist(anchorErrorLogIndex + 1, anchorErrorLogIndex + 3),
         );
         return ComparedValues.accountNames([leftValue, rightValue]);
       }
@@ -579,10 +559,10 @@ class AnchorError extends Error {
 
   /// Convert to JSON representation
   Map<String, dynamic> toJson() => {
-        'error': error.toJson(),
-        'errorLogs': errorLogs,
-        'logs': logs,
-      };
+    'error': error.toJson(),
+    'errorLogs': errorLogs,
+    'logs': logs,
+  };
 }
 
 /// Error information container
@@ -596,18 +576,17 @@ class ErrorInfo {
 
   /// Create from JSON representation
   factory ErrorInfo.fromJson(Map<String, dynamic> json) => ErrorInfo(
-        errorCode:
-            ErrorCode.fromJson(json['errorCode'] as Map<String, dynamic>),
-        errorMessage: json['errorMessage'] as String,
-        origin: json['origin'] != null
-            ? Origin.fromJson(json['origin'] as Map<String, dynamic>)
-            : null,
-        comparedValues: json['comparedValues'] != null
-            ? ComparedValues.fromJson(
-                json['comparedValues'] as Map<String, dynamic>,
-              )
-            : null,
-      );
+    errorCode: ErrorCode.fromJson(json['errorCode'] as Map<String, dynamic>),
+    errorMessage: json['errorMessage'] as String,
+    origin: json['origin'] != null
+        ? Origin.fromJson(json['origin'] as Map<String, dynamic>)
+        : null,
+    comparedValues: json['comparedValues'] != null
+        ? ComparedValues.fromJson(
+            json['comparedValues'] as Map<String, dynamic>,
+          )
+        : null,
+  );
 
   /// Error code with string and numeric representations
   final ErrorCode errorCode;
@@ -696,151 +675,3 @@ Map<int, String> createIdlErrorMap(Idl idl) {
 
 /// Error origin type (placeholder for compatibility)
 typedef ErrorOrigin = Origin;
-
-/// Language error message mapping (placeholder for compatibility)
-abstract class LangErrorMessage {
-  /// Common Anchor framework error codes
-  static const int instructionMissing = 100;
-  static const int constraintMut = 2000;
-  static const int accountDidNotDeserialize = 3000;
-  static const int requireViolated = 2500;
-
-  /// Map of error codes to error messages
-  static const Map<int, String> langErrorMessages = {
-    instructionMissing: 'Instruction discriminator not provided',
-    constraintMut: 'A mut constraint was violated',
-    accountDidNotDeserialize: 'Failed to deserialize the account',
-    requireViolated: 'A require expression was violated',
-  };
-
-  /// Get error message for a given error code
-  static String? getMessage(int code) => langErrorMessages[code];
-
-  /// Check if an error code is a language error
-  static bool isLangError(int code) => langErrorMessages.containsKey(code);
-}
-
-/// Enhanced error class for account discriminator mismatches
-class AccountDiscriminatorMismatchError extends AnchorError {
-  AccountDiscriminatorMismatchError({
-    required this.expected,
-    required this.actual,
-    required this.accountAddress,
-    required String message,
-    List<String>? logs,
-  }) : super(
-          error: ErrorInfo(
-            errorCode: const ErrorCode(
-              code: 'AccountDiscriminatorMismatch',
-              number: 3001,
-            ),
-            errorMessage: message,
-          ),
-          errorLogs: logs ?? [],
-          logs: logs ?? [],
-        );
-  final List<int> expected;
-  final List<int> actual;
-  final PublicKey accountAddress;
-
-  @override
-  String toString() => 'AccountDiscriminatorMismatchError: $message\n'
-      'Expected: ${expected.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}\n'
-      'Actual: ${actual.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}\n'
-      'Account: ${accountAddress.toBase58()}';
-}
-
-/// Enhanced error class for constraint violations
-class ConstraintError extends AnchorError {
-  ConstraintError({
-    required this.constraintType,
-    required String message,
-    required int errorCode,
-    this.accountAddress,
-    this.context = const {},
-    List<String>? logs,
-  }) : super(
-          error: ErrorInfo(
-            errorCode: ErrorCode(code: constraintType, number: errorCode),
-            errorMessage: message,
-          ),
-          errorLogs: logs ?? [],
-          logs: logs ?? [],
-        );
-  final String constraintType;
-  final PublicKey? accountAddress;
-  final Map<String, dynamic> context;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-    buffer.writeln('ConstraintError ($constraintType): $message');
-    if (accountAddress != null) {
-      buffer.writeln('Account: ${accountAddress!.toBase58()}');
-    }
-    if (context.isNotEmpty) {
-      buffer.writeln('Context: $context');
-    }
-    return buffer.toString();
-  }
-}
-
-/// Enhanced error class for instruction errors
-class InstructionError extends AnchorError {
-  InstructionError({
-    required this.instructionName,
-    required this.instructionIndex,
-    required String message,
-    required int errorCode,
-    this.instructionData = const {},
-    List<String>? logs,
-  }) : super(
-          error: ErrorInfo(
-            errorCode: ErrorCode(code: 'InstructionError', number: errorCode),
-            errorMessage: message,
-          ),
-          errorLogs: logs ?? [],
-          logs: logs ?? [],
-        );
-  final String instructionName;
-  final int instructionIndex;
-  final Map<String, dynamic> instructionData;
-
-  @override
-  String toString() =>
-      'InstructionError ($instructionName at index $instructionIndex): $message\n'
-      'Data: $instructionData';
-}
-
-/// Enhanced error class for program errors
-class ProgramError extends AnchorError {
-  ProgramError({
-    required this.programId,
-    required String message,
-    required int errorCode,
-    this.customErrorCode,
-    this.programName,
-    List<String>? logs,
-  }) : super(
-          error: ErrorInfo(
-            errorCode: ErrorCode(code: 'ProgramError', number: errorCode),
-            errorMessage: message,
-          ),
-          errorLogs: logs ?? [],
-          logs: logs ?? [],
-        );
-  final PublicKey programId;
-  final int? customErrorCode;
-  final String? programName;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-    buffer.writeln('ProgramError: $message');
-    buffer.writeln('Program: ${programName ?? programId.toBase58()}');
-    if (customErrorCode != null) {
-      buffer.writeln('Custom Error Code: $customErrorCode');
-    }
-    return buffer.toString();
-  }
-}

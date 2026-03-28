@@ -6,19 +6,10 @@
 
 library;
 
-export 'account_cache_manager.dart' hide CacheStatistics;
 // Account-related utilities
 export 'account_fetcher.dart';
 // Individual namespace implementations
 export 'account_namespace.dart';
-export 'account_operations.dart'
-    show
-        AccountOperationsManager,
-        AccountRelationship,
-        AccountRelationshipType,
-        AccountCreationParams,
-        AccountDebugInfo;
-export 'account_subscription_manager.dart' hide AccountSubscription;
 export 'instruction_namespace.dart';
 export 'methods_namespace.dart';
 // Core namespace types and factory

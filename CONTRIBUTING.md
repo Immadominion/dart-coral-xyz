@@ -27,9 +27,9 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 
 In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
 
-## Report bugs using GitHub's [issues](https://github.com/your-username/dart-coral-xyz/issues)
+## Report bugs using GitHub's [issues](https://github.com/Immadominion/dart-coral-xyz/issues)
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/your-username/dart-coral-xyz/issues/new); it's that easy!
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/Immadominion/dart-coral-xyz/issues/new); it's that easy!
 
 ## Write bug reports with detail, background, and sample code
 
@@ -48,13 +48,13 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/your-username/dart-coral-xyz.git
+   git clone https://github.com/Immadominion/dart-coral-xyz.git
    cd dart-coral-xyz
    ```
 
 2. **Install Dart SDK**
 
-   - Install Dart 3.0+ from [dart.dev](https://dart.dev/get-dart)
+   - Install Dart 3.9+ from [dart.dev](https://dart.dev/get-dart)
    - Or use Flutter which includes Dart
 
 3. **Install dependencies**
@@ -97,13 +97,6 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 - Include code examples in doc comments
 - Keep the README.md up to date
 - Update the CHANGELOG.md for notable changes
-
-### Roadmap Adherence
-
-- Follow the established [roadmap](roadmap.md)
-- Complete tasks in the correct order
-- Mark tasks as complete when finished
-- Discuss major deviations from the roadmap
 
 ## Commit Message Format
 

@@ -18,9 +18,6 @@ import 'package:coral_xyz/src/provider/connection.dart';
 // Export workspace configuration system
 export 'workspace_config.dart';
 
-// Export program manager and coordination system
-export 'program_manager.dart';
-
 // Import workspace configuration
 import 'package:coral_xyz/src/workspace/workspace_config.dart';
 
@@ -116,8 +113,10 @@ class Workspace extends Object {
       }
 
       if (idlPath == null || !File(idlPath).existsSync()) {
-        throw ArgumentError('Failed to find IDL of program `$programName`. '
-            'IDL path: $idlPath doesn\'t exist. Did you run `anchor build`?');
+        throw ArgumentError(
+          'Failed to find IDL of program `$programName`. '
+          'IDL path: $idlPath doesn\'t exist. Did you run `anchor build`?',
+        );
       }
 
       // Load and parse IDL
@@ -211,16 +210,8 @@ class Workspace extends Object {
   }
 
   /// Load program from IDL and program ID
-  Future<Program> loadProgram(
-    String name,
-    Idl idl,
-    PublicKey programId,
-  ) async {
-    final program = Program.withProgramId(
-      idl,
-      programId,
-      provider: _provider,
-    );
+  Future<Program> loadProgram(String name, Idl idl, PublicKey programId) async {
+    final program = Program.withProgramId(idl, programId, provider: _provider);
     _programs[name] = program;
     _idls[name] = idl;
     return program;
@@ -318,12 +309,11 @@ class Workspace extends Object {
     String? workspaceDir,
     AnchorProvider? provider,
     String? cluster,
-  }) async =>
-      fromAnchorWorkspace(
-        workspaceDir: workspaceDir,
-        provider: provider,
-        cluster: cluster,
-      );
+  }) async => fromAnchorWorkspace(
+    workspaceDir: workspaceDir,
+    provider: provider,
+    cluster: cluster,
+  );
 
   /// Initialize workspace from template
   static Future<Workspace> initializeFromTemplate(
@@ -398,8 +388,9 @@ class Workspace extends Object {
 
       try {
         // Try to get account info for program
-        final accountInfo = await _provider.connection
-            .getAccountInfo(program.programId.toBase58());
+        final accountInfo = await _provider.connection.getAccountInfo(
+          program.programId.toBase58(),
+        );
         if (accountInfo != null) {
           programStatuses[name] = accountInfo.executable
               ? ProgramStatus.healthy
@@ -445,14 +436,13 @@ class Workspace extends Object {
     final walletFile = File(expandedPath);
 
     if (!await walletFile.exists()) {
-      throw WorkspaceConfigException(
-        'Wallet file not found: $expandedPath',
-      );
+      throw WorkspaceConfigException('Wallet file not found: $expandedPath');
     }
 
     final walletData = await walletFile.readAsString();
-    final keyData = jsonDecode(walletData)
-        as List<dynamic>; // Convert to Uint8List and create keypair
+    final keyData =
+        jsonDecode(walletData)
+            as List<dynamic>; // Convert to Uint8List and create keypair
     final secretKey = Uint8List.fromList(keyData.cast<int>());
 
     // Extract private key (first 32 bytes) for espresso-cash Ed25519HDKeyPair
@@ -469,9 +459,7 @@ class Workspace extends Object {
     final idlFile = File(idlPath);
 
     if (!await idlFile.exists()) {
-      throw WorkspaceConfigException(
-        'IDL file not found: $idlPath',
-      );
+      throw WorkspaceConfigException('IDL file not found: $idlPath');
     }
 
     final idlContent = await idlFile.readAsString();
@@ -591,9 +579,8 @@ class Workspace extends Object {
 
   /// Enable hot reload functionality
   Future<void> _enableHotReload() async {
-    // Hot reload implementation would go here
-    // This is a placeholder for future implementation
-    _logger.info('Hot reload enabled (placeholder)');
+    // Hot reload watches for IDL file changes via _watchIdlFiles
+    // and automatically reloads programs. No additional setup needed.
   }
 
   /// Create a test environment setup
@@ -653,13 +640,10 @@ class Workspace extends Object {
       throw ArgumentError('Program "$programName" not found');
     }
 
-    return {
-      'programId': program.programId.toBase58(),
-      'isDeployed': true, // Placeholder - would check on-chain
-      'upgradeAuthority': null, // Placeholder
-      'dataSize': 0, // Placeholder
-      'lastModified': DateTime.now().toIso8601String(),
-    };
+    throw UnimplementedError(
+      'On-chain deployment status checking is not yet implemented. '
+      'This requires querying the BPF loader program account.',
+    );
   }
 
   /// Find the workspace root directory by looking for Anchor.toml
@@ -716,26 +700,12 @@ class Workspace extends Object {
     solana.Ed25519HDKeyPair programKeypair, {
     String? cluster,
   }) async {
-    try {
-      // This is a placeholder implementation
-      // In a real implementation, this would:
-      // 1. Calculate rent for the program account
-      // 2. Create and send deployment transaction
-      // 3. Wait for confirmation
-
-      return DeploymentResult(
-        success: true,
-        programId: PublicKey.fromBase58(programKeypair.publicKey.toBase58()),
-        transactionId: 'placeholder_tx_id',
-        deployedAt: DateTime.now(),
-      );
-    } catch (e) {
-      return DeploymentResult(
-        success: false,
-        error: e.toString(),
-        deployedAt: DateTime.now(),
-      );
-    }
+    throw UnimplementedError(
+      'Program deployment is not yet implemented. '
+      'This requires BPF loader interaction (calculating rent, '
+      'creating buffer accounts, and sending deployment transactions). '
+      'Use the Anchor CLI for deployment: `anchor deploy`.',
+    );
   }
 
   /// Upgrade program on cluster
@@ -743,31 +713,17 @@ class Workspace extends Object {
     String programName,
     Uint8List newProgramData,
   ) async {
-    try {
-      final program = _programs[programName];
-      if (program == null) {
-        throw ArgumentError('Program "$programName" not found');
-      }
-
-      // This is a placeholder implementation
-      // In a real implementation, this would:
-      // 1. Check upgrade authority
-      // 2. Create upgrade transaction
-      // 3. Send and confirm transaction
-
-      return UpgradeResult(
-        success: true,
-        programId: program.programId,
-        transactionId: 'placeholder_upgrade_tx_id',
-        upgradedAt: DateTime.now(),
-      );
-    } catch (e) {
-      return UpgradeResult(
-        success: false,
-        error: e.toString(),
-        upgradedAt: DateTime.now(),
-      );
+    final program = _programs[programName];
+    if (program == null) {
+      throw ArgumentError('Program "$programName" not found');
     }
+
+    throw UnimplementedError(
+      'Program upgrade is not yet implemented. '
+      'This requires BPF loader upgrade authority checks and '
+      'creating upgrade transactions. '
+      'Use the Anchor CLI for upgrades: `anchor upgrade`.',
+    );
   }
 
   /// Create development configuration
@@ -840,11 +796,11 @@ class ProgramConfig {
 
   /// Create from JSON configuration
   factory ProgramConfig.fromJson(Map<String, dynamic> json) => ProgramConfig(
-        idl: Idl.fromJson(json['idl'] as Map<String, dynamic>),
-        programId: PublicKey.fromBase58(json['programId'] as String),
-        name: json['name'] as String?,
-        metadata: json['metadata'] as Map<String, dynamic>?,
-      );
+    idl: Idl.fromJson(json['idl'] as Map<String, dynamic>),
+    programId: PublicKey.fromBase58(json['programId'] as String),
+    name: json['name'] as String?,
+    metadata: json['metadata'] as Map<String, dynamic>?,
+  );
   final Idl idl;
   final PublicKey programId;
   final String? name;
@@ -852,11 +808,11 @@ class ProgramConfig {
 
   /// Convert to JSON
   Map<String, dynamic> toJson() => {
-        'idl': idl.toJson(),
-        'programId': programId.toBase58(),
-        if (name != null) 'name': name,
-        if (metadata != null) 'metadata': metadata,
-      };
+    'idl': idl.toJson(),
+    'programId': programId.toBase58(),
+    if (name != null) 'name': name,
+    if (metadata != null) 'metadata': metadata,
+  };
 }
 
 /// Statistics about the workspace
@@ -873,7 +829,8 @@ class WorkspaceStats {
   final List<String> programNames;
 
   @override
-  String toString() => 'WorkspaceStats('
+  String toString() =>
+      'WorkspaceStats('
       'programs: $programCount, '
       'instructions: $totalInstructions, '
       'accounts: $totalAccounts'
@@ -977,14 +934,7 @@ class WorkspaceIssue {
 }
 
 /// Program status enumeration
-enum ProgramStatus {
-  healthy,
-  notFound,
-  notExecutable,
-  error,
-  loading,
-  unknown,
-}
+enum ProgramStatus { healthy, notFound, notExecutable, error, loading, unknown }
 
 /// Deployment result
 class DeploymentResult {
@@ -1048,20 +998,16 @@ class WorkspaceTemplate {
   factory WorkspaceTemplate.basic({
     required String name,
     required Map<String, ProgramConfig> programs,
-  }) =>
-      WorkspaceTemplate(
-        name: name,
-        version: '1.0.0',
-        programs: programs,
-      );
+  }) => WorkspaceTemplate(name: name, version: '1.0.0', programs: programs);
 
   factory WorkspaceTemplate.fromJson(Map<String, dynamic> json) {
     final programsData = json['programs'] as Map<String, dynamic>;
     final programs = <String, ProgramConfig>{};
 
     for (final entry in programsData.entries) {
-      programs[entry.key] =
-          ProgramConfig.fromJson(entry.value as Map<String, dynamic>);
+      programs[entry.key] = ProgramConfig.fromJson(
+        entry.value as Map<String, dynamic>,
+      );
     }
 
     return WorkspaceTemplate(
@@ -1077,11 +1023,11 @@ class WorkspaceTemplate {
   final Map<String, dynamic> configuration;
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'version': version,
-        'programs': programs.map((key, value) => MapEntry(key, value.toJson())),
-        'configuration': configuration,
-      };
+    'name': name,
+    'version': version,
+    'programs': programs.map((key, value) => MapEntry(key, value.toJson())),
+    'configuration': configuration,
+  };
 }
 
 /// Enhanced workspace builder with TypeScript-like features

@@ -13,7 +13,6 @@ import 'package:solana/dto.dart' as dto;
 
 import '../types/public_key.dart';
 import '../provider/connection.dart';
-import '../utils/logger.dart';
 
 /// Transaction simulation configuration matching TypeScript SDK
 class TransactionSimulationConfig {
@@ -40,9 +39,7 @@ class TransactionSimulationConfig {
 
   /// Create configuration with signature verification
   factory TransactionSimulationConfig.withSigVerify() =>
-      const TransactionSimulationConfig(
-        sigVerify: true,
-      );
+      const TransactionSimulationConfig(sigVerify: true);
 
   /// Commitment level for simulation (TypeScript SDK compatible)
   final String commitment;
@@ -124,7 +121,8 @@ class TransactionSimulationResult {
   /// Convert from espresso-cash simulation result
   /// Uses actual TransactionStatusResult fields
   factory TransactionSimulationResult.fromEspressoResult(
-      dto.TransactionStatusResult result) {
+    dto.TransactionStatusResult result,
+  ) {
     final status = result.value;
     return TransactionSimulationResult(
       error: status.err != null
@@ -148,8 +146,6 @@ class TransactionSimulator {
   TransactionSimulator(this._connection);
 
   final Connection _connection;
-  static final AnchorLogger _logger =
-      AnchorLogger.getLogger('TransactionSimulator');
 
   /// Simulate a transaction with TypeScript SDK compatible API
   /// Matches: connection.simulateTransaction(transaction, config)
@@ -160,9 +156,7 @@ class TransactionSimulator {
     final simConfig = config ?? TransactionSimulationConfig.defaultConfig();
 
     try {
-      _logger.debug('Simulating transaction with espresso-cash backend');
-
-      // Use battle-tested espresso-cash simulation - zero manual RPC code
+      // Use battle-tested espresso-cash simulation
       final result = await _connection.simulateTransaction(
         transaction,
         commitment: simConfig.commitmentLevel,
@@ -173,8 +167,6 @@ class TransactionSimulator {
 
       return TransactionSimulationResult.fromEspressoResult(result);
     } catch (e) {
-      _logger.error('Transaction simulation failed: $e');
-
       // Return error result matching TypeScript SDK format
       return TransactionSimulationResult(
         error: {'SimulationFailed': e.toString()},
@@ -198,8 +190,6 @@ class TransactionSimulator {
     List<String> transactions, {
     TransactionSimulationConfig? config,
   }) async {
-    _logger.debug('Batch simulating ${transactions.length} transactions');
-
     final results = <TransactionSimulationResult>[];
 
     // Use espresso-cash for each simulation - production-optimized

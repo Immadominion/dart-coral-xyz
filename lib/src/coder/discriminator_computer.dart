@@ -21,11 +21,17 @@ import 'package:crypto/crypto.dart';
 /// - Instruction discriminators: SHA256("global:" + name) → first 8 bytes
 /// - Event discriminators: SHA256("event:" + name) → first 8 bytes
 ///
+/// For Quasar programs, discriminators are explicit (defined in the IDL) and
+/// variable-length (1-8 bytes). Use [fromExplicit] / [isExplicit] helpers.
+///
 /// The computation algorithm exactly matches the TypeScript Anchor client
 /// implementation to ensure byte-perfect compatibility.
 class DiscriminatorComputer {
   /// Size of Anchor discriminators in bytes
   static const int discriminatorSize = 8;
+
+  /// Quasar event discriminators are prefixed with this byte.
+  static const int quasarEventPrefix = 0xFF;
 
   /// Prefix for account discriminators
   static const String accountPrefix = 'account:';
@@ -35,6 +41,10 @@ class DiscriminatorComputer {
 
   /// Prefix for event discriminators
   static const String eventPrefix = 'event:';
+
+  // ---------------------------------------------------------------------------
+  // Anchor discriminator computation (SHA256-based)
+  // ---------------------------------------------------------------------------
 
   /// Compute discriminator for Anchor accounts.
   ///
@@ -176,6 +186,9 @@ class DiscriminatorComputer {
 
   /// Compare two discriminators for equality.
   ///
+  /// Supports **variable-length** comparison (Quasar discriminators can be
+  /// 1–8 bytes). If the lengths differ the comparison fails immediately.
+  ///
   /// [expected] The expected discriminator
   /// [actual] The actual discriminator
   ///
@@ -192,5 +205,80 @@ class DiscriminatorComputer {
     }
 
     return true;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Quasar / multi-framework helpers
+  // ---------------------------------------------------------------------------
+
+  /// Create a discriminator from an explicit byte list (Quasar IDL format).
+  ///
+  /// Quasar programs specify discriminators directly in the IDL as integer
+  /// arrays of variable length (1–8 bytes).
+  ///
+  /// ```dart
+  /// // Single-byte discriminator
+  /// final disc = DiscriminatorComputer.fromExplicit([0]);
+  /// // Multi-byte discriminator
+  /// final disc = DiscriminatorComputer.fromExplicit([1, 0, 0, 0]);
+  /// ```
+  static Uint8List fromExplicit(List<int> bytes) {
+    if (bytes.isEmpty) {
+      throw ArgumentError('Explicit discriminator cannot be empty');
+    }
+    return Uint8List.fromList(bytes);
+  }
+
+  /// Whether [discriminator] looks like an explicit (non-SHA256) discriminator.
+  ///
+  /// Heuristic: Anchor discriminators are always exactly 8 bytes. Anything
+  /// shorter is treated as explicit.
+  static bool isExplicit(List<int> discriminator) =>
+      discriminator.isNotEmpty && discriminator.length < discriminatorSize;
+
+  /// Check if [discriminator] has the Quasar event `0xFF` prefix.
+  static bool hasQuasarEventPrefix(List<int> discriminator) =>
+      discriminator.isNotEmpty && discriminator.first == quasarEventPrefix;
+
+  /// Validate that an explicit Quasar discriminator is legal.
+  ///
+  /// Rules:
+  /// - Must not be empty
+  /// - Must not be all-zero (reserved for uninitialised accounts)
+  /// - Instruction discriminators must not start with `0xFF` (reserved for events)
+  static void validateExplicitDiscriminator(
+    List<int> discriminator, {
+    bool isEvent = false,
+  }) {
+    if (discriminator.isEmpty) {
+      throw ArgumentError('Discriminator must not be empty');
+    }
+    if (discriminator.every((b) => b == 0)) {
+      throw ArgumentError(
+        'All-zero discriminator is reserved for uninitialised accounts',
+      );
+    }
+    if (!isEvent && discriminator.first == quasarEventPrefix) {
+      throw ArgumentError(
+        'Instruction/account discriminators must not start with 0xFF '
+        '(reserved for events)',
+      );
+    }
+  }
+
+  /// Resolve the discriminator for an instruction / account / event.
+  ///
+  /// If [explicit] is non-null and non-empty it is returned as-is (Quasar).
+  /// Otherwise the SHA256 discriminator is computed using [prefix] and [name]
+  /// (Anchor).
+  static Uint8List resolve({
+    required String prefix,
+    required String name,
+    List<int>? explicit,
+  }) {
+    if (explicit != null && explicit.isNotEmpty) {
+      return fromExplicit(explicit);
+    }
+    return _computeDiscriminator(prefix, name);
   }
 }

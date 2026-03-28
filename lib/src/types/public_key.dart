@@ -34,11 +34,13 @@ extension PublicKeyExtensions on PublicKey {
   static bool isValidBase58(String value) =>
       PublicKeyUtils.isValidBase58(value);
   static Future<PdaResult> findProgramAddress(
-          List<List<int>> seeds, PublicKey programId) =>
-      PublicKeyUtils.findProgramAddress(seeds, programId);
+    List<List<int>> seeds,
+    PublicKey programId,
+  ) => PublicKeyUtils.findProgramAddress(seeds, programId);
   static Future<PublicKey> createProgramAddress(
-          List<List<int>> seeds, PublicKey programId) =>
-      PublicKeyUtils.createProgramAddress(seeds, programId);
+    List<List<int>> seeds,
+    PublicKey programId,
+  ) => PublicKeyUtils.createProgramAddress(seeds, programId);
 }
 
 /// Static utilities for PublicKey operations
@@ -50,8 +52,9 @@ class PublicKeyUtils {
   static PublicKey get systemProgram => solana.SystemProgram.id;
 
   /// Default PublicKey (all zeros)
-  static final PublicKey defaultPubkey =
-      solana.Ed25519HDPublicKey(Uint8List(32));
+  static final PublicKey defaultPubkey = solana.Ed25519HDPublicKey(
+    Uint8List(32),
+  );
 
   /// Create PublicKey from base58 string
   static PublicKey fromBase58(String base58) {
@@ -80,7 +83,8 @@ class PublicKeyUtils {
       final cleanHex = hex.startsWith('0x') ? hex.substring(2) : hex;
       if (cleanHex.length != 64) {
         throw ArgumentError(
-            'Expected 64 hex characters, got ${cleanHex.length}');
+          'Expected 64 hex characters, got ${cleanHex.length}',
+        );
       }
 
       final bytes = Uint8List.fromList(
@@ -96,15 +100,7 @@ class PublicKeyUtils {
   }
 
   /// Check if a point is on the Ed25519 curve
-  static bool isOnCurve(List<int> bytes) {
-    try {
-      // Try to create a PublicKey - if it fails, it's not on curve
-      solana.Ed25519HDPublicKey(Uint8List.fromList(bytes));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+  static bool isOnCurve(List<int> bytes) => solana.isPointOnEd25519Curve(bytes);
 
   /// Validate if a string is valid base58
   static bool isValidBase58(String value) {
@@ -138,12 +134,11 @@ class PublicKeyUtils {
     required PublicKey fromPublicKey,
     required String seed,
     required PublicKey programId,
-  }) =>
-      solana.Ed25519HDPublicKey.createWithSeed(
-        fromPublicKey: fromPublicKey,
-        seed: seed,
-        programId: programId,
-      );
+  }) => solana.Ed25519HDPublicKey.createWithSeed(
+    fromPublicKey: fromPublicKey,
+    seed: seed,
+    programId: programId,
+  );
 
   /// Find a program derived address with bump seed tracking
   static Future<PdaResult> findProgramAddress(
@@ -167,9 +162,9 @@ class PublicKeyUtils {
           final testSeeds = [...seeds.expand((s) => s), bump];
           final testAddress =
               await solana.Ed25519HDPublicKey.createProgramAddress(
-            seeds: testSeeds,
-            programId: programId,
-          );
+                seeds: testSeeds,
+                programId: programId,
+              );
           if (testAddress == address) {
             return PdaResult(address, bump);
           }

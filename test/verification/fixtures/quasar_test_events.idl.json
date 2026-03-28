@@ -1,0 +1,366 @@
+{
+  "address": "66666666666666666666666666666666666666666666",
+  "metadata": {
+    "name": "quasar_test_events",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "emitU64Event",
+      "discriminator": [
+        0
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "emitAddressEvent",
+      "discriminator": [
+        1
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "addr",
+          "type": "publicKey"
+        },
+        {
+          "name": "value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "emitBoolEvent",
+      "discriminator": [
+        2
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "flag",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "emitMultiField",
+      "discriminator": [
+        3
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "a",
+          "type": "u64"
+        },
+        {
+          "name": "b",
+          "type": "u64"
+        },
+        {
+          "name": "c",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "emitViaCpi",
+      "discriminator": [
+        4
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "eventAuthority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "emitEmptyEvent",
+      "discriminator": [
+        5
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "emitLargeEvent",
+      "discriminator": [
+        6
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "a",
+          "type": "u64"
+        },
+        {
+          "name": "b",
+          "type": "u64"
+        },
+        {
+          "name": "c",
+          "type": "u64"
+        },
+        {
+          "name": "d",
+          "type": "u64"
+        },
+        {
+          "name": "e",
+          "type": "publicKey"
+        },
+        {
+          "name": "f",
+          "type": "publicKey"
+        },
+        {
+          "name": "g",
+          "type": "u128"
+        },
+        {
+          "name": "h",
+          "type": "u128"
+        }
+      ]
+    },
+    {
+      "name": "emitTwoEvents",
+      "discriminator": [
+        7
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "first",
+          "type": "u64"
+        },
+        {
+          "name": "second",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [],
+  "events": [
+    {
+      "name": "SimpleEvent",
+      "discriminator": [
+        1
+      ]
+    },
+    {
+      "name": "AddressEvent",
+      "discriminator": [
+        2
+      ]
+    },
+    {
+      "name": "BoolEvent",
+      "discriminator": [
+        3
+      ]
+    },
+    {
+      "name": "MultiEvent",
+      "discriminator": [
+        4
+      ]
+    },
+    {
+      "name": "EmptyEvent",
+      "discriminator": [
+        5
+      ]
+    },
+    {
+      "name": "LargeEvent",
+      "discriminator": [
+        6
+      ]
+    },
+    {
+      "name": "SecondSimpleEvent",
+      "discriminator": [
+        7
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "SimpleEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "value",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AddressEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "addr",
+            "type": "publicKey"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BoolEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "flag",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MultiEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "a",
+            "type": "u64"
+          },
+          {
+            "name": "b",
+            "type": "u64"
+          },
+          {
+            "name": "c",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EmptyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
+    {
+      "name": "LargeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "a",
+            "type": "u64"
+          },
+          {
+            "name": "b",
+            "type": "u64"
+          },
+          {
+            "name": "c",
+            "type": "u64"
+          },
+          {
+            "name": "d",
+            "type": "u64"
+          },
+          {
+            "name": "e",
+            "type": "publicKey"
+          },
+          {
+            "name": "f",
+            "type": "publicKey"
+          },
+          {
+            "name": "g",
+            "type": "u128"
+          },
+          {
+            "name": "h",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SecondSimpleEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "value",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

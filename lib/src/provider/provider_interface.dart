@@ -143,14 +143,13 @@ class ProviderConfig {
     String? version,
     Set<ProviderCapability>? capabilities,
     Map<String, dynamic>? properties,
-  }) =>
-      ProviderConfig(
-        type: type ?? this.type,
-        name: name ?? this.name,
-        version: version ?? this.version,
-        capabilities: capabilities ?? this.capabilities,
-        properties: properties ?? this.properties,
-      );
+  }) => ProviderConfig(
+    type: type ?? this.type,
+    name: name ?? this.name,
+    version: version ?? this.version,
+    capabilities: capabilities ?? this.capabilities,
+    properties: properties ?? this.properties,
+  );
 
   @override
   String toString() =>
@@ -220,24 +219,22 @@ class ProviderConnectionStatus {
   /// Create connected status
   factory ProviderConnectionStatus.connected({
     Map<String, dynamic> metadata = const {},
-  }) =>
-      ProviderConnectionStatus(
-        isConnected: true,
-        timestamp: DateTime.now(),
-        metadata: metadata,
-      );
+  }) => ProviderConnectionStatus(
+    isConnected: true,
+    timestamp: DateTime.now(),
+    metadata: metadata,
+  );
 
   /// Create disconnected status
   factory ProviderConnectionStatus.disconnected({
     Exception? error,
     Map<String, dynamic> metadata = const {},
-  }) =>
-      ProviderConnectionStatus(
-        isConnected: false,
-        timestamp: DateTime.now(),
-        error: error,
-        metadata: metadata,
-      );
+  }) => ProviderConnectionStatus(
+    isConnected: false,
+    timestamp: DateTime.now(),
+    error: error,
+    metadata: metadata,
+  );
 
   /// Whether the provider is connected
   final bool isConnected;
@@ -252,7 +249,8 @@ class ProviderConnectionStatus {
   final Map<String, dynamic> metadata;
 
   @override
-  String toString() => 'ProviderConnectionStatus(isConnected: $isConnected, '
+  String toString() =>
+      'ProviderConnectionStatus(isConnected: $isConnected, '
       'timestamp: $timestamp, error: $error, metadata: $metadata)';
 
   @override
@@ -279,12 +277,10 @@ class ProviderConnectionStatus {
 
 /// Base provider implementation with common functionality
 abstract class BaseProvider implements ProviderInterface {
-  BaseProvider({
-    required this.connection,
-    required this.config,
-  })  : _connectionStatusController =
-            StreamController<ProviderConnectionStatus>.broadcast(),
-        _currentStatus = ProviderConnectionStatus.disconnected();
+  BaseProvider({required this.connection, required this.config})
+    : _connectionStatusController =
+          StreamController<ProviderConnectionStatus>.broadcast(),
+      _currentStatus = ProviderConnectionStatus.disconnected();
 
   /// Connection instance
   @override
@@ -323,6 +319,10 @@ abstract class BaseProvider implements ProviderInterface {
   }
 
   /// Default implementation for simulation
+  ///
+  /// Subclasses that support simulation (e.g. AnchorProvider) must override
+  /// this method. The base class does not have enough context to serialize
+  /// and submit the transaction for simulation.
   @override
   Future<TransactionSimulationResult> simulate(
     Transaction transaction, {
@@ -330,10 +330,9 @@ abstract class BaseProvider implements ProviderInterface {
     CommitmentConfig? commitment,
     List<PublicKey>? includeAccounts,
   }) async {
-    // For now, return a stub simulation result consistent with TransactionSimulator
-    return const TransactionSimulationResult(
-      error: null,
-      logs: ['Program log: Simulation not implemented in base provider'],
+    throw UnimplementedError(
+      'simulate() is not implemented in BaseProvider. '
+      'Use AnchorProvider or another concrete provider that supports simulation.',
     );
   }
 }

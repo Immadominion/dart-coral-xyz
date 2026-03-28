@@ -1,7 +1,7 @@
 targets:
   $default:
     builders:
-      coral_xyz_anchor|anchorBuilder:
+      coral_xyz_codegen|anchorBuilder:
         enabled: true
         options:
           idl_path: "target/idl"
@@ -11,9 +11,9 @@ targets:
 
 builders:
   anchorBuilder:
-    import: "package:coral_xyz_anchor/builder.dart"
+    import: "package:coral_xyz_codegen/builder.dart"
     builder_factories: ["anchorBuilder"]
-    build_extensions: {".dart": [".anchor.dart"]}
+    build_extensions: { ".dart": [".anchor.dart"] }
     auto_apply: dependents
     build_to: source
     applies_builders: ["source_gen|combining_builder"]

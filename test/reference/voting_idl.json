@@ -1,0 +1,153 @@
+{
+    "version": "0.1.0",
+    "name": "flutter_vote",
+    "instructions": [
+        {
+            "name": "initialize",
+            "accounts": [
+                {
+                    "name": "poll",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "owner",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "systemProgram",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "description",
+                    "type": "string"
+                },
+                {
+                    "name": "options",
+                    "type": {
+                        "vec": "string"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "vote",
+            "accounts": [
+                {
+                    "name": "poll",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "voter",
+                    "isMut": true,
+                    "isSigner": true
+                }
+            ],
+            "args": [
+                {
+                    "name": "voteId",
+                    "type": "u8"
+                }
+            ]
+        }
+    ],
+    "accounts": [
+        {
+            "name": "Poll",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "finished",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "description",
+                        "type": "string"
+                    },
+                    {
+                        "name": "options",
+                        "type": {
+                            "vec": {
+                                "defined": "PollOption"
+                            }
+                        }
+                    },
+                    {
+                        "name": "voters",
+                        "type": {
+                            "vec": "publicKey"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "types": [
+        {
+            "name": "PollOption",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "label",
+                        "type": "string"
+                    },
+                    {
+                        "name": "id",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "votes",
+                        "type": "u32"
+                    }
+                ]
+            }
+        }
+    ],
+    "errors": [
+        {
+            "code": 6000,
+            "name": "PollAlreadyFinished",
+            "msg": "Poll is already finished"
+        },
+        {
+            "code": 6001,
+            "name": "PollOptionNotFound",
+            "msg": "Poll option not found"
+        },
+        {
+            "code": 6002,
+            "name": "UserAlreadyVoted",
+            "msg": "User has already voted"
+        },
+        {
+            "code": 6003,
+            "name": "NameTooLong",
+            "msg": "Poll name exceeds 50 characters"
+        },
+        {
+            "code": 6004,
+            "name": "DescriptionTooLong",
+            "msg": "Poll description exceeds 200 characters"
+        },
+        {
+            "code": 6005,
+            "name": "TooManyOptions",
+            "msg": "Too many options provided (max 5)"
+        }
+    ]
+}

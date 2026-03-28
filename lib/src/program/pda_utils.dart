@@ -19,8 +19,7 @@ class PdaUtils {
   static Future<PdaResult> findProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async =>
-      PublicKeyUtils.findProgramAddress(seeds, programId);
+  ) async => PublicKeyUtils.findProgramAddress(seeds, programId);
 
   /// Create a program address directly (without finding bump)
   ///
@@ -29,8 +28,7 @@ class PdaUtils {
   static Future<PublicKey> createProgramAddress(
     List<Uint8List> seeds,
     PublicKey programId,
-  ) async =>
-      PublicKeyUtils.createProgramAddress(seeds, programId);
+  ) async => PublicKeyUtils.createProgramAddress(seeds, programId);
 
   /// Convert various seed types to bytes for PDA derivation
   ///
@@ -172,12 +170,7 @@ class PdaUtils {
     PublicKey fromPublicKey,
     String seed,
     PublicKey programId,
-  ) =>
-      PublicKeyUtils.createWithSeedSync(
-        fromPublicKey,
-        seed,
-        programId,
-      );
+  ) => PublicKeyUtils.createWithSeedSync(fromPublicKey, seed, programId);
 }
 
 /// Address resolution utilities for account management
@@ -224,8 +217,9 @@ class AddressResolver {
         resolvedAccounts[entry.key] = entry.value as PublicKey;
       } else if (entry.value is String) {
         try {
-          resolvedAccounts[entry.key] =
-              PublicKey.fromBase58(entry.value as String);
+          resolvedAccounts[entry.key] = PublicKey.fromBase58(
+            entry.value as String,
+          );
         } catch (e) {
           // Ignore invalid base58 strings
         }
@@ -253,6 +247,15 @@ class AddressResolver {
   }
 
   /// Resolve PDA from IDL PDA specification
+  ///
+  /// [context] should contain argument values under `'args'` and account
+  /// addresses under `'accounts'`, e.g.:
+  /// ```dart
+  /// {
+  ///   'args': {'name': 'hello', 'id': 42},
+  ///   'accounts': {'authority': PublicKey(...), 'mint': PublicKey(...)},
+  /// }
+  /// ```
   static Future<PublicKey?> resolvePdaFromIdl(
     IdlPda pdaSpec,
     PublicKey programId, {
@@ -260,6 +263,11 @@ class AddressResolver {
   }) async {
     try {
       final seeds = <Uint8List>[];
+      final args =
+          (context?['args'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+      final accounts =
+          (context?['accounts'] as Map<String, dynamic>?) ??
+          <String, dynamic>{};
 
       // Convert each seed specification to bytes
       for (final seed in pdaSpec.seeds) {
@@ -272,15 +280,25 @@ class AddressResolver {
             break;
           case 'arg':
             final argSeed = seed as IdlSeedArg;
-            // This would need to resolve argument values from context
-            // For now, use a placeholder implementation
-            seedBytes = PdaUtils.seedToBytesEnhanced(argSeed.path);
+            final value = _resolveNestedPath(args, argSeed.path);
+            if (value == null) {
+              throw ArgumentError(
+                'Missing argument value for seed path "${argSeed.path}". '
+                'Provide it in context["args"].',
+              );
+            }
+            seedBytes = PdaUtils.seedToBytesEnhanced(value);
             break;
           case 'account':
             final accountSeed = seed as IdlSeedAccount;
-            // This would need to resolve account addresses from context
-            // For now, use a placeholder implementation
-            seedBytes = PdaUtils.seedToBytesEnhanced(accountSeed.path);
+            final value = _resolveNestedPath(accounts, accountSeed.path);
+            if (value == null) {
+              throw ArgumentError(
+                'Missing account value for seed path "${accountSeed.path}". '
+                'Provide it in context["accounts"].',
+              );
+            }
+            seedBytes = PdaUtils.seedToBytesEnhanced(value);
             break;
         }
 
@@ -294,6 +312,21 @@ class AddressResolver {
     } catch (e) {
       return null;
     }
+  }
+
+  /// Resolve a dot-separated path against a nested map, e.g.
+  /// `'owner.pubkey'` resolves `map['owner']['pubkey']`.
+  static dynamic _resolveNestedPath(Map<String, dynamic> map, String path) {
+    final parts = path.split('.');
+    dynamic current = map;
+    for (final part in parts) {
+      if (current is Map<String, dynamic> && current.containsKey(part)) {
+        current = current[part];
+      } else {
+        return null;
+      }
+    }
+    return current;
   }
 
   /// Convert a value to bytes for seed usage

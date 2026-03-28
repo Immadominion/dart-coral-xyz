@@ -14,10 +14,7 @@ import 'package:coral_xyz/src/idl/idl.dart';
 
 /// IDL Program Account structure for on-chain IDL storage
 class IdlProgramAccount {
-  const IdlProgramAccount({
-    required this.authority,
-    required this.data,
-  });
+  const IdlProgramAccount({required this.authority, required this.data});
 
   /// Authority that can update the IDL
   final PublicKey authority;
@@ -46,10 +43,7 @@ class IdlProgramAccount {
 
     final idlData = data.sublist(idlDataStart, idlDataStart + dataLength);
 
-    return IdlProgramAccount(
-      authority: authority,
-      data: idlData,
-    );
+    return IdlProgramAccount(authority: authority, data: idlData);
   }
 
   /// Read a 32-bit unsigned integer in little-endian format
@@ -178,7 +172,9 @@ class IdlUtils {
     if (!snakeCase.contains('_')) return snakeCase;
     final parts = snakeCase.split('_');
     final first = parts.first.toLowerCase();
-    final rest = parts.skip(1).map(
+    final rest = parts
+        .skip(1)
+        .map(
           (p) => p.isEmpty
               ? ''
               : p[0].toUpperCase() + p.substring(1).toLowerCase(),
@@ -186,14 +182,17 @@ class IdlUtils {
     return first + rest.join();
   }
 
-  /// Inflate zlib-compressed bytes (like pako.inflate). If inflate fails, return original.
+  /// Inflate zlib-compressed bytes (like pako.inflate).
+  /// Returns the decompressed data, or the original bytes if they are not
+  /// zlib-compressed (e.g. already raw JSON). Throws on genuinely corrupt data.
   static Uint8List _inflateZlib(Uint8List compressed) {
-    try {
-      final decoded = zlib.decode(compressed);
-      return Uint8List.fromList(decoded);
-    } catch (_) {
-      // Not compressed or invalid zlib stream; assume raw JSON
+    // zlib streams start with 0x78 (CMF byte with deflate method)
+    if (compressed.isEmpty || compressed[0] != 0x78) {
+      // Not a zlib stream — assume raw (uncompressed) data
       return compressed;
     }
+    // Data looks zlib-compressed — decompress or fail
+    final decoded = zlib.decode(compressed);
+    return Uint8List.fromList(decoded);
   }
 }

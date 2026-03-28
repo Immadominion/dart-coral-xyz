@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:coral_xyz/coral_xyz.dart'
     hide Transaction, TransactionInstruction, AccountMeta;
+import 'package:coral_xyz/src/types/account_filter.dart';
 import 'package:coral_xyz/src/types/transaction.dart';
 import 'package:solana/dto.dart' as dto;
 import 'package:test/test.dart';
@@ -12,9 +13,9 @@ class MockProvider extends AnchorProvider {
   MockProvider(super.connection, super.wallet);
 
   /// Create a mock provider with default test configuration
-  factory MockProvider.createDefault() {
+  static Future<MockProvider> createDefault() async {
     final connection = MockConnection('http://localhost:8899');
-    final wallet = MockWallet();
+    final wallet = await MockWallet.create();
     return MockProvider(connection, wallet);
   }
 }
@@ -26,6 +27,9 @@ class MockConnection extends Connection {
   final List<String> _callLog = [];
   bool _shouldThrow = false;
   Exception? _throwException;
+
+  /// Captured filters from the last getProgramAccounts call
+  List<AccountFilter>? lastProgramAccountsFilters;
 
   /// Configure the connection to throw an exception on next call
   void setThrowOnNextCall(Exception exception) {
@@ -71,21 +75,36 @@ class MockConnection extends Connection {
     final result = _mockResponses['getBalance'];
     return result is int ? result : 1000000000; // 1 SOL default
   }
+
+  @override
+  Future<List<dto.ProgramAccount>> getProgramAccounts(
+    String programId, {
+    dto.Commitment? commitment,
+    dto.Encoding? encoding,
+    List<AccountFilter>? filters,
+  }) async {
+    _callLog.add('getProgramAccounts:$programId');
+    lastProgramAccountsFilters = filters;
+    if (_shouldThrow) {
+      _shouldThrow = false;
+      throw _throwException!;
+    }
+    final result = _mockResponses['getProgramAccounts'];
+    return result is List<dto.ProgramAccount>
+        ? result
+        : <dto.ProgramAccount>[];
+  }
 }
 
 /// Mock wallet for testing with customizable signing behavior
 class MockWallet implements Wallet {
-  MockWallet([Keypair? keypair])
-      : _keypair = keypair ??
-            Keypair.fromSecretKey(
-              Uint8List.fromList(List.generate(32, (i) => i + 1)),
-            );
+  MockWallet(Keypair keypair) : _keypair = keypair;
   final Keypair _keypair;
   bool _shouldThrowOnSign = false;
   Exception? _signException;
 
   /// Create a mock wallet with a deterministic keypair
-  static Future<MockWallet> createWithKeypair([Keypair? keypair]) async {
+  static Future<MockWallet> create([Keypair? keypair]) async {
     final kp = keypair ?? await _generateMockKeypair();
     return MockWallet(kp);
   }
@@ -186,12 +205,11 @@ TransactionInstruction buildTestInstruction({
   List<AccountMeta> accounts = const [],
   List<int> data = const [],
   String? instructionName,
-}) =>
-    TransactionInstruction(
-      programId: programId,
-      accounts: accounts,
-      data: Uint8List.fromList(data),
-    );
+}) => TransactionInstruction(
+  programId: programId,
+  accounts: accounts,
+  data: Uint8List.fromList(data),
+);
 
 /// Create a test IDL for testing purposes
 Idl createTestIdl({
@@ -200,33 +218,33 @@ Idl createTestIdl({
   List<IdlInstruction>? instructions,
   List<IdlAccount>? accounts,
   List<IdlTypeDef>? types,
-}) =>
-    Idl(
-      address: address ?? 'TestProgram111111111111111111111111111111',
-      metadata: IdlMetadata(name: name, version: '0.1.0', spec: '0.1.0'),
-      instructions: instructions ??
-          [
-            IdlInstruction(
-              name: 'initialize',
-              discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
-              accounts: [
-                const IdlInstructionAccount(
-                  name: 'user',
-                  writable: true,
-                  signer: true,
-                ),
-              ],
-              args: [IdlField(name: 'amount', type: idlTypeU64())],
+}) => Idl(
+  address: address ?? 'TestProgram111111111111111111111111111111',
+  metadata: IdlMetadata(name: name, version: '0.1.0', spec: '0.1.0'),
+  instructions:
+      instructions ??
+      [
+        IdlInstruction(
+          name: 'initialize',
+          discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
+          accounts: [
+            const IdlInstructionAccount(
+              name: 'user',
+              writable: true,
+              signer: true,
             ),
           ],
-      accounts: accounts,
-      types: types,
-    );
+          args: [IdlField(name: 'amount', type: idlTypeU64())],
+        ),
+      ],
+  accounts: accounts,
+  types: types,
+);
 
 /// Create a test program with mock provider
-Program createTestProgram({Idl? idl, AnchorProvider? provider}) {
+Future<Program> createTestProgram({Idl? idl, AnchorProvider? provider}) async {
   final testIdl = idl ?? createTestIdl();
-  final testProvider = provider ?? MockProvider.createDefault();
+  final testProvider = provider ?? await MockProvider.createDefault();
   return Program(testIdl, provider: testProvider);
 }
 

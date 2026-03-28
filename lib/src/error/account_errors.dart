@@ -21,13 +21,13 @@ abstract class AccountError extends AnchorError {
     Origin? origin,
     ComparedValues? comparedValues,
   }) : super(
-          error: ErrorInfo(
-            errorCode: errorCode,
-            errorMessage: errorMessage,
-            origin: origin,
-            comparedValues: comparedValues,
-          ),
-        );
+         error: ErrorInfo(
+           errorCode: errorCode,
+           errorMessage: errorMessage,
+           origin: origin,
+           comparedValues: comparedValues,
+         ),
+       );
 
   /// The account address associated with the error
   final PublicKey? accountAddress;
@@ -60,13 +60,14 @@ class AccountDiscriminatorMismatchError extends AccountError {
     super.accountName,
     super.origin,
   }) : super(
-          errorCode: const ErrorCode(
-            code: 'AccountDiscriminatorMismatch',
-            number: LangErrorCode.accountDiscriminatorMismatch,
-          ),
-          errorMessage:
-              getErrorMessage(LangErrorCode.accountDiscriminatorMismatch),
-        );
+         errorCode: const ErrorCode(
+           code: 'AccountDiscriminatorMismatch',
+           number: LangErrorCode.accountDiscriminatorMismatch,
+         ),
+         errorMessage: getErrorMessage(
+           LangErrorCode.accountDiscriminatorMismatch,
+         ),
+       );
 
   /// Create from discriminator comparison
   factory AccountDiscriminatorMismatchError.fromComparison({
@@ -77,16 +78,15 @@ class AccountDiscriminatorMismatchError extends AccountError {
     PublicKey? accountAddress,
     String? accountName,
     Origin? origin,
-  }) =>
-      AccountDiscriminatorMismatchError(
-        expectedDiscriminator: expected,
-        actualDiscriminator: actual,
-        errorLogs: errorLogs,
-        logs: logs,
-        accountAddress: accountAddress,
-        accountName: accountName,
-        origin: origin,
-      );
+  }) => AccountDiscriminatorMismatchError(
+    expectedDiscriminator: expected,
+    actualDiscriminator: actual,
+    errorLogs: errorLogs,
+    logs: logs,
+    accountAddress: accountAddress,
+    accountName: accountName,
+    origin: origin,
+  );
 
   /// Expected discriminator bytes
   final List<int> expectedDiscriminator;
@@ -126,74 +126,6 @@ class AccountDiscriminatorMismatchError extends AccountError {
   }
 }
 
-/// Account owned by wrong program error (3007)
-class AccountOwnedByWrongProgramError extends AccountError {
-  AccountOwnedByWrongProgramError({
-    required this.expectedOwner,
-    required this.actualOwner,
-    required super.errorLogs,
-    required super.logs,
-    super.accountAddress,
-    super.accountName,
-    super.origin,
-  }) : super(
-          errorCode: const ErrorCode(
-            code: 'AccountOwnedByWrongProgram',
-            number: LangErrorCode.accountOwnedByWrongProgram,
-          ),
-          errorMessage:
-              getErrorMessage(LangErrorCode.accountOwnedByWrongProgram),
-          comparedValues:
-              ComparedValues.publicKeys([expectedOwner, actualOwner]),
-        );
-
-  /// Create from ownership validation
-  factory AccountOwnedByWrongProgramError.fromValidation({
-    required PublicKey expected,
-    required PublicKey actual,
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
-  }) =>
-      AccountOwnedByWrongProgramError(
-        expectedOwner: expected,
-        actualOwner: actual,
-        errorLogs: errorLogs,
-        logs: logs,
-        accountAddress: accountAddress,
-        accountName: accountName,
-        origin: origin,
-      );
-
-  /// Expected owner program ID
-  final PublicKey expectedOwner;
-
-  /// Actual owner program ID
-  final PublicKey actualOwner;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-
-    if (error.origin is AccountNameOrigin) {
-      final accountName = (error.origin as AccountNameOrigin).accountName;
-      buffer.write('AnchorError caused by account: $accountName. ');
-    } else {
-      buffer.write('AnchorError occurred. ');
-    }
-
-    buffer.write('Error Code: ${error.errorCode.code}. ');
-    buffer.write('Error Number: ${error.errorCode.number}. ');
-    buffer.write('Error Message: ${error.errorMessage}. ');
-    buffer.write('Expected owner: $expectedOwner, ');
-    buffer.write('Actual owner: $actualOwner');
-
-    return buffer.toString();
-  }
-}
-
 /// Account not initialized error (3012)
 class AccountNotInitializedError extends AccountError {
   AccountNotInitializedError({
@@ -203,12 +135,12 @@ class AccountNotInitializedError extends AccountError {
     super.accountName,
     super.origin,
   }) : super(
-          errorCode: const ErrorCode(
-            code: 'AccountNotInitialized',
-            number: LangErrorCode.accountNotInitialized,
-          ),
-          errorMessage: getErrorMessage(LangErrorCode.accountNotInitialized),
-        );
+         errorCode: const ErrorCode(
+           code: 'AccountNotInitialized',
+           number: LangErrorCode.accountNotInitialized,
+         ),
+         errorMessage: getErrorMessage(LangErrorCode.accountNotInitialized),
+       );
 
   /// Create from account validation
   factory AccountNotInitializedError.fromAddress({
@@ -217,14 +149,13 @@ class AccountNotInitializedError extends AccountError {
     required List<String> logs,
     String? accountName,
     Origin? origin,
-  }) =>
-      AccountNotInitializedError(
-        errorLogs: errorLogs,
-        logs: logs,
-        accountAddress: accountAddress,
-        accountName: accountName,
-        origin: origin,
-      );
+  }) => AccountNotInitializedError(
+    errorLogs: errorLogs,
+    logs: logs,
+    accountAddress: accountAddress,
+    accountName: accountName,
+    origin: origin,
+  );
 
   @override
   String toString() {
@@ -260,12 +191,12 @@ class AccountDidNotDeserializeError extends AccountError {
     this.expectedStructure,
     super.origin,
   }) : super(
-          errorCode: const ErrorCode(
-            code: 'AccountDidNotDeserialize',
-            number: LangErrorCode.accountDidNotDeserialize,
-          ),
-          errorMessage: getErrorMessage(LangErrorCode.accountDidNotDeserialize),
-        );
+         errorCode: const ErrorCode(
+           code: 'AccountDidNotDeserialize',
+           number: LangErrorCode.accountDidNotDeserialize,
+         ),
+         errorMessage: getErrorMessage(LangErrorCode.accountDidNotDeserialize),
+       );
 
   /// Create from deserialization failure
   factory AccountDidNotDeserializeError.fromFailure({
@@ -276,16 +207,15 @@ class AccountDidNotDeserializeError extends AccountError {
     int? dataSize,
     String? structure,
     Origin? origin,
-  }) =>
-      AccountDidNotDeserializeError(
-        errorLogs: errorLogs,
-        logs: logs,
-        accountAddress: accountAddress,
-        accountName: accountName,
-        accountDataSize: dataSize,
-        expectedStructure: structure,
-        origin: origin,
-      );
+  }) => AccountDidNotDeserializeError(
+    errorLogs: errorLogs,
+    logs: logs,
+    accountAddress: accountAddress,
+    accountName: accountName,
+    accountDataSize: dataSize,
+    expectedStructure: structure,
+    origin: origin,
+  );
 
   /// Size of the account data
   final int? accountDataSize;
@@ -317,273 +247,5 @@ class AccountDidNotDeserializeError extends AccountError {
     }
 
     return buffer.toString();
-  }
-}
-
-/// Account not system owned error (3011)
-class AccountNotSystemOwnedError extends AccountError {
-  AccountNotSystemOwnedError({
-    required this.actualOwner,
-    required super.errorLogs,
-    required super.logs,
-    super.accountAddress,
-    super.accountName,
-    super.origin,
-  }) : super(
-          errorCode: const ErrorCode(
-            code: 'AccountNotSystemOwned',
-            number: LangErrorCode.accountNotSystemOwned,
-          ),
-          errorMessage: getErrorMessage(LangErrorCode.accountNotSystemOwned),
-        );
-
-  /// Create from system ownership validation
-  factory AccountNotSystemOwnedError.fromValidation({
-    required PublicKey actualOwner,
-    required List<String> errorLogs,
-    required List<String> logs,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
-  }) =>
-      AccountNotSystemOwnedError(
-        actualOwner: actualOwner,
-        errorLogs: errorLogs,
-        logs: logs,
-        accountAddress: accountAddress,
-        accountName: accountName,
-        origin: origin,
-      );
-
-  /// The actual owner of the account
-  final PublicKey actualOwner;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-
-    if (error.origin is AccountNameOrigin) {
-      final accountName = (error.origin as AccountNameOrigin).accountName;
-      buffer.write('AnchorError caused by account: $accountName. ');
-    } else {
-      buffer.write('AnchorError occurred. ');
-    }
-
-    buffer.write('Error Code: ${error.errorCode.code}. ');
-    buffer.write('Error Number: ${error.errorCode.number}. ');
-    buffer.write('Error Message: ${error.errorMessage}. ');
-    buffer.write('Actual owner: $actualOwner');
-
-    return buffer.toString();
-  }
-}
-
-/// Account not signer error (3010)
-class AccountNotSignerError extends AccountError {
-  AccountNotSignerError({
-    required super.errorLogs,
-    required super.logs,
-    super.accountAddress,
-    super.accountName,
-    super.origin,
-  }) : super(
-          errorCode: const ErrorCode(
-            code: 'AccountNotSigner',
-            number: LangErrorCode.accountNotSigner,
-          ),
-          errorMessage: getErrorMessage(LangErrorCode.accountNotSigner),
-        );
-
-  /// Create from signer validation
-  factory AccountNotSignerError.fromValidation({
-    required PublicKey accountAddress,
-    required List<String> errorLogs,
-    required List<String> logs,
-    String? accountName,
-    Origin? origin,
-  }) =>
-      AccountNotSignerError(
-        errorLogs: errorLogs,
-        logs: logs,
-        accountAddress: accountAddress,
-        accountName: accountName,
-        origin: origin,
-      );
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-
-    if (error.origin is AccountNameOrigin) {
-      final accountName = (error.origin as AccountNameOrigin).accountName;
-      buffer.write('AnchorError caused by account: $accountName. ');
-    } else {
-      buffer.write('AnchorError occurred. ');
-    }
-
-    buffer.write('Error Code: ${error.errorCode.code}. ');
-    buffer.write('Error Number: ${error.errorCode.number}. ');
-    buffer.write('Error Message: ${error.errorMessage}');
-
-    if (accountAddress != null) {
-      buffer.write(' (Address: $accountAddress)');
-    }
-
-    return buffer.toString();
-  }
-}
-
-/// Account not mutable error (3006)
-class AccountNotMutableError extends AccountError {
-  AccountNotMutableError({
-    required super.errorLogs,
-    required super.logs,
-    super.accountAddress,
-    super.accountName,
-    super.origin,
-  }) : super(
-          errorCode: const ErrorCode(
-            code: 'AccountNotMutable',
-            number: LangErrorCode.accountNotMutable,
-          ),
-          errorMessage: getErrorMessage(LangErrorCode.accountNotMutable),
-        );
-
-  /// Create from mutability validation
-  factory AccountNotMutableError.fromValidation({
-    required PublicKey accountAddress,
-    required List<String> errorLogs,
-    required List<String> logs,
-    String? accountName,
-    Origin? origin,
-  }) =>
-      AccountNotMutableError(
-        errorLogs: errorLogs,
-        logs: logs,
-        accountAddress: accountAddress,
-        accountName: accountName,
-        origin: origin,
-      );
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-
-    if (error.origin is AccountNameOrigin) {
-      final accountName = (error.origin as AccountNameOrigin).accountName;
-      buffer.write('AnchorError caused by account: $accountName. ');
-    } else {
-      buffer.write('AnchorError occurred. ');
-    }
-
-    buffer.write('Error Code: ${error.errorCode.code}. ');
-    buffer.write('Error Number: ${error.errorCode.number}. ');
-    buffer.write('Error Message: ${error.errorMessage}');
-
-    if (accountAddress != null) {
-      buffer.write(' (Address: $accountAddress)');
-    }
-
-    return buffer.toString();
-  }
-}
-
-/// Utility class for creating account errors from validation failures
-class AccountErrorFactory {
-  /// Create discriminator mismatch error
-  static AccountDiscriminatorMismatchError discriminatorMismatch({
-    required List<int> expected,
-    required List<int> actual,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
-  }) {
-    final logs = [
-      'Program log: Account discriminator mismatch',
-      'Program log: Expected: ${expected.map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase()).join()}',
-      'Program log: Actual: ${actual.map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase()).join()}',
-    ];
-
-    return AccountDiscriminatorMismatchError(
-      expectedDiscriminator: expected,
-      actualDiscriminator: actual,
-      errorLogs: logs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
-  }
-
-  /// Create wrong program owner error
-  static AccountOwnedByWrongProgramError wrongProgramOwner({
-    required PublicKey expectedOwner,
-    required PublicKey actualOwner,
-    PublicKey? accountAddress,
-    String? accountName,
-    Origin? origin,
-  }) {
-    final logs = [
-      'Program log: Account owned by wrong program',
-      'Program log: Expected: $expectedOwner',
-      'Program log: Actual: $actualOwner',
-    ];
-
-    return AccountOwnedByWrongProgramError(
-      expectedOwner: expectedOwner,
-      actualOwner: actualOwner,
-      errorLogs: logs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
-  }
-
-  /// Create account not initialized error
-  static AccountNotInitializedError notInitialized({
-    required PublicKey accountAddress,
-    String? accountName,
-    Origin? origin,
-  }) {
-    final logs = [
-      'Program log: Account not initialized',
-      'Program log: Address: $accountAddress',
-    ];
-
-    return AccountNotInitializedError(
-      errorLogs: logs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      origin: origin,
-    );
-  }
-
-  /// Create deserialization error
-  static AccountDidNotDeserializeError deserializationFailed({
-    PublicKey? accountAddress,
-    String? accountName,
-    int? dataSize,
-    String? expectedStructure,
-    Origin? origin,
-  }) {
-    final logs = [
-      'Program log: Failed to deserialize account',
-      if (accountAddress != null) 'Program log: Address: $accountAddress',
-      if (dataSize != null) 'Program log: Data size: $dataSize bytes',
-      if (expectedStructure != null)
-        'Program log: Expected: $expectedStructure',
-    ];
-
-    return AccountDidNotDeserializeError(
-      errorLogs: logs,
-      logs: logs,
-      accountAddress: accountAddress,
-      accountName: accountName,
-      accountDataSize: dataSize,
-      expectedStructure: expectedStructure,
-      origin: origin,
-    );
   }
 }

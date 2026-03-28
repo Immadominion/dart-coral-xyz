@@ -8,8 +8,8 @@ import 'package:coral_xyz/src/idl/idl.dart';
 import 'package:coral_xyz/src/coder/borsh_types.dart';
 import 'package:coral_xyz/src/coder/discriminator_computer.dart';
 import 'package:coral_xyz/src/types/common.dart';
+import 'package:coral_xyz/src/types/public_key.dart';
 import 'package:coral_xyz/src/types/transaction.dart'; // <-- Add this import for AccountMeta
-import 'package:coral_xyz/src/utils/logger.dart';
 import 'dart:typed_data';
 
 /// Interface for encoding and decoding program instructions
@@ -38,10 +38,7 @@ abstract class InstructionCoder {
 
 /// A decoded program instruction
 class Instruction {
-  const Instruction({
-    required this.name,
-    required this.data,
-  });
+  const Instruction({required this.name, required this.data});
 
   /// The name of the instruction
   final String name;
@@ -74,10 +71,7 @@ class Instruction {
 
 /// Formatted instruction display for debugging and analysis
 class InstructionDisplay {
-  const InstructionDisplay({
-    required this.args,
-    required this.accounts,
-  });
+  const InstructionDisplay({required this.args, required this.accounts});
 
   /// Formatted instruction arguments
   final List<InstructionArg> args;
@@ -132,7 +126,8 @@ class InstructionAccount {
   final bool isWritable;
 
   @override
-  String toString() => 'InstructionAccount(name: $name, pubkey: $pubkey, '
+  String toString() =>
+      'InstructionAccount(name: $name, pubkey: $pubkey, '
       'isSigner: $isSigner, isWritable: $isWritable)';
 }
 
@@ -150,7 +145,6 @@ class BorshInstructionCoder implements InstructionCoder {
   late final Map<String, InstructionLayout> _ixLayouts;
 
   /// Logger for instruction encoding/decoding operations
-  static final _logger = AnchorLoggers.program;
 
   @override
   Uint8List encode(String ixName, Map<String, dynamic> ix) {
@@ -160,19 +154,10 @@ class BorshInstructionCoder implements InstructionCoder {
     }
 
     try {
-      _logger.debug('Encoding instruction: $ixName', context: {
-        'discriminator': layout.discriminator,
-      });
-
       // Encode the instruction arguments using a basic Borsh serializer
       final serializer = BorshSerializer();
       _encodeInstructionArgs(ix, layout.instruction, serializer);
       final argsData = serializer.toBytes();
-
-      _logger.debug('Instruction encoding details', context: {
-        'instruction': ixName,
-        'argsDataLength': argsData.length,
-      });
 
       // Prepend the discriminator
       final discriminator = Uint8List.fromList(layout.discriminator);
@@ -180,15 +165,8 @@ class BorshInstructionCoder implements InstructionCoder {
       result.setRange(0, discriminator.length, discriminator);
       result.setRange(discriminator.length, result.length, argsData);
 
-      _logger.debug('Final instruction data', context: {
-        'instruction': ixName,
-        'dataLength': result.length,
-        'data': result.toList(),
-      });
-
       return result;
     } catch (e) {
-      _logger.error('Error encoding instruction $ixName: $e');
       throw InstructionCoderException(
         'Failed to encode instruction $ixName: $e',
       );
@@ -227,13 +205,12 @@ class BorshInstructionCoder implements InstructionCoder {
 
           // Decode using Borsh deserializer
           final deserializer = BorshDeserializer(instructionData);
-          final decodedData =
-              _decodeInstructionArgs(layout.instruction, deserializer);
-
-          return Instruction(
-            name: name,
-            data: decodedData,
+          final decodedData = _decodeInstructionArgs(
+            layout.instruction,
+            deserializer,
           );
+
+          return Instruction(name: name, data: decodedData);
         } catch (e) {
           // Continue trying other instructions
           continue;
@@ -321,8 +298,9 @@ class BorshInstructionCoder implements InstructionCoder {
     // Convert camelCase back to snake_case for discriminator computation
     // since Anchor computes discriminators from original Rust function names
     final snakeCaseName = _toSnakeCase(instructionName);
-    final discriminator =
-        DiscriminatorComputer.computeInstructionDiscriminator(snakeCaseName);
+    final discriminator = DiscriminatorComputer.computeInstructionDiscriminator(
+      snakeCaseName,
+    );
     return discriminator.toList();
   }
 
@@ -332,11 +310,18 @@ class BorshInstructionCoder implements InstructionCoder {
   String _toSnakeCase(String camelCase) {
     if (camelCase.isEmpty) return camelCase;
 
+    // Handle transitions between lowercase→uppercase and uppercase→lowercase
+    // e.g. "parseIDLField" → "parse_idl_field", "myMethod" → "my_method"
     return camelCase
         .replaceAllMapped(
-            RegExp(r'[A-Z]'), (match) => '_${match.group(0)!.toLowerCase()}')
-        .replaceFirst(
-            RegExp(r'^_'), ''); // Remove leading underscore if present
+          RegExp(r'([A-Z]+)([A-Z][a-z])'),
+          (m) => '${m.group(1)!.toLowerCase()}_${m.group(2)!.toLowerCase()}',
+        )
+        .replaceAllMapped(
+          RegExp(r'([a-z\d])([A-Z])'),
+          (m) => '${m.group(1)}_${m.group(2)!.toLowerCase()}',
+        )
+        .toLowerCase();
   }
 
   /// Encode instruction arguments
@@ -383,7 +368,7 @@ class BorshInstructionCoder implements InstructionCoder {
       case 'u64':
         // Accept int or BigInt for u64
         if (value is BigInt) {
-          serializer.writeU64(value.toInt());
+          serializer.writeU64(value);
         } else if (value is int) {
           serializer.writeU64(value);
         } else {
@@ -404,12 +389,93 @@ class BorshInstructionCoder implements InstructionCoder {
           );
         }
         break;
+      case 'u128':
+        final u128Bytes = Uint8List(16);
+        final u128Val = value is BigInt ? value : BigInt.from(value as int);
+        for (int i = 0; i < 16; i++) {
+          u128Bytes[i] = (u128Val >> (8 * i) & BigInt.from(0xFF)).toInt();
+        }
+        serializer.writeFixedArray(u128Bytes);
+        break;
+      case 'i128':
+        final i128Bytes = Uint8List(16);
+        final i128Val = value is BigInt ? value : BigInt.from(value as int);
+        for (int i = 0; i < 16; i++) {
+          i128Bytes[i] = (i128Val >> (8 * i) & BigInt.from(0xFF)).toInt();
+        }
+        serializer.writeFixedArray(i128Bytes);
+        break;
+      case 'f32':
+        serializer.writeF32(value as double);
+        break;
+      case 'f64':
+        serializer.writeF64(value as double);
+        break;
       case 'string':
         serializer.writeString(value as String);
         break;
+      case 'bytes':
+        // Length-prefixed byte array
+        final bytesList = value is Uint8List
+            ? value
+            : Uint8List.fromList(value as List<int>);
+        serializer.writeU32(bytesList.length);
+        serializer.writeFixedArray(bytesList);
+        break;
       case 'pubkey':
-        // For now, treat pubkey as a string
+      case 'publicKey':
+        // Encode as 32-byte public key
+        if (value is String) {
+          // Accept base58-encoded public key string
+          final pk = PublicKey.fromBase58(value);
+          serializer.writeFixedArray(Uint8List.fromList(pk.bytes));
+        } else if (value is Uint8List) {
+          if (value.length != 32) {
+            throw InstructionCoderException(
+              'Public key must be exactly 32 bytes, got ${value.length}',
+            );
+          }
+          serializer.writeFixedArray(value);
+        } else if (value is List<int>) {
+          if (value.length != 32) {
+            throw InstructionCoderException(
+              'Public key must be exactly 32 bytes, got ${value.length}',
+            );
+          }
+          serializer.writeFixedArray(Uint8List.fromList(value));
+        } else {
+          throw InstructionCoderException(
+            'Public key must be a base58 String, Uint8List, or List<int>, got ${value.runtimeType}',
+          );
+        }
+        break;
+      case 'dynString':
+        // Quasar bounded string: 4-byte length prefix + UTF-8 bytes
         serializer.writeString(value as String);
+        break;
+      case 'dynVec':
+        // Quasar bounded vec: 4-byte length prefix + items
+        final dynVecList = value as List;
+        serializer.writeU32(dynVecList.length);
+        for (final item in dynVecList) {
+          _encodeValue(item, type.inner!, serializer);
+        }
+        break;
+      case 'tail':
+        // Quasar tail bytes: raw bytes appended at end (no length prefix)
+        if (value is Uint8List) {
+          for (final b in value) {
+            serializer.writeU8(b);
+          }
+        } else if (value is List<int>) {
+          for (final b in value) {
+            serializer.writeU8(b);
+          }
+        } else {
+          throw InstructionCoderException(
+            'Tail value must be Uint8List or List<int>, got ${value.runtimeType}',
+          );
+        }
         break;
       case 'vec':
         final list = value as List;
@@ -438,9 +504,7 @@ class BorshInstructionCoder implements InstructionCoder {
         }
         break;
       case 'defined':
-        // Handle defined types (including type aliases)
-        final resolvedType = _resolveDefinedType(type.defined!.name);
-        _encodeValue(value, resolvedType, serializer);
+        _encodeDefinedType(value, type.defined!.name, serializer);
         break;
       default:
         throw InstructionCoderException(
@@ -484,11 +548,48 @@ class BorshInstructionCoder implements InstructionCoder {
         return deserializer.readU64();
       case 'i64':
         return deserializer.readI64();
+      case 'u128':
+      case 'i128':
+        final u128Bytes = deserializer.readFixedArray(16);
+        BigInt result = BigInt.zero;
+        for (int i = 0; i < 16; i++) {
+          result |= BigInt.from(u128Bytes[i]) << (8 * i);
+        }
+        return result;
+      case 'f32':
+        return deserializer.readF32();
+      case 'f64':
+        return deserializer.readF64();
       case 'string':
         return deserializer.readString();
+      case 'bytes':
+        final bytesLen = deserializer.readU32();
+        return deserializer.readBytes(bytesLen);
       case 'pubkey':
-        // For now, treat pubkey as a string
+      case 'publicKey':
+        return deserializer.readBytes(32);
+      case 'dynString':
+        // Quasar bounded string: same wire format as string
         return deserializer.readString();
+      case 'dynVec':
+        // Quasar bounded vec: same wire format as vec
+        final dynVecLen = deserializer.readU32();
+        final dynVecList = <dynamic>[];
+        for (int i = 0; i < dynVecLen; i++) {
+          dynVecList.add(_decodeValue(type.inner!, deserializer));
+        }
+        return dynVecList;
+      case 'tail':
+        // Quasar tail: consume remaining bytes
+        final remaining = <int>[];
+        try {
+          while (true) {
+            remaining.add(deserializer.readU8());
+          }
+        } catch (_) {
+          // End of data reached
+        }
+        return Uint8List.fromList(remaining);
       case 'vec':
         final length = deserializer.readU32();
         final list = <dynamic>[];
@@ -510,9 +611,7 @@ class BorshInstructionCoder implements InstructionCoder {
         }
         return list;
       case 'defined':
-        // Handle defined types (including type aliases)
-        final resolvedType = _resolveDefinedType(type.defined!.name);
-        return _decodeValue(resolvedType, deserializer);
+        return _decodeDefinedType(type.defined!.name, deserializer);
       default:
         throw InstructionCoderException(
           'Unsupported type for decoding: ${type.kind}',
@@ -531,6 +630,12 @@ class BorshInstructionCoder implements InstructionCoder {
         return 'Array<${_formatIdlType(type.inner!)}; ${type.size}>';
       case 'defined':
         return type.defined?.name ?? 'Unknown';
+      case 'dynString':
+        return 'DynString<${type.size}>';
+      case 'dynVec':
+        return 'DynVec<${_formatIdlType(type.inner!)}, ${type.size}>';
+      case 'tail':
+        return 'Tail<${_formatIdlType(type.inner!)}>';
       default:
         return type.kind;
     }
@@ -563,40 +668,154 @@ class BorshInstructionCoder implements InstructionCoder {
     return value.toString();
   }
 
-  /// Resolve a defined type by looking up its definition in the IDL
-  IdlType _resolveDefinedType(String typeName) {
-    // Find the type definition in the IDL
+  /// Resolve and find a type definition
+  IdlTypeDef _findTypeDef(String typeName) {
     final typeDef = idl.types?.firstWhere(
       (t) => t.name == typeName,
       orElse: () => throw InstructionCoderException(
         'Type definition not found: $typeName',
       ),
     );
-
     if (typeDef == null) {
       throw InstructionCoderException('Type definition not found: $typeName');
     }
+    return typeDef;
+  }
 
-    // Handle different type definition kinds
+  /// Encode a defined (named) type
+  void _encodeDefinedType(
+    dynamic value,
+    String typeName,
+    BorshSerializer serializer,
+  ) {
+    final typeDef = _findTypeDef(typeName);
+
     switch (typeDef.type.kind) {
       case 'type':
-        // Type alias - return the aliased type
+        // Type alias — delegate to the aliased type
         if (typeDef.type.alias == null) {
           throw InstructionCoderException(
             'Type alias missing alias field: $typeName',
           );
         }
-        return typeDef.type.alias!;
+        _encodeValue(value, typeDef.type.alias!, serializer);
       case 'struct':
-        // Struct types not yet fully supported in instruction args
-        throw InstructionCoderException(
-          'Struct types in instruction arguments not yet supported: $typeName',
-        );
+        final fields = typeDef.type.fields;
+        if (fields == null) {
+          throw InstructionCoderException(
+            'Struct type missing fields: $typeName',
+          );
+        }
+        final map = value as Map<String, dynamic>;
+        for (final field in fields) {
+          _encodeValue(map[field.name], field.type, serializer);
+        }
       case 'enum':
-        // Enum types not yet fully supported in instruction args
+        final variants = typeDef.type.variants;
+        if (variants == null) {
+          throw InstructionCoderException(
+            'Enum type missing variants: $typeName',
+          );
+        }
+        if (value is! Map<String, dynamic> || value.length != 1) {
+          throw InstructionCoderException(
+            'Enum value must be a Map with one key (the variant name), '
+            'got ${value.runtimeType}',
+          );
+        }
+        final variantName = value.keys.first;
+        final variantIndex = variants.indexWhere((v) => v.name == variantName);
+        if (variantIndex < 0) {
+          throw InstructionCoderException(
+            'Unknown enum variant: $variantName in $typeName',
+          );
+        }
+        serializer.writeU8(variantIndex);
+        final variant = variants[variantIndex];
+        final variantData = value.values.first;
+        if (variant.fields != null && variant.fields!.isNotEmpty) {
+          // Named fields
+          if (variantData is Map<String, dynamic>) {
+            for (final field in variant.fields!) {
+              _encodeValue(variantData[field.name], field.type, serializer);
+            }
+          } else if (variantData is List) {
+            for (int i = 0; i < variant.fields!.length; i++) {
+              _encodeValue(variantData[i], variant.fields![i].type, serializer);
+            }
+          }
+        } else if (variant.tupleFields != null &&
+            variant.tupleFields!.isNotEmpty) {
+          // Tuple fields
+          final tuple = variantData is List ? variantData : [variantData];
+          for (int i = 0; i < variant.tupleFields!.length; i++) {
+            _encodeValue(tuple[i], variant.tupleFields![i], serializer);
+          }
+        }
+      // No fields = unit variant, nothing more to encode
+      default:
         throw InstructionCoderException(
-          'Enum types in instruction arguments not yet supported: $typeName',
+          'Unknown type definition kind: ${typeDef.type.kind}',
         );
+    }
+  }
+
+  /// Decode a defined (named) type
+  dynamic _decodeDefinedType(String typeName, BorshDeserializer deserializer) {
+    final typeDef = _findTypeDef(typeName);
+
+    switch (typeDef.type.kind) {
+      case 'type':
+        if (typeDef.type.alias == null) {
+          throw InstructionCoderException(
+            'Type alias missing alias field: $typeName',
+          );
+        }
+        return _decodeValue(typeDef.type.alias!, deserializer);
+      case 'struct':
+        final fields = typeDef.type.fields;
+        if (fields == null) {
+          throw InstructionCoderException(
+            'Struct type missing fields: $typeName',
+          );
+        }
+        final result = <String, dynamic>{};
+        for (final field in fields) {
+          result[field.name] = _decodeValue(field.type, deserializer);
+        }
+        return result;
+      case 'enum':
+        final variants = typeDef.type.variants;
+        if (variants == null) {
+          throw InstructionCoderException(
+            'Enum type missing variants: $typeName',
+          );
+        }
+        final variantIndex = deserializer.readU8();
+        if (variantIndex >= variants.length) {
+          throw InstructionCoderException(
+            'Enum variant index out of range: $variantIndex for $typeName',
+          );
+        }
+        final variant = variants[variantIndex];
+        if (variant.fields != null && variant.fields!.isNotEmpty) {
+          // Named fields
+          final data = <String, dynamic>{};
+          for (final field in variant.fields!) {
+            data[field.name] = _decodeValue(field.type, deserializer);
+          }
+          return {variant.name: data};
+        } else if (variant.tupleFields != null &&
+            variant.tupleFields!.isNotEmpty) {
+          // Tuple fields
+          final data = <dynamic>[];
+          for (final tupleType in variant.tupleFields!) {
+            data.add(_decodeValue(tupleType, deserializer));
+          }
+          return {variant.name: data};
+        }
+        // Unit variant
+        return {variant.name: {}};
       default:
         throw InstructionCoderException(
           'Unknown type definition kind: ${typeDef.type.kind}',

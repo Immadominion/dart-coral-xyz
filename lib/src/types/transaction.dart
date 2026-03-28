@@ -7,7 +7,7 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:bs58/bs58.dart';
+import 'package:solana/base58.dart';
 
 import '../utils/binary_writer.dart';
 import 'keypair.dart';
@@ -56,19 +56,18 @@ class TransactionInstruction {
     PublicKey programId,
     List<AccountMeta> accounts,
     Uint8List data,
-  ) =>
-      TransactionInstruction(
-        programId: programId,
-        accounts: accounts,
-        data: data,
-      );
+  ) => TransactionInstruction(
+    programId: programId,
+    accounts: accounts,
+    data: data,
+  );
 
   /// Create an empty instruction (for testing)
   factory TransactionInstruction.empty() => TransactionInstruction(
-        programId: PublicKeyUtils.systemProgram,
-        accounts: [],
-        data: Uint8List(0),
-      );
+    programId: PublicKeyUtils.systemProgram,
+    accounts: [],
+    data: Uint8List(0),
+  );
 
   /// Program ID that will process this instruction
   final PublicKey programId;
@@ -208,11 +207,7 @@ class LogMessage {
 
 /// Transaction error information
 class TransactionError {
-  const TransactionError(
-    this.message, {
-    this.code,
-    this.data,
-  });
+  const TransactionError(this.message, {this.code, this.data});
   final String message;
   final String? code;
   final Map<String, dynamic>? data;
@@ -223,11 +218,7 @@ class TransactionError {
 
 /// Record of a completed transaction
 class TransactionRecord {
-  const TransactionRecord(
-    this.signature, {
-    this.slot,
-    this.error,
-  });
+  const TransactionRecord(this.signature, {this.slot, this.error});
   final String signature;
   final int? slot;
   final TransactionError? error;
@@ -255,17 +246,37 @@ class Transaction {
   final List<PublicKey> _signers = [];
   final Map<String, Uint8List> _signatures = {};
 
-  Transaction setFeePayer(PublicKey payer) => Transaction(
-        instructions: instructions,
-        feePayer: payer,
-        recentBlockhash: recentBlockhash,
-      );
+  /// Pre-serialized signed wire-format bytes from an external signer (e.g. MWA).
+  /// When set, serialize() returns these bytes directly instead of re-building.
+  Uint8List? _serializedOverride;
 
-  Transaction setRecentBlockhash(String blockhash) => Transaction(
-        instructions: instructions,
-        feePayer: feePayer,
-        recentBlockhash: blockhash,
-      );
+  /// Set pre-serialized signed transaction bytes (e.g. from MWA wallet).
+  /// When set, [serialize] returns these bytes directly.
+  void setSerializedOverride(Uint8List bytes) {
+    _serializedOverride = bytes;
+  }
+
+  Transaction setFeePayer(PublicKey payer) {
+    final tx = Transaction(
+      instructions: instructions,
+      feePayer: payer,
+      recentBlockhash: recentBlockhash,
+    );
+    tx._signers.addAll(_signers);
+    tx._signatures.addAll(_signatures);
+    return tx;
+  }
+
+  Transaction setRecentBlockhash(String blockhash) {
+    final tx = Transaction(
+      instructions: instructions,
+      feePayer: feePayer,
+      recentBlockhash: blockhash,
+    );
+    tx._signers.addAll(_signers);
+    tx._signatures.addAll(_signatures);
+    return tx;
+  }
 
   void addSigners(List<PublicKey> signers) {
     for (final signer in signers) {
@@ -296,6 +307,12 @@ class Transaction {
   }
 
   Uint8List serialize() {
+    // If an external signer (MWA) provided pre-serialized bytes, use them directly.
+    // This avoids re-serialization mismatches where the signed message differs
+    // from a re-built message (e.g. wallet added priority fees).
+    if (_serializedOverride != null) {
+      return _serializedOverride!;
+    }
     if (recentBlockhash == null) {
       throw StateError('Recent blockhash required');
     }
@@ -314,7 +331,8 @@ class Transaction {
       final signature = _signatures[signerKey.toBase58()];
       if (signature == null) {
         throw StateError(
-            'Missing signature for required signer: ${signerKey.toBase58()}');
+          'Missing signature for required signer: ${signerKey.toBase58()}',
+        );
       }
       orderedSignatures.add(signature);
     }
@@ -351,7 +369,7 @@ class Transaction {
     }
 
     // Write blockhash as 32-byte binary representation (decode from base58)
-    final blockhashBytes = base58.decode(recentBlockhash!);
+    final blockhashBytes = Uint8List.fromList(base58decode(recentBlockhash!));
     if (blockhashBytes.length != 32) {
       throw StateError(
         'Invalid blockhash: expected 32 bytes, got ${blockhashBytes.length}',
@@ -440,16 +458,19 @@ class Transaction {
     // 4. Read-only non-signers
     final sortedAccounts = allAccounts.values.toList();
     sortedAccounts.sort((a, b) {
+      // Fee payer must always be first
+      if (feePayer != null) {
+        if (a.pubkey == feePayer && b.pubkey != feePayer) return -1;
+        if (b.pubkey == feePayer && a.pubkey != feePayer) return 1;
+      }
       if (a.isSigner && b.isSigner) {
         // Both signers: writable first
         if (a.isWritable && !b.isWritable) return -1;
         if (!a.isWritable && b.isWritable) return 1;
         return 0;
       } else if (a.isSigner && !b.isSigner) {
-        // Signers before non-signers
         return -1;
       } else if (!a.isSigner && b.isSigner) {
-        // Non-signers after signers
         return 1;
       } else {
         // Both non-signers: writable first
@@ -457,16 +478,14 @@ class Transaction {
         if (!a.isWritable && b.isWritable) return 1;
         return 0;
       }
-    }); // Calculate header values
+    });
+
+    // Calculate header values
     int numRequiredSignatures = 0;
     int numReadonlySignedAccounts = 0;
     int numReadonlyUnsignedAccounts = 0;
 
-    print('DEBUG: Account ordering and privileges:');
     for (final account in sortedAccounts) {
-      print(
-        'DEBUG:   ${account.pubkey.toBase58()}: signer=${account.isSigner}, writable=${account.isWritable}',
-      );
       if (account.isSigner) {
         numRequiredSignatures++;
         if (!account.isWritable) {
@@ -476,10 +495,6 @@ class Transaction {
         numReadonlyUnsignedAccounts++;
       }
     }
-
-    print(
-      'DEBUG: Header values - required: $numRequiredSignatures, readonly signed: $numReadonlySignedAccounts, readonly unsigned: $numReadonlyUnsignedAccounts',
-    );
 
     return {
       'keys': sortedAccounts.map((a) => a.pubkey).toList(),
@@ -518,15 +533,23 @@ class Transaction {
   }
 
   /// Sign the transaction with the provided keypairs
+  ///
+  /// Note: Signers are registered BEFORE compiling the message so that
+  /// `_getOrderedAccountKeys()` sees them and the compiled message is
+  /// consistent with the signatures produced.
   Future<void> sign(List<Keypair> signers) async {
+    // Register signers first so the compiled message includes them
+    for (final signer in signers) {
+      if (!_signers.contains(signer.publicKey)) {
+        _signers.add(signer.publicKey);
+      }
+    }
+
     final message = compileMessage();
 
     for (final signer in signers) {
       final signature = await signer.sign(message);
       addSignature(signer.publicKey, signature);
-      if (!_signers.contains(signer.publicKey)) {
-        _signers.add(signer.publicKey);
-      }
     }
   }
 
@@ -564,27 +587,27 @@ class Transaction {
 
   /// Create a transaction that can be used with the solana package
   Map<String, dynamic> toSolanaTransaction() => {
-        'instructions': instructions
-            .map(
-              (ix) => {
-                'programId': ix.programId.toBase58(),
-                'accounts': ix.accounts
-                    .map(
-                      (acc) => {
-                        'pubkey': acc.pubkey.toBase58(),
-                        'isSigner': acc.isSigner,
-                        'isWritable': acc.isWritable,
-                      },
-                    )
-                    .toList(),
-                'data': ix.data,
-              },
-            )
-            .toList(),
-        'recentBlockhash': recentBlockhash,
-        'feePayer': feePayer?.toBase58(),
-        'signatures': _signatures.map(MapEntry.new),
-      };
+    'instructions': instructions
+        .map(
+          (ix) => {
+            'programId': ix.programId.toBase58(),
+            'accounts': ix.accounts
+                .map(
+                  (acc) => {
+                    'pubkey': acc.pubkey.toBase58(),
+                    'isSigner': acc.isSigner,
+                    'isWritable': acc.isWritable,
+                  },
+                )
+                .toList(),
+            'data': ix.data,
+          },
+        )
+        .toList(),
+    'recentBlockhash': recentBlockhash,
+    'feePayer': feePayer?.toBase58(),
+    'signatures': _signatures.map(MapEntry.new),
+  };
 }
 
 /// Solana transaction signature
@@ -602,7 +625,7 @@ class Signature {
   /// Create a signature from base58 string
   factory Signature.fromString(String signature) {
     try {
-      final bytes = base58.decode(signature);
+      final bytes = Uint8List.fromList(base58decode(signature));
       if (bytes.length != 64) {
         throw ArgumentError(
           'Invalid signature length: expected 64 bytes, got ${bytes.length}',
@@ -616,7 +639,7 @@ class Signature {
   final Uint8List bytes;
 
   /// Convert signature to base58 string
-  String toBase58() => base58.encode(bytes);
+  String toBase58() => base58encode(bytes);
 
   @override
   String toString() => toBase58();

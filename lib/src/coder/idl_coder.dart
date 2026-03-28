@@ -111,7 +111,7 @@ class IdlCoder {
         }
 
         final typeDef = idl.types?.firstWhere(
-          (t) => t.name == type.defined,
+          (t) => t.name == type.defined!.name,
           orElse: () => throw IdlCoderError('Type not found: ${type.defined}'),
         );
 
@@ -174,8 +174,9 @@ class IdlCoder {
               variantSize += _calculateTypeSize(field.type, idl, genericArgs);
             }
           }
-          maxVariantSize =
-              maxVariantSize > variantSize ? maxVariantSize : variantSize;
+          maxVariantSize = maxVariantSize > variantSize
+              ? maxVariantSize
+              : variantSize;
         }
         return 1 + maxVariantSize; // 1 byte discriminator + max variant size
 
@@ -185,10 +186,7 @@ class IdlCoder {
   }
 
   /// Resolve array length from generic or constant value
-  static int _resolveArrayLen(
-    dynamic len,
-    List<IdlGenericArg>? genericArgs,
-  ) {
+  static int _resolveArrayLen(dynamic len, List<IdlGenericArg>? genericArgs) {
     if (len is int) {
       return len;
     }
@@ -219,9 +217,5 @@ class IdlGenericArg {
   final dynamic type; // For 'type' kind
   final String value; // For 'const' kind
 
-  const IdlGenericArg({
-    required this.kind,
-    this.type,
-    this.value = '',
-  });
+  const IdlGenericArg({required this.kind, this.type, this.value = ''});
 }
