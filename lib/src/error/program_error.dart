@@ -41,10 +41,10 @@ class ProgramError extends Error {
 
   /// Get the program that threw the error (last in stack)
   PublicKey? get program {
-    if (_programErrorStack == null || _programErrorStack!.isEmpty) {
+    if (_programErrorStack == null || _programErrorStack.isEmpty) {
       return null;
     }
-    return _programErrorStack!.currentProgram;
+    return _programErrorStack.currentProgram;
   }
 
   /// Get the complete program error stack
@@ -198,7 +198,7 @@ class ProgramError extends Error {
     }
 
     if (_programErrorStack != null) {
-      json['programErrorStack'] = _programErrorStack!.toJson();
+      json['programErrorStack'] = _programErrorStack.toJson();
     }
 
     return json;

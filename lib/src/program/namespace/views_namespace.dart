@@ -196,7 +196,7 @@ class ViewFunction {
   /// Decode the return data using the specified return type
   dynamic _decodeReturnData(Uint8List data, String returnTypeName) {
     try {
-      return _coder.types.decode(returnTypeName, data);
+      return _coder.types.decode<dynamic>(returnTypeName, data);
     } catch (e) {
       throw FormatException(
         'Failed to decode return data for ${_instruction.name}: $e',

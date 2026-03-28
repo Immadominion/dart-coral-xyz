@@ -815,7 +815,7 @@ class BorshInstructionCoder implements InstructionCoder {
           return {variant.name: data};
         }
         // Unit variant
-        return {variant.name: {}};
+        return {variant.name: <String, dynamic>{}};
       default:
         throw InstructionCoderException(
           'Unknown type definition kind: ${typeDef.type.kind}',

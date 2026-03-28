@@ -528,7 +528,7 @@ class Program<T extends Idl> {
     final programId = PublicKey.fromBase58(address);
     provider ??= AnchorProvider.defaultProvider();
 
-    final idl = await IdlUtils.fetchIdl(programId, provider!);
+    final idl = await IdlUtils.fetchIdl(programId, provider);
     if (idl == null) {
       return null;
     }
@@ -554,7 +554,7 @@ class Program<T extends Idl> {
   }) async {
     provider ??= AnchorProvider.defaultProvider();
 
-    return IdlUtils.fetchIdl(programId, provider!);
+    return IdlUtils.fetchIdl(programId, provider);
   }
 
   /// Calculate the IDL address for a given program ID

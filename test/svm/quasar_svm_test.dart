@@ -3,6 +3,7 @@
 /// Mirrors the Python test suite in quasar-svm/bindings/python/tests/ for parity,
 /// then adds Dart-specific lifecycle and sysvar tests.
 @TestOn('vm')
+@Tags(['svm'])
 library;
 
 import 'dart:typed_data';

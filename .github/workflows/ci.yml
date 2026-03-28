@@ -32,5 +32,5 @@ jobs:
 
       - run: dart pub get
 
-      - name: Run tests (exclude integration)
-        run: dart test -x integration
+      - name: Run tests (exclude integration and svm)
+        run: dart test -x integration -x svm

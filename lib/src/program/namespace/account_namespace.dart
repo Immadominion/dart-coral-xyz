@@ -143,7 +143,7 @@ class AccountClient<T> {
   String get name => _idlAccount.name;
 
   /// Get the account discriminator
-  List<int> get discriminator => _idlAccount.discriminator ?? [];
+  List<int> get discriminator => _idlAccount.discriminator;
 
   /// Dispose of the account client and clean up subscriptions
   void dispose() {

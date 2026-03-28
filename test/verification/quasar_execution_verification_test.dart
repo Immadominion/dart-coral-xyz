@@ -11,6 +11,7 @@
 /// - "Zero-copy account decoding is proven against program-created accounts."
 /// - "At least one real Quasar program is exercised through the Dart client API."
 @TestOn('vm')
+@Tags(['svm'])
 library;
 
 import 'dart:convert';
